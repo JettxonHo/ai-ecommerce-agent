@@ -25,6 +25,20 @@ from .commit import BusinessCommitService
 from .providers import MockRetrievalRuntime, ScriptedModelProvider
 
 
+class StaleResumeError(Exception):
+    """Raised when a node runs without a valid runtime identity (e.g. a stale
+    or foreign checkpoint resume). Fails BEFORE any business write."""
+
+
+def _require_identity(state: GraphState) -> None:
+    """Every business-writing node requires a full runtime identity. A stale /
+    foreign resume arrives with an empty state (no task_id), so we fail fast
+    instead of writing business data under a wrong/empty identity."""
+    for key in ("task_id", "thread_id", "workflow_run_id"):
+        if not state.get(key):
+            raise StaleResumeError(f"missing runtime identity '{key}': refusing to write business state")
+
+
 class GraphState(TypedDict, total=False):
     task_id: str
     thread_id: str
@@ -50,6 +64,7 @@ def build_business_graph(
     """Compile the minimal business-flow graph with injected services."""
 
     def extract_facts(state: GraphState) -> dict:
+        _require_identity(state)
         out = model.generate_facts(state.get("product_input", {}))
         res = commit.commit_domain_version(
             domain="facts",

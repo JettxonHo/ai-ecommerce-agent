@@ -30,8 +30,17 @@ class ReviewService:
         self.commit = BusinessCommitService(conn)
 
     def _package_current(self, review_id: str) -> bool:
+        """A package is submittable only while it is the current pointer AND
+        still in 'valid' (pending) status. After submit it is superseded, so a
+        second submit (new idempotency key) is correctly rejected as stale."""
         cur = self.commit.current_truth("review_package")
-        return cur == review_id
+        if cur != review_id:
+            return False
+        row = self.conn.execute(
+            "SELECT status FROM domain_version WHERE version_id = ? AND domain = 'review_package'",
+            (review_id,),
+        ).fetchone()
+        return bool(row) and row["status"] == "valid"
 
     def submit(
         self,
