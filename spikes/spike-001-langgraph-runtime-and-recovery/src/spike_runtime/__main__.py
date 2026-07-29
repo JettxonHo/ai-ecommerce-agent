@@ -1,13 +1,10 @@
 """CLI Scenario Runner (DEC-035 execution-brief).
 
-Unified entry point:
+    python -m spike_runtime run --scenario spike-01-normal-workflow --workspace .spike-runs/spike-01
 
-    python -m spike_runtime run --scenario spike-00-skeleton --workspace .spike-runs/spike-00
-
-S0 scope: initialize the three separated stores, build the graph with a
-SqliteSaver checkpointer, run an interrupt/resume cycle, emit a runtime
-record + JSONL trace, and write a scenario-result.json. Full business
-scenarios (spike-01..12) are added in later stages.
+Each scenario runs in an isolated workspace directory and produces
+business/runtime/checkpoints stores, trace.jsonl, business-snapshot.json and
+scenario-result.json. Scenarios are added stage by stage.
 """
 
 from __future__ import annotations
@@ -16,84 +13,53 @@ import argparse
 import json
 from pathlib import Path
 
-from langgraph.types import Command
-
-from . import ids
-from .graph import build_graph, make_checkpointer
-from .stores import init_all
-from .trace import LocalTraceRecorder
+from .harness import WorkflowHarness
 
 
-def run_skeleton(workspace: Path) -> dict:
-    """S0 smoke: prove graph runs, checkpoints persist, runtime record generated."""
-    workspace = Path(workspace)
-    paths = init_all(workspace)
-    trace = LocalTraceRecorder(workspace / "trace.jsonl", ids.trace_id())
-
-    task_id = ids.task_id()
-    thread_id = ids.new_id("thread")
-    workflow_run_id = ids.workflow_run_id()
-
-    saver, conn = make_checkpointer(str(paths.checkpoints))
+def run_normal_workflow(workspace: Path) -> dict:
+    """spike-01: full normal workflow (facts -> insights -> positioning ->
+    review package -> interrupt -> review submit -> resume -> marketing brief).
+    """
+    h = WorkflowHarness(workspace)
     try:
-        graph = build_graph(saver)
-        config = {"configurable": {"thread_id": thread_id}}
+        start = h.start({"name": "Acme Bottle", "category": "drinkware"})
+        assert start["interrupted"], "graph must pause at await_human_review"
+        review_id = start["state"]["review_id"]
 
-        trace.record("run_start", task_id=task_id, workflow_run_id=workflow_run_id, thread_id=thread_id)
-
-        initial = {
-            "task_id": task_id,
-            "thread_id": thread_id,
-            "workflow_run_id": workflow_run_id,
-        }
-        # First invoke: runs create_review_package -> await_human_review -> interrupt.
-        result = graph.invoke(initial, config=config)
-        interrupted = "__interrupt__" in result
-        review_id = result.get("review_id")
-        trace.record("interrupted", review_id=review_id, interrupted=interrupted)
-
-        # Resume with the same thread_id, a NEW run id, no package recreation.
-        resume_run_id = ids.workflow_run_id()
-        submission = {"approved_strategy_version_id": "strategy_v1", "action": "submit"}
-        final = graph.invoke(Command(resume=submission), config=config)
-        trace.record(
-            "resumed",
-            workflow_run_id=resume_run_id,
-            approved_strategy_version_id=final.get("approved_strategy_version_id"),
+        submit = h.submit_review(
+            review_id,
+            {
+                "value_proposition": "the easy default choice",
+                "target_segment": "beginners",
+                "differentiation": "lowest setup friction",
+                "proof_points": ["frag_1"],
+            },
+            idempotency_key=f"review-submit:{h.task_id}",
         )
+        assert submit["committed"], "review submit must commit an approved strategy"
 
-        # Verify a checkpoint exists for this thread.
-        state = graph.get_state(config)
-        checkpoint_present = state is not None and state.values.get("review_id") == review_id
+        final = h.resume(submit["approved_strategy_version_id"])
+        snap = h.business_snapshot()
 
-        runtime_record = {
-            "task_id": task_id,
-            "thread_id": thread_id,
-            "workflow_run_id": workflow_run_id,
-            "resume_run_id": resume_run_id,
-            "review_id": review_id,
-            "interrupted": interrupted,
-            "approved_strategy_version_id": final.get("approved_strategy_version_id"),
-            "checkpoint_present": checkpoint_present,
+        status = "pass"
+        checks = {
+            "current_truth_facts_present": "facts" in snap["current_truth_pointers"],
+            "approved_strategy_version_count_is_1": snap["metrics"]["approved_strategy_version_count"] == 1,
+            "partial_write_count_is_0": snap["metrics"]["partial_write_count"] == 0,
+            "marketing_brief_present": "marketing_brief" in snap["current_truth_pointers"],
         }
+        if not all(checks.values()):
+            status = "fail"
+        return h.export_evidence(
+            "spike-01-normal-workflow",
+            status,
+            extra={
+                "checks": checks,
+                "final_marketing_brief_version_id": final["state"].get("marketing_brief_version_id"),
+            },
+        )
     finally:
-        conn.close()
-
-    result_doc = {
-        "scenario": "spike-00-skeleton",
-        "status": "pass" if (runtime_record["interrupted"] and checkpoint_present) else "fail",
-        "runtime_record": runtime_record,
-        "stores": {
-            "business": str(paths.business),
-            "runtime": str(paths.runtime),
-            "checkpoints": str(paths.checkpoints),
-        },
-    }
-    (workspace / "scenario-result.json").write_text(
-        json.dumps(result_doc, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    trace.record("run_end", status=result_doc["status"])
-    return result_doc
+        h.close()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -105,11 +71,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "run":
-        if args.scenario in ("spike-00-skeleton", "skeleton"):
-            doc = run_skeleton(Path(args.workspace))
+        if args.scenario in ("spike-01-normal-workflow", "spike-01"):
+            doc = run_normal_workflow(Path(args.workspace))
             print(json.dumps({"scenario": doc["scenario"], "status": doc["status"]}, ensure_ascii=False))
             return 0 if doc["status"] == "pass" else 1
-        print(json.dumps({"error": f"unknown scenario: {args.scenario}"}))
+        print(json.dumps({"error": f"unknown scenario: {args.scenario}"}, ensure_ascii=False))
         return 2
     return 2
 
