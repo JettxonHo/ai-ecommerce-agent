@@ -59,15 +59,17 @@ CLI Scenario Runner
 - `temporary-stack.md` — 临时技术栈（DEC-035：Python 3.13 / LangGraph 1.2.9 / 同步 / 三 SQLite / SqliteSaver / Scripted Model / Mock Retrieval / pytest / JSONL / CLI）。
 - `execution-brief.md` — 执行简报（DEC-035：Spike Objective / Human Review 节点边界 / Repository 职责 / Atomic Commit / Fault Injection / Scenario Runner / Scenario Isolation / S0—S6 / Agent 权限与禁止 / Secret 边界 / 交付物 / 结果接受边界）。
 
-## Spike 执行后才会产生（当前不创建）
+## Spike 执行产物（S6 已创建）
 
 ```text
-implementation-notes.md
-test-results.md
-runtime-evidence.md
-limitations.md
-spike-report.md
+implementation-notes.md   ✅ 实现说明
+test-results.md           ✅ 测试结果（25 passed）
+runtime-evidence.md       ✅ 运行时证据
+limitations.md            ✅ 局限性
+spike-report.md           ✅ 报告 + Readiness Recommendation（RECOMMENDED: CONDITIONALLY READY，仅建议）
 ```
+
+> **最终状态：Spike Execution Status = COMPLETED · Architecture Readiness Status = PENDING USER REVIEW · Development Status = NOT READY。** 最终 READY 由用户人工 Gate 决定（`Merge PR ≠ READY`）。
 
 ## 与历史 Spike 文档的关系
 
