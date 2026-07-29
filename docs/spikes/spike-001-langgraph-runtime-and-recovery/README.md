@@ -1,10 +1,11 @@
 # Spike-001 — LangGraph Runtime and Recovery（Spike 工作区）
 
-> **Status: PLANNED — NOT STARTED**
+> **Status: IN PROGRESS（S0—S6 执行中）**
 > **来源决定：** [DEC-034 — Technical Spike Plan and Architecture Readiness Gate](../../decisions/dec-034-technical-spike-and-architecture-readiness-gate.md) · [DEC-035 — Technical Spike 临时技术栈与执行契约](../../decisions/dec-035-technical-spike-temporary-stack-and-execution-contract.md)
 > **概念规格：** [../../specs/readiness/technical-spike-and-architecture-readiness-gate.md](../../specs/readiness/technical-spike-and-architecture-readiness-gate.md) · [../../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md](../../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md)
 > **相关 Session：** [Session-002](../../sessions/session-002-agent-workflow-reliability-and-technical-capabilities.md)
-> **Development Status: NOT READY · Spike Execution Status: NOT STARTED**
+> **Spike Issue：** [#1](https://github.com/JettxonHo/ai-ecommerce-agent/issues/1) · **Dedicated Branch：** `spike/001-langgraph-runtime-recovery`
+> **Development Status: NOT READY · Spike Execution Status: IN PROGRESS · Architecture Readiness Status: NOT READY**
 
 ---
 

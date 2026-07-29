@@ -1,6 +1,6 @@
 # Spike-001 Execution Brief
 
-> **Status: PLANNED — NOT STARTED**
+> **Status: IN PROGRESS（S0—S6 执行中）· Issue: [#1](https://github.com/JettxonHo/ai-ecommerce-agent/issues/1) · Branch: `spike/001-langgraph-runtime-recovery`**
 > 来源决定：[DEC-035](../../decisions/dec-035-technical-spike-temporary-stack-and-execution-contract.md)
 > 概念规格：[../../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md](../../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md)
 > 临时栈：[./temporary-stack.md](./temporary-stack.md)
