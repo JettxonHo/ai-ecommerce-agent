@@ -1,0 +1,38 @@
+# macOS
+.DS_Store
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Spike runtime data
+.spike-runs/
+.spike-data/
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Local logs and caches
+*.log
+.cache/
+tmp/
+temp/
+
+# IDE
+.vscode/
+.idea/
