@@ -77,10 +77,16 @@ class ReviewService:
             stage_state="strategy_approved",
         )
 
-        # Mark the review package as submitted (superseded as a pending package).
+        # Mark the review package as submitted: supersede it and REMOVE the
+        # pending 'review_package' pointer (a submitted package is no longer a
+        # pending Current Truth; the Approved Strategy is the new truth).
         with self.conn:
             self.conn.execute(
                 "UPDATE domain_version SET status = 'superseded' WHERE version_id = ? AND domain = 'review_package'",
+                (review_id,),
+            )
+            self.conn.execute(
+                "DELETE FROM current_truth_pointer WHERE domain = 'review_package' AND version_id = ?",
                 (review_id,),
             )
             self.conn.execute(
