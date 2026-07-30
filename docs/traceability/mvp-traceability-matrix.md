@@ -41,9 +41,9 @@
 | RFC-001-DQ-08 Module Public Contracts, Cross-module Collaboration and Cycle Governance（Public Facade `modules.<module>.public` / Immutable Snapshot / Cross-module Public Query / Owning Application Service State Change / Orchestration Coordination / Composite Use Case / Application Event Post-commit / DAG Dependency / Public Error Contract / Architecture Tests） | RFC-001 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §12 | RFC-001, RFC-002, RFC-003, RFC-004 | _(placeholder)_ | _(placeholder)_ |
 | RFC-001-DQ-09 Quality Toolchain, Architecture Enforcement, CI Quality Gates and Test Baseline（Ruff Formatter/Linter / Pyright Strict-first / pytest Strict Markers / Import Linter + Custom Architecture Tests / Deterministic Required PR Tests / Branch-aware Coverage 80% / pip-audit / Secret Detection / Protected main Required Checks / Live Evaluation separated） | RFC-001 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §11 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | RFC-001-DQ-10 Production Skeleton Scope, Foundation Authorization Gate and RFC Closure（Acceptance vs Authorization Separation / Foundation Planning Gate / Foundation Implementation separate authorization / Initial Foundation Scope = Package + Quality + Architecture Tests + CI + Repository Security / Business Modules·Platform·Orchestration·API·Worker·Bootstrap·DB·LangGraph·Model·Retrieval·Observability NOT IMPLEMENTED / Spike Source Migration Prohibited / FND-001→FND-002→FND-003 / Mandatory Stop Conditions） | DEC-034, DEC-036, DEC-038 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §10 | RFC-001, RFC-002, RFC-003, RFC-004, RFC-005, RFC-006, RFC-007 | _(placeholder: Future Roadmap Draft v0)_ | _(placeholder)_ |
-| **FND-001 — Backend Package and Local Tooling Foundation**（**IN REVIEW**；Issue Creation AUTHORIZED（[Issue #6](https://github.com/JettxonHo/ai-ecommerce-agent/issues/6)）；Backend Package `apps/backend/src/ai_ecommerce_agent/` + Python 3.13 + uv Lockfile + Ruff/Pyright/pytest/Coverage Local Tooling + Unified Local Commands；Branch `foundation/001-backend-package-local-tooling`；Merge = USER DECISION REQUIRED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | apps/backend/ | docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-02 / DQ-03 / DQ-09 / DQ-10） | [Issue #6](https://github.com/JettxonHo/ai-ecommerce-agent/issues/6) | [PR #7](https://github.com/JettxonHo/ai-ecommerce-agent/pull/7) |
-| **FND-002 Candidate — Architecture Enforcement and Test Foundation**（**READY, BLOCKED BY FND-001**；deps: FND-001 = MERGED；Import Linter 10 Contracts + Positive/Negative Architecture Fixtures + pytest Test Classification + Network Protection；Issue Creation & Implementation NOT AUTHORIZED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | — | docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-03 / DQ-04 / DQ-05 / DQ-06 / DQ-08 / DQ-09 / DQ-10） | _(placeholder: FND-002 Issue，未授权创建)_ | _(placeholder)_ |
-| **FND-003 Candidate — CI, Security and Repository Protection**（**READY, BLOCKED BY FND-001 AND FND-002**；deps: FND-001 + FND-002 = MERGED；GitHub Actions + 8 Stable Required Checks（Fast Static / Deterministic Test / Security Gate）+ Dependency Audit（pip-audit）+ Secret Detection + Dependabot + PR / Issue Templates + `main` Branch Protection + Repository Governance Documentation；Issue Creation & Implementation NOT AUTHORIZED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | — | docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-06 / DQ-08 / DQ-09 / DQ-10）, FND-001, FND-002, GitHub Governance, Security Foundation | _(placeholder: FND-003 Issue，未授权创建)_ | _(placeholder)_ |
+| **FND-001 — Backend Package and Local Tooling Foundation**（**COMPLETED**；Issue #6 CLOSED；PR #7 MERGED；Merge Commit `5b75bcf99eba45f47fa501bfcf60d1e637601a07`；Merged 2026-07-30T12:38:48Z by JettxonHo（用户 Merge 决定「我已 merged」）；Post-merge Smoke Verification = PASS；Backend Package `apps/backend/src/ai_ecommerce_agent/` + Python 3.13 + uv Lockfile + Ruff/Pyright/pytest/Coverage Local Tooling + Unified Local Commands；Code Status = COMPLETED，Archive Status = IN REVIEW（文档归档 PR 待合并），Overall Status = CLOSURE IN REVIEW） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | apps/backend/ | PR #7 + docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-02 / DQ-03 / DQ-09 / DQ-10） | [Issue #6](https://github.com/JettxonHo/ai-ecommerce-agent/issues/6) | [PR #7](https://github.com/JettxonHo/ai-ecommerce-agent/pull/7)（MERGED） |
+| **FND-002 Candidate — Architecture Enforcement and Test Foundation**（**READY FOR AUTHORIZATION**；deps: FND-001 = MERGED（满足）；Import Linter 10 Contracts + Positive/Negative Architecture Fixtures + pytest Test Classification + Network Protection；Issue Creation & Implementation NOT AUTHORIZED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | — | docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-03 / DQ-04 / DQ-05 / DQ-06 / DQ-08 / DQ-09 / DQ-10） | _(placeholder: FND-002 Issue，未授权创建)_ | _(placeholder)_ |
+| **FND-003 Candidate — CI, Security and Repository Protection**（**READY, BLOCKED BY FND-002**；deps: FND-001 = MERGED ✓，FND-002 = MERGED（未满足）；GitHub Actions + 8 Stable Required Checks（Fast Static / Deterministic Test / Security Gate）+ Dependency Audit（pip-audit）+ Secret Detection + Dependabot + PR / Issue Templates + `main` Branch Protection + Repository Governance Documentation；Issue Creation & Implementation NOT AUTHORIZED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | — | docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-06 / DQ-08 / DQ-09 / DQ-10）, FND-001, FND-002, GitHub Governance, Security Foundation | _(placeholder: FND-003 Issue，未授权创建)_ | _(placeholder)_ |
 
 
 ### A. 核心工作流与编排
@@ -126,16 +126,22 @@ Development Status = CONDITIONALLY READY
 Foundation Planning = AUTHORIZED（生成并审查 FND Issue Candidates）
 Foundation Candidate Planning = COMPLETED（FND-001 / FND-002 / FND-003 均已形成）
 Foundation Candidate Final Review = PASS（2026-07-30，范围完整性 / 职责分离 / 依赖顺序 / RFC-001 一致性 / 后续 RFC 范围保护全部 PASS，Decision Conflict = NONE）
-FND-001 Candidate Status = READY FOR AUTHORIZATION
-FND-001 Issue Creation = AUTHORIZED（2026-07-30，Issue #6）
-FND-001 Implementation = IN REVIEW（Branch foundation/001-backend-package-local-tooling；PR #7 待用户审查；Merge = USER DECISION REQUIRED）
-FND-002 Candidate Status = READY, BLOCKED BY FND-001
+FND-001 Candidate Status = COMPLETED
+FND-001 Issue Creation = COMPLETED（Issue #6，CLOSED）
+FND-001 Implementation = COMPLETED（PR #7 MERGED，Merge Commit 5b75bcf99eba45f47fa501bfcf60d1e637601a07，2026-07-30）
+FND-001 Merge = COMPLETED（用户 Merge 决定「我已 merged」确认；Merge Method = Merge Commit；Merged By = JettxonHo）
+FND-001 Verification = PASS（Post-merge Smoke Verification）
+FND-001 Code Status = COMPLETED
+FND-001 Archive Status = IN REVIEW（文档归档 PR 待用户合并）
+FND-001 Overall Status = CLOSURE IN REVIEW
+FND-001 Completed Date = 2026-07-30
+FND-002 Candidate Status = READY FOR AUTHORIZATION（deps FND-001 = MERGED，满足）
 FND-002 Issue Creation = NOT AUTHORIZED
 FND-002 Implementation = NOT AUTHORIZED
-FND-003 Candidate Status = READY, BLOCKED BY FND-001 AND FND-002
+FND-003 Candidate Status = READY, BLOCKED BY FND-002
 FND-003 Issue Creation = NOT AUTHORIZED
 FND-003 Implementation = NOT AUTHORIZED
-Foundation / Business / Production Implementation = NOT AUTHORIZED
+Foundation Implementation（FND-002 / FND-003）/ Business / Production Implementation = NOT AUTHORIZED（Foundation 整体未完成）
 
-Next Topic: FND-001 Issue Creation and Implementation Authorization Gate（Final Review = PASS；只有用户明确回复「确认授权创建并实施 FND-001」才可授权创建 FND-001 GitHub Issue / Branch / PR、修改 Repository、执行 FND-001 范围内的 Foundation Implementation；该授权不包括 FND-002 / FND-003 或任何业务实现；用户明确授权前不创建任何 Foundation Issue / Branch / PR、不修改 Repository、不执行 Foundation Implementation）
+Next Topic: FND-002 Issue Creation and Implementation Authorization Gate（FND-001 已完成并合并；只有用户明确回复「确认授权创建并实施 FND-002」才可授权创建 FND-002 GitHub Issue / Branch / PR、执行 FND-002 范围内的 Foundation Implementation；该授权不包括 FND-003 或任何业务实现；用户明确授权前不创建 FND-002 Issue / Branch / PR、不安装 Import Linter、不执行 FND-002 Implementation）
 ```
