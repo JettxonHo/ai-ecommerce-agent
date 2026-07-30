@@ -56,7 +56,13 @@ exclude = [
     "**/__pycache__",
     ".venv",
     ".pytest_cache",
+    # Test-only architecture fixtures deliberately contain fictional module
+    # structures and imports of packages that are not installed (no ORM, no
+    # LangGraph in FND-002); type checking them is noise without value.
+    # Helpers and test modules outside fixtures remain strictly checked.
+    "tests/architecture/fixtures",
 ]
+extraPaths = ["tests/architecture"]
 reportMissingImports = true
 reportMissingTypeStubs = false
 venvPath = "."
