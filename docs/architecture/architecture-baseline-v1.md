@@ -205,7 +205,7 @@ Foundation Agent 在需要：选择 Database / ORM / API Framework / Worker Fram
 
 ## 11. 已确认质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线（RFC-001-DQ-09）
 
-> 来源：RFC-001-DQ-09（ACCEPTED）。生产代码采用 Ruff、Pyright、pytest、Import Linter 与自定义 Architecture Tests 构成统一质量工具链；所有 PR 必须通过类型、架构、确定性测试、覆盖率、依赖和 Secret 检查，`main` 由 Required Status Checks 保护，AI Live Evaluation 与普通确定性 Merge Gate 分离。**RFC-001 保持 `DRAFTING`；Production CI 与 Skeleton 创建仍 NOT AUTHORIZED。**
+> 来源：RFC-001-DQ-09（ACCEPTED）。生产代码采用 Ruff、Pyright、pytest、Import Linter 与自定义 Architecture Tests 构成统一质量工具链；所有 PR 必须通过类型、架构、确定性测试、覆盖率、依赖和 Secret 检查，`main` 由 Required Status Checks 保护，AI Live Evaluation 与普通确定性 Merge Gate 分离。**RFC-001 已于 2026-07-30 ACCEPTED；Production CI 与 Skeleton 创建仍 NOT AUTHORIZED。**
 
 ### 10.1 Quality Governance Model
 
@@ -357,7 +357,7 @@ Contract Tests：Schema Tests（字段/类型/必填/默认/序列化/Version）
 
 尚未确认：Python Formatter；Linter；Type Checker；Architecture Test 工具；Contract Test Framework；CI Quality Gate；Coverage Policy；Dependency Scan；Security Scan；Warning Policy；Foundation Skeleton 最低质量标准；Event Bus；Outbox；Schema Library；Production Public Contract Implementation。
 
-本 Decision 不选择 Event Bus / Outbox / Schema Library / Contract Test Framework；RFC-001 保持 `DRAFTING`；**正式 Public Contract、Application Event Runtime、Event Bus、生产 Command/Query 实现、跨模块 Composite Use Case 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
+本 Decision 不选择 Event Bus / Outbox / Schema Library / Contract Test Framework；RFC-001 已于 2026-07-30 ACCEPTED；**正式 Public Contract、Application Event Runtime、Event Bus、生产 Command/Query 实现、跨模块 Composite Use Case 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
 
 ## 13. 已确认进程边界与同步/异步执行策略（RFC-001-DQ-07）
 
@@ -417,7 +417,7 @@ API 与 Worker 之间只传递轻量 Runtime Reference（`task_id / run_id / thr
 
 尚未确认：Durable Dispatch 具体实现；Worker Framework；Queue / Broker；Job Lease / Heartbeat / Ack / Visibility Timeout；Checkpoint Backend；Resume State Machine；API Framework / HTTP Endpoint；Polling / SSE / WebSocket；Deployment Platform；Process Health Check；Worker Scaling Policy；Graph Version Migration；Production Runtime Implementation。
 
-本 Decision 不选择 API Framework / Queue / Database Driver / Worker Framework / Deployment Platform；RFC-001 保持 `DRAFTING`；**API、Worker、Production Runtime 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
+本 Decision 不选择 API Framework / Queue / Database Driver / Worker Framework / Deployment Platform；RFC-001 已于 2026-07-30 ACCEPTED；**API、Worker、Production Runtime 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
 
 ## 14. 已确认 Skill 代码形态与架构关系（RFC-001-DQ-05）
 
@@ -457,7 +457,7 @@ Skill 须支持 **Contract / Unit / Integration / Evaluation / Architecture** �
 
 尚未确认：具体模型 Provider、Retrieval Backend、Schema/Validation Library、Prompt Registry、Evaluation Framework、Skill Executor 具体实现机制。
 
-本 Decision 不选择模型 Provider / Retrieval Backend / Schema Library / Prompt Registry / Evaluation Framework；RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
+本 Decision 不选择模型 Provider / Retrieval Backend / Schema Library / Prompt Registry / Evaluation Framework；RFC-001 已于 2026-07-30 ACCEPTED；Production Implementation 保持 `NOT AUTHORIZED`。
 
 ## 15. 已确认依赖注入、配置与应用装配（RFC-001-DQ-06）
 
@@ -497,7 +497,7 @@ Repository **只提交 `.env.example`（占位值，无真实凭证）= REQUIRED
 
 尚未确认：第三方 DI Framework（后续是否引入）、Settings/Configuration Library、Secret Manager 与生产凭证来源、API Framework、Worker/Queue、同步/异步与进程边界（DQ-07）、Database 和 ORM、Architecture Test 工具、Deployment Platform、Production Skeleton。
 
-本 Decision 不选择 DI Framework / Secret Manager / Settings Library / Deployment Platform；RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
+本 Decision 不选择 DI Framework / Secret Manager / Settings Library / Deployment Platform；RFC-001 已于 2026-07-30 ACCEPTED；Production Implementation 保持 `NOT AUTHORIZED`。
 
 ## 16. 已确认分层职责、事务所有权与依赖规则（RFC-001-DQ-04）
 
@@ -631,7 +631,7 @@ Domain Event 表示 Domain 已发生业务事实，Domain 可产生但不发布�
 
 尚未确认：Configuration Management、API Framework、Database 和 ORM、Worker 和 Queue、Architecture Test 工具、Production Skeleton。
 
-RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
+RFC-001 已于 2026-07-30 ACCEPTED；Production Implementation 保持 `NOT AUTHORIZED`。
 
 ## 17. 已确认 Repository 与 Package 目录结构（RFC-001-DQ-03）
 
