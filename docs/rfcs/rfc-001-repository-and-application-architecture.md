@@ -1,9 +1,10 @@
 # RFC-001：Repository and Application Architecture
 
-> **Status:** `DRAFTING`
+> **Status:** `ACCEPTED`
+> **Accepted:** 2026-07-30（用户明确接受：「确认接受 RFC-001」）
 > **Parent DEC-038 Topic:** RFC Planning and Dependency Order
 > **Wave:** Wave 1
-> **纪律：** 本文档为 RFC 提案，**不等同**已接受决定。任何被用户明确接受的内容，会同步更新到 `docs/architecture/architecture-baseline-v1.md` 与 Traceability Matrix。
+> **纪律：** 本 RFC 已被用户正式接受。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation **仍未授权**（见 Decision Question 10）。任何被接受的内容已同步到 `docs/architecture/architecture-baseline-v1.md` 与 Traceability Matrix。
 
 ---
 
@@ -4100,9 +4101,42 @@ Related: RFC-001-DQ-01 (Modular Monolith); DQ-02 (Language Boundary); DQ-03 (Rep
 
 ---
 
+## RFC-001 Final Acceptance（整体接受记录）
+
+> **Status:** `ACCEPTED`
+> **Accepted Date:** 2026-07-30
+> **User Decision:** 「确认接受 RFC-001」
+> **Review Gate:** RFC-001 Final Consistency Review — **PASS**（Decision Completeness / Internal Consistency / Accepted DEC Alignment / Architecture Baseline Compatibility / Later RFC Scope Separation / Foundation Authorization Boundary / Architecture Enforcement Feasibility 全部通过；Decision Conflict = NONE FOUND）
+
+DQ-01~DQ-10 全部 ACCEPTED，且 RFC-001 Final Consistency Review 通过后，用户已**明确接受 RFC-001 整体**。本 RFC 正式转为 `ACCEPTED`。
+
+**接受后的授权状态（Acceptance ≠ Authorization 仍然成立）：**
+
+```text
+RFC-001 Status = ACCEPTED
+RFC-001-DQ-01 ~ DQ-10 = ACCEPTED
+
+Foundation Planning Status = AUTHORIZED        ← 本次唯一变化
+Foundation Implementation Status = NOT AUTHORIZED
+Business Implementation Status = NOT AUTHORIZED
+
+Architecture Readiness Status = CONDITIONALLY READY
+Development Status = CONDITIONALLY READY
+Production Implementation = NOT AUTHORIZED
+```
+
+- RFC-001 的接受**仅开放 Foundation Planning**；不授权自动创建 Foundation Issue、不授权 Foundation Implementation、不授权任何生产代码、不授权业务功能开发。
+- 每个 Foundation Issue（FND-001 / FND-002 / FND-003）仍需**单独明确的用户授权**，并按 One Issue → One Branch → One PR → Required Verification → User Merge Gate 执行。
+- 17 类 Mandatory Stop Conditions 持续有效；遇未决架构问题必须停止并提交 Decision Conflict / Mandatory Stop Report，不得静默决定。
+- **关于 Merge PR / Delete Branch：** 本 RFC 的决策文档直接在本 Repository 的 `main` 分支上开发与提交，未创建独立的 RFC-001 PR 或 RFC Branch，因此 DEC-038 流程中的「Merge RFC-001 PR / Delete RFC Branch」步骤在当前工作流下不适用；对应 GitHub Issue #5 已随本次接受关闭。
+
+**Immediate Next Topic：** 生成并审查 **FND-001 / FND-002 / FND-003 Issue Candidates**（仅生成候选，不自动创建 Issue，不开始 Foundation Implementation）。
+
+---
+
 ## Open Questions
 
-DQ-01~DQ-10 已全部 ACCEPTED。RFC-001 下一步为 **RFC-001 Final Consistency Review**（见 Decision Question 10）；RFC-001 保持 `DRAFTING`，Foundation Planning 未开始。以下为仍需后续 RFC / Decision 收敛的开放技术问题：
+DQ-01~DQ-10 已全部 ACCEPTED，RFC-001 已于 2026-07-30 整体 ACCEPTED（见上方 RFC-001 Final Acceptance）。以下为仍需后续 RFC / Decision 收敛的开放技术问题：
 
 1. Durable Dispatch 的具体实现（RFC-002 / RFC-003）。
 2. API Framework 与 HTTP Endpoint（RFC-004）。

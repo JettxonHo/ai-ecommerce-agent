@@ -5,7 +5,7 @@
 > **当前状态（用户决策后）：** Spike Execution Status = **COMPLETED** · Architecture Readiness Status = **CONDITIONALLY READY**（用户已确认，User Decision 记录于 [../readiness/architecture-readiness-report-v1.md](../readiness/architecture-readiness-report-v1.md) §16）· Development Status = **CONDITIONALLY READY**（**仅限**规划与治理范围）。
 > **授权范围：** Architecture RFC · Technical Research · Additional Technical Spike · Implementation Planning · MVP Roadmap 草案 · Epic and Dependency Planning · Acceptance Criteria Planning · Technical Risk Resolution。
 > **禁止范围（当前不授权）：** Production Business / Database / API / Retrieval / LLM Runtime / Observability Implementation；正式业务 Coding Issues；未经 RFC 支持的生产实现；Coding Agent 临场选择生产数据库 / ORM / Checkpointer / API / Retrieval / LLM Runtime / Observability；将 Spike 代码迁移为生产模块；将状态更新为完全 READY。
-> **下一议题：** RFC-001 Final Consistency Review（RFC-001 Status = `DRAFTING`，DQ-01~DQ-10 已全部接受，未替用户接受 RFC-001 整体；Foundation Planning 未开始，Production Implementation 未授权）。详见 [../readiness/README.md](../readiness/README.md) 与 [../rfcs/rfc-register.md](../rfcs/rfc-register.md)。
+> **下一议题：** 生成并审查 **FND-001 / FND-002 / FND-003 Issue Candidates**（**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部接受且 Final Consistency Review 通过；RFC-001 的接受仅开放 Foundation Planning——仅生成候选、不自动创建 Issue；Foundation / Business / Production Implementation 未授权）。详见 [../readiness/README.md](../readiness/README.md) 与 [../rfcs/rfc-register.md](../rfcs/rfc-register.md)。
 
 ---
 

@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，RFC-001 处于 `DRAFTING`，DQ-01~DQ-10 已全部接受（RFC-001 整体尚未被用户接受）。下一议题：**RFC-001 Final Consistency Review**（见 [DQ-10](#dq-10-production-skeleton-scope-foundation-authorization-gate-and-rfc-closure已接受)）。
+> **当前阶段：** DEC-038 已接受，**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation 仍未授权。下一议题：**生成并审查 FND-001 / FND-002 / FND-003 Issue Candidates**（仅生成候选，不自动创建 Issue）。
 
 ---
 
@@ -20,7 +20,7 @@
 
 | # | RFC 主题 | Wave | 优先级 | 当前状态 | 阻塞的生产模块 | 关联 DEC / Spec | 关联 Spike 未验证项 |
 |---|---|---|---|---|---|---|---|
-| RFC-001 | **Repository and Application Architecture**（生产代码仓与应用结构、模块边界、部署单元） | Wave 1 | P0 | `DRAFTING` | 所有生产模块 | DEC-011/021/023 · architecture/system-architecture | R-1 |
+| RFC-001 | **Repository and Application Architecture**（生产代码仓与应用结构、模块边界、部署单元） | Wave 1 | P0 | `ACCEPTED` | 所有生产模块 | DEC-011/021/023 · architecture/system-architecture | R-1 |
 | RFC-002 | **Persistence and Transaction Architecture**（生产数据库、ORM、原子提交与幂等的生产实现） | Wave 1 | P0 | `PROPOSED` | Business Repository / Current Truth | DEC-024/029/033 · architecture/data-architecture | R-1, R-4 |
 | RFC-003 | **LangGraph Runtime and Checkpoint Architecture**（生产 Checkpointer 选型、Safe Resume、序列化兼容） | Wave 2 | P0 | `PROPOSED` | Workflow Runtime / Resume | DEC-013/023/024/033 · runtime/failure-recovery spec | R-3 |
 | RFC-004 | **API and Human Review Protocol**（生产 API 边界、Human Review 提交/暂停协议、权限） | Wave 3 | P0 | `PROPOSED` | Review / Orchestration 接口层 | DEC-007/029 · workflow/human-review spec | R-1 |
@@ -82,7 +82,7 @@ RFC-003 = ACCEPTED
 ## RFC-001 Current Status
 
 ```text
-RFC-001 Status = DRAFTING
+RFC-001 Status = ACCEPTED (2026-07-30，用户明确接受，Final Consistency Review 通过)
 RFC-001-DQ-01 Modular Monolith First = ACCEPTED
 RFC-001-DQ-02 Backend Language and LangGraph Binding = ACCEPTED
 RFC-001-DQ-03 Repository and Package Directory Structure = ACCEPTED
@@ -94,6 +94,10 @@ RFC-001-DQ-08 Module Public Contracts, Cross-module Collaboration and Cycle Gove
 RFC-001-DQ-09 Quality Toolchain, Architecture Enforcement, CI Quality Gates and Test Baseline = ACCEPTED
 RFC-001-DQ-10 Production Skeleton Scope, Foundation Authorization Gate and RFC Closure = ACCEPTED
 ```
+
+**接受后授权状态：** `Foundation Planning = AUTHORIZED`；`Foundation Implementation = NOT AUTHORIZED`；`Business Implementation = NOT AUTHORIZED`；`Production Implementation = NOT AUTHORIZED`；`Architecture Readiness / Development Status = CONDITIONALLY READY`。
+
+> **关于 Merge PR / Delete Branch：** RFC-001 决策文档直接在本 Repository 的 `main` 分支上开发与提交，未创建独立的 RFC-001 PR 或 RFC Branch，故 DEC-038 的「Merge RFC-001 PR / Delete RFC Branch」步骤在当前工作流下不适用；对应 GitHub Issue #5 已随接受关闭。
 
 ## DQ-10: Production Skeleton Scope, Foundation Authorization Gate and RFC Closure（已接受）
 
@@ -119,9 +123,21 @@ RFC-001-DQ-10 已接受：
 - Foundation Planning 不得开始；
 - RFC-001 保持 `DRAFTING`。
 
-## 下一议题：RFC-001 Final Consistency Review
+## 下一议题：FND-001 / FND-002 / FND-003 Issue Candidates
 
-DQ-01~DQ-10 已全部 ACCEPTED。下一步为 **RFC-001 Final Consistency Review**，输出：(1) DQ-01~DQ-10 完整清单与正式决定；(2) 内部一致性检查；(3) 与 Accepted DEC / Architecture Baseline 的一致性；(4) 未决问题到 RFC-002~RFC-007 的路由；(5) Rejected Alternatives；(6) Risks and Consequences；(7) Foundation Scope；(8) Decision Conflicts；(9) Final Acceptance Recommendation；(10) 当前授权状态。Review 通过且用户明确接受 RFC-001 后，RFC-001 才转为 `ACCEPTED`。
+**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**——DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过（八项审查全部 PASS，Decision Conflict = NONE FOUND）。
+
+按 DQ-10 的 Acceptance / Authorization 分离，RFC-001 的接受**仅开放 Foundation Planning**。下一步是**生成并审查** Foundation Issue Candidates：
+
+```text
+FND-001  Backend Package and Local Tooling Foundation
+FND-002  Architecture Enforcement and Test Foundation   (deps: FND-001)
+FND-003  CI, Security and Repository Protection          (deps: FND-001 + FND-002)
+```
+
+- **仅生成候选（Issue Candidates）供用户审查**——不自动创建 GitHub Issue，不开始任何 Foundation Implementation。
+- 每个 Foundation Issue 仍需**单独明确的用户授权**，按依赖顺序 `FND-001 → FND-002 → FND-003` 执行，遵循 One Issue → One Branch → One PR → Required Verification → User Merge Gate。
+- Foundation Implementation、Business Implementation 与 Production Implementation 保持 `NOT AUTHORIZED`；17 类 Mandatory Stop Conditions 持续有效。
 
 ## DQ-09: 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线
 
@@ -228,5 +244,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001 Final Consistency Review（RFC-001 保持 DRAFTING；Foundation Planning 未开始；Production Implementation 未授权）
+Next Topic: 生成并审查 FND-001 / FND-002 / FND-003 Issue Candidates（RFC-001 已 ACCEPTED；仅生成候选，不自动创建 Issue；Foundation / Business / Production Implementation 未授权）
 ```

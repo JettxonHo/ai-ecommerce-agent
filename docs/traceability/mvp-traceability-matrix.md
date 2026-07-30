@@ -116,8 +116,12 @@
 
 ```text
 Spike Execution Status = COMPLETED
+RFC-001 Status = ACCEPTED (2026-07-30)
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001 Final Consistency Review（RFC-001 保持 DRAFTING；Foundation Planning 未开始；Production Implementation 未授权）
+Foundation Planning = AUTHORIZED（仅生成并审查 FND Issue Candidates）
+Foundation / Business / Production Implementation = NOT AUTHORIZED
+
+Next Topic: 生成并审查 FND-001 / FND-002 / FND-003 Issue Candidates（仅生成候选，不自动创建 Issue，不开始 Foundation Implementation）
 ```
