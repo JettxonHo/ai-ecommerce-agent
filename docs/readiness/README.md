@@ -2,7 +2,7 @@
 
 > **来源决定：** [DEC-034 — Technical Spike Plan and Architecture Readiness Gate](../decisions/dec-034-technical-spike-and-architecture-readiness-gate.md) · [DEC-035 — Technical Spike 临时技术栈与执行契约](../decisions/dec-035-technical-spike-temporary-stack-and-execution-contract.md) · [DEC-036 — Spike-001 Execution Authorization and Agent Handoff Contract](../decisions/dec-036-spike-001-execution-authorization-and-agent-handoff-contract.md) · [DEC-037 — Formal Spike-001 Execution Authorization](../decisions/dec-037-formal-spike-001-execution-authorization.md)
 > **概念规格：** [../specs/readiness/technical-spike-and-architecture-readiness-gate.md](../specs/readiness/technical-spike-and-architecture-readiness-gate.md) · [../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md](../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md) · [../specs/readiness/spike-001-execution-authorization-and-agent-handoff-contract.md](../specs/readiness/spike-001-execution-authorization-and-agent-handoff-contract.md) · [../specs/readiness/formal-spike-001-execution-authorization.md](../specs/readiness/formal-spike-001-execution-authorization.md)
-> **当前 Contract Authorization Status: ACCEPTED · Spike Execution Authorization Status: GRANTED · Spike Execution Status: COMPLETED · Architecture Readiness Status: PENDING USER REVIEW · Development Status: NOT READY**
+> **当前 Contract Authorization Status: ACCEPTED · Spike Execution Authorization Status: GRANTED · Spike Execution Status: COMPLETED · Architecture Readiness Status: CONDITIONALLY READY · Development Status: CONDITIONALLY READY**
 
 ---
 
@@ -51,7 +51,7 @@ User Decision
 Final Status
 ```
 
-> **当前状态：** Spike-001 已**执行完成**（S0—S6 全部完成，Gate A—E 通过，25 个自动化测试全部通过），已产出 Spike Report 与 Readiness Recommendation（仅建议：**RECOMMENDED: CONDITIONALLY READY**，详见 [`../spikes/spike-001-langgraph-runtime-and-recovery/spike-report.md`](../spikes/spike-001-langgraph-runtime-and-recovery/spike-report.md)）。`architecture-readiness-report-v1.md` 尚未创建（待用户人工 Gate 决定后进行 Readiness Review）。当前 **Spike Execution Status = COMPLETED** / **Architecture Readiness Status = PENDING USER REVIEW**（待用户审查 Issue #1 / PR #2 / 测试 / 证据 / Findings / Spike Report 后明确确认）/ **Development Status = NOT READY**。下一动作为**用户人工 Gate**（Merge PR / Issue Closure / Readiness 决策均由用户保留：`Merge PR ≠ READY`、`Issue Closed ≠ READY`、`Agent Recommendation ≠ READY`）。
+> **当前状态：** Spike-001 已**执行完成**（S0—S6 全部完成，Gate A—E 通过，25 个自动化测试全部通过），Spike PR #2 已 **MERGED**（merge commit `a60ff3b`）、Spike Issue #1 已 **CLOSED**。Readiness Review 交付物**已创建并经用户决策**：`architecture-readiness-report-v1.md`（本目录）+ [`../architecture/architecture-baseline-v1.md`](../architecture/architecture-baseline-v1.md) + [`../rfcs/rfc-register.md`](../rfcs/rfc-register.md) + [`../traceability/mvp-traceability-matrix.md`](../traceability/mvp-traceability-matrix.md)，经 [Readiness Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3) 与 [Readiness PR #4](https://github.com/JettxonHo/ai-ecommerce-agent/pull/4) 提交并已由用户审查。**用户最终决定：Architecture Readiness Decision = CONDITIONALLY READY**（User Decision 已记录于报告 §16）。当前 **Spike Execution Status = COMPLETED** / **Architecture Readiness Status = CONDITIONALLY READY** / **Development Status = CONDITIONALLY READY**（**仅限授权的规划与治理范围**：Architecture RFC / Implementation Planning / MVP Roadmap 草案 / Epic and Dependency Planning / Technical Risk Resolution；**不授权**任何生产实现与正式业务 Coding Issues）。下一议题为 **RFC Planning and Dependency Order**（RFC-001…RFC-007 按依赖顺序逐个提交用户评审；未替用户接受任何 RFC）。
 
 ## 必备 READY 条件（摘要）
 
@@ -65,13 +65,17 @@ Final Status
 ## 当前 Development Status
 
 ```text
-NOT READY
+CONDITIONALLY READY
 ```
 
 - **Contract Authorization Status: ACCEPTED**（DEC-036 已接受 Spike-001 权限与执行契约）
-- **Spike Execution Authorization Status: GRANTED**（DEC-037 已正式授予 Claude 执行 Spike-001 S0—S6 的授权；但 `GRANTED` 不表示 Spike 已开始或已通过，第一动作仍是只读 Repository Audit）
-- **Spike Execution Status: COMPLETED**（临时栈由 DEC-035 确认、执行契约由 DEC-036 确认、执行授权由 DEC-037 授予；Claude 已完成只读 Repository Audit、稳定文档基线、Spike Issue、Dedicated Branch `spike/001-langgraph-runtime-recovery` 与 S0—S6 全部阶段，Gate A—E 通过，并产出 Spike Report 与 Readiness Recommendation（仅建议））
-- **Architecture Readiness Status: PENDING USER REVIEW**（Spike 已完成并产出 Readiness Recommendation，待用户人工 Gate 审查后明确确认 READY / CONDITIONALLY READY / NOT READY）
-- **Development Status: NOT READY**（未经 Spike 证据 + Readiness Review + 用户明确确认）
+- **Spike Execution Authorization Status: GRANTED**（DEC-037 已正式授予 Claude 执行 Spike-001 S0—S6 的授权）
+- **Spike Execution Status: COMPLETED**（Claude 已完成只读 Repository Audit、稳定文档基线、Spike Issue、Dedicated Branch、S0—S6 全部阶段，Gate A—E 通过，并产出 Spike Report 与 Readiness Recommendation）
+- **Architecture Readiness Status: CONDITIONALLY READY**（用户已在人工 Gate 明确确认；`User Decision = CONDITIONALLY READY` 已记录于 [architecture-readiness-report-v1.md](architecture-readiness-report-v1.md) §16）
+- **Development Status: CONDITIONALLY READY**（用户授权，**仅限**规划与治理范围）
 
-在用户人工 Gate 评审并明确确认前：**不**创建正式 Roadmap / Epic / 正式业务 Issue；**不**开始生产开发；Development Status 保持 `NOT READY`。Spike-001 已 `COMPLETED`，Readiness Recommendation（仅建议）已提交，等待用户在 Issue #1 / PR #2 上审查并作出 Merge / Readiness 决策。
+**授权范围（允许开始）：** Architecture RFC · Implementation Planning · MVP Roadmap 草案 · Epic and Dependency Planning · Technical Risk Resolution。
+
+**禁止范围（当前不授权）：** Production Business / Database / API / Retrieval / LLM Runtime / Observability Implementation；正式业务 Coding Issues；未经 RFC 支持的生产实现；Coding Agent 临场选择生产数据库 / ORM / Checkpointer / API / Retrieval / LLM Runtime / Observability；将 Spike 代码迁移为生产模块；将状态更新为完全 READY。
+
+> `CONDITIONALLY READY ≠ 完全 READY`：每个生产模块开始前必须满足对应 **RFC Gate**（先接受相关 RFC）。下一议题为 **RFC Planning and Dependency Order**（RFC-001…RFC-007 按依赖顺序逐个提交用户评审）。
