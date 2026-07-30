@@ -106,7 +106,7 @@ Validated Temporary Implementation — Not Production Commitment
 进入正式生产实现前，每个生产技术域必须先经过 RFC 提案、用户 Acceptance Gate 并被接受为 `ACCEPTED`。
 
 ```text
-RFC-001 Repository and Application Architecture [DRAFTING — DQ-01~08 ACCEPTED]
+RFC-001 Repository and Application Architecture [DRAFTING — DQ-01~09 ACCEPTED]
 ↓
 RFC-002 Persistence and Transaction Architecture
 ↓
@@ -125,63 +125,155 @@ RFC-007 Observability and Runtime Operations
 - 每个 RFC 使用独立的 Issue / Branch / PR。
 - 未接受对应 RFC 前，不得开始该域的生产实现；Coding Agent 不得临场选择生产数据库 / Checkpointer / API / ORM / Retrieval / LLM Runtime / Observability。
 
-## 10. 已确认模块公开契约、跨模块协作与循环依赖治理（RFC-001-DQ-08）
+## 10. 已确认质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线（RFC-001-DQ-09）
+
+> 来源：RFC-001-DQ-09（ACCEPTED）。生产代码采用 Ruff、Pyright、pytest、Import Linter 与自定义 Architecture Tests 构成统一质量工具链；所有 PR 必须通过类型、架构、确定性测试、覆盖率、依赖和 Secret 检查，`main` 由 Required Status Checks 保护，AI Live Evaluation 与普通确定性 Merge Gate 分离。**RFC-001 保持 `DRAFTING`；Production CI 与 Skeleton 创建仍 NOT AUTHORIZED。**
+
+### 10.1 Quality Governance Model
+
+质量治理链路：`Accepted Architecture Decision → Machine-checkable Rule → CI Required Check → Merge Block`。质量检查分为 Code Correctness、Architecture Correctness、Business Behavior Correctness、Repository Governance Correctness。能自动验证的规则必须转化为工具配置、Architecture Test 或 Required CI Check，不得仅依赖文档理解边界。
+
+### 10.2 Python Quality Toolchain
+
+| 关注点 | 工具 |
+|---|---|
+| Formatter | Ruff Formatter |
+| Linter | Ruff Linter |
+| Type Checker | Pyright |
+| Test Runner | pytest |
+| Import Architecture | Import Linter |
+| Semantic Architecture | Custom pytest Architecture Tests |
+| Coverage | coverage.py / pytest 集成 |
+| Dependency Vulnerability Audit | pip-audit |
+
+不并行引入 Black / isort / Flake8 作为平行 Source of Truth。配置集中于 `apps/backend/pyproject.toml`。工具版本于 Foundation Implementation 经 Lockfile 固定（本 Decision 不锁定版本）。
+
+### 10.3 Type Discipline
+
+**Strict-first Type Discipline**：严格要求优先适用于 Domain / Application / Public Contract / Command / Query / Result / Public Error / Snapshot / Skill Input / Skill Result / Graph State / Runtime Identifier / Repository Port / Model Runtime Port / Retrieval Port / Dispatch Payload。`Any` 只能存在于明确外部边界（未验证 JSON / Provider SDK 原始响应 / 第三方动态对象 / Schema Validation 前协议输入），遵循 `External Dynamic Data → Entrypoint/Infrastructure Validation → Typed Contract → Application/Domain`。禁止全局 `Any` / 全局 Ignore / 关闭核心诊断绕过检查；第三方动态类型在 Infrastructure Adapter 边界收窄。原则：*Fix the type boundary before suppressing the checker*。
+
+### 10.4 Architecture Enforcement
+
+双层机制：Import Linter（Import Graph 可表达的结构规则）+ 自定义 pytest Architecture Tests（语义规则，位于 `apps/backend/tests/architecture/`）。Import Linter 初始 Contract：Domain Independence、Application Independence、Business Module Isolation、Public Facade-only 跨模块 Import、Orchestration Boundary、Entrypoint Boundary、Spike/Prototype Isolation、Shared Kernel Independence、Module Dependency DAG。语义 Architecture Tests 覆盖 Public Contract Shape、Skill Boundary、Orchestration Boundary、Configuration Boundary、Entrypoint Boundary。
+
+### 10.5 Test Classification
+
+```text
+unit / integration / contract / architecture / e2e / evaluation / live / slow
+```
+
+所有 pytest Marker 必须预先注册，CI 启用严格 Marker 模式；未知或拼写错误的 Marker 必须导致失败。
+
+### 10.6 Test Baselines
+
+- Unit：确定性（无网络 / 真实模型 / 生产 DB / 生产 Secret；Fake Clock、确定性 ID、Scripted Model Runtime、固定 Retrieval Fixture、顺序无关、可重复）。
+- Integration：真实技术边界（Repository / Unit of Work / Transaction / Migration / Checkpointer / Durable Dispatch / Model Runtime / Retrieval / Bootstrap / Resource Cleanup），隔离、可重建、可清理、验证 Commit 与 Rollback。
+- Contract：Public Command/Query/Result/Error、Ports、Event / Dispatch Payload、API Schema、Graph State Schema、Adapter Compliance；阻止字段静默删除、ID/Version 语义改变、Query 副作用、Public Error Code 漂移、Event 泄漏内部 Entity 等。
+- E2E：完整主流程 + 关键失败场景（Duplicate Submit / Stale Review / Worker Crash / Duplicate Resume / Stage Rerun / Downstream Invalidation / Provider Failure / Retry Exhaustion / Recovery / Cancellation），不只覆盖 Happy Path。
+- Evaluation：验证 AI 结果质量而非确定性软件行为。固定 Fixture 的 Deterministic Evaluation 可进入普通 PR Gate；Live Evaluation（真实模型/Provider，有成本、网络、波动）默认运行于 Manual / Nightly / Prompt-or-Model-Policy-Change / Release Candidate，不作为普通 PR 唯一合并 Gate。
+
+### 10.7 External Network Boundary
+
+普通 Required PR Tests 默认无实时外部 Provider / 网络访问；需真实网络的测试标记 `live`。Unit / Contract / Architecture 不得意外调用 Model / Embedding Provider、Vector SaaS、外部网页、生产 DB、生产 Secret Manager；测试环境应能阻断未声明网络访问。
+
+### 10.8 Coverage Policy
+
+首批可执行生产代码进入后启用 Branch Coverage Measurement，Global Fail-under = 80%。Coverage 是风险指标而非业务正确性。Domain Invariant、Human Review、Current Truth、Idempotency、Evidence、Version、Stale Input、Retry、Recovery、Downstream Invalidation 即使覆盖率达 80% 仍必须有明确行为测试。允许精准排除；禁止大范围 `# pragma: no cover`。Skeleton 阶段不制造空测试抬高覆盖率，Coverage Gate 于可执行生产代码进入时启用。
+
+### 10.9 Warning / Flaky / Randomness / Snapshot Policy
+
+- Warnings = Errors by default；例外须精准匹配、说明原因、有清理条件；禁止 `ignore all warnings`。
+- Required CI 禁止用自动重跑掩盖 Flaky Test；发现后记录 Issue、定位原因、必要时隔离、修复后恢复 Gate；被隔离/未运行测试不得描述为已通过。
+- 随机性须固定 Seed、失败时输出 Seed、确定性 ID、控制时间/模型输出/Retrieval 排序。
+- Skip / XFail 仅用于明确环境限制或已知缺陷（有关联 Issue、严格模式）；不得隐藏未完成 Acceptance Criteria、架构违规或必须通过的规则。
+- Golden / Snapshot 内容可读、差异可审查、无 Secret / 随机时间戳，更新需人工语义审查，Coding Agent 不得自动接受所有变化。
+
+### 10.10 Dependency and Secret Security
+
+PR Dependency Audit 使用 pip-audit；启用 Dependabot Alerts 与受控 Security Updates。依赖变更须更新 Lockfile、通过完整 CI、说明用途、检查安全与 License。CI 必须具备 Secret Detection Gate（API Key / Private Key / Token / `.env` / Authorization Header / Cloud / Database Credential），具体 Scanner 于 Foundation Implementation 选择；检出后 `CI Failure → 移除 → 若为真实凭证则轮换/吊销`。
+
+### 10.11 CI Gate Layers
+
+- Layer 1 Fast Static Gate（每个 PR）：Repository Hygiene、Ruff Format Check、Ruff Lint、Pyright、Import Linter、Architecture Tests。
+- Layer 2 Deterministic Test Gate（每个 PR）：Unit、Contract、Coverage、Dependency Audit、Secret Detection。
+- Layer 3 Runtime Confidence Gate（生产 Runtime 建立后按变更范围）：Integration、Migration、Bootstrap、E2E Smoke、Recovery Tests。
+- Extended Gate（Nightly / 手动 / Release Candidate）：Full E2E、Live Model Evaluation、Performance、Long Recovery、Dependency Compatibility。
+
+### 10.12 Required Status Checks and Branch Protection
+
+`main` 使用稳定 Required Check 名称（如 `quality/format`、`quality/lint`、`quality/typecheck`、`quality/architecture`、`test/unit-contract`、`test/integration`、`test/e2e-smoke`、`security/dependency-audit`、`security/secret-detection`），不得频繁修改。`main` 必须经 PR 合并、禁止直接 Push、禁止 Force Push、Required Status Checks 必须通过、Review Conversation 必须解决；用户保留最终 Merge 权限；当前个人 Portfolio Repository 不强制第二名 Reviewer。
+
+### 10.13 Coding Agent CI Governance
+
+CI 失败时 Coding Agent 不得删除失败测试、降低 Coverage Threshold、关闭 Pyright、添加全局 Ignore、删除 Import Linter Contract / Architecture Test、将 Required Check 改为 Optional、修改 Branch Protection、无审查更新全部 Snapshot、将失败改为 Skip 或自动 Merge。正确流程：`CI Failure → Determine Root Cause → Fix Code or Justified Test → Add Regression Test → Run All Affected Gates`。
+
+### 10.14 Frontend / Foundation / Unified Commands
+
+未来 TypeScript 生产代码至少要求 Strict Mode、Formatter、Linter、Unit test runner、Build check、Generated API contract drift check；具体工具（ESLint/Biome 等）延后至前端 Framework 决策。本地与 CI 使用统一命令入口（`quality-format` / `quality-lint` / `quality-type` / `quality-architecture` / `test-fast` / `test-integration` / `test-e2e` / `quality-all`），`Local checks = CI checks`。Foundation Skeleton 必须证明质量工具能阻止真实违规代码（格式 / Lint / 类型 / 架构 / Marker / Unit / Coverage / Dependency / Secret / Required Checks / 本地=CI / 故意构造的架构违规可被自动检测）。
+
+### 10.15 Decision Boundary
+
+已确认：Ruff formatter+linter（无 Black/isort/Flake8 平行 SoT）、Pyright strict-first、pytest + 严格 Marker、8 类测试分类、Required PR 无实时外部 Provider、Import Linter、自定义 Architecture Tests、确定性 Unit、隔离 Integration、Contract、E2E 失败覆盖、Evaluation 分离、分支覆盖率 80%（可执行代码后）、Warnings=Error、禁止 Flaky 自动重跑、Skip/XFail 规则、Snapshot 人工审查、pip-audit、Dependabot、Secret Detection、main 受 Required Checks 保护、无强制第二 Reviewer、用户最终 Merge Gate、禁止 Coding Agent CI 绕过、四层 CI Gate、TypeScript strict、前端工具延后、Foundation Skeleton 须阻止真实违规、本地=CI 统一命令。本 Decision 不锁定工具版本 / Secret Scanner / 前端工具 / CI YAML，且**接受后仍不授权创建 Production CI 或 Skeleton**。
+
+尚未确认：Production Skeleton 范围、Foundation Issue 拆分、首批允许创建的目录/文件、CI Workflow 具体实现、Secret Scanner、工具版本、前端 Framework 与工具、Foundation Work Authorization、RFC-001 整体接受条件。
+
+## 11. 已确认模块公开契约、跨模块协作与循环依赖治理（RFC-001-DQ-08）
 
 > 来源：RFC-001-DQ-08（ACCEPTED）。
 
-### 10.1 Module Public Facade
+### 11.1 Module Public Facade
 
 每个业务模块通过唯一稳定入口 `modules.<module>.public`（概念路径 `modules/<module>/public.py`）暴露跨模块契约。其他模块**只能**通过该 Public Facade 使用目标模块的公开能力；`public.py` 可重新导出内部定义的稳定 Contract，但对外 Import Path 必须保持为 `modules.<module>.public`。
 
-### 10.2 Public Contract Surface
+### 11.2 Public Contract Surface
 
 Public Facade 可以暴露：`Public Command / Public Query / Public Result / Public Error / Application Service Protocol / Published Application Event / Stable Identifier / Version Reference / Immutable Snapshot`。不得暴露：`ORM Model / Database Session / Repository Implementation / Mutable Domain Entity / Aggregate Internal / Infrastructure Adapter / Infrastructure Error / Graph State / LangGraph Node / Checkpoint Object / Provider SDK Type / Global Settings / Secret / Database Table Structure / Internal Helper`。Public Contract 必须 `Typed / Immutable / Serializable / Version-aware / Infrastructure-neutral`。
 
-### 10.3 Public Snapshot Boundary
+### 11.3 Public Snapshot Boundary
 
 跨模块数据读取必须返回不可变公开 Snapshot（如 `ApprovedStrategySnapshot / ProductFactsSnapshot / ReviewPackageSnapshot / MarketingBriefSnapshot`），不得返回内部 Aggregate / ORM Entity / Lazy-loaded Relationship。外部模块不得持有或修改目标模块内部 Aggregate。业务类型被多模块使用**不代表**应移到 `shared_kernel/`；优先使用 `Owner Module Public Snapshot` 而非共享可变业务模型。
 
-### 10.4 Command Contract and Cross-module Command Rule
+### 11.4 Command Contract and Cross-module Command Rule
 
 Command 表达业务意图（`SubmitReview / ApproveStrategy / CreateMarketingBriefVersion / InvalidateDownstreamStage`），含目标业务 ID、必要 Version/Expected Version、Idempotency Key、调用者/授权上下文引用；不含 ORM Entity / Database Session / Graph State / Secret。Command 必须由拥有目标状态的 Application Service 执行。`Direct module-to-module state-changing Command = PROHIBITED BY DEFAULT`；跨 Stage 状态变化默认由 `Orchestration` 或 `Explicit Composite Application Use Case` 协调。例外须同时满足：明确业务所有权、单向依赖、不形成循环、不隐藏跨模块事务、已在 Spec/RFC/Architecture Review 声明、具有对应 Contract 与 Architecture Test。
 
-### 10.5 Query Contract and Cross-module Read Rule
+### 11.5 Query Contract and Cross-module Read Rule
 
 Query 只读、无副作用、不触发 Workflow、不发布业务 Event、返回 Public Snapshot、执行读取权限与业务可见性检查、返回结构化 Public Error；不得隐藏写入。跨模块读取正式采用 `Consumer Module → Target Module Public Query → Application Query Handler → Public Snapshot`；禁止 `Consumer Module → Target Module Repository → Direct SQL / ORM / Internal Table`。共享 Database Instance ≠ 共享数据所有权；数据库表不得成为模块间隐式 API。
 
-### 10.6 Orchestration Responsibility
+### 11.6 Orchestration Responsibility
 
 跨 Stage 协调（Stage 完成后启动下一个 Stage、Positioning 后创建 Review Package、Review 提交后调度 Resume、Approved Strategy 后启动 Marketing Brief、Rerun 使下游失效、Cancel/Resume/Recovery、跨模块 Workflow Routing、多 Stage 状态协调）由 `orchestration/` 或明确 Coordinator 执行。Orchestration 可调用模块 Public Application Contract、根据明确 Result 决定确定性路由、管理 Interrupt/Resume/Runtime Retry；不得拥有模块业务规则、直接访问模块 Infrastructure、直接读写模块内部表、直接更新 Current Truth、直接提交跨模块隐藏事务。
 
-### 10.7 Composite Application Use Case
+### 11.7 Composite Application Use Case
 
 跨模块原子操作只能通过明确建模的 `Composite Application Use Case` 执行：有明确业务所有者、输入/输出/错误 Contract、事务边界；通过 Public Port 或正式协调接口访问参与模块；不直接 Import 其他模块 Infrastructure；不允许参与 Service 各自隐藏 Commit；具有原子性、失败和幂等测试；与 RFC-002 持久化事务架构一致。禁止 `Service A begins transaction → Service B begins hidden transaction → Partial commit`。默认跨模块流程采用多个短事务 `Transaction A → commit → Orchestration → Transaction B`。
 
-### 10.8 Domain Event and Application Event
+### 11.8 Domain Event and Application Event
 
 Domain Event 表示模块内部 Domain 已发生事实（过去式语义，如 `StrategyApproved / ReviewPackageSuperseded / ProductFactsInvalidated`），由 Domain 产生、不含 Infrastructure 类型、不负责发送、默认模块内部、不自动等于跨模块 Published Application Event。Application Event 表示一个 Application Transaction 已成功提交、允许其他能力响应（如 `StrategyApprovedEvent / MarketingBriefVersionCreatedEvent / SourceSetReindexedEvent`），必须在业务 Commit 成功后产生，可用于通知、非关键索引、Analytics、非关键 Projection、可重建缓存、外部集成、提交后非原子副作用。
 
-### 10.9 Event Boundary and Choreography Prohibition
+### 11.9 Event Boundary and Choreography Prohibition
 
 `Required Immediate Consistency → Command or Composite Use Case`；`Post-commit Non-critical Reaction → Application Event`。Human Review Approval、Current Truth 更新、Idempotency、同一业务 Commit 原子数据、必须立即返回的业务验证、LangGraph 核心确定性路由、Durable Resume Intent（除非可靠 Outbox）**不得**依赖普通最终一致 Event。核心 Workflow 不得隐藏为 Event 链（`Event A → Handler B → Event C → Handler D`）；具有明确 Stage / Human Interrupt / Resume / Retry / Cancellation / 状态查询 / Recovery / 可审计路由的流程必须由 LangGraph Orchestration 表达。`Workflow Orchestration ≠ Event Choreography`。
 
-### 10.10 In-process Event Bus and Event Handler Rules
+### 11.10 In-process Event Bus and Event Handler Rules
 
 进程内 Event Dispatcher 仅用于非关键、可重试、可忽略或可重建、不要求跨进程保证的提交后动作；纯进程内 Event Bus 不得承担 API→Worker Durable Dispatch、Durable Resume、跨进程可靠工作、关键业务副作用、必须保证的通知。Event Handler 可接收已提交 Application Event、调用自身模块公开 Application Service、创建非关键 Projection、创建新的 Durable Work Intent、记录 Metrics/Analytics；不得直接访问其他模块 Repository、修改发布者模块内部状态、假设 Event 只执行一次、无限发布 Event、失败后伪造成功。Event Handler 必须具备 `Idempotent` 或 `Duplicate-consumption-safe` 语义。本 Decision 不选择 Event Bus、Outbox 或 Broker。
 
-### 10.11 Module Dependency Graph and Circular Dependency Resolution
+### 11.11 Module Dependency Graph and Circular Dependency Resolution
 
 模块依赖必须形成 `Directed Acyclic Graph`；每个模块明确依赖哪些目标模块、依赖哪种 Public Contract、属于 Query/Event 或经批准的 Command Dependency、数据所有权、上下游关系。禁止 `A→B 且 B→A`，也禁止无 Import 循环但存在逻辑业务调用循环。发生循环依赖不得用延迟 Import / 函数内部 Import / 修改 `PYTHONPATH` / 把大量类型移入 Shared Kernel / 全局 Event Bus 隐藏调用 / 直接访问共享数据库掩盖；须通过：提升控制权到 Orchestration、只读需求改为 Public Query、需方定义 Port 经 Bootstrap 注入、提取真正稳定基础概念、重新划分业务模块、明确 Composite Use Case 解决。`shared_kernel/` 只保存真正稳定、无单一业务所有者的基础类型，不得为减少 Import 数量而扩大。
 
-### 10.12 Public Error Contract and Versioning
+### 11.12 Public Error Contract and Versioning
 
 模块对外错误必须是稳定的 Application-level Error，至少含 `error_code / category / message / retryability / relevant_reference`；不得暴露 Database Driver Error / ORM Exception / Provider SDK Error / Internal File Path / Database Table Name / Raw Stack Trace / Secret。调用者只能依据 Public Error Code、Category、Retryability 处理，不得解析异常字符串决定业务路由。Public Contract 必须区分 `Contract-compatible Change` 与 `Contract-breaking Change`；Breaking Change 必须更新 Contract Version、更新 Consumer、更新 Contract Test、在统一 Release 中协调，必要时修订 RFC 或 Architecture Baseline。
 
-### 10.13 Contract and Architecture Test Requirements
+### 11.13 Contract and Architecture Test Requirements
 
 Contract Tests：Schema Tests（字段/类型/必填/默认/序列化/Version）、Consumer Contract Tests（调用者只依赖公开字段与行为）、Error Contract Tests（Error Code 稳定、Retryability 明确、技术异常不泄漏）、Event Contract Tests（Commit 后产生、有 Event ID、Payload 可序列化、不含 Secret 或内部 Entity、重复消费安全）。Architecture Tests：`Cross-module imports must target modules.<target>.public`；禁止跨模块 Import `domain/application/infrastructure/application.skills`；模块依赖图无环；`shared_kernel` 不依赖业务模块；Public Contract 不 Import ORM / LangGraph；Public Result 不含可变 Domain Entity；Event Handler 不访问其他模块 Infrastructure；Orchestration 只 Import 模块 Public Facade；Production 不通过数据库表绕过 Public Contract；Event 不从失败或未提交事务正式发布。
 
-### 10.14 Decision Boundary
+### 11.14 Decision Boundary
 
 已确认：唯一 `modules.<module>.public` 入口；Public Facade 不暴露 ORM/Repository/Session/Graph State/内部 Entity/Provider SDK；跨模块读取经 Public Query 返回不可变 Snapshot；状态修改由数据所有模块 Application Service 执行；模块间直接状态修改 Command 默认禁止；跨 Stage 协调由 Orchestration；跨模块原子操作仅经 Composite Application Use Case；共享数据库不作模块间隐式 API；Domain Event 模块内部、Application Event 表示已提交事实、非关键提交后副作用可用 Application Event；Human Review/Current Truth/Idempotency/核心路由不依赖普通 Event 最终一致；Event 链不替代 LangGraph Workflow；进程内 Event Bus 不承担 API→Worker 可靠调度；Event Handler 重复消费安全；模块依赖图为 DAG；Shared Kernel 最小化；Public Error 稳定结构化不泄漏技术异常；Breaking Change 显式版本化；Architecture Tests 强制跨模块 Import 指向 Public Facade 且依赖图无环；本 Decision 不选择 Event Bus / Outbox / Schema Library / Contract Test Framework；接受后仍不授权创建正式 Public Contract、Event Bus 或生产业务代码。
 
@@ -189,59 +281,59 @@ Contract Tests：Schema Tests（字段/类型/必填/默认/序列化/Version）
 
 本 Decision 不选择 Event Bus / Outbox / Schema Library / Contract Test Framework；RFC-001 保持 `DRAFTING`；**正式 Public Contract、Application Event Runtime、Event Bus、生产 Command/Query 实现、跨模块 Composite Use Case 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 11. 已确认进程边界与同步/异步执行策略（RFC-001-DQ-07）
+## 12. 已确认进程边界与同步/异步执行策略（RFC-001-DQ-07）
 
 > 来源：RFC-001-DQ-07（ACCEPTED）。
 
-### 11.1 Architecture, Release and Process Boundary
+### 12.1 Architecture, Release and Process Boundary
 
 `Application Architecture ≠ Release Artifact ≠ Runtime Process`。系统保持：`One Modular Monolith Application + One Shared Backend Codebase + One Versioned Release Boundary + Multiple Role-specific Runtime Processes`。“一个主要后端部署单元”指一个统一逻辑后端应用 + 一个统一版本化发布边界 + 一个共享可部署制品 + 多个不同运行角色的进程，**不要求所有能力运行在同一个操作系统进程中**。
 
-### 11.2 Runtime Process Roles
+### 12.2 Runtime Process Roles
 
 生产运行时至少区分 **API Process / Workflow Worker Process / CLI Process**。API 处理短生命周期请求（Create Task / Run、查询状态、获取 Review Package、提交 Human Review、请求 Cancel/Rerun/Resume、Auth、Request Validation、协议映射）；Worker 负责领取 Start/Resume/Rerun/Cancellation Intent、执行 LangGraph、调用 Stage Application Service、Interrupt/Resume、Retry Budget、Checkpoint、Runtime Trace、Recovery；CLI 为按需临时进程，仅经同一 Application Layer 调用授权管理 Use Case。三者**均不得直接访问业务 Repository / Current Truth**。
 
-### 11.3 Unified Release Boundary
+### 12.3 Unified Release Boundary
 
 API 与 Worker 使用相同 Python Package、业务模块、Application Service、Domain Contract、Schema 与 Runtime Identifier，默认从**同一 Release Version** 构建部署，不是两个独立业务服务。至少记录 `Application / Graph / Workflow Definition / Job Payload / Schema Version`。新版 API 不得创建当前 Worker 无法理解的工作。滚动升级与 Graph Versioning 由 RFC-003、RFC-007 决定。
 
-### 11.4 Long Workflow HTTP Boundary and Durable Dispatch
+### 12.4 Long Workflow HTTP Boundary and Durable Dispatch
 
 **Long Workflow inside HTTP Request = PROHIBITED。** 生产请求采用 `Submit → Persist Business/Runtime Intent → Create Durable Dispatch Intent → Return Task/Run Identity and Status`；API 返回成功表示工作已被**可靠接受**，不表示 Workflow 已完成。API 与 Worker 之间通过 **`WorkflowDispatchPort`**（`schedule_start / schedule_resume / schedule_rerun / schedule_cancel / schedule_recovery`）协作；API 返回“已接受”前 Durable Work Intent 必须已被可靠记录。**禁止 `asyncio.create_task(...)` 或 Web Framework 临时 Background Task 作为生产可靠任务机制。** 具体 Dispatch Backend（Job Table / Outbox / Redis Queue / Broker / Cloud Queue / Managed Runtime）由 RFC-002、RFC-003 决定。
 
-### 11.5 Worker Recovery Requirements
+### 12.5 Worker Recovery Requirements
 
 Worker Crash 不能导致工作永久丢失。恢复语义结合 `Durable Dispatch + Runtime Record + Checkpoint + Application Idempotency`：未完成工作可重新领取；重复投递不产生重复 Domain Version；已成功提交的 Application Transaction 不重复提交；未提交 Skill Result 不视为 Current Truth；Resume 使用正确 `thread_id`；每次独立执行尝试具有明确 `run_id`；Stale Input/Checkpoint 在正式业务写入前被拒绝；Worker Failure 可进入 Retry/Pause/Recovery。Lease、Heartbeat、Ack、Visibility Timeout、Retry Policy 由 RFC-003 决定。
 
-### 11.6 Human Review Submit and Resume
+### 12.6 Human Review Submit and Resume
 
 Human Review Submit 采用 **Synchronous Business Commit + Asynchronous Workflow Resume**。HTTP Request 同步完成 Review Version Validation、Stale Review Detection、Duplicate Submit Detection、Approved Strategy Business Commit、Audit、Idempotency、Durable Resume Intent 的可靠记录；**不等待**后续 Marketing Brief Skill / Xiaohongshu Adapter / LangGraph Node / 整个 Workflow 完成。返回可概念性表达为 `review_status = approved` + `workflow_status = resume_scheduled`。
 
-### 11.7 Atomic Resume Coordination
+### 12.7 Atomic Resume Coordination
 
 `Approved Strategy Commit + Durable Resume Intent = Atomic or Reliably Reconciled`。不得出现：Approved Strategy 已提交但 Resume 永久丢失；Resume 已安排但事务失败；重复 Submit 产生多个有效 Resume；Worker Resume 读取到未提交或错误版本的业务状态。具体实现（Transactional Outbox / Database Job Table / Post-commit Reconciliation）由 RFC-002、RFC-003 决定。
 
-### 11.8 Sync-first Application Core
+### 12.8 Sync-first Application Core
 
 区分 **Business-level Asynchrony**（HTTP 先返回、Workflow 后台继续——项目正式采用）与 **Python `async/await`**（代码执行模型，不等于后台任务架构）。正式采用：`Domain: Synchronous only；Application Core: Sync-first；Workflow Semantics: Asynchronous background execution；Concurrency: Bounded Worker Processes or Worker Slots；Infrastructure: Execution mode explicit`。Domain 禁止 `async` 业务接口 / Event Loop / 网络或数据库等待 / Async Framework 类型。Application 不得无规则同时提供 `execute()` / `execute_async()`。并发优先 Bounded Worker Concurrency，禁止无限创建并发 Task。Infrastructure Async-native Adapter 必须隔离在明确 Port 后、不污染 Domain、不让 Application 无规则混合 Sync/Async；禁止业务代码随意 `asyncio.run()` / 创建不可关闭的 Event Loop / 隐藏未受控线程。**Sync-first ≠ 永远禁止任何异步技术。**
 
-### 11.9 API and Worker Bootstrap
+### 12.9 API and Worker Bootstrap
 
 API 与 Worker 共享核心 Application Factory，但使用窄化的不同 Runtime Factory：`build_core_resources() → build_application_services() → { build_api_runtime() | build_worker_runtime() }`。API Runtime 只装配 API 所需 Command/Query、Auth Adapter、HTTP Error Mapper、Correlation Context、Workflow Dispatch Port（不自动启动完整 Worker）；Worker Runtime 装配 Workflow Runtime、Dispatch Consumer、Checkpointer、Stage Application Services、Recovery Services、Worker Lifecycle（不自动启动 HTTP Server）。
 
-### 11.10 Dispatch Payload and Frontend Boundary
+### 12.10 Dispatch Payload and Frontend Boundary
 
 API 与 Worker 之间只传递轻量 Runtime Reference（`task_id / run_id / thread_id / workflow_name / workflow_version / command_type / idempotency_key / requested_at / correlation_id`）；不得传递完整 Product Facts / Evidence Package / Prompt / Marketing Brief / ORM Entity / Database Session / Secret / Provider Client / Checkpoint 二进制 / 可变 Domain Object。Frontend 不依赖持续连接维持 Workflow，通过 Task / Run 状态查询获得进度（初始 Polling / Conditional Polling / Manual Refresh；SSE / WebSocket / Push 由 RFC-004 决定）。
 
-### 11.11 Cancellation Boundary
+### 12.11 Cancellation Boundary
 
 取消采用 Durable Cancellation Intent：`Cancel Request → Application validates → Persist Durable Cancellation Intent → Worker observes → bounded work stops safely → status updated`。区分 `cancellation_requested / cancelling / cancelled / cancellation_failed`；HTTP Cancel 成功不表示 Worker 已即时停止。State Machine 由 RFC-003、RFC-004 决定。
 
-### 11.12 Local and Test Runtime
+### 12.12 Local and Test Runtime
 
 允许 `Combined Development Runtime`（一个命令启动 API + Local Worker + Local Dispatch Adapter）与明确的 `Inline Execution Mode`，但仅限 `local / test / evaluation`：显式标记非生产、使用相同 Application Service、不绕过 Idempotency / Checkpoint、不改变业务事务规则、不成为生产默认路径。Production CLI Inline Workflow 仍然禁止。
 
-### 11.13 Decision Boundary
+### 12.13 Decision Boundary
 
 已确认：Modular Monolith 不要求同进程；统一 Backend Application 与版本化 Release Boundary；API / Worker / CLI 三进程角色；长 Workflow 禁止在 HTTP 内执行完成、采用后台异步业务语义；API 在 Durable Work Intent 可靠记录后才返回接受；生产可靠任务禁止进程内临时 Background Task；Worker 只经 Application Service 提交业务状态、Crash 后可重新领取、重复投递经 Idempotency 防重复业务版本；Human Review Submit 同步提交业务、异步调度 Resume、Approved Commit 与 Resume Intent 原子或可靠协调；Domain 纯同步、Application Sync-first、并发优先有界 Worker；API/Worker 窄化 Bootstrap Factory；Dispatch Payload 只含 ID/版本/Runtime Reference；Cancellation 使用 Durable Intent；Local/Test 允许 Combined Runtime 与 Inline Runner。
 
@@ -249,7 +341,7 @@ API 与 Worker 之间只传递轻量 Runtime Reference（`task_id / run_id / thr
 
 本 Decision 不选择 API Framework / Queue / Database Driver / Worker Framework / Deployment Platform；RFC-001 保持 `DRAFTING`；**API、Worker、Production Runtime 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 12. 已确认 Skill 代码形态与架构关系（RFC-001-DQ-05）
+## 13. 已确认 Skill 代码形态与架构关系（RFC-001-DQ-05）
 
 > 来源：RFC-001-DQ-05（ACCEPTED）。
 
@@ -289,7 +381,7 @@ Skill 须支持 **Contract / Unit / Integration / Evaluation / Architecture** �
 
 本 Decision 不选择模型 Provider / Retrieval Backend / Schema Library / Prompt Registry / Evaluation Framework；RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 13. 已确认依赖注入、配置与应用装配（RFC-001-DQ-06）
+## 14. 已确认依赖注入、配置与应用装配（RFC-001-DQ-06）
 
 > 来源：RFC-001-DQ-06（ACCEPTED）。
 
@@ -329,7 +421,7 @@ Repository **只提交 `.env.example`（占位值，无真实凭证）= REQUIRED
 
 本 Decision 不选择 DI Framework / Secret Manager / Settings Library / Deployment Platform；RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 14. 已确认分层职责、事务所有权与依赖规则（RFC-001-DQ-04）
+## 15. 已确认分层职责、事务所有权与依赖规则（RFC-001-DQ-04）
 
 > 来源：RFC-001-DQ-04（ACCEPTED）。
 
@@ -463,7 +555,7 @@ Domain Event 表示 Domain 已发生业务事实，Domain 可产生但不发布�
 
 RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 15. 已确认 Repository 与 Package 目录结构（RFC-001-DQ-03）
+## 16. 已确认 Repository 与 Package 目录结构（RFC-001-DQ-03）
 
 > 来源：RFC-001-DQ-03（ACCEPTED）。
 
@@ -809,7 +901,7 @@ production → spikes / prototypes
 - Deployment Platform；
 - Production Skeleton Authorization Gate。
 
-## 16. 已确认生产技术语言边界（RFC-001-DQ-02）
+## 17. 已确认生产技术语言边界（RFC-001-DQ-02）
 
 > 来源：RFC-001-DQ-02（ACCEPTED）。
 
@@ -950,7 +1042,7 @@ Worker Integration
 - Deployment Platform；
 - Frontend Framework。
 
-## 17. 已确认应用架构（RFC-001-DQ-01）
+## 18. 已确认应用架构（RFC-001-DQ-01）
 
 > 来源：RFC-001-DQ-01（ACCEPTED）。
 
@@ -1095,11 +1187,11 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 - Web Framework：PENDING RFC；
 - Deployment Platform：PENDING RFC。
 
-## 18. 未决技术决策（PENDING RFC）
+## 19. 未决技术决策（PENDING RFC）
 
 | 领域 | 状态 | RFC |
 |---|---|---|
-| Repository and Application Architecture | DRAFTING — DQ-01~08 ACCEPTED | RFC-001 |
+| Repository and Application Architecture | DRAFTING — DQ-01~09 ACCEPTED | RFC-001 |
 | Persistence and Transaction Architecture（生产 DB / ORM） | PENDING RFC | RFC-002 |
 | LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | PENDING RFC | RFC-003 |
 | API and Human Review Protocol | PENDING RFC | RFC-004 |
@@ -1107,14 +1199,14 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 | LLM Runtime and Structured Output | PENDING RFC | RFC-006 |
 | Observability and Runtime Operations | PENDING RFC | RFC-007 |
 
-> RFC-001 仍为 `DRAFTING`（DQ-01~08 ACCEPTED），代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线（DQ-09）尚未确认；正式 Public Contract、Application Event Runtime、Event Bus、生产 Command/Query 实现、跨模块 Composite Use Case、API、Worker 与 Production Runtime 创建仍 **NOT AUTHORIZED**。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
+> RFC-001 仍为 `DRAFTING`（DQ-01~09 ACCEPTED），Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口（DQ-10）尚未确认；Production CI、Production Skeleton、质量工具版本锁定、Secret Scanner、API、Worker、CLI 与 Production Runtime 创建仍 **NOT AUTHORIZED**。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
 
-## 19. Final Status
+## 20. Final Status
 
 ```text
 Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-09 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线
+Next Topic: RFC-001-DQ-10 Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口
 ```

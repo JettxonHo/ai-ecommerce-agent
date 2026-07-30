@@ -3600,9 +3600,177 @@ Technical Exception Leakage:         PROHIBITED
 
 ---
 
+## Decision Question 09: Quality Toolchain, Architecture Enforcement, CI Quality Gates and Test Baseline
+
+> **Status:** `ACCEPTED`
+> **User Decision:** `ACCEPTED`
+
+### Decision
+
+Production code adopts Ruff, Pyright, pytest, Import Linter, and custom Architecture Tests as a unified quality toolchain. All PRs must pass type, architecture, deterministic test, coverage, dependency, and Secret checks. `main` is protected by Required Status Checks. AI Live Evaluation is separated from the ordinary deterministic Merge Gate.
+
+### Quality Governance Model
+
+```text
+Accepted Architecture Decision
+↓
+Machine-checkable Rule
+↓
+CI Required Check
+↓
+Merge Block
+```
+
+Quality checks are divided into: **Code Correctness**, **Architecture Correctness**, **Business Behavior Correctness**, **Repository Governance Correctness**. A Coding Agent must not rely on documentation alone to understand boundaries; any rule that can be verified automatically must become a tool configuration, Architecture Test, or Required CI Check.
+
+### Python Quality Toolchain
+
+| Concern | Tool |
+|---|---|
+| Python Formatter | Ruff Formatter |
+| Python Linter | Ruff Linter |
+| Python Type Checker | Pyright |
+| Test Runner | pytest |
+| Import Architecture | Import Linter |
+| Semantic Architecture | Custom pytest Architecture Tests |
+| Coverage | coverage.py / pytest integration |
+| Dependency Vulnerability Audit | pip-audit |
+
+Not introduced as parallel Source of Truth: **Black**, **isort**, **Flake8** — to avoid duplicate or conflicting format / import / lint rules. Tool versions will be pinned via Lockfile during Foundation Implementation; this Decision does not lock versions.
+
+### Ruff Boundary
+
+Ruff is responsible for: Python formatting, import sorting, unused imports, undefined names, common logic errors, suspicious exception handling, unified static code style, and project-approved modern Python rules. Formatting Source of Truth = Ruff Formatter; Linting Source of Truth = Ruff Linter. Configuration is centralized in `apps/backend/pyproject.toml`. Business modules must not maintain conflicting independent lint configs. Lint exceptions must point to a specific rule, be scoped to a line/file, state a technical reason, not hide real business/architecture errors, and where needed link a cleanup Issue; broad `# noqa` over whole files or large `per-file-ignores` excluding Domain/Application/Public Contract/Architecture Tests from core checks are prohibited.
+
+### Type Discipline
+
+**Strict-first Type Discipline.** Strict requirements apply first to Domain, Application, Public Contract, Command, Query, Result, Public Error, Snapshot, Skill Input, Skill Result, Graph State, Runtime Identifier, Repository Port, Model Runtime Port, Retrieval Port, Dispatch Payload. Infrastructure Adapters facing untyped third-party SDKs may build narrowing Adapters, but must not let unknown types spread into Application and Domain.
+
+**`Any` Boundary** — `Any` may exist only at explicit external boundaries (unverified JSON, raw Provider SDK responses, third-party dynamic objects, protocol input before Schema Validation), following `External Dynamic Data → Entrypoint/Infrastructure Validation → Typed Contract → Application/Domain`. The chain `Provider Response[Any] → Graph State[Any] → Application[Any] → Domain[Any]` is prohibited. Do not degrade explicit business types to `dict[str, object]` or broad `Any` just to pass the type checker.
+
+**Type Ignore Rules** — prohibited: project-level disabling of core diagnostics, skipping whole packages, broad `type: ignore` without a diagnostic code, changing types to `Any` to pass CI, excluding key business directories via config. Precise type exceptions must specify a diagnostic, state the third-party/technical limitation, stay within the Infrastructure Adapter boundary, and link a cleanup Issue. Principle: *Fix the type boundary before suppressing the checker.*
+
+### Architecture Enforcement Model
+
+Two layers: **Import Linter** (structural rules expressible in the Import Graph) + **Custom pytest Architecture Tests** (semantic rules the Import Graph cannot fully express), located at `apps/backend/tests/architecture/`.
+
+Import Linter initial contracts: Domain Independence, Application Independence, Business Module Isolation, Public Facade-only Cross-module Imports, Orchestration Boundary, Entrypoint Boundary, Spike/Prototype Isolation, Shared Kernel Independence, Module Dependency DAG.
+
+Custom Architecture Tests at minimum cover: Public Contract Shape, Skill Boundary, Orchestration Boundary, Configuration Boundary, Entrypoint Boundary — implemented via AST, Import Graph, type reflection, Contract Registry, or file scanning.
+
+### Test Classification
+
+```text
+unit / integration / contract / architecture / e2e / evaluation / live / slow
+```
+
+All pytest markers must be pre-registered; CI enables strict marker mode. Unknown or misspelled markers (e.g. `@pytest.mark.intergration`) must fail, never be silently accepted.
+
+### Test Baselines
+
+- **Unit** — deterministic: no network, no real model, no production DB, no production Secret, Fake Clock, deterministic ID, Scripted Model Runtime, fixed Retrieval Fixture, order-independent, repeatable. Focus: Domain Invariant, Application Validation, Idempotency, Stale Input, Version Rule, Evidence Rule, Human Review, Public Error Mapping, Skill Validator, Deterministic Routing, Downstream Invalidation.
+- **Integration** — real technical boundaries (Repository, Unit of Work, DB Transaction, Migration, Checkpointer, Durable Dispatch, Model Runtime, Retrieval, Bootstrap Lifecycle, Resource Cleanup) on isolated, rebuildable, cleaned-up resources that verify Commit and Rollback.
+- **Contract** — Public Command/Query/Result/Error, Ports, Event Payload, Dispatch Payload, API Schema, Graph State Schema, Adapter Compliance; must block silent field removal, ID/Version semantic change, Query side-effects, Public Error Code drift, Event leaking internal Entity, non-compliant Adapter, Dispatch Payload carrying full business objects.
+- **E2E** — full main flow (Create Task → Product Intake → Customer Insight → Product Positioning → Human Review Interrupt → Review Submit → Resume → Marketing Brief → Xiaohongshu Mapping) plus key failure scenarios (Duplicate Submit, Stale Review, Worker Crash, Duplicate Resume Delivery, Stage Rerun, Downstream Invalidation, Provider Failure, Retry Exhaustion, Recovery, Cancellation). Not Happy-Path-only.
+- **Evaluation** — AI result quality, not deterministic software behavior. Deterministic Evaluation (fixed input/response/fixture/scorer) may enter the normal PR gate. **Live Evaluation** (real model/provider; cost, network, variance) runs Manual / Nightly / on Prompt-or-Model-Policy-Change / Release Candidate; it is not the sole merge gate for a normal PR.
+
+### External Network Test Boundary
+
+Normal Required PR Tests default to **no live external provider or network access**. Tests needing the real network must be marked `live`. Unit/Contract/Architecture tests must not accidentally call a Model Provider, Embedding Provider, Vector SaaS, external web, production DB, or production Secret Manager. The test environment should be able to block undeclared network access.
+
+### Coverage Policy
+
+After the first executable production code lands: **Branch Coverage measurement, global fail-under = 80%**. Coverage is a risk indicator, not business correctness. Domain Invariant, Human Review, Current Truth, Idempotency, Evidence, Version, Stale Input, Retry, Recovery, Downstream Invalidation must have explicit behavior tests even at 80%. Precise exclusions allowed (pure type declarations, unreachable defensive branches, generated code, Migration tool templates, thin bootstrap entry). Broad `# pragma: no cover` hiding untested business logic is prohibited. During Skeleton stage (no executable business logic): no empty tests to inflate coverage, no fake coverage over empty dirs; focus on tool runnability and real Architecture Contract verification; the Coverage Gate activates when executable production code begins.
+
+### Warning / Flaky / Randomness / Skip-XFail / Snapshot
+
+- **Warnings = Errors by default** (Python Deprecation, pytest, unregistered marker, Resource, unclosed client, config, ORM/Provider deprecation). Exceptions must be precisely matched, justified, have a cleanup condition, and link an upgrade Issue. `ignore all warnings` prohibited.
+- **Flaky Test Policy** — Required CI must not mask flaky tests via auto-rerun (`fail → auto-rerun → one pass → green` is prohibited). On a flaky test: record Issue, locate time/random/concurrency/resource cause, isolate explicitly if needed, restore the Gate after fixing. Isolated or un-run tests must not be described as passed.
+- **Randomness** — fix Seed, output Seed on failure, deterministic ID generator, control time/model output/Retrieval ordering, avoid order dependence.
+- **Skip / XFail** — only for genuinely unsupported environment (with reason, Issue, removal condition) or known defect (strict mode, accurate expectation, review Unexpected Pass). Never to hide incomplete Acceptance Criteria, architecture violations, must-pass business rules, or failures the Agent cannot fix.
+- **Golden / Snapshot Tests** — readable content, reviewable diff, no Secret, no random timestamps, human semantic check on update; Coding Agents must not auto-accept all Snapshot changes (`changed → review semantic diff → human accept/reject`).
+
+### Dependency Security
+
+PR Dependency Audit via **pip-audit**; repository enables **Dependabot Alerts** and **Controlled Security Updates**. Routine version updates use a controlled cadence (no mass of disordered auto-PRs). Dependency changes must update the Lockfile, pass full CI, state the new dependency's purpose, check security and License impact, avoid mixing with unrelated business changes, and avoid duplicate-functionality libraries. A Coding Agent must not introduce new dependencies casually.
+
+### Secret Detection
+
+CI must have a **Secret Detection Gate** covering at least API Key, Private Key, Token, `.env`, Authorization Header, Cloud Credential, Database Credential. The specific Secret Scanner is chosen during Foundation Implementation. Handling: `Detected Secret → CI Failure → Remove from repository → Rotate/revoke if the credential was real`. Deleting a real Secret from Git alone is insufficient.
+
+### CI Gate Layers
+
+- **Layer 1 — Fast Static Gate** (every PR): Repository Hygiene, Ruff Format Check, Ruff Lint, Pyright, Import Linter, Architecture Tests.
+- **Layer 2 — Deterministic Test Gate** (every PR): Unit Tests, Contract Tests, Coverage, Dependency Audit, Secret Detection.
+- **Layer 3 — Runtime Confidence Gate** (after production runtime, by change scope): Integration Tests, Migration Tests, Bootstrap Tests, E2E Smoke Tests, Recovery Tests.
+- **Extended Gate** (Nightly / manual / Release Candidate): Full E2E, Live Model Evaluation, Performance Tests, Long Recovery Scenarios, Dependency Compatibility Tests.
+
+### Required Status Checks & Branch Protection
+
+`main` uses stable Required Check names, e.g. `quality/format`, `quality/lint`, `quality/typecheck`, `quality/architecture`, `test/unit-contract`, `test/integration`, `test/e2e-smoke`, `security/dependency-audit`, `security/secret-detection`. Check names must not change frequently. `main` must: merge via Pull Request, forbid direct Push, forbid Force Push, require Required Status Checks, resolve Review Conversations; the user retains final Merge permission. A second Reviewer is not enforced for the current solo portfolio repository. Human gate: `User reviews PR → User decides merge`.
+
+### Coding Agent CI Governance
+
+On CI failure a Coding Agent must NOT: delete failing tests, lower Coverage Threshold, disable Pyright, add global Ignore, delete Import Linter Contracts, delete Architecture Tests, turn Required Checks Optional, modify Branch Protection, update all Snapshots without review, turn failing tests into Skip, or auto-merge. Correct flow: `CI Failure → Determine Root Cause → Fix Code or Justified Test → Add Regression Test → Run All Affected Gates`.
+
+### Frontend Quality Boundary
+
+Future TypeScript production code at minimum requires: TypeScript strict mode, Formatter, Linter, Unit test runner, Build check, Generated API contract drift check. Concrete tool choices (ESLint or Biome, Formatter, Test Runner, Framework Build Tool) are deferred to the frontend framework decision. Fixed principles: `TypeScript strict = REQUIRED`, `Generated API types = CHECKED`, `Build warnings = REVIEWED`.
+
+### Documentation and Traceability Gate
+
+Production Implementation PRs should check: references to relevant DEC and Accepted RFC, Acceptance Criteria, declared Required Tests, Traceability updates, Contract Test updates on Public Contract change, Architecture Documentation updates on architecture change, Migration Rollback/compatibility notes. Implemented progressively via PR Template, Issue Template, doc scripts, and CI Governance Checks.
+
+### Foundation Skeleton Quality Baseline & Verification
+
+After RFC-001 is accepted as a whole and Foundation Work Authorization is granted, the first Foundation PRs should establish: central pyproject configuration, Ruff config, Pyright config, pytest strict-marker config, Coverage config, Import Linter contracts, Architecture test directory, CI workflows, Dependency audit, Secret detection, Developer command documentation. Do not create masses of empty business modules for directory completeness. Foundation Work must at least prove that: format/lint/type errors fail CI; Domain importing Infrastructure, cross-module bypass of Public Facade, and module dependency cycles fail CI; unregistered markers fail CI; Unit Test failure blocks Merge; Coverage below threshold fails once enabled; Dependency Vulnerability fails or enters explicit review; Secret Detection blocks merge; `main` Required Checks are configured; local and CI use the same tool config; and a deliberately constructed Architecture Violation is auto-detected.
+
+### Unified Local and CI Commands
+
+Developers and Coding Agents use a unified command entry (conceptually `quality-format`, `quality-lint`, `quality-type`, `quality-architecture`, `test-fast`, `test-integration`, `test-e2e`, `quality-all`). The concrete mechanism (`uv run` scripts, Python Script, Makefile, Task Runner) is decided by Foundation Implementation. `Local checks = CI checks`; two inconsistent quality configs must not be maintained.
+
+### Performance Targets
+
+Initial targets, not permanent hard limits: Fast Static Gate ≤ 2 min; Unit + Architecture + Contract ≤ 5 min; Required PR Gate total ≤ 10 min; Live Evaluation = separate workflow. When the Required Gate slows: parallelize, cache, optimize fixtures, split by category, reduce duplicate installs — do not delete necessary tests.
+
+### Hard Rules
+
+```text
+Python Formatter = RUFF
+Python Linter = RUFF
+Python Type Checker = PYRIGHT
+Production Type Discipline = STRICT-FIRST
+Test Runner = PYTEST
+Unknown Markers = ERROR
+Import Architecture = IMPORT LINTER
+Semantic Architecture = CUSTOM PYTEST ARCHITECTURE TESTS
+Required PR Tests = NO LIVE EXTERNAL PROVIDER
+Coverage = BRANCH-AWARE, GLOBAL FAIL-UNDER 80%, AFTER EXECUTABLE PRODUCTION CODE BEGINS
+Warnings = ERROR BY DEFAULT
+Flaky Test Auto-rerun = PROHIBITED IN REQUIRED GATE
+Dependency Audit = REQUIRED
+Secret Detection = REQUIRED
+Cross-module Boundary Violation = CI FAILURE
+Main Branch = PROTECTED BY REQUIRED CHECKS
+Coding Agent CI Bypass = PROHIBITED
+Live AI Evaluation = SEPARATE FROM NORMAL DETERMINISTIC MERGE GATE
+```
+
+### Decision Boundary
+
+This Decision confirms the full 44-point list (Ruff formatter+linter, no parallel Black/isort/Flake8, Pyright strict-first on Domain/Application/Public Contract, no global `Any`/Ignore, narrow third-party dynamic types at Infrastructure, pytest + strict markers, 8-category test classification, no live provider in Required PR tests, Import Linter, custom Architecture Tests, deterministic Unit tests, isolated Integration tests, Contract tests, E2E failure coverage, Evaluation separation, fixed-fixture Evaluation in PR, Live Evaluation Nightly/manual/release, branch coverage after executable code, 80% fail-under, behavior tests for critical rules, warnings-as-errors, no flaky auto-rerun, Skip/XFail rules, human Snapshot review, pip-audit, Dependabot, Secret Detection, protected main via PR + Required Checks, no enforced 2nd reviewer, user final merge gate, no Coding-Agent CI bypass, 4-layer CI gates, Extended Gate, TypeScript strict, deferred frontend tools, Foundation Skeleton must block real violations, unified local/CI commands) and that this Decision does not lock tool versions, Secret Scanner, frontend tools, or CI YAML, and does not authorize creating Production CI or Skeleton.
+
+This Decision has NOT confirmed: Production Skeleton scope; Foundation Issue breakdown; the first allowed directories/files; the concrete CI Workflow implementation; the Secret Scanner; tool versions; frontend framework and tools; Foundation Work Authorization; RFC-001 overall acceptance conditions.
+
+### Traceability
+
+Related: RFC-001-DQ-01~08; DEC-033 Runtime Reliability; DEC-034 Architecture Readiness; DEC-035 Spike Test Stack; DEC-036 GitHub Workflow; DEC-038 RFC Governance; Spike-001 Regression Evidence; Architecture Baseline v1.
+
+---
+
 ## Open Questions
 
-1. 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线（RFC-001-DQ-09）。
+1. Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口（RFC-001-DQ-10）。
 2. Durable Dispatch 的具体实现（RFC-002 / RFC-003）。
 3. API Framework 与 HTTP Endpoint（RFC-004）。
 4. Database 和 ORM（RFC-002）。
@@ -3610,14 +3778,14 @@ Technical Exception Leakage:         PROHIBITED
 6. Checkpoint Backend 与 Resume State Machine（RFC-003）。
 7. Polling、SSE 或 WebSocket（RFC-004）。
 8. Settings / Configuration Library。
-9. Secret Manager 与生产凭证来源。
+9. Secret Manager 与生产凭证来源 / Secret Scanner。
 10. Prompt Registry 与版本注册形式。
 11. Evaluation Framework 与评测数据集形式。
 12. Event Bus / Outbox（跨进程可靠调度）。
 13. Schema Library 与 Contract Test Framework。
 14. Deployment Platform 与 Process Health Check / Worker Scaling Policy。
 15. Graph Version Migration（RFC-003 / RFC-007）。
-16. Production Skeleton Authorization Gate。
+16. 质量工具版本（Lockfile 固定）、前端 Framework 与工具、CI Workflow 具体实现。
 
 ---
 
@@ -3646,6 +3814,7 @@ Technical Exception Leakage:         PROHIBITED
 - RFC-001-DQ-06：Dependency Injection, Configuration and Application Bootstrap
 - RFC-001-DQ-07：Process Boundaries and Sync/Async Execution Strategy
 - RFC-001-DQ-08：Module Public Contracts, Cross-module Collaboration and Cycle Governance
+- RFC-001-DQ-09：Quality Toolchain, Architecture Enforcement, CI Quality Gates and Test Baseline
 
 ## Related Specifications
 

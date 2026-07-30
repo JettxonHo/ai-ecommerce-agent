@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01~DQ-08 已接受。下一议题：[RFC-001-DQ-09：代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线](#dq-09-代码质量工具链architecture-enforcementci-quality-gate-与测试基线)。
+> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01~DQ-09 已接受。下一议题：[RFC-001-DQ-10：Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口](#dq-10-production-skeleton-范围foundation-work-authorization-gate-与-rfc-001-收口)。
 
 ---
 
@@ -91,32 +91,48 @@ RFC-001-DQ-05 Skill Code Shape and Architectural Relationships = ACCEPTED
 RFC-001-DQ-06 Dependency Injection, Configuration and Application Bootstrap = ACCEPTED
 RFC-001-DQ-07 Process Boundaries and Sync/Async Execution Strategy = ACCEPTED
 RFC-001-DQ-08 Module Public Contracts, Cross-module Collaboration and Cycle Governance = ACCEPTED
-RFC-001-DQ-09 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线 = PROPOSED
+RFC-001-DQ-09 Quality Toolchain, Architecture Enforcement, CI Quality Gates and Test Baseline = ACCEPTED
+RFC-001-DQ-10 Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口 = PROPOSED
 ```
+
+## DQ-10: Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口
+
+RFC-001-DQ-10 下一轮优先讨论：
+
+1. RFC-001 接受后允许创建哪些根目录；
+2. 首批后端 Production Skeleton 文件；
+3. 是否创建业务模块目录；
+4. 是否创建 API、Worker 和 CLI 空入口；
+5. 是否允许创建 Bootstrap；
+6. 是否允许建立质量工具配置和 CI；
+7. Foundation Issue 应如何拆分；
+8. Spike-001 代码如何作为证据但不迁移；
+9. Skeleton 的验收测试；
+10. 哪些内容仍必须等待 RFC-002、RFC-003、RFC-004；
+11. RFC-001 整体接受条件；
+12. 接受 RFC-001 后是否立即授权 Foundation Work。
+
+在 RFC-001-DQ-10 和 RFC-001 整体被用户明确接受前：
+
+- 不创建 Production Skeleton；
+- 不创建 Production CI；
+- 不创建 API、Worker、CLI；
+- 不迁移 Spike 代码；
+- RFC-001 保持 `DRAFTING`。
 
 ## DQ-09: 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线
 
-RFC-001-DQ-09 下一轮优先讨论：
+RFC-001-DQ-09 已接受：
 
-1. Python Formatter；
-2. Python Linter；
-3. Type Checker；
-4. Import 和模块边界检查；
-5. Architecture Test 工具；
-6. Unit、Integration、Contract 和 E2E 测试分层；
-7. PR 必须通过的 CI Checks；
-8. Coverage 是否设硬门槛；
-9. Warning 是否允许；
-10. Dependency 和安全扫描；
-11. Test Marker 与运行时间预算；
-12. Foundation Skeleton 的最低质量标准。
-
-在 RFC-001-DQ-09 被用户明确接受前：
-
-- 不引入正式质量工具链；
-- 不创建生产 CI；
-- 不创建 Production Skeleton；
-- RFC-001 保持 `DRAFTING`。
+1. 生产代码采用 Ruff（Formatter + Linter）、Pyright（Type Checker）、pytest（Test Runner）、Import Linter（Import Architecture）与自定义 pytest Architecture Tests（Semantic Architecture）构成统一质量工具链；不同时引入 Black / isort / Flake8 作为平行 Source of Truth；配置集中于 `apps/backend/pyproject.toml`；
+2. Strict-first Type Discipline 优先适用于 Domain / Application / Public Contract；`Any` 只能存在于明确外部边界，第三方动态类型在 Infrastructure Adapter 收窄；禁止全局 `Any` / 全局 Ignore / 关闭核心诊断绕过类型检查；
+3. 测试分类为 unit / integration / contract / architecture / e2e / evaluation / live / slow；pytest Marker 必须预注册，CI 严格 Marker 模式，未知 Marker 必须失败；普通 Required PR Tests 不访问实时外部 Provider；
+4. Architecture Enforcement 双层机制：Import Linter 验证结构规则（Domain / Application Independence、Module Isolation、Public Facade-only、Orchestration / Entrypoint / Spike / Shared Kernel Boundary、DAG），自定义 Architecture Tests 验证语义规则（Public Contract / Skill / Orchestration / Configuration / Entrypoint Boundary）；
+5. Unit 确定性；Integration 使用隔离可重建资源验证 Commit/Rollback；Contract 验证 Public Contract / Port / Event / Dispatch Payload / Graph State；E2E 覆盖主流程 + 失败场景；Evaluation 与确定性测试分离，Live Evaluation 默认运行于 Nightly / 手动 / Release Candidate；
+6. 可执行生产代码进入后启用 Branch Coverage，Global Fail-under = 80%；关键业务规则必须有行为测试；Warnings = Error by default；Required CI 禁止用自动重跑掩盖 Flaky Test；Snapshot 更新需人工语义审查；
+7. Dependency Audit 使用 pip-audit，启用 Dependabot Alerts 与受控 Security Updates；CI 必须具备 Secret Detection Gate（检出 → CI Failure → 移除 → 真实凭证则轮换/吊销）；
+8. CI 分为 Fast Static / Deterministic Test / Runtime Confidence / Extended Gate；`main` 使用稳定 Required Status Checks 保护（PR 合并、禁止直接 Push / Force Push、Required Checks 通过、Review 解决、用户保留最终 Merge 权限，当前个人项目不强制第二名 Reviewer）；Coding Agent 不得关闭检查 / 降低阈值 / 删除测试绕过 CI；本地与 CI 使用统一命令入口；
+9. 本 Decision 不锁定工具版本 / Secret Scanner / 前端工具 / CI YAML；接受后仍不授权创建 Production CI 或 Skeleton；RFC-001 保持 `DRAFTING`。
 
 ## DQ-08: 模块公开契约、跨模块 Command / Query / Event 协作与循环依赖治理
 
@@ -209,5 +225,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-09 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线
+Next Topic: RFC-001-DQ-10 Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口
 ```
