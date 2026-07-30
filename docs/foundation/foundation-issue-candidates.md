@@ -16,20 +16,20 @@ Foundation Candidate Planning Status = COMPLETED
 Foundation Candidate Final Review = PASS
 
 FND-001 Candidate Status = COMPLETED
-FND-002 Candidate Status = IN IMPLEMENTATION
+FND-002 Candidate Status = IN REVIEW
 FND-003 Candidate Status = READY, BLOCKED BY FND-002
 
 FND-001 Issue Creation = AUTHORIZED（2026-07-30，用户明确授权「确认授权创建并实施 FND-001」，GitHub Issue #6 已创建）
 FND-001 Implementation = COMPLETED（2026-07-30，PR #7 已由用户 Merge；Merge Commit 5b75bcf）
 
 FND-002 Issue Creation = AUTHORIZED（2026-07-30，用户明确授权「确认授权创建并实施 FND-002」，GitHub Issue #9 已创建）
-FND-002 Implementation = IN IMPLEMENTATION（2026-07-30，Branch foundation/002-architecture-test-foundation）
+FND-002 Implementation = IN REVIEW（2026-07-30，Branch foundation/002-architecture-test-foundation；PR #10 已创建待用户审查；Merge = USER DECISION REQUIRED）
 
 FND-003 Issue Creation = NOT AUTHORIZED
 FND-003 Implementation = NOT AUTHORIZED
 
 Foundation Planning Status = AUTHORIZED
-Foundation Implementation Status = FND-001 COMPLETED；FND-002 IN IMPLEMENTATION（单项逐个授权，不代表 Foundation 整体授权）
+Foundation Implementation Status = FND-001 COMPLETED；FND-002 IN REVIEW（单项逐个授权，不代表 Foundation 整体授权）
 Business Implementation Status = NOT AUTHORIZED
 
 Architecture Readiness = CONDITIONALLY READY
@@ -57,12 +57,12 @@ FND-003  CI, Security and Repository Protection              (deps: FND-001 + FN
 | Candidate | 主题 | 依赖 | Candidate Status | Issue Creation | Implementation |
 |---|---|---|---|---|---|
 | **FND-001** | Backend Package and Local Tooling Foundation | RFC-001 = ACCEPTED（无前置 Foundation Issue） | **COMPLETED** | **AUTHORIZED（Issue #6）** | **COMPLETED（PR #7 已合并，Merge Commit 5b75bcf）** |
-| **FND-002** | Architecture Enforcement and Test Foundation | FND-001 = MERGED | **IN IMPLEMENTATION** | **AUTHORIZED（Issue #9）** | **IN IMPLEMENTATION（Branch foundation/002-architecture-test-foundation）** |
+| **FND-002** | Architecture Enforcement and Test Foundation | FND-001 = MERGED | **IN REVIEW** | **AUTHORIZED（Issue #9）** | **IN REVIEW（PR #10 待用户审查；Merge = USER DECISION REQUIRED）** |
 | **FND-003** | CI, Security and Repository Protection | FND-001 + FND-002 | **READY, BLOCKED BY FND-002** | NOT AUTHORIZED | NOT AUTHORIZED |
 
 > **FND-001 执行状态（2026-07-30）：** 用户明确回复「确认授权创建并实施 FND-001」，授权 FND-001 Issue Creation + Implementation。[GitHub Issue #6](https://github.com/JettxonHo/ai-ecommerce-agent/issues/6) 已创建、实施完成并经 [PR #7](https://github.com/JettxonHo/ai-ecommerce-agent/pull/7) **由用户 Merge**（Merge Commit `5b75bcf`），FND-001 = **COMPLETED**（文档归档经 [PR #8](https://github.com/JettxonHo/ai-ecommerce-agent/pull/8) 记录）。
 >
-> **FND-002 执行状态（2026-07-30）：** 用户明确回复「确认授权创建并实施 FND-002」，授权 FND-002 Issue Creation + Implementation。已创建 [GitHub Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9) 与 Branch `foundation/002-architecture-test-foundation`。**Merge 仍为 USER DECISION REQUIRED**；FND-003 与任何业务实现均未授权。
+> **FND-002 执行状态（2026-07-30）：** 用户明确回复「确认授权创建并实施 FND-002」，授权 FND-002 Issue Creation + Implementation。已创建 [GitHub Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9) 与 Branch `foundation/002-architecture-test-foundation`，实施完成并提交 [PR #10](https://github.com/JettxonHo/ai-ecommerce-agent/pull/10)（`foundation: enforce architecture and test boundaries`，含完整验证证据），现待用户审查。**Merge 仍为 USER DECISION REQUIRED**；FND-003 与任何业务实现均未授权。
 
 ---
 
@@ -296,16 +296,16 @@ docs: document backend development commands
 
 ---
 
-## FND-002：Architecture Enforcement and Test Foundation（IN IMPLEMENTATION）
+## FND-002：Architecture Enforcement and Test Foundation（IN REVIEW）
 
-**用户确认：** 「确认」——接受 FND-002 的候选范围、依赖、验收标准和禁止边界。Final Review（2026-07-30）通过后，Candidate Status 由 `APPROVED FOR ISSUE PLANNING` 升级为 `READY, BLOCKED BY FND-001`。2026-07-30 FND-001 完成后，用户明确回复「确认授权创建并实施 FND-002」，进入 `IN IMPLEMENTATION`。
+**用户确认：** 「确认」——接受 FND-002 的候选范围、依赖、验收标准和禁止边界。Final Review（2026-07-30）通过后，Candidate Status 由 `APPROVED FOR ISSUE PLANNING` 升级为 `READY, BLOCKED BY FND-001`。2026-07-30 FND-001 完成后，用户明确回复「确认授权创建并实施 FND-002」，完成实施并进入 `IN REVIEW`。
 
 **Candidate Status：**
 
 ```text
-FND-002 Candidate Status = IN IMPLEMENTATION
+FND-002 Candidate Status = IN REVIEW
 FND-002 Issue Creation = AUTHORIZED（2026-07-30，用户明确授权「确认授权创建并实施 FND-002」，GitHub Issue #9）
-FND-002 Implementation = IN IMPLEMENTATION（2026-07-30，Branch foundation/002-architecture-test-foundation）
+FND-002 Implementation = IN REVIEW（2026-07-30，Branch foundation/002-architecture-test-foundation；PR #10 已创建待用户审查）
 FND-002 Merge = USER DECISION REQUIRED
 ```
 
@@ -1004,4 +1004,4 @@ Foundation Candidate Final Review: PASS
 FND-002 Pull Request Review and Merge Gate
 ```
 
-FND-001 = **COMPLETED**（PR #7 已由用户 Merge）。FND-002 Issue Creation + Implementation 已经用户明确授权「确认授权创建并实施 FND-002」，[Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9) 已创建，实施在 Branch `foundation/002-architecture-test-foundation` 上进行。**下一正式 Gate：** FND-002 PR 完成验证后进入 `IN REVIEW`，由用户审查并决定 Merge（`FND-002 Merge = USER DECISION REQUIRED`，Coding Agent 不得自行 Merge）。该授权**不**包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue、不开始 FND-003 实施。
+FND-001 = **COMPLETED**（PR #7 已由用户 Merge）。FND-002 Issue Creation + Implementation 已经用户明确授权「确认授权创建并实施 FND-002」，[Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9) 已创建，实施已完成并提交 [PR #10](https://github.com/JettxonHo/ai-ecommerce-agent/pull/10)（含完整验证证据）。**下一正式 Gate：** 由用户审查 FND-002 PR 并决定 Merge（`FND-002 Merge = USER DECISION REQUIRED`，Coding Agent 不得自行 Merge；用户 Merge 前 FND-002 Status 不标记 COMPLETED）。该授权**不**包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue、不开始 FND-003 实施。
