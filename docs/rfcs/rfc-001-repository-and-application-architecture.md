@@ -1310,7 +1310,7 @@ Product Intake
 - 直接写 ORM Model；
 - 将完整 Domain Object 放入 Graph State。
 
-Graph Node 的完整职责将在 RFC-001-DQ-04 中确认。
+Graph Node 的完整职责已由 RFC-001-DQ-04 确认。
 
 #### Entrypoints
 
@@ -1696,7 +1696,7 @@ production → spikes
 production → prototypes
 ```
 
-完整职责和依赖规则将在 RFC-001-DQ-04 中确认。
+完整职责和依赖规则已由 RFC-001-DQ-04 确认。
 
 #### Cross-module Data Boundary
 
@@ -1888,19 +1888,791 @@ Risks：
 
 ---
 
+### DQ-04：Layer Responsibilities, Transaction Ownership and Dependency Rules
+
+**Status:** `ACCEPTED`
+
+#### Question
+
+Domain、Application、Infrastructure、Entrypoint、Orchestration 与 Bootstrap 的正式职责、依赖方向、Port 所有权、事务边界、Graph Node 与 Repository 边界、跨模块协作规则与 Architecture Test 要求是什么？
+
+#### Decision
+
+正式调用方向：
+
+```text
+Entrypoint / Orchestration
+        ↓
+Application
+        ↓
+Domain
+```
+
+Infrastructure 负责实现 Application 定义的技术接口：
+
+```text
+Application
+→ declares Ports
+Infrastructure
+→ implements Ports
+Bootstrap
+→ assembles implementations
+```
+
+核心原则：
+
+> 业务规则向内保持纯净；框架、数据库和外部服务只能通过明确的 Adapter 与 Port 接入。
+
+#### Domain Layer
+
+Domain 是纯业务核心，负责：
+
+- Entity；
+- Value Object；
+- Aggregate 和业务不变量；
+- Domain Service；
+- Business Rule；
+- Domain Validation；
+- Domain Error；
+- Domain Event；
+- Version Rule；
+- Evidence Classification Rule；
+- Human Review Rule；
+- Invalidation Rule。
+
+Domain 允许依赖：
+
+- Python Standard Library；
+- 本模块 Domain 内部代码；
+- 严格受限的 `shared_kernel` 基础类型。
+
+Domain 不得依赖：
+
+- Application；
+- Infrastructure；
+- Entrypoint；
+- Orchestration；
+- LangGraph；
+- Web Framework；
+- ORM；
+- Database Driver；
+- Repository Implementation；
+- Model SDK；
+- Vector Database SDK；
+- Queue SDK；
+- Checkpoint Backend；
+- Observability Provider；
+- Environment Variable。
+
+Domain 必须能够在没有数据库、网络、LangGraph 和真实模型的条件下完成 Unit Test。
+
+#### Application Layer
+
+Application 负责执行完整业务 Use Case，包括：
+
+- Command；
+- Query；
+- Application Service；
+- Use Case Coordination；
+- Repository 和 Provider Port；
+- Unit of Work Port；
+- Transaction Coordination；
+- Domain Rule 调用；
+- Idempotency Coordination；
+- Current Truth 更新协调；
+- Evidence Link 协调；
+- Audit Coordination；
+- Application Result；
+- Application Error Mapping。
+
+概念流程：
+
+```text
+Application Command
+↓
+Validate
+↓
+Begin Unit of Work
+↓
+Load Current Business State
+↓
+Execute Domain Rules
+↓
+Call Repository / Provider Ports
+↓
+Persist Domain Version
+↓
+Update Current Truth
+↓
+Write Evidence / Audit / Idempotency
+↓
+Commit or Rollback
+```
+
+Application 不得依赖：
+
+- 具体 Repository Implementation；
+- ORM Model；
+- Database Session；
+- LangGraph State；
+- Checkpoint Object；
+- Web Request 或 Response；
+- 具体 Model SDK；
+- 具体 Retrieval SDK。
+
+#### Port Ownership
+
+Repository、Provider、Unit of Work、Clock、ID Generator 和 Event Publisher 等 Port，默认由 **Application Layer** 定义。
+
+推荐位置：
+
+```text
+modules/<module>/application/ports.py
+```
+
+正式关系为：
+
+```text
+Application defines the capability it needs
+Infrastructure implements that capability
+Bootstrap injects the implementation
+```
+
+只有真正属于纯业务抽象的 Policy 才可以定义在 Domain。
+
+数据库 Repository、LLM Provider、Retrieval Provider、Unit of Work 和外部 Event Publisher 不属于 Domain。
+
+#### Infrastructure Layer
+
+Infrastructure 负责技术实现，包括：
+
+- Repository Implementation；
+- ORM Mapping；
+- Database Integration；
+- Unit of Work Implementation；
+- Model Provider Adapter；
+- Retrieval Adapter；
+- File Storage Adapter；
+- Queue Adapter；
+- Checkpoint Adapter；
+- Observability Adapter；
+- Third-party SDK Integration。
+
+Infrastructure 可以依赖：
+
+- Application Ports；
+- Domain Types；
+- Platform Infrastructure；
+- 第三方技术 SDK。
+
+Infrastructure 不得：
+
+- 定义业务规则；
+- 改变 Domain Invariant；
+- 在 Repository 中隐藏完整业务流程；
+- 自行更新 Current Truth；
+- 自行决定 Review Approval；
+- 自行执行 Downstream Invalidation；
+- 在 ORM Hook 中执行核心业务逻辑；
+- 直接调用其他业务模块的内部 Infrastructure；
+- 绕过 Application Service 提交业务状态。
+
+Repository Implementation 的职责限于：
+
+```text
+Load
+Persist
+Query
+Map
+```
+
+不得承担：
+
+```text
+Approve
+Invalidate
+Resume
+Select Strategy
+Generate Business Decision
+```
+
+#### Transaction Ownership
+
+业务事务由 **Application Use Case** 拥有。
+
+正式规则：
+
+> 一个 Application Command 对应一个清晰、有限且可重试的业务事务边界。
+
+Entrypoint 不开启或提交业务事务。
+Graph Node 不开启或提交业务事务。
+Repository 不得在每次 `save()` 中自行 Commit。
+Infrastructure 的 Unit of Work Implementation 可以提供事务技术能力，但 Commit/Rollback 时机由 Application Use Case 控制。
+
+#### Atomic Business Commit
+
+以下记录如果共同构成一次业务提交：
+
+```text
+Domain Version
+Evidence Links
+Current Truth Pointer
+Stage State
+Audit Record
+Idempotency Record
+```
+
+必须在同一 Application Transaction 中：
+
+```text
+Commit Together
+or
+Rollback Together
+```
+
+不得出现：
+
+- Domain Version 已写入，但 Current Truth 未更新；
+- Current Truth 已更新，但 Evidence 未写入；
+- Review 已批准，但 Idempotency Record 未记录；
+- Audit 已记录成功，但业务事务实际失败。
+
+具体持久化和事务技术由 RFC-002 决定。
+
+#### Long-running Workflow Transaction Boundary
+
+整个 LangGraph Workflow 不得持有一个长期数据库事务。
+
+正确形式：
+
+```text
+Workflow Node A
+→ Application Use Case A
+→ Transaction A Commit
+Workflow Node B
+→ Application Use Case B
+→ Transaction B Commit
+Human Review Interrupt
+Review Submit
+→ Application Use Case
+→ Transaction Commit
+Workflow Resume
+→ Next Application Use Case
+```
+
+这样才能支持：
+
+- Interrupt；
+- Resume；
+- Retry；
+- Recovery；
+- Stage-level Rerun；
+- 长时间人工等待；
+- 幂等业务提交；
+- 独立错误恢复。
+
+#### Orchestration Layer
+
+LangGraph 位于独立 **Orchestration / Workflow Adapter Layer**，其角色类似于长运行的 Application Client。
+
+推荐关系：
+
+```text
+LangGraph Node
+↓
+Module Public Application Contract
+↓
+Application Use Case
+↓
+Domain + Ports
+```
+
+Orchestration 可以：
+
+- 从 Graph State 读取 ID 和 Runtime Reference；
+- 构造 Application Command；
+- 调用公开 Application Service；
+- 接收 Application Result；
+- 将 Version ID、Stage Status 和运行引用写回 Graph State；
+- 执行确定性 Workflow Routing；
+- 触发 `interrupt()`；
+- 协调 Retry、Resume、Cancellation；
+- 记录 Runtime-level Trace。
+
+Orchestration 不得：
+
+- 执行 Domain Rule；
+- 拥有业务事务；
+- 直接调用业务 Repository；
+- 直接使用 ORM Model；
+- 直接更新 Current Truth；
+- 直接写 Evidence Link；
+- 直接执行 Review Approval；
+- 直接执行 Idempotency Commit；
+- 直接访问其他模块 Infrastructure；
+- 将完整业务对象长期保存在 Graph State。
+
+#### Graph Node Repository Boundary
+
+正式决定：
+
+```text
+Graph Node Direct Business Repository Access = PROHIBITED
+```
+
+即使访问的是 Repository Interface，也会绕过：
+
+- Application Validation；
+- Transaction Boundary；
+- Idempotency；
+- Audit；
+- Current Truth；
+- Evidence Link；
+- Application Error Mapping。
+
+如果 Workflow Runtime 需要读取运行时数据，应调用：
+
+```text
+Workflow Runtime Service
+Runtime Repository
+```
+
+而不是业务模块 Repository。
+
+#### Entrypoint Layer
+
+Entrypoint 包括：
+
+```text
+API
+Worker
+CLI
+```
+
+其职责是将外部协议转换为 Application Command 或 Query。
+
+Entrypoint 可以：
+
+- 解析输入；
+- 执行协议级 Schema Validation；
+- Authentication；
+- Authorization；
+- 构造 Command 或 Query；
+- 调用 Application Service；
+- 将 Result 映射为协议响应；
+- 将 Application Error 映射为 HTTP、CLI 或 Worker Error；
+- 添加 Correlation ID。
+
+Entrypoint 不得：
+
+- 直接调用 Domain Entity 完成业务流程；
+- 直接调用业务 Repository；
+- 直接访问 ORM Model；
+- 开启或提交业务事务；
+- 直接更新数据库；
+- 直接调用 LangGraph 内部 Node；
+- 在 Route、Worker Handler 或 CLI Command 中编写业务规则；
+- 绕过 Application Service 执行恢复或管理员操作。
+
+紧急恢复操作必须通过明确的：
+
+```text
+Recovery Application Service
+```
+
+并产生 Audit Record。
+
+#### Bootstrap and Composition Root
+
+Bootstrap 是集中装配具体实现的 Composition Root。
+
+Bootstrap 可以了解：
+
+- Application Port；
+- Infrastructure Implementation；
+- Orchestration Adapter；
+- Entrypoint；
+- Configuration；
+- Application Lifecycle。
+
+Bootstrap 负责：
+
+- 加载 Settings；
+- 创建 Database Connection；
+- 创建 Unit of Work；
+- 创建 Repository；
+- 创建 Provider Adapter；
+- 创建 Application Service；
+- 创建 Workflow；
+- 创建 API、Worker 和 CLI Entrypoint；
+- 管理应用生命周期。
+
+Bootstrap 不得：
+
+- 执行业务 Use Case；
+- 包含 Domain Rule；
+- 成为运行时全局 Service Locator；
+- 允许模块任意读取全局 Container。
+
+#### Dependency Injection
+
+默认采用：
+
+```text
+Constructor Injection
++
+Explicit Factory Functions
++
+Central Composition Root
+```
+
+不采用隐藏依赖的全局 Service Locator。
+
+示例概念：
+
+```python
+service = SubmitReviewService(
+    unit_of_work=unit_of_work,
+    clock=clock,
+    id_generator=id_generator,
+)
+```
+
+具体 DI Framework 尚未选择，也不要求使用 DI Framework。
+
+#### Cross-module Collaboration
+
+模块间同步调用必须通过目标模块公开 Application Contract，例如：
+
+```text
+Module A
+↓
+Module B public.py
+↓
+Module B Application Query or Command
+```
+
+允许公开：
+
+- Command；
+- Query；
+- Result；
+- Public Error；
+- Application Service Protocol；
+- Published Application Event。
+
+禁止：
+
+```text
+Module A
+→ Module B infrastructure
+Module A
+→ Module B ORM model
+Module A
+→ Module B private repository
+Module A
+→ Direct SQL against Module B tables
+```
+
+跨模块调用链必须：
+
+- 有明确所有权；
+- 无循环依赖；
+- 输入输出使用稳定公共 Contract；
+- 不共享可变内部 Entity；
+- 不泄露目标模块持久化结构。
+
+#### Cross-module Query
+
+默认使用：
+
+```text
+Target Module Public Query Service
+```
+
+概念关系：
+
+```text
+Consumer Module
+→ Target Module Public Query
+→ Target Application Query Handler
+```
+
+当前不允许通过共享数据库任意 Join 其他模块内部表。
+
+未来独立 Read Model 必须由 RFC-002 或专门 RFC 决定其：
+
+- 数据来源；
+- 一致性；
+- 同步方式；
+- 权限；
+- 失效规则。
+
+#### Domain Event and Application Event
+
+**Domain Event**：表示 Domain 已经发生的业务事实，例如：
+
+```text
+StrategyApproved
+ReviewPackageSuperseded
+```
+
+Domain 可以产生 Event，但不负责通过消息系统发布。
+
+**Application Event**：由 Application 在业务提交后发布，用于：
+
+- 非关键副作用；
+- 通知；
+- 索引更新；
+- 非原子跨模块处理；
+- Runtime Integration。
+
+当前初始原则：
+
+- 核心一致性流程优先同步 Application 调用；
+- 非关键副作用可以使用进程内 Application Event；
+- 不将所有业务流程改为异步；
+- 当前不锁定 Message Broker；
+- Outbox 和消息持久化由 RFC-002 或后续 RFC 决定。
+
+#### Error Boundary
+
+错误类别区分为：
+
+```text
+Domain Error
+Application Error
+Infrastructure Error
+Workflow Runtime Error
+Entrypoint Protocol Error
+```
+
+转换方向：
+
+```text
+Infrastructure Error
+↓ mapped by Application
+Application Error
+↓ mapped by Entrypoint or Orchestration
+Protocol Error / Workflow Route
+```
+
+Graph Node 应根据明确 Application Error 类型决定：
+
+- Retry；
+- Pause；
+- Fail；
+- Manual Recovery；
+- Degraded Mode。
+
+Graph Node 不得解析 Database Driver、HTTP Client 或 SDK 的错误字符串来决定业务路由。
+
+#### Architecture Test Requirements
+
+未来 Architecture Tests 至少验证以下规则。
+
+**Domain Independence**
+
+```text
+domain must not import:
+- application
+- infrastructure
+- orchestration
+- entrypoints
+- langgraph
+- web framework
+- orm
+```
+
+**Application Independence**
+
+```text
+application must not import:
+- infrastructure implementations
+- entrypoints
+- langgraph
+- web framework
+- concrete database session
+```
+
+**Infrastructure Direction**
+
+```text
+infrastructure may import:
+- application ports
+- domain types
+- technical SDKs
+infrastructure must not define:
+- domain business rules
+- application use cases
+```
+
+**Orchestration Boundary**
+
+```text
+orchestration may import:
+- module public contracts
+- workflow runtime contracts
+orchestration must not import:
+- module infrastructure
+- ORM models
+- database sessions
+- private module implementation
+```
+
+**Entrypoint Boundary**
+
+```text
+entrypoints may import:
+- application public contracts
+- bootstrap entry factories
+entrypoints must not import:
+- repository implementations
+- ORM models
+- private domain implementation
+```
+
+**Module Boundary**
+
+```text
+module A must not import:
+- module B infrastructure
+- module B private domain/application files
+```
+
+**Spike Isolation**
+
+```text
+production package must not import:
+- spikes
+- prototypes
+```
+
+具体 Architecture Test 工具尚未选择。
+
+#### Responsibility Matrix
+
+| Layer | Business Rules | Transaction Ownership | Defines Ports | Implements Ports | LangGraph | Protocol Handling |
+|---|---|---|---|---|---|---|
+| Domain | 是 | 否 | 仅纯业务 Policy | 否 | 否 | 否 |
+| Application | 协调 | 是 | 是 | 否 | 否 | 否 |
+| Infrastructure | 否 | 提供技术能力 | 否 | 是 | Adapter 可有 | 否 |
+| Orchestration | 否 | 否 | 否 | Workflow Adapter | 是 | Workflow |
+| Entrypoint | 否 | 否 | 否 | Protocol Adapter | 不直接 | 是 |
+| Bootstrap | 否 | 否 | 知道接口 | 知道实现 | 装配 | 装配 |
+
+#### Hard Rules
+
+```text
+Domain Framework Dependency:
+PROHIBITED
+
+Application Infrastructure Implementation Dependency:
+PROHIBITED
+
+Transaction Owner:
+Application Use Case
+
+Repository Self-commit:
+PROHIBITED
+
+Graph Node Direct Business Repository Access:
+PROHIBITED
+
+Entrypoint Direct Repository Access:
+PROHIBITED
+
+Entrypoint Direct Domain Workflow:
+PROHIBITED
+
+Cross-module Internal Implementation Access:
+PROHIBITED
+
+Production Import from Spike:
+PROHIBITED
+```
+
+#### Decision Boundary
+
+本 Decision 已确认：
+
+1. Domain 只负责纯业务模型、规则和不变量；
+2. Domain 不依赖框架、数据库、LangGraph、ORM 或外部 SDK；
+3. Application 负责 Use Case、Port 和业务流程协调；
+4. Repository、Provider 与 Unit of Work Port 默认由 Application 定义；
+5. Infrastructure 实现 Application Port；
+6. Infrastructure 不得拥有业务规则；
+7. 一个 Application Command 对应一个明确业务事务；
+8. 业务事务由 Application Use Case 开启和提交；
+9. Repository 不得自行提交独立业务事务；
+10. Entrypoint 和 Graph Node 不拥有业务事务；
+11. 长 Workflow 由多个短 Application Transaction 组成；
+12. LangGraph Orchestration 是独立 Adapter Layer；
+13. Graph Node 只能调用公开 Application Service；
+14. Graph Node 默认禁止访问业务 Repository；
+15. Graph Node 不直接更新 Current Truth、Evidence、Audit 或 Idempotency；
+16. API、Worker 和 CLI 只负责协议转换；
+17. Entrypoint 不直接调用 Domain 完成业务流程；
+18. Entrypoint 不访问业务 Repository 或持久化实现；
+19. Bootstrap 是 Composition Root；
+20. 默认采用 Constructor Injection 和显式 Factory；
+21. 不采用全局 Service Locator；
+22. 跨模块调用必须经过公开 Application Contract；
+23. 模块不得访问其他模块 Infrastructure 或内部表；
+24. 核心一致性流程优先同步调用；
+25. 非关键副作用可以通过 Application Event；
+26. 当前不锁定 Message Broker；
+27. Infrastructure Error 转换为 Application Error；
+28. Graph Node 不解析技术错误字符串决定业务路由；
+29. Architecture Tests 必须强制上述依赖边界；
+30. 本 Decision 不选择 ORM、Database、API Framework、DI Framework、Event Broker 或 Deployment；
+31. 本 Decision 接受后仍不授权生产实现。
+
+本 Decision 尚未确认：
+
+- Skill 的正式代码形态；
+- Skill 与 Application Service 的关系；
+- Skill 是否属于业务模块；
+- Skill 是否可以直接调用 Provider Port；
+- Skill 的输入输出 Contract；
+- Skill 的版本管理；
+- Skill 与 LangGraph Node 的映射关系；
+- Configuration Management；
+- API Framework；
+- Database 和 ORM；
+- Worker 和 Queue；
+- Architecture Test 工具；
+- Production Skeleton。
+
+#### Traceability
+
+- RFC-001-DQ-01：Modular Monolith First；
+- RFC-001-DQ-02：Python Backend and LangGraph Boundary；
+- RFC-001-DQ-03：Repository and Package Layout；
+- DEC-011：Deterministic Workflow Control；
+- DEC-015：Skill Execution Contract；
+- DEC-021：Primary Agent Architecture；
+- DEC-023：LangGraph StateGraph；
+- DEC-024：State Separation；
+- DEC-029：Human Review Contract；
+- DEC-033：Runtime Reliability；
+- DEC-038：RFC Governance；
+- Architecture Baseline v1；
+- Spike-001 Transaction and Recovery Evidence。
+
+
+---
 
 ## Open Questions
 
-1. Domain、Application、Infrastructure、Entrypoint 与 Orchestration 的正式职责和依赖规则（RFC-001-DQ-04）。
-2. Port 应由 Domain 还是 Application 定义。
-3. Transaction 在哪一层开始。
-4. Graph Node 是否可以直接访问 Repository Interface。
-5. API Handler 是否可以调用 Domain。
-6. 跨模块同步调用和事件规则。
-7. Dependency Injection 形式。
-8. Configuration 技术。
-9. Architecture Test 工具。
-10. API Framework、Database、ORM、Worker、Queue、Deployment Platform。
+1. Skill 的正式代码形态（RFC-001-DQ-05）。
+2. Configuration Management。
+3. API Framework。
+4. Database 和 ORM。
+5. Worker 和 Queue。
+6. Architecture Test 工具。
+7. Deployment Platform。
+8. Production Skeleton Authorization Gate。
 
 ---
 
@@ -1923,6 +2695,8 @@ Risks：
 - DEC-038：Dependency-driven RFC Governance
 - RFC-001-DQ-01：Modular Monolith First
 - RFC-001-DQ-02：Backend Language and LangGraph Binding
+- RFC-001-DQ-03：Repository and Package Directory Structure
+- RFC-001-DQ-04：Layer Responsibilities and Dependency Rules
 
 ## Related Specifications
 

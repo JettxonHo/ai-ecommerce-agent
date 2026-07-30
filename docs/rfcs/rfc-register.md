@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01、DQ-02、DQ-03 已接受。下一议题：[RFC-001-DQ-04：Layer Responsibilities and Dependency Rules](#dq-04-layer-responsibilities-and-dependency-rules)。
+> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01~DQ-04 已接受。下一议题：[RFC-001-DQ-05：Skill Code Shape](#dq-05-skill-code-shape)。
 
 ---
 
@@ -86,33 +86,52 @@ RFC-001 Status = DRAFTING
 RFC-001-DQ-01 Modular Monolith First = ACCEPTED
 RFC-001-DQ-02 Backend Language and LangGraph Binding = ACCEPTED
 RFC-001-DQ-03 Repository and Package Directory Structure = ACCEPTED
-RFC-001-DQ-04 Layer Responsibilities and Dependency Rules = PROPOSED
+RFC-001-DQ-04 Layer Responsibilities and Dependency Rules = ACCEPTED
+RFC-001-DQ-05 Skill Code Shape = PROPOSED
 ```
+
+## DQ-05: Skill Code Shape
+
+RFC-001-DQ-05 下一轮优先讨论：
+
+1. Skill 是独立 Package、Class、Service 还是 Function；
+2. Skill 是否属于业务模块；
+3. Skill 与 Application Use Case 是否为同一概念；
+4. Skill 是否可以直接调用 Repository；
+5. Skill 是否可以直接调用 LLM 和 Retrieval；
+6. Skill 输入输出 Contract；
+7. Skill Version；
+8. Skill Validator；
+9. Skill 是否拥有事务；
+10. LangGraph Node 如何调用 Skill；
+11. Skill 是否可脱离 LangGraph 独立运行；
+12. Skill 如何用于 Unit、Integration 和 Evaluation Tests。
+
+在 RFC-001-DQ-05 被用户明确接受前：
+
+- 不创建生产 Skill Package；
+- 不创建生产 Application Service；
+- 不迁移 Spike 代码；
+- RFC-001 保持 `DRAFTING`。
 
 ## DQ-04: Layer Responsibilities and Dependency Rules
 
-RFC-001-DQ-04 下一轮优先讨论：
+RFC-001-DQ-04 已接受：
 
-1. Domain 可以依赖哪些类型；
-2. Application Service 的正式职责；
-3. Port 应由哪一层定义；
-4. Infrastructure 如何实现 Port；
-5. Transaction 在哪一层开启；
-6. Graph Node 可以调用什么；
-7. Graph Node 是否可以访问 Repository；
-8. API Handler 是否可以调用 Domain；
-9. Entrypoint 是否可以开启事务；
-10. 跨模块同步调用规则；
-11. Application Event 边界；
-12. Composition Root 权限；
-13. 如何通过 Architecture Test 阻止越界。
-
-在 RFC-001-DQ-04 被用户明确接受前：
-
-- 不创建正式 Production Skeleton；
-- 不创建生产源码；
-- 不迁移 Spike 代码；
-- RFC-001 保持 `DRAFTING`。
+1. Domain 是纯业务核心，不依赖框架、数据库、LangGraph、ORM 或外部 SDK；
+2. Application 负责 Use Case、Port 和业务流程协调；
+3. Repository、Provider 与 Unit of Work Port 默认由 Application 定义；
+4. Infrastructure 实现 Application Port，不得拥有业务规则；
+5. 业务事务由 Application Use Case 拥有；
+6. 长 Workflow 由多个短 Application Transaction 组成；
+7. LangGraph Orchestration 是独立 Adapter Layer；
+8. Graph Node 只能调用公开 Application Service，禁止直接访问业务 Repository；
+9. Entrypoint 只负责协议转换，不直接调用 Domain 或 Repository；
+10. Bootstrap 是 Composition Root；
+11. 默认采用 Constructor Injection 和显式 Factory；
+12. 跨模块调用必须经过公开 Application Contract；
+13. Architecture Tests 必须强制依赖边界；
+14. 本 Decision 不选择 ORM、Database、API Framework、DI Framework、Event Broker 或 Deployment。
 
 ## Final Status
 
@@ -121,5 +140,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-04 Layer Responsibilities and Dependency Rules
+Next Topic: RFC-001-DQ-05 Skill Code Shape
 ```
