@@ -106,7 +106,7 @@ Validated Temporary Implementation — Not Production Commitment
 进入正式生产实现前，每个生产技术域必须先经过 RFC 提案、用户 Acceptance Gate 并被接受为 `ACCEPTED`。
 
 ```text
-RFC-001 Repository and Application Architecture [DRAFTING — DQ-01~06 ACCEPTED]
+RFC-001 Repository and Application Architecture [DRAFTING — DQ-01~07 ACCEPTED]
 ↓
 RFC-002 Persistence and Transaction Architecture
 ↓
@@ -125,39 +125,99 @@ RFC-007 Observability and Runtime Operations
 - 每个 RFC 使用独立的 Issue / Branch / PR。
 - 未接受对应 RFC 前，不得开始该域的生产实现；Coding Agent 不得临场选择生产数据库 / Checkpointer / API / ORM / Retrieval / LLM Runtime / Observability。
 
-## 10. 已确认 Skill 代码形态与架构关系（RFC-001-DQ-05）
+## 10. 已确认进程边界与同步/异步执行策略（RFC-001-DQ-07）
+
+> 来源：RFC-001-DQ-07（ACCEPTED）。
+
+### 10.1 Architecture, Release and Process Boundary
+
+`Application Architecture ≠ Release Artifact ≠ Runtime Process`。系统保持：`One Modular Monolith Application + One Shared Backend Codebase + One Versioned Release Boundary + Multiple Role-specific Runtime Processes`。“一个主要后端部署单元”指一个统一逻辑后端应用 + 一个统一版本化发布边界 + 一个共享可部署制品 + 多个不同运行角色的进程，**不要求所有能力运行在同一个操作系统进程中**。
+
+### 10.2 Runtime Process Roles
+
+生产运行时至少区分 **API Process / Workflow Worker Process / CLI Process**。API 处理短生命周期请求（Create Task / Run、查询状态、获取 Review Package、提交 Human Review、请求 Cancel/Rerun/Resume、Auth、Request Validation、协议映射）；Worker 负责领取 Start/Resume/Rerun/Cancellation Intent、执行 LangGraph、调用 Stage Application Service、Interrupt/Resume、Retry Budget、Checkpoint、Runtime Trace、Recovery；CLI 为按需临时进程，仅经同一 Application Layer 调用授权管理 Use Case。三者**均不得直接访问业务 Repository / Current Truth**。
+
+### 10.3 Unified Release Boundary
+
+API 与 Worker 使用相同 Python Package、业务模块、Application Service、Domain Contract、Schema 与 Runtime Identifier，默认从**同一 Release Version** 构建部署，不是两个独立业务服务。至少记录 `Application / Graph / Workflow Definition / Job Payload / Schema Version`。新版 API 不得创建当前 Worker 无法理解的工作。滚动升级与 Graph Versioning 由 RFC-003、RFC-007 决定。
+
+### 10.4 Long Workflow HTTP Boundary and Durable Dispatch
+
+**Long Workflow inside HTTP Request = PROHIBITED。** 生产请求采用 `Submit → Persist Business/Runtime Intent → Create Durable Dispatch Intent → Return Task/Run Identity and Status`；API 返回成功表示工作已被**可靠接受**，不表示 Workflow 已完成。API 与 Worker 之间通过 **`WorkflowDispatchPort`**（`schedule_start / schedule_resume / schedule_rerun / schedule_cancel / schedule_recovery`）协作；API 返回“已接受”前 Durable Work Intent 必须已被可靠记录。**禁止 `asyncio.create_task(...)` 或 Web Framework 临时 Background Task 作为生产可靠任务机制。** 具体 Dispatch Backend（Job Table / Outbox / Redis Queue / Broker / Cloud Queue / Managed Runtime）由 RFC-002、RFC-003 决定。
+
+### 10.5 Worker Recovery Requirements
+
+Worker Crash 不能导致工作永久丢失。恢复语义结合 `Durable Dispatch + Runtime Record + Checkpoint + Application Idempotency`：未完成工作可重新领取；重复投递不产生重复 Domain Version；已成功提交的 Application Transaction 不重复提交；未提交 Skill Result 不视为 Current Truth；Resume 使用正确 `thread_id`；每次独立执行尝试具有明确 `run_id`；Stale Input/Checkpoint 在正式业务写入前被拒绝；Worker Failure 可进入 Retry/Pause/Recovery。Lease、Heartbeat、Ack、Visibility Timeout、Retry Policy 由 RFC-003 决定。
+
+### 10.6 Human Review Submit and Resume
+
+Human Review Submit 采用 **Synchronous Business Commit + Asynchronous Workflow Resume**。HTTP Request 同步完成 Review Version Validation、Stale Review Detection、Duplicate Submit Detection、Approved Strategy Business Commit、Audit、Idempotency、Durable Resume Intent 的可靠记录；**不等待**后续 Marketing Brief Skill / Xiaohongshu Adapter / LangGraph Node / 整个 Workflow 完成。返回可概念性表达为 `review_status = approved` + `workflow_status = resume_scheduled`。
+
+### 10.7 Atomic Resume Coordination
+
+`Approved Strategy Commit + Durable Resume Intent = Atomic or Reliably Reconciled`。不得出现：Approved Strategy 已提交但 Resume 永久丢失；Resume 已安排但事务失败；重复 Submit 产生多个有效 Resume；Worker Resume 读取到未提交或错误版本的业务状态。具体实现（Transactional Outbox / Database Job Table / Post-commit Reconciliation）由 RFC-002、RFC-003 决定。
+
+### 10.8 Sync-first Application Core
+
+区分 **Business-level Asynchrony**（HTTP 先返回、Workflow 后台继续——项目正式采用）与 **Python `async/await`**（代码执行模型，不等于后台任务架构）。正式采用：`Domain: Synchronous only；Application Core: Sync-first；Workflow Semantics: Asynchronous background execution；Concurrency: Bounded Worker Processes or Worker Slots；Infrastructure: Execution mode explicit`。Domain 禁止 `async` 业务接口 / Event Loop / 网络或数据库等待 / Async Framework 类型。Application 不得无规则同时提供 `execute()` / `execute_async()`。并发优先 Bounded Worker Concurrency，禁止无限创建并发 Task。Infrastructure Async-native Adapter 必须隔离在明确 Port 后、不污染 Domain、不让 Application 无规则混合 Sync/Async；禁止业务代码随意 `asyncio.run()` / 创建不可关闭的 Event Loop / 隐藏未受控线程。**Sync-first ≠ 永远禁止任何异步技术。**
+
+### 10.9 API and Worker Bootstrap
+
+API 与 Worker 共享核心 Application Factory，但使用窄化的不同 Runtime Factory：`build_core_resources() → build_application_services() → { build_api_runtime() | build_worker_runtime() }`。API Runtime 只装配 API 所需 Command/Query、Auth Adapter、HTTP Error Mapper、Correlation Context、Workflow Dispatch Port（不自动启动完整 Worker）；Worker Runtime 装配 Workflow Runtime、Dispatch Consumer、Checkpointer、Stage Application Services、Recovery Services、Worker Lifecycle（不自动启动 HTTP Server）。
+
+### 10.10 Dispatch Payload and Frontend Boundary
+
+API 与 Worker 之间只传递轻量 Runtime Reference（`task_id / run_id / thread_id / workflow_name / workflow_version / command_type / idempotency_key / requested_at / correlation_id`）；不得传递完整 Product Facts / Evidence Package / Prompt / Marketing Brief / ORM Entity / Database Session / Secret / Provider Client / Checkpoint 二进制 / 可变 Domain Object。Frontend 不依赖持续连接维持 Workflow，通过 Task / Run 状态查询获得进度（初始 Polling / Conditional Polling / Manual Refresh；SSE / WebSocket / Push 由 RFC-004 决定）。
+
+### 10.11 Cancellation Boundary
+
+取消采用 Durable Cancellation Intent：`Cancel Request → Application validates → Persist Durable Cancellation Intent → Worker observes → bounded work stops safely → status updated`。区分 `cancellation_requested / cancelling / cancelled / cancellation_failed`；HTTP Cancel 成功不表示 Worker 已即时停止。State Machine 由 RFC-003、RFC-004 决定。
+
+### 10.12 Local and Test Runtime
+
+允许 `Combined Development Runtime`（一个命令启动 API + Local Worker + Local Dispatch Adapter）与明确的 `Inline Execution Mode`，但仅限 `local / test / evaluation`：显式标记非生产、使用相同 Application Service、不绕过 Idempotency / Checkpoint、不改变业务事务规则、不成为生产默认路径。Production CLI Inline Workflow 仍然禁止。
+
+### 10.13 Decision Boundary
+
+已确认：Modular Monolith 不要求同进程；统一 Backend Application 与版本化 Release Boundary；API / Worker / CLI 三进程角色；长 Workflow 禁止在 HTTP 内执行完成、采用后台异步业务语义；API 在 Durable Work Intent 可靠记录后才返回接受；生产可靠任务禁止进程内临时 Background Task；Worker 只经 Application Service 提交业务状态、Crash 后可重新领取、重复投递经 Idempotency 防重复业务版本；Human Review Submit 同步提交业务、异步调度 Resume、Approved Commit 与 Resume Intent 原子或可靠协调；Domain 纯同步、Application Sync-first、并发优先有界 Worker；API/Worker 窄化 Bootstrap Factory；Dispatch Payload 只含 ID/版本/Runtime Reference；Cancellation 使用 Durable Intent；Local/Test 允许 Combined Runtime 与 Inline Runner。
+
+尚未确认：Durable Dispatch 具体实现；Worker Framework；Queue / Broker；Job Lease / Heartbeat / Ack / Visibility Timeout；Checkpoint Backend；Resume State Machine；API Framework / HTTP Endpoint；Polling / SSE / WebSocket；Deployment Platform；Process Health Check；Worker Scaling Policy；Graph Version Migration；Production Runtime Implementation。
+
+本 Decision 不选择 API Framework / Queue / Database Driver / Worker Framework / Deployment Platform；RFC-001 保持 `DRAFTING`；**API、Worker、Production Runtime 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
+
+## 11. 已确认 Skill 代码形态与架构关系（RFC-001-DQ-05）
 
 > 来源：RFC-001-DQ-05（ACCEPTED）。
 
-### 10.1 Skill Architectural Position
+### 11.1 Skill Architectural Position
 
 Skill 是业务模块 Application Layer 内具有明确执行契约、可独立运行和独立评估的**无状态业务能力组件**，落位 `modules/<module>/application/skills/<skill_slug>/`。Skill 不是独立 Package、不是 Domain Service、不是 Application Use Case 同义词，也不是 Entrypoint。
 
-### 10.2 Prepare-Execute-Commit Model
+### 11.2 Prepare-Execute-Commit Model
 
 Application Use Case 以 **Prepare–Execute–Commit** 协调 Skill 与业务事务：Prepare 装配 Skill 输入并开启业务事务；Execute 调用 Skill 产出 Candidate Result（业务候选，未落库）；Commit 由 Application Use Case 决定是否写入 Current Truth 并提交业务事务。Skill 只参与 Execute 阶段。
 
-### 10.3 Skill Repository and Transaction Boundary
+### 11.3 Skill Repository and Transaction Boundary
 
 **Skill Direct Business Repository Access = PROHIBITED；Skill Business Transaction Ownership = NO。** Skill 不读/写 Current Truth、不持久化业务结果、不开启/提交业务事务、不更新 Evidence / Audit / Idempotency；所需数据由 Use Case 在 Prepare 阶段以输入契约注入。
 
-### 10.4 Skill Provider Access Boundary
+### 11.4 Skill Provider Access Boundary
 
 Skill 只能通过 Application 定义的 **ModelRuntimePort / RetrievalPort** 调用 Provider 能力；**Skill 直接 import 或实例化具体 Provider SDK = PROHIBITED**。Skill 不知道具体 Provider、模型名、连接串或凭证。
 
-### 10.5 Skill LangGraph Boundary
+### 11.5 Skill LangGraph Boundary
 
 调用链：`LangGraph Node → Stage Application Service → Skill Executor → Skill`。**LangGraph Node 直接调用 Skill = PROHIBITED。** Skill 与 LangGraph Node 不是同一概念、不一一对应；Skill 不感知 LangGraph、不读 Graph State、不写 Checkpoint。
 
-### 10.6 Skill Independent Execution and Version
+### 11.6 Skill Independent Execution and Version
 
 **Skill Independent Execution = REQUIRED**：Skill 必须能脱离 LangGraph 独立运行与独立评估。Skill 版本分 **Contract / Implementation / Prompt / Output Schema** 四个维度分别管理，可独立演进且须可追踪关联。
 
-### 10.7 Skill Test Boundary
+### 11.7 Skill Test Boundary
 
 Skill 须支持 **Contract / Unit / Integration / Evaluation / Architecture** 五类测试。Architecture Test 强制：Skill 不直接访问 Repository、不 import Provider SDK、不依赖 LangGraph。
 
-### 10.8 Decision Boundary
+### 11.8 Decision Boundary
 
 已确认：Skill 为 Application Layer 无状态业务能力组件；Prepare–Execute–Commit 协调；Skill 不直接访问 Repository、不拥有业务事务、不更新 Current Truth/Evidence/Audit；仅经 ModelRuntimePort/RetrievalPort 调用 Provider；经 Stage Application Service + Skill Executor 被 LangGraph 间接调用；可独立运行；版本四维度分管；五类测试。
 
@@ -165,39 +225,39 @@ Skill 须支持 **Contract / Unit / Integration / Evaluation / Architecture** �
 
 本 Decision 不选择模型 Provider / Retrieval Backend / Schema Library / Prompt Registry / Evaluation Framework；RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 11. 已确认依赖注入、配置与应用装配（RFC-001-DQ-06）
+## 12. 已确认依赖注入、配置与应用装配（RFC-001-DQ-06）
 
 > 来源：RFC-001-DQ-06（ACCEPTED）。
 
-### 11.1 Dependency Injection Model
+### 12.1 Dependency Injection Model
 
 默认采用 **Constructor Injection + 显式 Factory Functions + 集中式 Composition Root（`bootstrap/`）**；MVP **不引入第三方 DI Framework**（无容器、无自动注入魔法）。**Global Service Locator = PROHIBITED。** 业务代码不做服务定位、不自行装配。
 
-### 11.2 Composition Root
+### 12.2 Composition Root
 
 所有对象图构造与依赖装配只在 Composition Root 完成；它是唯一知道 Application Port 与 Infrastructure Implementation 绑定关系的代码。各 Entrypoint（API / Worker / CLI）不自行装配，统一由 Bootstrap 提供已装配对象图。
 
-### 11.3 Configuration Loading and Layer Boundary
+### 12.3 Configuration Loading and Layer Boundary
 
 配置**仅由 Bootstrap 加载**，加载后立即**类型化 + 验证 + 不可变**，验证失败 **fail-fast**。业务代码不直接读取环境变量/配置文件。分层可见性：Domain 不接收任何配置；Application 只接收业务流程级配置（超时/重试/开关）；Infrastructure 只接收适配器级配置（连接串/Endpoint/凭证引用）；Bootstrap 加载、验证并分发全部配置。
 
-### 11.4 Secret Boundary
+### 12.4 Secret Boundary
 
 **Secret 只注入需要它的 Infrastructure Adapter。** Secret 不得进入 Domain / Application Command / Application Result / Skill Input / Skill Result / Graph State / Checkpoint / Business Audit / Runtime Trace Payload / API Response / Git Repository / GitHub Issue or PR；不得打印或持久化完整 API Key / Database Password / Authorization Header / `.env` 内容 / Secret Manager 返回值。
 
-### 11.5 Environment File Boundary
+### 12.5 Environment File Boundary
 
 Repository **只提交 `.env.example`（占位值，无真实凭证）= REQUIRED**；`.env`（真实凭证）**提交 = PROHIBITED**，须被 `.gitignore` 排除。生产凭证来源（Secret Manager 等）留待后续 RFC。
 
-### 11.6 Resource Lifetime Management
+### 12.6 Resource Lifetime Management
 
 资源生命周期由 **Application Bootstrap 统一管理**，按 **Application / UseCase / WorkflowRun / SkillExecution** 四级作用域分级。**Global Mutable Runtime State = PROHIBITED；模块级可变单例持有连接/状态 = PROHIBITED。**
 
-### 11.7 Test Replacement and Sync/Async Boundary
+### 12.7 Test Replacement and Sync/Async Boundary
 
 测试通过 Constructor / Factory 注入 **Fake / Stub** 替换真实 Adapter，无需修改业务代码或容器魔法。同步/异步执行策略与 API/Worker/CLI 进程边界**不在本 Decision 范围**，留待 **RFC-001-DQ-07**。
 
-### 11.8 Decision Boundary
+### 12.8 Decision Boundary
 
 已确认：Constructor Injection + 显式 Factory + `bootstrap/` Composition Root；MVP 无第三方 DI Framework；无全局 Service Locator；配置仅 Bootstrap 加载、类型化/验证/不可变/fail-fast；Domain 无配置、Application 业务级、Infrastructure 适配器级；Secret 仅注入所需 Infrastructure Adapter 且不外泄；只提交 `.env.example`；资源生命周期 Bootstrap 统一分级管理；测试注入 Fake 替换。
 
@@ -205,11 +265,11 @@ Repository **只提交 `.env.example`（占位值，无真实凭证）= REQUIRED
 
 本 Decision 不选择 DI Framework / Secret Manager / Settings Library / Deployment Platform；RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 12. 已确认分层职责、事务所有权与依赖规则（RFC-001-DQ-04）
+## 13. 已确认分层职责、事务所有权与依赖规则（RFC-001-DQ-04）
 
 > 来源：RFC-001-DQ-04（ACCEPTED）。
 
-### 12.1 Core Architecture Model
+### 13.1 Core Architecture Model
 
 正式调用方向：
 
@@ -225,7 +285,7 @@ Infrastructure 实现 Application Port；Bootstrap 装配实现。
 
 核心原则：业务规则向内保持纯净；框架、数据库、外部服务只能通过 Adapter 与 Port 接入。
 
-### 12.2 Domain Layer
+### 13.2 Domain Layer
 
 Domain 是纯业务核心，负责 Entity / Value Object / Aggregate / Domain Service / Business Rule / Domain Event / Version / Evidence / Review / Invalidation Rule。
 
@@ -233,7 +293,7 @@ Domain 仅可依赖 Python Standard Library、本模块 Domain 内部代码、�
 
 Domain 必须可在无数据库、网络、LangGraph、真实模型条件下完成 Unit Test。
 
-### 12.3 Application Layer
+### 13.3 Application Layer
 
 Application 负责 Command / Query / Application Service / Use Case Coordination / Repository / Provider / Unit of Work Port / Transaction Coordination / Idempotency / Current Truth / Evidence Link / Audit Coordination。
 
@@ -243,13 +303,13 @@ Application 不得依赖具体 Repository Implementation / ORM Model / Database 
 
 一次完整业务提交（Domain Version + Evidence Links + Current Truth Pointer + Stage State + Audit Record + Idempotency Record）必须在同一 Application Transaction 中 Commit Together 或 Rollback Together。
 
-### 12.4 Port Ownership
+### 13.4 Port Ownership
 
 Repository / Provider / Unit of Work / Clock / ID Generator / Event Publisher 等 Port 默认由 **Application Layer** 定义（推荐 `modules/<module>/application/ports.py`）。Application 声明能力，Infrastructure 实现，Bootstrap 注入。
 
 仅真正属于纯业务抽象的 Policy 可定义在 Domain；数据库 Repository / LLM Provider / Retrieval Provider / Unit of Work / 外部 Event Publisher 不属于 Domain。
 
-### 12.5 Infrastructure Layer
+### 13.5 Infrastructure Layer
 
 Infrastructure 负责 Repository Implementation / ORM Mapping / Database Integration / Unit of Work Implementation / Model / Retrieval / File Storage / Queue / Checkpoint / Observability Adapter / Third-party SDK。
 
@@ -257,7 +317,7 @@ Infrastructure 可依赖 Application Ports / Domain Types / Platform Infrastruct
 
 Repository Implementation 职责限于 Load / Persist / Query / Map，不得承担 Approve / Invalidate / Resume / Select Strategy / Generate Business Decision。
 
-### 12.6 Orchestration Layer
+### 13.6 Orchestration Layer
 
 LangGraph 位于独立 Orchestration / Workflow Adapter Layer，角色类似长运行 Application Client。Graph Node 通过 Module Public Application Contract 调用 Application Use Case，再使用 Domain + Ports。
 
@@ -267,7 +327,7 @@ Orchestration 不得执行 Domain Rule / 拥有业务事务 / 直接调用业务
 
 **Graph Node Direct Business Repository Access = PROHIBITED。** 即使访问 Repository Interface 也会绕过 Application Validation、Transaction Boundary、Idempotency、Audit、Current Truth、Evidence Link、Application Error Mapping。Workflow Runtime 数据应通过 Workflow Runtime Service / Runtime Repository 读取。
 
-### 12.7 Entrypoint Layer
+### 13.7 Entrypoint Layer
 
 Entrypoint 包括 API / Worker / CLI，仅负责将外部协议转换为 Application Command / Query。
 
@@ -275,13 +335,13 @@ Entrypoint 可解析输入、协议级 Schema Validation、Authentication / Auth
 
 Entrypoint 不得直接调用 Domain Entity 完成业务流程 / 直接调用业务 Repository / 直接访问 ORM Model / 开启或提交业务事务 / 直接更新数据库 / 直接调用 LangGraph 内部 Node / 在 Route/Worker/CLI 中编写业务规则 / 绕过 Application Service 执行恢复。紧急恢复须通过明确的 Recovery Application Service 并产生 Audit Record。
 
-### 12.8 Bootstrap and Composition Root
+### 13.8 Bootstrap and Composition Root
 
 Bootstrap 是集中装配具体实现的 Composition Root，可了解 Application Port / Infrastructure Implementation / Orchestration Adapter / Entrypoint / Configuration / Application Lifecycle，负责加载 Settings、创建 Database Connection / Unit of Work / Repository / Provider Adapter / Application Service / Workflow / API / Worker / CLI Entrypoint、管理生命周期。
 
 Bootstrap 不得执行业务 Use Case / 包含 Domain Rule / 成为全局 Service Locator / 允许模块任意读取全局 Container。
 
-### 12.9 Dependency Injection and Cross-module Rules
+### 13.9 Dependency Injection and Cross-module Rules
 
 默认采用 Constructor Injection + Explicit Factory Functions + Central Composition Root；不采用全局 Service Locator。
 
@@ -291,7 +351,7 @@ Domain Event 表示 Domain 已发生业务事实，Domain 可产生但不发布�
 
 错误转换方向：Infrastructure Error → Application Error → Protocol Error / Workflow Route；Graph Node 不得解析技术错误字符串决定业务路由。
 
-### 12.10 Architecture Test Requirements
+### 13.10 Architecture Test Requirements
 
 未来 Architecture Tests 至少验证：
 
@@ -305,7 +365,7 @@ Domain Event 表示 Domain 已发生业务事实，Domain 可产生但不发布�
 
 具体 Architecture Test 工具尚未选择。
 
-### 12.11 Responsibility Matrix
+### 13.11 Responsibility Matrix
 
 | Layer | Business Rules | Transaction Ownership | Defines Ports | Implements Ports | LangGraph | Protocol Handling |
 |---|---|---|---|---|---|---|
@@ -316,7 +376,7 @@ Domain Event 表示 Domain 已发生业务事实，Domain 可产生但不发布�
 | Entrypoint | 否 | 否 | 否 | Protocol Adapter | 不直接 | 是 |
 | Bootstrap | 否 | 否 | 知道接口 | 知道实现 | 装配 | 装配 |
 
-### 12.12 Decision Boundary
+### 13.12 Decision Boundary
 
 已确认：
 
@@ -339,11 +399,11 @@ Domain Event 表示 Domain 已发生业务事实，Domain 可产生但不发布�
 
 RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 13. 已确认 Repository 与 Package 目录结构（RFC-001-DQ-03）
+## 14. 已确认 Repository 与 Package 目录结构（RFC-001-DQ-03）
 
 > 来源：RFC-001-DQ-03（ACCEPTED）。
 
-### 13.1 Repository Model
+### 14.1 Repository Model
 
 项目采用：
 
@@ -375,7 +435,7 @@ AI Ecommerce Agent/
 
 具体目录只在存在真实文件和已授权工作时创建，不得批量制造空目录。
 
-### 13.2 Application Roots
+### 14.2 Application Roots
 
 | 应用 | 路径 | 说明 |
 |---|---|---|
@@ -389,7 +449,7 @@ AI Ecommerce Agent/
 ai_ecommerce_agent
 ```
 
-### 13.3 Backend Package Organization
+### 14.3 Backend Package Organization
 
 正式后端采用：
 
@@ -417,7 +477,7 @@ apps/backend/src/ai_ecommerce_agent/
 └── shared_kernel/
 ```
 
-### 13.4 Business Capability Modules
+### 14.4 Business Capability Modules
 
 业务能力位于 `modules/`，概念模块包括：
 
@@ -451,7 +511,7 @@ Application 可以依赖本模块 Domain，不得依赖具体 Infrastructure Imp
 
 Infrastructure 负责实现 Application 或 Domain 定义的 Port。
 
-### 13.5 Platform Capabilities
+### 14.5 Platform Capabilities
 
 平台能力位于 `platform/`，概念结构：
 
@@ -469,7 +529,7 @@ platform/
 
 平台模块不等于业务模块；负责多个业务能力共享的技术设施和 Adapter，但不得拥有业务规则。
 
-### 13.6 Orchestration Boundary
+### 14.6 Orchestration Boundary
 
 LangGraph 与跨模块 Workflow 位于 `orchestration/`，概念结构：
 
@@ -486,7 +546,7 @@ orchestration/
 
 Graph Node 的完整职责将在 RFC-001-DQ-04 中确认。
 
-### 13.7 Entrypoints
+### 14.7 Entrypoints
 
 外部入口位于 `entrypoints/`：
 
@@ -503,7 +563,7 @@ entrypoints/
 
 Entrypoint 不得放置 Domain Rule 或业务事务，不得绕过 Application Service 直接修改业务数据。
 
-### 13.8 Bootstrap and Composition Root
+### 14.8 Bootstrap and Composition Root
 
 依赖装配位于 `bootstrap/`，负责：
 
@@ -518,7 +578,7 @@ Entrypoint 不得放置 Domain Rule 或业务事务，不得绕过 Application S
 
 Bootstrap 是少数允许同时了解 Application Port、Infrastructure Implementation、Orchestration 和 Entrypoint 的区域。具体 Dependency Injection 技术尚未选择。
 
-### 13.9 Shared Kernel
+### 14.9 Shared Kernel
 
 允许保留严格受限的 `shared_kernel/`，只允许放置：
 
@@ -530,7 +590,7 @@ Bootstrap 是少数允许同时了解 Application Port、Infrastructure Implemen
 
 不得放置具体业务规则、Repository Implementation、LangGraph State、ORM Base Model 或各业务模块为了方便而共享的任意代码。
 
-### 13.10 Test Layout
+### 14.10 Test Layout
 
 正式后端测试位于 `apps/backend/tests/`，分为：
 
@@ -550,11 +610,11 @@ e2e/
 
 Unit Test 大体镜像生产模块；Integration / Contract / Architecture / E2E 按验证场景组织，不要求每个源码文件机械对应一个同名测试文件。
 
-### 13.11 Database Migrations
+### 14.11 Database Migrations
 
 正式数据库 Migration 位于 `apps/backend/migrations/`，不放入可 Import 的生产 Python Package。具体 Migration Tool、Database 和 Schema Strategy 由 RFC-002 决定。
 
-### 13.12 Configuration and Secret Boundary
+### 14.12 Configuration and Secret Boundary
 
 目录层面允许未来使用：
 
@@ -568,7 +628,7 @@ apps/backend/src/ai_ecommerce_agent/bootstrap/settings.py
 - Domain 和 Application 不直接读取环境变量；
 - Configuration 由 Bootstrap 加载并注入。
 
-### 13.13 Spike and Prototype Isolation
+### 14.13 Spike and Prototype Isolation
 
 技术验证继续位于 Repository 根目录 `spikes/` 和 `prototypes/`。
 
@@ -580,7 +640,7 @@ apps/backend/src/ai_ecommerce_agent/bootstrap/settings.py
 
 现有 Spike-001 继续作为 Architecture Evidence 保存。
 
-### 13.14 Import Boundary
+### 14.14 Import Boundary
 
 当前确认的方向性规则：
 
@@ -623,13 +683,13 @@ production → spikes / prototypes
 
 完整职责和依赖规则将在 RFC-001-DQ-04 中确认。
 
-### 13.15 Cross-module Data Boundary
+### 14.15 Cross-module Data Boundary
 
 模块之间不得使用数据库表作为隐式 API。即使共享同一 Database Instance，也不得直接写入其他模块内部表、通过其他模块 ORM Model 修改数据、绕过 Application Contract、或直接调用其他模块 Repository Implementation。
 
 跨模块读取和写入必须通过 Public Application Contract、Application Port、明确 Query Service 或用户后续确认的 Published Application Event。
 
-### 13.16 Directory Creation Boundary
+### 14.16 Directory Creation Boundary
 
 接受本 Decision 不等于立即创建生产目录。本阶段只授权更新 RFC / Architecture Baseline / Traceability / RFC Register / 记录未来 Architecture Test 要求。
 
@@ -646,7 +706,7 @@ production → spikes / prototypes
 
 正式 Skeleton 必须等待 `RFC-001 = ACCEPTED` + Foundation Work explicitly authorized。
 
-### 13.17 Decision Boundary
+### 14.17 Decision Boundary
 
 已确认：
 
@@ -685,7 +745,7 @@ production → spikes / prototypes
 - Deployment Platform；
 - Production Skeleton Authorization Gate。
 
-## 14. 已确认生产技术语言边界（RFC-001-DQ-02）
+## 15. 已确认生产技术语言边界（RFC-001-DQ-02）
 
 > 来源：RFC-001-DQ-02（ACCEPTED）。
 
@@ -705,7 +765,7 @@ Framework Boundary:
 Domain and Application remain independent of LangGraph-specific state and checkpoint types
 ```
 
-### 14.1 Backend Language
+### 15.1 Backend Language
 
 正式后端统一使用 Python，覆盖：
 
@@ -732,7 +792,7 @@ Python >=3.13,<3.14
 
 Patch 升级可通过 Dependency Compatibility Test + Full Test Suite + Normal PR Review 完成；Minor/Major 升级若改变并发模型、Worker 模型、Deployment、Runtime Isolation 或 Security Boundary，则须补充 RFC 或正式技术 Decision。
 
-### 14.2 Frontend Language
+### 15.2 Frontend Language
 
 正式 Web Frontend 使用 TypeScript。前端不属于 Python 后端 Package。
 
@@ -744,7 +804,7 @@ OpenAPI / JSON Schema / Generated Client Types / Error Code Registry
 
 具体 API Framework、Schema Generator 和前端 Framework 尚未确认。
 
-### 14.3 LangGraph Binding Boundary
+### 15.3 LangGraph Binding Boundary
 
 生产 Workflow Runtime 使用 Python LangGraph，但逻辑关系是：
 
@@ -770,7 +830,7 @@ Domain + Repository / Provider Interfaces
 - LangGraph Node 只负责构造业务 Command、调用 Application Service、将 Version ID / Stage Status 写回 Graph State、确定性路由、Interrupt 与 Resume 协调；
 - LangGraph Node 不拥有 Domain Rule、Business Transaction、Current Truth 写入规则、Evidence Link 事务、Review Validation、Idempotency、Invalidation 或 Audit 规则。
 
-### 14.4 Framework Replacement Boundary
+### 15.4 Framework Replacement Boundary
 
 系统须允许未来替换 Workflow Engine（LangGraph / Temporal / Custom State Machine / Queue Worker 等），替换范围应限于：
 
@@ -783,7 +843,7 @@ Worker Integration
 
 不应要求重写 Domain、Application Services、Business Validators、Repository Interfaces、Skill Contracts、Evidence Rules 或 Human Review Business Rules。
 
-### 14.5 Future Polyglot Boundary
+### 15.5 Future Polyglot Boundary
 
 未来允许特定独立能力采用其他语言，但必须满足至少一种可验证触发条件：
 
@@ -797,7 +857,7 @@ Worker Integration
 
 不得仅因个人语言偏好引入第二种后端语言。
 
-### 14.6 Decision Boundary
+### 15.6 Decision Boundary
 
 本 Decision 已确认：
 
@@ -826,7 +886,7 @@ Worker Integration
 - Deployment Platform；
 - Frontend Framework。
 
-## 15. 已确认应用架构（RFC-001-DQ-01）
+## 16. 已确认应用架构（RFC-001-DQ-01）
 
 > 来源：RFC-001-DQ-01（ACCEPTED）。
 
@@ -859,7 +919,7 @@ Replaceable Infrastructure Adapters
 Future Service Extraction Boundaries
 ```
 
-### 15.1 Deployment Boundary
+### 16.1 Deployment Boundary
 
 MVP 默认采用：
 
@@ -869,11 +929,11 @@ One Primary Backend Application
 
 初始不拆分为独立服务（Task / Workflow / Source / Retrieval / Human Review / Brief / Model Runtime Service）。
 
-### 15.2 Repository Boundary
+### 16.2 Repository Boundary
 
 项目使用一个 Git Repository，但 Repository 内必须维持清晰的模块和依赖边界。
 
-### 15.3 Module Boundary（概念划分）
+### 16.3 Module Boundary（概念划分）
 
 **Business Capability Modules：**
 
@@ -899,7 +959,7 @@ Configuration
 Identity and Access
 ```
 
-### 15.4 Module Collaboration
+### 16.4 Module Collaboration
 
 模块之间必须通过明确边界协作：
 
@@ -913,7 +973,7 @@ Identity and Access
 
 不得任意访问其他模块内部类、绕过 Application Layer 修改数据、直接访问其他模块 Repository Implementation、以数据库表作为隐式 API、通过 LangGraph State 共享完整业务对象、或将 Prompt 作为唯一契约。
 
-### 15.5 Dependency Direction
+### 16.5 Dependency Direction
 
 ```text
 Interface
@@ -927,7 +987,7 @@ Infrastructure → implements → Repository and Provider Interfaces
 
 Domain 不得依赖具体框架、数据库、ORM、LLM SDK、Vector DB、Message Queue、Observability Provider 或部署平台。
 
-### 15.6 Data Ownership Boundary
+### 16.6 Data Ownership Boundary
 
 允许 Modular Monolith 在 MVP 阶段共享一个数据库实例，但必须保持：
 
@@ -937,15 +997,15 @@ Shared Database Instance ≠ Shared Data Ownership
 
 必须区分 Business Domain / Workflow Runtime / Checkpoint / Source and Evidence / Retrieval Index / Audit / Observability Data。正式数据库、Schema、ORM 和事务方案由 RFC-002 决定。
 
-### 15.7 Graph and Database Boundary
+### 16.7 Graph and Database Boundary
 
 Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ 接受前，Graph Node 不得临场定义 Domain Version 写入、Current Truth 更新、Evidence Link 事务、幂等、审计或失效逻辑。
 
-### 15.8 Future Service Extraction
+### 16.8 Future Service Extraction
 
 必须保留未来服务提取边界，但服务拆分只能由可验证的规模、组织、安全、性能或可靠性需求触发，不得仅因“微服务更先进”而拆分。
 
-### 15.9 Decision Boundary
+### 16.9 Decision Boundary
 
 已确认：
 
@@ -971,11 +1031,11 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 - Web Framework：PENDING RFC；
 - Deployment Platform：PENDING RFC。
 
-## 16. 未决技术决策（PENDING RFC）
+## 17. 未决技术决策（PENDING RFC）
 
 | 领域 | 状态 | RFC |
 |---|---|---|
-| Repository and Application Architecture | DRAFTING — DQ-01~06 ACCEPTED | RFC-001 |
+| Repository and Application Architecture | DRAFTING — DQ-01~07 ACCEPTED | RFC-001 |
 | Persistence and Transaction Architecture（生产 DB / ORM） | PENDING RFC | RFC-002 |
 | LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | PENDING RFC | RFC-003 |
 | API and Human Review Protocol | PENDING RFC | RFC-004 |
@@ -983,14 +1043,14 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 | LLM Runtime and Structured Output | PENDING RFC | RFC-006 |
 | Observability and Runtime Operations | PENDING RFC | RFC-007 |
 
-> RFC-001 仍为 `DRAFTING`，API/Worker/CLI 进程边界与同步/异步执行策略（DQ-07）尚未确认。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
+> RFC-001 仍为 `DRAFTING`（DQ-01~07 ACCEPTED），模块公开契约与跨模块协作（DQ-08）尚未确认；API、Worker 与 Production Runtime 创建仍 **NOT AUTHORIZED**。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
 
-## 17. Final Status
+## 18. Final Status
 
 ```text
 Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-07 Process Boundaries and Sync/Async Execution Strategy
+Next Topic: RFC-001-DQ-08 模块公开契约、跨模块 Command / Query / Event 协作与循环依赖治理
 ```

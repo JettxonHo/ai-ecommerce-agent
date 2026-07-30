@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01~DQ-06 已接受。下一议题：[RFC-001-DQ-07：Process Boundaries and Sync/Async Execution Strategy](#dq-07-process-boundaries-and-syncasync-execution-strategy)。
+> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01~DQ-07 已接受。下一议题：[RFC-001-DQ-08：模块公开契约、跨模块 Command / Query / Event 协作与循环依赖治理](#dq-08-模块公开契约跨模块-command--query--event-协作与循环依赖治理)。
 
 ---
 
@@ -89,33 +89,49 @@ RFC-001-DQ-03 Repository and Package Directory Structure = ACCEPTED
 RFC-001-DQ-04 Layer Responsibilities and Dependency Rules = ACCEPTED
 RFC-001-DQ-05 Skill Code Shape and Architectural Relationships = ACCEPTED
 RFC-001-DQ-06 Dependency Injection, Configuration and Application Bootstrap = ACCEPTED
-RFC-001-DQ-07 Process Boundaries and Sync/Async Execution Strategy = PROPOSED
+RFC-001-DQ-07 Process Boundaries and Sync/Async Execution Strategy = ACCEPTED
+RFC-001-DQ-08 模块公开契约与跨模块协作 = PROPOSED
 ```
+
+## DQ-08: 模块公开契约、跨模块 Command / Query / Event 协作与循环依赖治理
+
+RFC-001-DQ-08 下一轮优先讨论：
+
+1. `public.py` 应暴露什么；
+2. Command、Query、Result 和 Public Error 的正式规则；
+3. 模块之间是否允许直接同步调用；
+4. 哪些调用必须通过 Orchestration；
+5. 是否允许共享 Domain Entity；
+6. 跨模块只读查询规则；
+7. Application Event 与 Domain Event 的边界；
+8. 是否允许进程内 Event Bus；
+9. 如何禁止循环依赖；
+10. 如何处理跨模块组合事务；
+11. 如何设计 Architecture Tests；
+12. 模块公开契约如何版本化。
+
+在 RFC-001-DQ-08 被用户明确接受前：
+
+- 不创建正式模块 Public Contract；
+- 不创建跨模块 Event Bus；
+- 不创建生产 API 或 Worker；
+- RFC-001 保持 `DRAFTING`。
 
 ## DQ-07: Process Boundaries and Sync/Async Execution Strategy
 
-RFC-001-DQ-07 下一轮优先讨论：
+RFC-001-DQ-07 已接受：
 
-1. API、Worker、CLI 与 Workflow Runtime 的进程边界；
-2. 各 Entrypoint 是单进程还是多进程；
-3. Workflow Runtime 与 API 是否同进程；
-4. 同步 / 异步执行策略；
-5. 长运行 Workflow 的执行与调度模型；
-6. 是否需要独立 Worker 进程；
-7. 是否引入 Queue / Message Broker；
-8. Human Review 暂停与 Resume 的进程语义；
-9. 并发与资源隔离边界；
-10. 进程间通信与状态共享边界；
-11. 各进程的配置与生命周期归属（承接 DQ-06 Bootstrap）；
-12. 本议题不锁定具体 API Framework、Queue、Deployment Platform。
-
-在 RFC-001-DQ-07 被用户明确接受前：
-
-- 不创建 API；
-- 不创建 Worker；
-- 不引入 Queue；
-- 不决定生产运行模型；
-- RFC-001 保持 `DRAFTING`。
+1. 保持单一 Modular Monolith 应用与统一版本化 Release Boundary，但生产运行时分离 API Process 与 Workflow Worker Process，CLI 为按需临时进程；
+2. `Application Architecture ≠ Release Artifact ≠ Runtime Process`；“一个主要后端部署单元”不要求所有能力同进程；
+3. API 与 Worker 使用同一 Python Package / Application Layer / Domain Contract，默认从同一 Release Version 构建部署；
+4. `Long Workflow inside HTTP Request = PROHIBITED`；长 Workflow 采用 Durable Dispatch 后台异步执行；API 在 Durable Work Intent 可靠记录后才返回接受状态；
+5. 生产可靠任务禁止 `asyncio.create_task(...)` 或 Web Framework 临时 Background Task；
+6. API 与 Worker 通过 `WorkflowDispatchPort`（schedule_start/resume/rerun/cancel/recovery）协作；当前不选择具体 Queue / Broker / Dispatch Backend；
+7. Worker Crash 后工作可重新领取；重复投递经 Idempotency 防重复业务版本；Worker 仅经 Application Service 提交业务状态；
+8. Human Review Submit 同步完成业务校验与 Approved Strategy 提交，并可靠记录 Durable Resume Intent；Approved Commit 与 Resume Intent 必须原子或可靠协调；Workflow Resume 由 Worker 异步执行；
+9. Application Core 采用 Sync-first，Domain 保持纯同步；并发优先有界 Worker Process / Worker Slot；当前不采用全栈 Async-first；禁止业务代码随意 `asyncio.run()`；
+10. API 与 Worker 使用窄化的不同 Bootstrap Factory；Dispatch Payload 只含 ID / 版本 / Runtime Reference；Cancellation 使用 Durable Cancellation Intent；Local/Test 允许 Combined Runtime 与 Inline Runner；
+11. 本 Decision 不选择 API Framework / Queue / Database Driver / Worker Framework / Deployment Platform；接受后仍不授权创建 API、Worker 或 Production Runtime。
 
 ## DQ-06: Dependency Injection, Configuration and Application Bootstrap
 
@@ -178,5 +194,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-07 Process Boundaries and Sync/Async Execution Strategy
+Next Topic: RFC-001-DQ-08 模块公开契约、跨模块 Command / Query / Event 协作与循环依赖治理
 ```

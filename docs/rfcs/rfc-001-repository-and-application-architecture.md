@@ -3145,19 +3145,303 @@ NOT REQUIRED
 
 ---
 
+## Decision Question 07: Process Boundaries and Sync/Async Execution Strategy
+
+> **Decision Status:** `ACCEPTED`
+> **User Decision:** `ACCEPTED`
+
+**Decision:** One modular monolith application and one shared release boundary. Production runtime separates API Process and Workflow Worker Process. Long workflows execute through durable background dispatch. Human Review submit synchronously commits business state and durably schedules asynchronous resume. Application Core is sync-first and Domain is synchronous only.
+
+### Architecture, Release and Process Boundary
+
+必须明确区分：
+
+```text
+Application Architecture
+≠
+Release Artifact
+≠
+Runtime Process
+```
+
+项目继续采用：
+
+```text
+One Modular Monolith Application
++
+One Shared Backend Codebase
++
+One Versioned Release Boundary
++
+Multiple Role-specific Runtime Processes
+```
+
+“一个主要后端部署单元”在本 Decision 中解释为：一个统一逻辑后端应用 + 一个统一版本化发布边界 + 一个共享可部署制品 + 多个不同运行角色的进程。它不要求所有能力运行在同一个操作系统进程中。
+
+### Runtime Process Roles
+
+生产运行时至少区分：
+
+```text
+API Process
+Workflow Worker Process
+CLI Process
+```
+
+#### API Process
+
+API Process 负责：创建 Task；创建 Workflow Run；查询 Task、Stage 和 Run 状态；获取 Review Package；保存 Review Draft；提交 Human Review；请求 Cancel / Rerun / Resume；Authentication 和 Authorization；Request Validation；Correlation ID；将 Application Result 映射为协议响应。
+
+API Process 不得：在 HTTP Request 中执行完整长 Workflow；在 Route 中执行多个 LangGraph Node；长时间等待 LLM、Retrieval 或 Human Review；使用进程内临时 Background Task 承担必须可靠完成的生产工作；依赖客户端连接存活维持 Workflow；将正式任务状态只保存在内存中。
+
+#### Workflow Worker Process
+
+Worker Process 负责：领取 Workflow Start / Resume / Rerun Intent；领取 Cancellation 或 Recovery Work；创建 Workflow Runtime Context；执行 LangGraph；调用 Stage Application Service；执行 Interrupt 和 Resume；管理 Workflow Retry Budget；响应 Cancellation；更新 Runtime Record；写入或更新 Checkpoint；记录 Runtime Trace；创建 Recovery Case；确认工作完成、失败或等待人工。
+
+Worker 不得：绕过 Application Service；直接更新 Current Truth；直接调用业务 Repository；将 Queue Message 当作业务事实；使用进程内内存作为唯一 Runtime State；无限重试；因重复投递产生重复业务版本。
+
+#### CLI Process
+
+CLI 是按需启动的临时 Entrypoint。允许：查询 Task 和 Runtime 状态；创建开发或测试 Task；提交明确授权的 Recovery Command；执行 Evaluation；检查配置；调用管理 Use Case；提交 Workflow Work Intent。CLI 必须调用相同的 Application Layer。CLI 不得：直接修改数据库；直接删除 Checkpoint；绕过 Audit / Idempotency / Human Review；输出 Secret；在生产中默认以内联方式执行完整长 Workflow。
+
+### Unified Release Boundary
+
+API 和 Worker 使用相同 Python Package、相同业务模块、相同 Application Service、相同 Domain Contract、相同 Schema 和 Runtime Identifier，默认从同一个 Release Version 构建和部署，不被视为两个独立业务服务。初始 MVP 不设计复杂跨版本兼容矩阵。至少需记录：`Application Version / Graph Version / Workflow Definition Version / Job Payload Version / Schema Version`。新版 API 不得创建当前 Worker 无法理解的工作。滚动升级与长期 Graph Versioning 由 RFC-003、RFC-007 决定。
+
+### Long Workflow HTTP Boundary
+
+正式规则：
+
+```text
+Long Workflow inside HTTP Request = PROHIBITED
+```
+
+生产请求采用：
+
+```text
+Submit
+↓
+Persist Business or Runtime Intent
+↓
+Create Durable Dispatch Intent
+↓
+Return Task / Run Identity and Status
+```
+
+而不是 `Submit → Execute Entire Workflow → Wait for Final Result → Return`。API 返回成功表示工作已被可靠接受，不表示 Workflow 已完成。具体 Endpoint、HTTP Status 和 Response Schema 由 RFC-004 决定。
+
+### Durable Dispatch Boundary
+
+API 与 Worker 之间必须存在可靠工作交接边界，抽象为 `WorkflowDispatchPort`，能力至少包括：
+
+```text
+schedule_start
+schedule_resume
+schedule_rerun
+schedule_cancel
+schedule_recovery
+```
+
+API 返回“已接受”之前，Durable Work Intent 必须已被可靠记录。禁止使用 `asyncio.create_task(run_workflow())` 或 Web Framework 临时 Background Task 作为生产可靠任务机制。本 Decision 不选择具体实现（候选：Database-backed Job Table / Transactional Outbox / Redis Queue / Message Broker / Cloud Queue / Managed Workflow Runtime），具体由 RFC-002 和 RFC-003 决定。
+
+### Worker Recovery Requirements
+
+Worker Crash 不能导致工作永久丢失。恢复语义必须结合 `Durable Dispatch + Runtime Record + Checkpoint + Application Idempotency`，至少满足：未完成工作可重新领取；重复投递不产生重复 Domain Version；已成功提交的 Application Transaction 不重复提交；未提交 Skill Result 不视为 Current Truth；Resume 使用正确 `thread_id`；每次独立执行尝试具有明确 `run_id`；Stale Input 或 Stale Checkpoint 在正式业务写入前被拒绝；Worker Failure 可进入 Retry、Pause 或 Recovery 状态。Lease、Heartbeat、Ack、Visibility Timeout 和 Retry Policy 由 RFC-003 决定。
+
+### Human Review Submit and Resume
+
+Human Review Submit 采用 `Synchronous Business Commit + Asynchronous Workflow Resume`。推荐流程：
+
+```text
+Review Submit Request
+↓
+SubmitReview Application Use Case
+↓
+Validate Review Package Version
+↓
+Check Stale Review
+↓
+Check Idempotency
+↓
+Commit Approved Strategy
+↓
+Write Audit and Idempotency
+↓
+Create Durable Resume Intent
+↓
+Return
+```
+
+HTTP Request 必须同步完成：Review Version Validation；Stale Review Detection；Duplicate Submit Detection；Approved Strategy Business Commit；Audit；Idempotency；Durable Resume Intent 的可靠记录。HTTP Request 不等待后续 Marketing Brief Skill、Xiaohongshu Adapter、LangGraph Node 或整个 Workflow 完成。返回状态可概念性表达为 `review_status = approved` + `workflow_status = resume_scheduled`。具体 API Schema 由 RFC-004 决定。
+
+### Atomic Resume Coordination
+
+正式要求：
+
+```text
+Approved Strategy Commit + Durable Resume Intent = Atomic or Reliably Reconciled
+```
+
+不得出现：Approved Strategy 已成功提交但 Resume 永久丢失；Resume 已安排但 Approved Strategy 事务失败；重复 Review Submit 产生多个有效 Resume；Worker Resume 读取到未提交或错误版本的业务状态。具体实现（Transactional Outbox / Database Job Table / Post-commit Reconciliation / 其他可靠协调机制）由 RFC-002、RFC-003 决定。
+
+### Business Asynchrony vs Python Async
+
+**Business-level Asynchrony**（HTTP Request returns first, Workflow continues in background）为项目正式采用的业务语义。**Python `async/await`** 是代码执行模型，不等于后台任务架构。本 Decision 不因为采用后台 Workflow，就要求全部 Python 代码采用 `async/await`。
+
+### Sync-first Application Core
+
+正式采用：
+
+```text
+Domain:               Synchronous only
+Application Core:     Sync-first
+Workflow Semantics:   Asynchronous background execution
+Concurrency:          Bounded Worker Processes or Worker Slots
+Infrastructure:       Execution mode must be explicit
+```
+
+- **Domain**：禁止 `async` 业务接口、Event Loop、网络或数据库等待、Async Framework 类型；保持纯同步业务逻辑。
+- **Application**：Use Case 默认同步接口与同步事务语义；不得无规则同时提供 `execute()` / `execute_async()`，除非后续 RFC 明确迁移或兼容策略。
+- **Worker**：初始可使用同步 LangGraph 执行模式；并发优先采用 Bounded Worker Concurrency（多个 Worker Process / 有界 Worker Slot / 明确任务领取限制），禁止无限创建并发 Task。
+- **Infrastructure**：Adapter 必须明确其执行模式；允许 Async-native Adapter，但必须隔离在明确 Port 后、不污染 Domain、不让 Application 无规则混合 Sync/Async、明确 Resource Lifecycle、明确 Timeout/Cancellation/Error Mapping。禁止业务代码随意调用 `asyncio.run()`、在同步调用内部创建不可关闭的 Event Loop、隐藏未受控线程、在 Event Loop 内执行不可控阻塞调用。
+
+**Why Sync-first：** Spike-001 已验证同步 StateGraph、Interrupt、Resume、Retry 与 Recovery；MVP 当前目标是正确性、可靠性、Human Review 与可演示性；当前没有高并发证据要求全栈 Async-first；API 与 Worker 分进程已解决 HTTP 长时间阻塞问题；Sync-first 降低事务、测试与 Coding Agent 混用复杂度；未来可基于性能证据调整部分 Adapter 或 Runtime。“Sync-first” **不等于** 永远禁止使用任何异步技术：Application Core 默认同步；业务时间上后台异步；需要异步的技术能力通过明确 Adapter 隔离；架构变更必须有证据。
+
+### API and Worker Bootstrap
+
+API 和 Worker 共享核心 Application Factory，但使用窄化的不同 Runtime Factory：
+
+```text
+build_core_resources()
+↓
+build_application_services()
+↓
+├── build_api_runtime()
+└── build_worker_runtime()
+```
+
+- **API Runtime** 只装配：API 所需 Command 和 Query；Auth Adapter；HTTP Error Mapper；Correlation Context；Workflow Dispatch Port。API Runtime 不自动启动完整 Workflow Worker。
+- **Worker Runtime** 装配：Workflow Runtime；Dispatch Consumer；Checkpointer；Stage Application Services；Recovery Services；Worker Lifecycle。Worker Runtime 不自动启动 HTTP Server。
+
+### Dispatch Payload Boundary
+
+API 与 Worker 之间只传递轻量 Runtime Reference。允许字段：`task_id / run_id / thread_id / workflow_name / workflow_version / command_type / idempotency_key / requested_at / correlation_id`。不得传递：完整 Product Facts；完整 Evidence Package；完整 Prompt；完整 Marketing Brief；ORM Entity；Database Session；Secret；Provider Client；LangGraph Checkpoint 二进制；可变 Domain Object。Worker 根据 ID 从正式业务存储和 Runtime Store 加载所需状态。
+
+### Frontend Progress Boundary
+
+Frontend 不依赖持续连接维持 Workflow。基本流程 `Submit Work → Receive task_id / run_id → Query Task or Run Status`。初始前端可采用 Polling / Conditional Polling / Manual Refresh；未来可增加 Server-Sent Events / WebSocket / Push Notification。具体机制由 RFC-004 决定。Workflow 正确性不得依赖前端连接存在。
+
+### Cancellation Boundary
+
+取消采用 Durable Cancellation Intent：`Cancel Request → Application validates permission and state → Persist Durable Cancellation Intent → Worker observes cancellation → Current bounded work stops safely → Runtime status updated`。需区分 `cancellation_requested / cancelling / cancelled / cancellation_failed`。HTTP Cancel 请求成功不表示 Worker 已经即时停止。具体 Cancellation State Machine 由 RFC-003 和 RFC-004 决定。
+
+### Local and Test Runtime
+
+允许本地和测试环境提供 `Combined Development Runtime`（一个命令启动 API + Local Worker + Local Dispatch Adapter），还可提供明确的 `Inline Execution Mode`，但仅限 `local / test / evaluation`，并且必须：显式标记非生产；使用相同 Application Service；不绕过 Idempotency；不绕过 Checkpoint；不改变业务事务规则；不成为生产默认路径。Production CLI Inline Workflow 仍然禁止。
+
+### Process Responsibility Matrix
+
+| Capability               |    API Process | Workflow Worker |    CLI Process |
+| ------------------------ | -------------: | --------------: | -------------: |
+| HTTP Protocol            |              是 |               否 |              否 |
+| Create Task              | 通过 Application |  通过 Application | 通过 Application |
+| Query Status             |              是 |           内部可读取 |              是 |
+| Execute LangGraph        |              否 |               是 |         仅本地/测试 |
+| Long Model Skill         |              否 |               是 | 仅测试/Evaluation |
+| Submit Human Review      |              是 |               否 |         授权管理场景 |
+| Create Resume Intent     | 通过 Application |    可用于 Recovery |        可提交管理请求 |
+| Execute Resume           |              否 |               是 |           生产中否 |
+| Business Transaction     | 通过 Application |  通过 Application | 通过 Application |
+| Direct Repository Access |              否 |               否 |              否 |
+| Runtime Recovery         |           提交请求 |              执行 |         授权管理入口 |
+
+### Hard Rules
+
+```text
+Backend Architecture:              One Modular Monolith Application
+Release Boundary:                  One Shared Versioned Backend Release
+Runtime Roles:                     API Process + Workflow Worker Process + CLI Process
+Long Workflow in HTTP Request:     PROHIBITED
+Production In-memory Background Task: PROHIBITED for durable work
+Workflow Dispatch:                 DURABLE
+Human Review Submit:               Synchronous business commit
+Workflow Resume:                   Asynchronously scheduled
+Application Core:                  SYNC-FIRST
+Domain:                            SYNCHRONOUS ONLY
+Concurrency:                       BOUNDED WORKER CONCURRENCY
+API and Worker Version:            Same release by default
+Production CLI Inline Workflow:    PROHIBITED
+Local/Test Combined Runtime:       ALLOWED
+```
+
+### Decision Boundary
+
+本 Decision 已确认：
+
+1. Modular Monolith 不要求所有能力运行在同一个进程；
+2. 使用统一 Backend Application；
+3. 使用统一版本化 Release Boundary；
+4. API Process 与 Workflow Worker Process 在生产运行时分离；
+5. CLI 为按需运行的临时进程；
+6. API、Worker、CLI 使用同一 Python Package 和 Application Layer；
+7. API 与 Worker 默认从同一 Release Version 构建；
+8. API 只处理短生命周期请求；
+9. 长 Workflow 禁止在 HTTP Request 中执行完成；
+10. 长 Workflow 采用后台异步业务语义；
+11. API 必须在 Durable Work Intent 可靠记录后再返回接受状态；
+12. 生产可靠任务禁止依赖进程内临时 Background Task；
+13. API 与 Worker 通过 Durable Dispatch Port 协作；
+14. 当前不选择具体 Queue、Broker 或 Dispatch Backend；
+15. Worker 负责 LangGraph Start、Resume、Retry、Cancellation 和 Recovery；
+16. Worker 仍只能通过 Application Service 提交业务状态；
+17. Worker Crash 后工作必须可重新领取；
+18. 重复投递通过 Idempotency 防止重复业务版本；
+19. Human Review Submit 同步完成业务校验和 Approved Strategy 提交；
+20. Human Review Submit 不等待后续 Workflow；
+21. Approved Strategy Commit 与 Resume Intent 必须原子或可靠协调；
+22. Workflow Resume 由 Worker 异步执行；
+23. Domain 保持纯同步；
+24. Application Core 采用 Sync-first；
+25. 当前不采用全栈 Async-first；
+26. 并发优先通过有界 Worker Process 或 Worker Slot；
+27. Infrastructure Adapter 必须声明执行模式；
+28. 禁止业务代码随意使用 `asyncio.run()`；
+29. API 与 Worker 使用不同的窄化 Bootstrap Factory；
+30. CLI 必须调用同一 Application Layer；
+31. Production CLI 默认不 Inline 执行长 Workflow；
+32. Local/Test 允许 Combined Runtime 和 Inline Runner；
+33. Dispatch Payload 只包含 ID、版本和 Runtime Reference；
+34. Frontend 通过 Task / Run 状态查询获得进度；
+35. Polling、SSE 或 WebSocket 由 RFC-004 决定；
+36. Cancellation 使用 Durable Cancellation Intent；
+37. 本 Decision 不选择 API Framework、Queue、Database Driver、Worker Framework 或部署平台；
+38. 本 Decision 接受后仍不授权创建 API、Worker 或生产 Runtime。
+
+本 Decision 尚未确认：Durable Dispatch 的具体实现；Worker Framework；Queue 或 Broker；Job Lease 与 Heartbeat；Ack 和 Visibility Timeout；Checkpoint Backend；Resume State Machine；API Framework；HTTP Endpoint；Polling、SSE 或 WebSocket；Deployment Platform；Process Health Check；Worker Scaling Policy；Graph Version Migration；Production Runtime Implementation。
+
+### Traceability
+
+关联：RFC-001-DQ-01 Modular Monolith First；RFC-001-DQ-02 Python Backend and LangGraph Boundary；RFC-001-DQ-03 Repository Layout；RFC-001-DQ-04 Layer Responsibilities and Transaction Ownership；RFC-001-DQ-05 Skill Architecture；RFC-001-DQ-06 Bootstrap and Resource Lifecycle；DEC-011 Deterministic Workflow Control；DEC-013 Persistent Task State and Resume；DEC-021 Primary Agent Architecture；DEC-023 LangGraph StateGraph；DEC-024 Business and Runtime State Separation；DEC-029 Human Review；DEC-033 Failure, Retry and Recovery；DEC-035 Sync StateGraph Spike Stack；DEC-038 RFC Governance；Spike-001 Runtime Evidence；Architecture Baseline v1。
+
+---
+
 ## Open Questions
 
-1. API、Worker、CLI 与 Workflow Runtime 的进程边界，以及同步/异步执行策略（RFC-001-DQ-07）。
-2. API Framework。
-3. Database 和 ORM。
-4. Worker 和 Queue。
-5. Architecture Test 工具。
-6. Settings / Configuration Library。
-7. Secret Manager 与生产凭证来源。
-8. Prompt Registry 与版本注册形式。
-9. Evaluation Framework 与评测数据集形式。
-10. Deployment Platform。
-11. Production Skeleton Authorization Gate。
+1. 模块公开契约、跨模块 Command / Query / Event 协作与循环依赖治理（RFC-001-DQ-08）。
+2. Durable Dispatch 的具体实现（RFC-002 / RFC-003）。
+3. API Framework 与 HTTP Endpoint（RFC-004）。
+4. Database 和 ORM（RFC-002）。
+5. Queue / Broker / Worker Framework（RFC-003）。
+6. Checkpoint Backend 与 Resume State Machine（RFC-003）。
+7. Polling、SSE 或 WebSocket（RFC-004）。
+8. Settings / Configuration Library。
+9. Secret Manager 与生产凭证来源。
+10. Prompt Registry 与版本注册形式。
+11. Evaluation Framework 与评测数据集形式。
+12. Architecture Test 工具。
+13. Deployment Platform 与 Process Health Check / Worker Scaling Policy。
+14. Graph Version Migration（RFC-003 / RFC-007）。
+15. Production Skeleton Authorization Gate。
 
 ---
 
@@ -3184,6 +3468,7 @@ NOT REQUIRED
 - RFC-001-DQ-04：Layer Responsibilities and Dependency Rules
 - RFC-001-DQ-05：Skill Code Shape and Architectural Relationships
 - RFC-001-DQ-06：Dependency Injection, Configuration and Application Bootstrap
+- RFC-001-DQ-07：Process Boundaries and Sync/Async Execution Strategy
 
 ## Related Specifications
 
