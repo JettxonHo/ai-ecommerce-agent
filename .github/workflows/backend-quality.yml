@@ -1,0 +1,120 @@
+# Backend quality gate (FND-003, RFC-001-DQ-09).
+#
+# Local Configuration = CI Configuration: every step reuses the exact
+# commands and configuration from apps/backend/README.md (pyproject.toml,
+# uv.lock, Ruff, Pyright, Import Linter). No CI-only quality rules exist.
+#
+# Stable check names (referenced by branch protection):
+#   quality / format
+#   quality / lint
+#   quality / typecheck
+#   quality / architecture
+#
+# The check names are stable by construction: no Python patch version, no
+# matrix values, no random identifiers, no tool versions in names. The uv and
+# Python versions are pinned for reproducibility, not embedded in names.
+name: quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# New commits on a pull request cancel that PR's previous run; post-merge
+# verification on main is never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+defaults:
+  run:
+    working-directory: apps/backend
+
+jobs:
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.12.0"
+          python-version: "3.13.14"
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+          cache-suffix: py3.13.14
+      - name: Install locked dependencies (uv sync --locked)
+        run: uv sync --locked
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.12.0"
+          python-version: "3.13.14"
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+          cache-suffix: py3.13.14
+      - name: Install locked dependencies (uv sync --locked)
+        run: uv sync --locked
+      - name: Ruff lint
+        run: uv run ruff check .
+
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.12.0"
+          python-version: "3.13.14"
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+          cache-suffix: py3.13.14
+      - name: Install locked dependencies (uv sync --locked)
+        run: uv sync --locked
+      - name: Pyright (strict)
+        run: uv run pyright
+
+  architecture:
+    name: architecture
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.12.0"
+          python-version: "3.13.14"
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+          cache-suffix: py3.13.14
+      - name: Install locked dependencies (uv sync --locked)
+        run: uv sync --locked
+      # Both enforcement layers run under one stable check name; the separate
+      # steps keep their failure output distinguishable.
+      - name: Import Linter contracts (10 import-graph contracts)
+        run: uv run lint-imports
+      - name: Architecture tests (public facade, module DAG, AST semantics)
+        run: uv run pytest -m architecture
