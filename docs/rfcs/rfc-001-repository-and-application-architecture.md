@@ -4130,7 +4130,7 @@ Production Implementation = NOT AUTHORIZED
 - 17 类 Mandatory Stop Conditions 持续有效；遇未决架构问题必须停止并提交 Decision Conflict / Mandatory Stop Report，不得静默决定。
 - **关于 Merge PR / Delete Branch：** 本 RFC 的决策文档直接在本 Repository 的 `main` 分支上开发与提交，未创建独立的 RFC-001 PR 或 RFC Branch，因此 DEC-038 流程中的「Merge RFC-001 PR / Delete RFC Branch」步骤在当前工作流下不适用；对应 GitHub Issue #5 已随本次接受关闭。
 
-**Immediate Next Topic：** **FND-001 Issue Candidate 已形成并经用户「确认形成」（2026-07-30，APPROVED FOR ISSUE PLANNING；Issue Creation / Implementation 未授权，见 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)）**。下一议题为生成并审查 **FND-002 Issue Candidate**（Architecture Enforcement and Test Foundation；deps FND-001；仅生成候选，不自动创建 Issue，不开始 Foundation Implementation）。
+**Immediate Next Topic：** **FND-001 与 FND-002 Issue Candidate 均已经形成并经用户确认（2026-07-30，均 APPROVED FOR ISSUE PLANNING；Issue Creation / Implementation 未授权，见 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)）**。下一议题为生成并审查 **FND-003 Issue Candidate**（CI, Security and Repository Protection；deps FND-001 + FND-002；仅生成候选，不自动创建 Issue，不开始 Foundation Implementation）。
 
 ---
 
