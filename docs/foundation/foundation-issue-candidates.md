@@ -20,6 +20,11 @@ FND-002 Candidate Status = APPROVED FOR ISSUE PLANNING
 FND-002 Issue Creation = NOT AUTHORIZED
 FND-002 Implementation = NOT AUTHORIZED
 
+FND-003 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-003 Issue Creation = NOT AUTHORIZED
+FND-003 Implementation = NOT AUTHORIZED
+
+Foundation Candidate Planning Status = COMPLETED
 Foundation Planning Status = AUTHORIZED
 Foundation Implementation Status = NOT AUTHORIZED
 Business Implementation Status = NOT AUTHORIZED
@@ -32,7 +37,7 @@ Production Implementation = NOT AUTHORIZED
 **Acceptance 与 Authorization 严格分离：**
 `接受 Candidate ≠ 授权创建 Issue ≠ 授权创建 Branch/PR ≠ 授权实施 Foundation ≠ 授权 Business/Production Implementation`。
 
-接受 FND-001 / FND-002 Candidate 仅表示用户接受其**候选范围、边界、依赖与验收方向**；**不**授权创建 GitHub Issue、Branch、Pull Request、修改 Repository、安装工具、编写 Architecture Tests 或执行 Foundation Implementation。
+接受 FND-001 / FND-002 / FND-003 Candidate 仅表示用户接受其**候选范围、边界、依赖与验收方向**；**不**授权创建 GitHub Issue、Branch、Pull Request、修改 Repository、安装工具、编写 Architecture Tests、创建 GitHub Actions、配置 Branch Protection、启用 Dependabot、安装 Secret Scanner 或执行 Foundation Implementation。
 
 ---
 
@@ -50,7 +55,7 @@ FND-003  CI, Security and Repository Protection              (deps: FND-001 + FN
 |---|---|---|---|---|---|
 | **FND-001** | Backend Package and Local Tooling Foundation | RFC-001 = ACCEPTED（无前置 Foundation Issue） | **APPROVED FOR ISSUE PLANNING** | NOT AUTHORIZED | NOT AUTHORIZED |
 | **FND-002** | Architecture Enforcement and Test Foundation | FND-001 | **APPROVED FOR ISSUE PLANNING** | NOT AUTHORIZED | NOT AUTHORIZED |
-| FND-003 | CI, Security and Repository Protection | FND-001 + FND-002 | PROPOSED（未单独确认） | NOT AUTHORIZED | NOT AUTHORIZED |
+| **FND-003** | CI, Security and Repository Protection | FND-001 + FND-002 | **APPROVED FOR ISSUE PLANNING** | NOT AUTHORIZED | NOT AUTHORIZED |
 
 ---
 
@@ -554,10 +559,306 @@ docs: document architecture enforcement workflow
 
 ---
 
+## FND-003：CI, Security and Repository Protection（APPROVED FOR ISSUE PLANNING）
+
+**用户确认：** 「确认」——接受 FND-003 的候选范围、依赖、验收标准、安全规则和禁止边界。
+
+**Candidate Status：**
+
+```text
+FND-003 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-003 Issue Creation = NOT AUTHORIZED
+FND-003 Implementation = NOT AUTHORIZED
+```
+
+**Parent Architecture Input：**
+
+```text
+RFC-001: Repository and Application Architecture — Status = ACCEPTED
+```
+
+**Dependencies：**
+
+```text
+FND-001 = MERGED
+FND-002 = MERGED
+```
+
+FND-003 在 FND-001 和 FND-002 完成并合并前**不得实施**。
+
+### 主要追踪
+
+```text
+RFC-001-DQ-06  Bootstrap and Configuration Boundary
+RFC-001-DQ-08  Module Public Contract and DAG
+RFC-001-DQ-09  Quality Toolchain, Architecture Enforcement and CI Gates
+RFC-001-DQ-10  Foundation Scope and Authorization Gate
+DEC-036        Controlled Git and GitHub Execution
+DEC-038        RFC and Issue Governance
+```
+
+### Candidate Goal
+
+将 FND-001 和 FND-002 已建立的本地质量、测试和 Architecture Enforcement 命令接入 GitHub，形成**可审查、可复现并能够阻止违规代码进入 `main`** 的 CI、安全与 Repository Protection 基础。
+
+正式治理链路：
+
+```text
+Local Quality Command
+↓
+GitHub Actions
+↓
+Stable Required Status Check
+↓
+Branch Protection
+↓
+User Final Merge Gate
+```
+
+FND-003 只建立：GitHub Actions、Stable Required Checks、Dependency Audit、Secret Detection、Dependabot、PR Template、Issue Templates、`main` Branch Protection、Repository Governance Documentation。
+
+FND-003 **不**建立：Production Deployment、Business Modules、Database、API、Worker、LangGraph Runtime、Model Runtime、Retrieval Runtime、Live AI Evaluation、Production Secret。
+
+### Proposed Issue Information
+
+**Candidate Issue Title：**
+
+```text
+FND-003: Establish CI, security and repository protection
+```
+
+**Candidate Labels：**
+
+```text
+type: foundation
+area: ci
+area: security
+area: repository
+status: planned
+implementation: authorization-required
+```
+
+**Candidate Branch：**
+
+```text
+foundation/003-ci-security-repository-protection
+```
+
+**Candidate Pull Request：**
+
+```text
+foundation: establish CI and repository protection
+```
+
+### Core CI Principle
+
+正式采用：`Local Configuration = CI Configuration`。CI 必须复用 Repository 中已经存在并经过 FND-001、FND-002 验证的 Ruff / Pyright / pytest / Import Linter Contracts / Architecture Tests / Lockfile / Unified Local Commands。**禁止**在 GitHub Actions 中建立与本地不同的第二套质量规则。
+
+### In Scope（仅在未来获得独立实施授权后允许创建）
+
+```text
+.github/
+├── workflows/
+│   ├── backend-quality.yml
+│   ├── backend-tests.yml
+│   └── repository-security.yml
+├── ISSUE_TEMPLATE/
+│   ├── implementation.yml
+│   ├── architecture-decision.yml
+│   └── bug.yml
+├── dependabot.yml
+└── pull_request_template.md
+```
+
+实际 Workflow 可合理合并或拆分，但必须：职责清晰；Job 名称稳定；失败容易定位；避免重复安装和重复检查；不创建始终通过的空 Job。
+
+#### CI Gate Layers
+
+**Fast Static Gate**（每个 PR 必运行）：Repository Hygiene / Ruff Format Check / Ruff Lint / Pyright / Import Linter / Architecture Tests。建议 Stable Required Check：`quality / format`、`quality / lint`、`quality / typecheck`、`quality / architecture`。
+
+**Deterministic Test Gate**（每个 PR 必运行）：Unit Tests / Contract Tests / Fast Local Test Set / Package Build / Locked Dependency Validation。建议：`test / unit-contract`、`test / package-build`。**不得**创建虚假的 Integration、E2E 或 Runtime Test。
+
+**Security Gate**（每个 PR 必运行）：Dependency Vulnerability Audit / Secret Detection / Repository Hygiene Validation。建议：`security / dependency-audit`、`security / secret-detection`。
+
+**Extended Gate**（仅保留未来扩展方向，不得在 FND-003 中伪造）：Full E2E / Live Model Evaluation / Performance Tests / Long Recovery Tests / Deployment Validation。
+
+**Required Check Names** 初始建议集合（8 项）：`quality / format`、`quality / lint`、`quality / typecheck`、`quality / architecture`、`test / unit-contract`、`test / package-build`、`security / dependency-audit`、`security / secret-detection`。规则：不使用动态 Job 名称；不把 Python Patch Version 放入 Required Check 名称；不频繁改名；改名必须同步更新 Branch Protection；不创建职责重叠且名称相近的多个 Check；Experimental Check 必须明确标记为非 Required。
+
+**Python and Dependency Installation** — CI 必须使用 `Python >=3.13,<3.14` 并通过 `uv sync --locked` 安装依赖。必须：使用已提交 `uv.lock`；Lockfile 与 Manifest 不一致时失败；CI 不自动更新 Lockfile；不执行未锁定的 `pip install -U`；Cache Key 包含 Lockfile Hash；Cache Miss 时仍可完整安装。
+
+**Workflow Permissions** — `Default Workflow Permissions = read-only`；普通质量 Workflow 原则上只需要 `contents: read`。写权限必须：使用独立 Workflow、明确说明用途、采用最小权限、不在不可信 Fork PR 上执行、不向普通 Test Job 暴露写 Token。禁止所有 Workflow 默认获得写权限。
+
+**Third-party Action Governance** — 优先级 `Official GitHub Action → Widely adopted maintained Action → Repository-owned script`。安全规则：不使用来源不明的 Action；不使用浮动 `main` 分支；优先固定到 Commit SHA；新 Action 必须记录用途和权限；Action 不得获取无关 Secret；Action 升级通过独立 Dependency PR 审查。
+
+**Secret Detection** — 必须选择正式 Secret Scanner（候选：Gitleaks / TruffleHog / GitHub Secret Scanning / 其他满足要求的 Scanner）；具体选择作为 FND-003 实施中的有界工程决策，但必须记录：选择理由、维护状态、扫描范围、PR Diff 或 Git History 策略、本地复用方式、假阳性处理、Allowlist 规则、日志 Redaction、失败修复流程。至少检测：API Keys / Access Tokens / Private Keys / Cloud Credentials / Database Credentials / Authorization Headers / Real `.env` Files / Provider Secrets。
+
+**Secret Incident Handling** — 正式流程：`Secret Detected → Block Pull Request → Determine whether credential is real → Remove from repository → Rotate or revoke credential → Review history exposure → Add regression protection if required`。仅删除文件或修改 Commit 不足以处理真实 Credential 泄漏；真实 Secret 必须轮换或撤销。
+
+**Secret Allowlist** — 只能用于明确假阳性（Scanner 官方测试 Token / 明显虚假的文档占位符 / 精准的测试 Fixture）。必须：精确到具体内容、说明原因、不宽泛跳过整个目录、不跳过所有 `.env` 或测试内容、不使用看似真实的凭证。
+
+**Dependency Audit** — 正式采用 `pip-audit`，检查 Lockfile 对应的 Python Dependency。默认：`Known actionable vulnerability → CI failure`。漏洞结果需区分 `Fix available / No fix available / False positive / Not reachable / Accepted temporary risk`。无修复版本但无法移除时必须：创建安全 Issue、记录 CVE、说明影响、说明临时缓解、设定复查条件、获得用户明确接受。**禁止** Coding Agent 添加宽泛 Ignore 让 Audit 通过。
+
+**Dependabot** — Repository 应启用 `Dependabot Alerts / Dependabot Security Updates / Controlled Version Updates`；Python 依赖建议 `weekly` 更新节奏。Dependabot PR 必须：更新 Lockfile、通过完整 Required CI、不自动 Merge、不混入业务修改、Major Upgrade 说明 Breaking Risk、由用户完成最终 Merge。
+
+**Pull Request Template** — 创建 `.github/pull_request_template.md`，至少要求：`Summary / Related Issue / Relevant DEC·RFC·Spec / In Scope / Out of Scope / Acceptance Criteria / Tests Executed / Evidence / Architecture Impact / Security Impact / Dependency Changes / Migration·Rollback Impact / Known Limitations / Mandatory Stop Conditions`。Foundation PR 还须说明：对应 FND Issue、对应 RFC-001 DQ、新增工具、新增依赖、本地命令、CI 结果、是否触发新架构决定。允许对不适用项填 `Not applicable — reason`，但不得只填 `Tests passed`。
+
+**Issue Templates** — Implementation Issue（Goal / Relevant DEC / Relevant Spec / Accepted RFC / Dependencies / In Scope / Out of Scope / Acceptance Criteria / Required Tests / Required Evidence / Rollback Considerations / Mandatory Stop Conditions / Authorization Status）；Architecture Decision Issue（Decision Question / Candidates / Trade-offs / Recommendation / User Decision / Status / Affected DEC·RFC·Specs / Implementation Prohibition）；Bug Issue（Observed Behavior / Expected Behavior / Reproduction / Environment / Impact / Evidence / Regression Test Requirement / Related Version·Commit）。模板**不能**自动授予开发权限。
+
+**Branch Protection** — `main` 建议配置：Require Pull Request / Require Required Status Checks / Require Conversation Resolution / Block Force Push / Block Branch Deletion / Require Branch Up to Date or equivalent safe policy。用户保留最终 Merge Gate；当前为个人 Portfolio Repository，不强制不存在的第二名 Reviewer，但仍要求：所有变更通过 PR、用户人工审查、Review Conversation 解决、Required Checks 全部通过、Coding Agent 不得自行 Merge。
+
+**Administrator and Plan Limitations** — 建议管理员也遵守 Branch Protection。若 GitHub Plan、权限或 Repository 设置限制某项保护，必须明确记录 `Configured Protection / Unavailable Protection / Reason / Residual Risk / Manual Compensating Control`。**不得**声称未实际启用的能力已经生效。
+
+**Merge Strategy** — `Pull Request → Required Checks → User Review → Merge Commit`。不得：绕过 PR 直接进入 `main`；自动合并 Dependabot PR；允许 Coding Agent 自行 Merge；使用失败 Check 合并；使用 Force Push 修正历史。Merge 后按 Repository 规则删除 Feature Branch。
+
+**CI Trigger Events** — Required CI 至少响应 `pull_request targeting main / push to main / workflow_dispatch`。用途：Pull Request = Merge Gate；Push to `main` = 验证合并结果；Manual Dispatch = 诊断和重跑。FND-003 不创建定时 Live AI Evaluation。
+
+**Path Filters** — 可减少无关执行但不得遗漏关键变更。以下变化必须触发完整后端质量检查：`apps/backend/**`、`uv.lock`、`pyproject.toml and tool configuration`、`architecture test configuration`、`GitHub workflow files`。纯文档改动至少仍运行 Secret Detection / Repository Hygiene / 必要 Governance Check。禁止过宽 Path Filter 导致代码或配置变化未运行测试。
+
+**CI Concurrency** — 允许 PR 级 Concurrency：`New commit arrives → Cancel obsolete PR run → Run newest commit`。不得取消：`main` 合并后验证、必须保留结果的安全流程、Release 或关键审计流程。
+
+**CI Cache** — 允许缓存 uv Cache / Python Download / 安全的工具 Cache。Cache 必须：Key 包含 OS、Python Version 和 Lockfile Hash；不缓存 Secret；Cache Miss 时仍可完整运行；不能让旧依赖污染新 Lockfile；CI 正确性不依赖 Cache。
+
+**Failure Policy** — Required Check 必须继承 `Warnings = Errors by default`。禁止：Required Job 使用 `continue-on-error`；使用 `|| true` 绕过检查；Secret Scan 永远返回成功；Dependency Audit 失败被隐藏；自动重跑 Flaky Test 直到通过；将失败 Job 伪装为成功。非阻断实验 Job 必须明确标记 `experimental / non-required`。
+
+**CI Negative Verification** — 不仅创建 YAML，还必须证明失败路径真实有效。至少验证：1. Format Violation 导致 `quality / format` 失败；2. Lint Violation 导致 `quality / lint` 失败；3. Type Error 导致 `quality / typecheck` 失败；4. Architecture Violation 导致 `quality / architecture` 失败；5. Unit Test Failure 导致 `test / unit-contract` 失败；6. Lockfile Drift 导致失败；7. 模拟 Secret 导致 `security / secret-detection` 失败；8. Dependency Audit 失败路径可以工作；9. 修复违规后全部 Check 恢复通过。验证必须通过受控临时 Commit、测试 Branch、官方测试模式、最小安全 Fixture。**不得**提交真实 Secret，也不得长期保留已知漏洞依赖。
+
+**Repository Hygiene** — 至少验证：不提交 `.env` / 虚拟环境 / Python Cache / 本地数据库 / Build Artifact / Coverage 临时文件 / IDE 私有状态 / 真实 Credential；Manifest 与 Lockfile 一致。可由 `.gitignore`、Secret Scanner、自定义脚本、Git Diff 检查组合完成。
+
+**CI Log Security** — CI 日志不得输出 GitHub Token / Secret Scanner 原始 Secret / Provider Key / Authorization Header / 私有环境变量 / 生产 Credential。Scanner 和脚本必须尽可能 Redact 匹配值。
+
+**Supply-chain Rules** — 必须记录：Lockfile 必须提交；第三方 Action 固定版本；Workflow 使用最小权限；不从 PR 内容动态执行不可信 Shell；Fork PR 不接收 Repository Secret；不使用 `pull_request_target` 执行不可信代码（除非另有安全设计）；自动生成内容必须接受 Diff 审查；Dependabot PR 不自动 Merge。
+
+**Documentation** — 允许创建或更新 `docs/development/ci-and-repository-governance.md`，至少说明：Workflow 和 Job、Required Check、本地复现方式、Dependency Audit、Secret Detection、Dependabot、Branch Protection、PR 流程、Coding Agent 禁止事项、CI Failure 处理、GitHub Plan 限制、Residual Risk、Emergency Bypass 原则。默认 `No automatic emergency bypass`；未来确需紧急绕过时必须：用户明确授权、记录原因、保存证据、事后恢复保护、创建补充检查 Issue。
+
+### Out of Scope（FND-003 明确不包括）
+
+- **Production Deployment** — Docker Production Image、Container Registry、Cloud Platform、Staging、Production Environment、CD Pipeline、Infrastructure as Code、Runtime Secret Manager、Domain 或 HTTPS。
+- **Business and Runtime** — 业务模块、Database、ORM、Migration、API、Worker、LangGraph、Queue、Model Provider、Retrieval、Observability Runtime。
+- **Live AI Evaluation** — 真实模型调用、定时 Prompt Evaluation、Token Cost Report、Model Provider Secret。
+- **Release Automation** — PyPI Publish、GitHub Release、Semantic Release、自动版本发布、Production Rollback。
+- **Advanced Security** — Container Scan、SBOM、Code Signing、Artifact Attestation、完整 SAST Platform。
+
+这些能力等待真实部署或产物需求。
+
+### Acceptance Criteria（未来完成时必须满足）
+
+1. GitHub Actions 已创建并正常运行；
+2. CI 复用 FND-001、FND-002 的本地配置和命令；
+3. Python 依赖通过 `uv sync --locked` 安装；
+4. Lockfile Drift 导致失败；
+5. `quality / format` 稳定存在；
+6. `quality / lint` 稳定存在；
+7. `quality / typecheck` 稳定存在；
+8. `quality / architecture` 稳定存在；
+9. `test / unit-contract` 稳定存在；
+10. `test / package-build` 稳定存在；
+11. `security / dependency-audit` 稳定存在；
+12. `security / secret-detection` 稳定存在；
+13. Required Check 名称与 Branch Protection 一致；
+14. Secret Scanner 已选择并记录理由；
+15. 模拟 Secret 能被检测；
+16. Scanner 测试不使用真实 Secret；
+17. `pip-audit` 已接入；
+18. 可操作漏洞会阻止合并；
+19. Dependabot Alerts 已启用；
+20. Dependabot Security Updates 已配置；
+21. Version Update 使用受控节奏；
+22. Dependabot PR 不自动 Merge；
+23. PR Template 已建立；
+24. Implementation、Architecture Decision、Bug Issue Template 已建立；
+25. `main` 要求通过 PR；
+26. `main` 禁止 Force Push；
+27. Required Checks 全部通过后才能 Merge；
+28. Review Conversation 必须解决；
+29. 用户保留最终 Merge Gate；
+30. Required Job 不使用 `continue-on-error`；
+31. Workflow 默认最小权限；
+32. 第三方 Action 不使用浮动 `main`；
+33. Fork PR 不获得 Repository Secret；
+34. CI 日志不泄漏 Secret；
+35. 本地可以复现 Required Check；
+36. CI Negative Verification 已完成；
+37. 修复违规后全部 Required Checks 通过；
+38. GitHub 权限限制被准确记录；
+39. 没有创建 Deployment Pipeline；
+40. 没有创建业务或 Runtime 代码；
+41. 没有修改 Accepted RFC 或 DEC；
+42. 文档反映真实保护能力和残余风险。
+
+### Required Verification（未来 FND-003 PR 至少执行）
+
+```text
+uv sync --locked
+Ruff format check
+Ruff lint
+Pyright
+Import Linter
+Architecture tests
+Unit and contract tests
+Package build
+pip-audit
+Secret scan
+Workflow syntax validation
+```
+
+还必须完成：
+- **CI Trigger Verification** — 确认 Pull Request 能触发所有 Required Job。
+- **Required Check Verification** — 确认 Branch Protection 引用了正确且稳定的 Check 名称。
+- **Negative Quality Verification** — 受控证明 Format / Lint / Type / Architecture / Test / Lockfile 违规会失败。
+- **Secret Verification** — 使用 Scanner 官方测试 Token 或明显虚假值验证，不提交真实 Credential。
+- **Dependency Audit Verification** — 使用 Audit Tool 官方能力或隔离 Fixture 验证失败路径，不长期引入已知漏洞。
+- **Merge Protection Verification** — 确认存在 Required Check 失败时 PR 无法正常 Merge。
+
+### Required PR Evidence（未来实施 PR 必须输出）
+
+Workflow 文件清单；Workflow 和 Job 职责；Stable Required Check 名称；Python 和 uv 安装方式；Cache Key 设计；Workflow Permissions；第三方 Action 及固定版本；Secret Scanner 选择理由；Secret Scan 结果；`pip-audit` 结果；Dependabot 配置；PR Template；Issue Templates；Branch Protection 配置证据；Negative Verification 结果；全部 Required Check 最终通过结果；GitHub Plan 或权限限制；Residual Risk；Out-of-scope 审查；Mandatory Stop Condition 状态。**不得只输出 `CI is green`。**
+
+### Mandatory Stop Conditions（实施时遇以下情况必须停止）
+
+1. FND-001 尚未 Merge；
+2. FND-002 尚未 Merge；
+3. 需要修改 FND-001 或 FND-002 的已接受范围；
+4. 本地命令与 CI 无法复用同一配置；
+5. 需要降低 Ruff、Pyright、Architecture Test 或 pytest Gate；
+6. 需要将 Required Job 设为 `continue-on-error`；
+7. 需要向 Fork PR 注入 Secret；
+8. 需要使用高权限 GitHub Token；
+9. 需要使用不可信第三方 Action；
+10. Secret Scanner 会在日志泄漏 Secret；
+11. Dependency Audit 需要宽泛忽略全部漏洞；
+12. GitHub Plan 无法提供某项保护且没有补偿控制；
+13. 需要创建 Deployment Pipeline；
+14. 需要创建 Production Secret；
+15. 需要创建 API、Worker、Database 或 LangGraph；
+16. 需要开始 Live Model Evaluation；
+17. 需要自动合并 Dependabot PR；
+18. 需要让 Coding Agent 获得 Merge 权限；
+19. 发现 Repository 中存在真实 Secret；
+20. 需要修改 Accepted RFC 或 DEC；
+21. Issue Scope 超出 CI、Security 和 Repository Protection；
+22. Required Check 名称无法稳定；
+23. 实际修改范围超出 FND-003。
+
+出现这些情况必须输出 `Mandatory Stop Report` 或 `Decision Conflict Report`，**不得**通过关闭检查、夸大实际保护能力或忽略安全风险继续实施。
+
+### Candidate Commit Plan（候选，未授权执行）
+
+```text
+ci: add backend quality and test workflows
+security: add dependency and secret scanning
+chore: configure dependency update automation
+docs: add issue and pull request governance
+docs: document repository protection
+```
+
+实际 Commit 必须按真实变更组织，不机械拆分。
+
+---
+
 ## Immediate Next Topic
 
 ```text
-FND-003：CI, Security and Repository Protection
+Foundation Candidate Final Review
 ```
 
-下一轮只规划 FND-003 的 GitHub Actions / Required Check Names / Dependency Audit / Secret Detection / Dependabot / PR / Issue Templates / Branch Protection / Acceptance Criteria / Required Verification / Mandatory Stop Conditions / Git / GitHub Candidate Plan。**不得自动创建或实施 FND-003。**
+Foundation Candidate Planning 现已完成（FND-001 / FND-002 / FND-003 均 APPROVED FOR ISSUE PLANNING）。Final Review 必须检查：FND-001/002/003 范围完整性；三者是否存在重复职责；依赖顺序是否正确；是否提前侵入 RFC-002～RFC-007；Acceptance Criteria 是否可执行；Required Verification 是否完整；Mandatory Stop Conditions 是否覆盖越界风险；是否满足 RFC-001-DQ-10；是否可以向用户提出 FND-001 Issue Creation and Implementation Authorization；当前授权状态是否仍准确。**在用户明确授权前：不创建任何 Foundation Issue、不创建 Branch、不创建 PR、不修改 Repository、不执行 Foundation Implementation。**
