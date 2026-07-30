@@ -125,7 +125,150 @@ RFC-007 Observability and Runtime Operations
 - 每个 RFC 使用独立的 Issue / Branch / PR。
 - 未接受对应 RFC 前，不得开始该域的生产实现；Coding Agent 不得临场选择生产数据库 / Checkpointer / API / ORM / Retrieval / LLM Runtime / Observability。
 
-## 10. 已确认应用架构（RFC-001-DQ-01）
+## 10. 已确认生产技术语言边界（RFC-001-DQ-02）
+
+> 来源：RFC-001-DQ-02（ACCEPTED）。
+
+AI Ecommerce Agent MVP 与首个生产版本采用：
+
+```text
+Production Backend Language:
+Python 3.13
+
+Frontend Language:
+TypeScript
+
+Workflow Runtime:
+Python LangGraph
+
+Framework Boundary:
+Domain and Application remain independent of LangGraph-specific state and checkpoint types
+```
+
+### 10.1 Backend Language
+
+正式后端统一使用 Python，覆盖：
+
+```text
+Backend API
+Application Services
+Domain Model
+Workflow Runtime
+Skill Runtime
+Retrieval Runtime
+Source Processing
+Background Jobs
+Evaluation Jobs
+Maintenance CLI Tools
+```
+
+当前不采用 Python + TypeScript 混合后端。
+
+Python 版本基线：
+
+```text
+Python >=3.13,<3.14
+```
+
+Patch 升级可通过 Dependency Compatibility Test + Full Test Suite + Normal PR Review 完成；Minor/Major 升级若改变并发模型、Worker 模型、Deployment、Runtime Isolation 或 Security Boundary，则须补充 RFC 或正式技术 Decision。
+
+### 10.2 Frontend Language
+
+正式 Web Frontend 使用 TypeScript。前端不属于 Python 后端 Package。
+
+前后端通过版本化契约协作：
+
+```text
+OpenAPI / JSON Schema / Generated Client Types / Error Code Registry
+```
+
+具体 API Framework、Schema Generator 和前端 Framework 尚未确认。
+
+### 10.3 LangGraph Binding Boundary
+
+生产 Workflow Runtime 使用 Python LangGraph，但逻辑关系是：
+
+```text
+We choose Python as the backend language
+therefore the Workflow Runtime uses Python LangGraph
+```
+
+LangGraph 位于 **Orchestration / Workflow Runtime Boundary**，不属于 Domain Layer。
+
+推荐调用关系：
+
+```text
+LangGraph Node
+↓
+Application Service
+↓
+Domain + Repository / Provider Interfaces
+```
+
+- Domain Layer 不得依赖 LangGraph，也不得依赖 Web Framework、ORM、Database Driver、Model SDK、Vector DB SDK、Message Queue、Checkpoint Backend 或 Observability Provider；
+- Application Service 不得要求调用方传入 LangGraph State、StateSnapshot、Checkpoint Object 或 LangGraph Runtime Context；
+- LangGraph Node 只负责构造业务 Command、调用 Application Service、将 Version ID / Stage Status 写回 Graph State、确定性路由、Interrupt 与 Resume 协调；
+- LangGraph Node 不拥有 Domain Rule、Business Transaction、Current Truth 写入规则、Evidence Link 事务、Review Validation、Idempotency、Invalidation 或 Audit 规则。
+
+### 10.4 Framework Replacement Boundary
+
+系统须允许未来替换 Workflow Engine（LangGraph / Temporal / Custom State Machine / Queue Worker 等），替换范围应限于：
+
+```text
+Orchestration Layer
+Runtime Adapter
+Checkpoint Adapter
+Worker Integration
+```
+
+不应要求重写 Domain、Application Services、Business Validators、Repository Interfaces、Skill Contracts、Evidence Rules 或 Human Review Business Rules。
+
+### 10.5 Future Polyglot Boundary
+
+未来允许特定独立能力采用其他语言，但必须满足至少一种可验证触发条件：
+
+- Python 存在可测量性能瓶颈；
+- 关键 SDK 只在其他语言中可靠；
+- 模块已有稳定远程接口；
+- 模块需要独立扩缩容；
+- 独立团队负责该模块；
+- 安全或部署要求物理隔离；
+- 该能力需要服务多个产品。
+
+不得仅因个人语言偏好引入第二种后端语言。
+
+### 10.6 Decision Boundary
+
+本 Decision 已确认：
+
+1. 后端统一使用 Python 3.13；
+2. 前端使用 TypeScript；
+3. 不采用双语言后端；
+4. Workflow Runtime 使用 Python LangGraph；
+5. Domain 不依赖 LangGraph 或具体框架；
+6. Application Service 不依赖 Graph State 或 Checkpoint；
+7. 前后端通过正式 Schema Contract 协作；
+8. Python 与 TypeScript 不直接共享业务源码；
+9. 未来可在明确边界引入其他语言；
+10. Spike Python 代码不得直接成为生产代码。
+
+尚未确认：
+
+- 正式 Repository 和 Package Directory；
+- 具体分层目录；
+- API Framework；
+- Schema Library；
+- Dependency Injection；
+- Configuration Library；
+- Type Checker / Linter；
+- ORM；
+- Database；
+- Worker / Queue；
+- Checkpointer；
+- Deployment Platform；
+- Frontend Framework。
+
+## 11. 已确认应用架构（RFC-001-DQ-01）
 
 > 来源：RFC-001-DQ-01（ACCEPTED）。
 
@@ -158,7 +301,7 @@ Replaceable Infrastructure Adapters
 Future Service Extraction Boundaries
 ```
 
-### 10.1 Deployment Boundary
+### 11.1 Deployment Boundary
 
 MVP 默认采用：
 
@@ -168,11 +311,11 @@ One Primary Backend Application
 
 初始不拆分为独立服务（Task / Workflow / Source / Retrieval / Human Review / Brief / Model Runtime Service）。
 
-### 10.2 Repository Boundary
+### 11.2 Repository Boundary
 
 项目使用一个 Git Repository，但 Repository 内必须维持清晰的模块和依赖边界。
 
-### 10.3 Module Boundary（概念划分）
+### 11.3 Module Boundary（概念划分）
 
 **Business Capability Modules：**
 
@@ -198,7 +341,7 @@ Configuration
 Identity and Access
 ```
 
-### 10.4 Module Collaboration
+### 11.4 Module Collaboration
 
 模块之间必须通过明确边界协作：
 
@@ -212,7 +355,7 @@ Identity and Access
 
 不得任意访问其他模块内部类、绕过 Application Layer 修改数据、直接访问其他模块 Repository Implementation、以数据库表作为隐式 API、通过 LangGraph State 共享完整业务对象、或将 Prompt 作为唯一契约。
 
-### 10.5 Dependency Direction
+### 11.5 Dependency Direction
 
 ```text
 Interface
@@ -226,7 +369,7 @@ Infrastructure → implements → Repository and Provider Interfaces
 
 Domain 不得依赖具体框架、数据库、ORM、LLM SDK、Vector DB、Message Queue、Observability Provider 或部署平台。
 
-### 10.6 Data Ownership Boundary
+### 11.6 Data Ownership Boundary
 
 允许 Modular Monolith 在 MVP 阶段共享一个数据库实例，但必须保持：
 
@@ -236,15 +379,15 @@ Shared Database Instance ≠ Shared Data Ownership
 
 必须区分 Business Domain / Workflow Runtime / Checkpoint / Source and Evidence / Retrieval Index / Audit / Observability Data。正式数据库、Schema、ORM 和事务方案由 RFC-002 决定。
 
-### 10.7 Graph and Database Boundary
+### 11.7 Graph and Database Boundary
 
 Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ 接受前，Graph Node 不得临场定义 Domain Version 写入、Current Truth 更新、Evidence Link 事务、幂等、审计或失效逻辑。
 
-### 10.8 Future Service Extraction
+### 11.8 Future Service Extraction
 
 必须保留未来服务提取边界，但服务拆分只能由可验证的规模、组织、安全、性能或可靠性需求触发，不得仅因“微服务更先进”而拆分。
 
-### 10.9 Decision Boundary
+### 11.9 Decision Boundary
 
 已确认：
 
@@ -262,24 +405,26 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 
 尚未确认：
 
-- 正式后端语言；
-- 正式目录结构；
-- 具体 Domain / Application / Infrastructure / Interface 分层；
-- LangGraph 所属层；
-- Graph Node 是否可直接访问 Repository；
-- Skill 代码形态；
-- Repository Interface / Implementation 位置；
-- Dependency Injection；
-- Configuration Management；
-- Test Layering；
-- API / Worker 接入方式；
-- Production Database / ORM / Web Framework / Deployment Platform。
+- 正式后端语言：**Python 3.13**（RFC-001-DQ-02 已确认）；
+- 正式目录结构：PENDING RFC-001-DQ-03；
+- 具体 Domain / Application / Infrastructure / Interface 分层：PENDING RFC-001-DQ-03；
+- LangGraph 所属层：**Orchestration / Workflow Runtime Boundary**（RFC-001-DQ-02 已确认）；
+- Graph Node 是否可直接访问 Repository：PENDING RFC-001 后续 DQ；
+- Skill 代码形态：PENDING RFC-001-DQ-03；
+- Repository Interface / Implementation 位置：PENDING RFC-001-DQ-03；
+- Dependency Injection：PENDING RFC；
+- Configuration Management：PENDING RFC；
+- Test Layering：PENDING RFC；
+- API / Worker 接入方式：PENDING RFC-001-DQ-03 / RFC-004；
+- Production Database / ORM：PENDING RFC-002；
+- Web Framework：PENDING RFC；
+- Deployment Platform：PENDING RFC。
 
-## 11. 未决技术决策（PENDING RFC）
+## 12. 未决技术决策（PENDING RFC）
 
 | 领域 | 状态 | RFC |
 |---|---|---|
-| Repository and Application Architecture | DRAFTING — DQ-01 ACCEPTED | RFC-001 |
+| Repository and Application Architecture | DRAFTING — DQ-01 ACCEPTED, DQ-02 ACCEPTED | RFC-001 |
 | Persistence and Transaction Architecture（生产 DB / ORM） | PENDING RFC | RFC-002 |
 | LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | PENDING RFC | RFC-003 |
 | API and Human Review Protocol | PENDING RFC | RFC-004 |
@@ -289,12 +434,12 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 
 > RFC-001 仍为 `DRAFTING`，详细包结构与依赖架构尚未确认。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
 
-## 11. Final Status
+## 13. Final Status
 
 ```text
 Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-02 Backend Language and LangGraph Binding
+Next Topic: RFC-001-DQ-03 Repository and Package Directory Structure
 ```

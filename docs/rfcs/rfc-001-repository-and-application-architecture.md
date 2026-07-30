@@ -406,39 +406,555 @@ Risks：
 
 ### DQ-02：Backend Language and LangGraph Binding
 
-**Status:** `PROPOSED`
+**Status:** `ACCEPTED`
 
-下一轮优先讨论：
+#### Question
 
-- Python 是否适合作为正式后端语言；
-- 是否因 LangGraph 而绑定 Python；
-- Python 与 TypeScript 的业务和工程权衡；
-- API、Worker 和数据任务是否统一语言；
-- 是否允许前端独立使用 TypeScript；
-- 是否保留未来多语言服务边界；
-- Python 版本策略；
-- 语言选择是否构成部署承诺。
+MVP 与首个生产版本的正式后端语言是否采用 Python？前端是否采用 TypeScript？LangGraph 与业务核心层如何解耦？
 
-在 RFC-001-DQ-02 被用户明确接受前：
+#### Decision
 
-- 不创建正式生产代码；
-- 不建立正式 Python Package；
-- 不将 Spike Python 代码迁移为生产代码；
-- RFC-001 保持 `DRAFTING`。
+AI Ecommerce Agent 的 MVP 与首个生产版本采用：
+
+```text
+Production Backend Language:
+Python
+
+Backend Version Baseline:
+Python 3.13
+
+Frontend Language:
+TypeScript
+
+Backend Language Strategy:
+Single-language backend for MVP
+```
+
+正式关系为：
+
+```text
+TypeScript Web Frontend
+↓
+Versioned API Contract
+↓
+Python Backend
+├── Interface Layer
+├── Application Layer
+├── Domain Layer
+├── Workflow Orchestration
+├── Skill Runtime
+├── Retrieval Runtime
+└── Infrastructure
+```
+
+当前不采用 Python 与 TypeScript 混合后端。
+
+#### Backend Language Boundary
+
+MVP 后端默认统一使用 Python，覆盖：
+
+```text
+Backend API
+Application Services
+Domain Model
+Workflow Runtime
+Skill Runtime
+Retrieval Runtime
+Source Processing
+Background Jobs
+Evaluation Jobs
+Maintenance CLI Tools
+```
+
+使用统一后端语言的目的包括：
+
+- 降低 Modular Monolith 内部的通信复杂度；
+- 保持 API、Application、Workflow 和 Repository 在同一运行时；
+- 避免 Human Review Submit 与 Workflow Resume 跨语言调用；
+- 降低事务、错误和 Idempotency 的跨进程协调成本；
+- 延续 Spike-001 已验证的 Python Runtime 行为；
+- 降低单人或小团队维护成本。
+
+#### Frontend Language Boundary
+
+正式 Web Frontend 使用：
+
+```text
+TypeScript
+```
+
+前端不属于 Python 后端 Package。
+
+前后端通过正式版本化契约协作，例如：
+
+```text
+OpenAPI
+JSON Schema
+Generated Client Types
+Versioned Request and Response Contracts
+Error Code Registry
+```
+
+具体 API Framework、Schema Generator 和前端 Framework 尚未确认。
+
+#### No Mixed Backend for MVP
+
+当前拒绝以下初始结构：
+
+```text
+TypeScript API Backend
++
+Python Workflow Runtime
+```
+
+或：
+
+```text
+TypeScript Review Service
++
+Python LangGraph Service
++
+Cross-language RPC
+```
+
+主要原因：
+
+- 与 Modular Monolith First 增加不必要张力；
+- Human Review 事务和 Resume 需要跨语言协议；
+- Idempotency、错误映射和 Trace 被拆散；
+- 增加两套构建、测试、部署和依赖体系；
+- 当前没有独立服务边界或扩缩容证据；
+- 不会直接提升 MVP 的业务价值。
+
+该拒绝只针对 MVP 后端，不表示未来永远不能引入其他语言。
+
+#### LangGraph Language Boundary
+
+生产 Workflow Runtime 使用：
+
+```text
+Python LangGraph Implementation
+```
+
+正式逻辑关系为：
+
+```text
+We choose Python as the backend language
+therefore the Workflow Runtime uses Python LangGraph
+```
+
+而不是：
+
+```text
+LangGraph forces all product code to depend on LangGraph
+```
+
+LangGraph 是后端语言选择的一个工程因素，但不是唯一原因，也不应进入业务核心层。
+
+#### Domain Layer Boundary
+
+Domain Layer 不得依赖 LangGraph。
+
+Domain Package 中不得出现：
+
+```python
+from langgraph...
+```
+
+Domain 负责：
+
+- Business Entities；
+- Value Objects；
+- Business Rules；
+- Version Rules；
+- Evidence Rules；
+- Review Rules；
+- Strategy Rules；
+- Invalidation Rules；
+- Domain Validation。
+
+Domain 必须能够在不安装、不初始化、不运行 LangGraph 的情况下进行 Unit Test。
+
+Domain 同样不得依赖：
+
+- Web Framework；
+- ORM；
+- 具体 Database Driver；
+- Model SDK；
+- Vector Database SDK；
+- Message Queue SDK；
+- Checkpoint Backend；
+- Observability Provider。
+
+#### Application Layer Boundary
+
+Application Service 负责：
+
+- Use Case；
+- Command and Query；
+- Transaction Coordination；
+- Repository Interface 调用；
+- Provider Interface 调用；
+- Business Validation；
+- Business Commit；
+- Idempotency Coordination；
+- Audit Coordination。
+
+Application Service 不得要求调用方传入：
+
+```text
+LangGraph State
+StateSnapshot
+Checkpoint Object
+Command(resume=...)
+LangGraph Runtime Context
+```
+
+Application Service 接收业务级输入，例如：
+
+```text
+SubmitReviewCommand
+ApproveStrategyCommand
+GenerateFactVersionCommand
+GenerateMarketingBriefCommand
+```
+
+并返回业务级 Result 或 Error。
+
+#### Orchestration Boundary
+
+LangGraph 位于：
+
+```text
+Orchestration / Workflow Runtime Boundary
+```
+
+推荐关系：
+
+```text
+LangGraph Node
+↓
+calls
+↓
+Application Service
+↓
+uses
+↓
+Domain + Repository / Provider Interfaces
+```
+
+LangGraph Node 主要负责：
+
+- 从 Graph State 读取 ID 和运行引用；
+- 构造业务 Command；
+- 调用 Application Service；
+- 将返回的 Version ID 和 Stage Status 写回 Graph State；
+- 进行确定性路由；
+- 调用 Interrupt；
+- 处理 Workflow Retry、Resume 和 Checkpoint 协调。
+
+LangGraph Node 不拥有：
+
+- Domain Rule；
+- Business Transaction；
+- Current Truth 写入规则；
+- Evidence Link 事务；
+- Review Validation；
+- Idempotency 规则；
+- Invalidation 规则；
+- Audit 规则。
+
+#### Framework Replacement Boundary
+
+系统必须允许未来替换 Workflow Engine，例如：
+
+```text
+LangGraph
+Temporal
+Custom State Machine
+Queue Worker
+Other Workflow Runtime
+```
+
+替换时主要影响：
+
+```text
+Orchestration Layer
+Runtime Adapter
+Checkpoint Adapter
+Worker Integration
+```
+
+不应要求重写：
+
+- Domain；
+- Application Services；
+- Business Validators；
+- Repository Interfaces；
+- Skill Contracts；
+- Evidence Rules；
+- Human Review Business Rules。
+
+#### Python Version Baseline
+
+正式后端基线采用：
+
+```text
+Python 3.13
+```
+
+建议项目级版本约束：
+
+```text
+Python >=3.13,<3.14
+```
+
+理由：
+
+- Spike-001 已在 Python 3.13 环境完成验证；
+- LangGraph 和 Checkpoint 行为已有验证证据；
+- 当前没有必须采用更高 Minor Version 的业务需求；
+- 保持与 Spike Evidence 的工程连续性；
+- 减少 RFC 和初始生产实现中的变量。
+
+#### Version Pinning Boundary
+
+建议通过以下文件表达 Python 版本要求：
+
+```text
+.python-version
+pyproject.toml
+uv.lock
+```
+
+开发环境固定到 Python 3.13 系列。
+
+生产构建或镜像应固定到明确 Patch Version，例如：
+
+```text
+3.13.x
+```
+
+具体 Patch Version 尚未在本 Decision 中锁定。
+
+Patch 升级可以通过：
+
+```text
+Dependency Compatibility Test
+Full Test Suite
+Normal Pull Request Review
+```
+
+完成，一般不需要新 RFC。
+
+#### Minor and Major Runtime Upgrade
+
+从 Python 3.13 升级到未来 Minor Version，例如：
+
+```text
+Python 3.14
+Python 3.15
+```
+
+必须至少经过：
+
+- Dependency Compatibility；
+- LangGraph Compatibility；
+- Checkpointer Compatibility；
+- Full Test Suite；
+- Runtime and Deployment Verification；
+- Migration Note；
+- Pull Request Review。
+
+若升级改变：
+
+- 并发模型；
+- Worker 模型；
+- Deployment；
+- Runtime Isolation；
+- Security Boundary；
+
+则必须补充 RFC 或正式技术 Decision。
+
+#### Frontend and Backend Contract
+
+Python 与 TypeScript 不直接共享业务源码。
+
+允许共享或生成的是：
+
+```text
+OpenAPI Schema
+JSON Schema
+Generated TypeScript Client
+Generated Request and Response Types
+Enum Registry
+Error Code Registry
+```
+
+不得依赖人工在 Python 和 TypeScript 两边重复维护业务 Contract，而没有自动校验机制。
+
+具体 Contract Generation 和 API Versioning 由后续 RFC 决定。
+
+#### Future Polyglot Boundary
+
+未来允许特定独立能力采用其他语言，但必须满足明确触发条件。
+
+潜在例子：
+
+- 高吞吐 Source Parser；
+- Media Processing Worker；
+- Browser Automation Service；
+- 独立 Retrieval Service；
+- 特殊数据处理任务。
+
+至少需要一种可验证触发条件：
+
+- Python 存在可测量性能瓶颈；
+- 关键 SDK 只在其他语言中可靠；
+- 模块已有稳定远程接口；
+- 模块需要独立扩缩容；
+- 独立团队负责该模块；
+- 安全或部署要求物理隔离；
+- 该能力需要服务多个产品。
+
+不得仅因为个人语言偏好引入第二种后端语言。
+
+#### Spike Code Boundary
+
+Spike-001 中的 Python 代码：
+
+```text
+Validated Architecture Evidence
+```
+
+不是：
+
+```text
+Production Application Code
+```
+
+不得直接：
+
+- 将 Spike Package 移动到正式生产目录；
+- 将临时 SQLite Schema 视为正式 Schema；
+- 将 ScriptedModelProvider 视为生产 Model Runtime；
+- 将 MockRetrievalRuntime 视为生产 Retrieval；
+- 将 Local JSONL Trace 视为生产 Observability；
+- 将 Spike Graph 改名后作为正式 Graph。
+
+正式代码必须在 RFC-001 完成，并满足后续 RFC Gate 后重新建立。
+
+#### Production Technology Boundary
+
+本 Decision 没有确认：
+
+- FastAPI；
+- Django；
+- Flask；
+- Pydantic；
+- SQLAlchemy；
+- PostgreSQL；
+- Redis；
+- Celery；
+- Temporal；
+- Docker；
+- Kubernetes；
+- LangSmith；
+- OpenTelemetry；
+- Cloud Provider；
+- Deployment Platform。
+
+确认 Python 不自动接受上述技术。
+
+#### Trade-offs
+
+Positive：
+
+- 延续 Spike-001 的验证证据；
+- 降低后端运行时数量；
+- 减少跨语言事务和错误协议；
+- API、Workflow、Skill 和 Retrieval 可在同一应用中协作；
+- 更适合当前 Modular Monolith；
+- 更适合单人或小团队；
+- 保留 TypeScript 前端的 Web 开发优势；
+- 通过分层避免 LangGraph 渗透业务核心。
+
+Risks：
+
+- Python 静态类型约束弱于部分 TypeScript 工作流；
+- 前后端需要严格 Schema 同步；
+- Agent 可能直接在 Domain 中 Import LangGraph；
+- Application Service 可能泄漏 Graph State；
+- Spike 代码可能被误用为生产代码；
+- 未来团队语言结构可能发生变化。
+
+#### Required Mitigations
+
+后续 RFC-001 必须明确：
+
+- Package Import Rules；
+- Architecture Tests；
+- Domain Framework Independence；
+- Application Command and Result Contracts；
+- Orchestration Adapter Boundary；
+- API Schema Generation；
+- Type Checking；
+- Test Layering；
+- Production and Spike Physical Isolation。
+
+#### Decision Boundary
+
+本 Decision 已确认：
+
+1. MVP 正式后端统一使用 Python；
+2. 后端版本基线为 Python 3.13；
+3. 建议项目版本约束为 `>=3.13,<3.14`；
+4. 正式前端使用 TypeScript；
+5. MVP 不采用双语言后端；
+6. API、Application、Workflow、Skill、Retrieval 和 Background Jobs 默认使用 Python；
+7. Workflow Runtime 使用 Python LangGraph；
+8. Domain Layer 不依赖 LangGraph；
+9. Application Service 不依赖 Graph State 或 Checkpoint；
+10. LangGraph 位于 Orchestration / Runtime Boundary；
+11. Graph Node 通过 Application Service 执行业务 Use Case；
+12. 前后端通过正式 Schema Contract 协作；
+13. Python 与 TypeScript 不直接共享业务源码；
+14. 未来允许在明确服务或 Adapter 边界引入其他语言；
+15. 引入其他语言必须由可验证需求触发；
+16. Patch Version 可通过测试和普通 PR 更新；
+17. Spike Python 代码不得直接成为生产代码；
+18. 本 Decision 不选择 Web Framework、数据库、ORM、Worker、Queue 或部署平台。
+
+本 Decision 尚未确认：
+
+- 正式 Repository 和 Package Directory；
+- 具体分层目录；
+- API Framework；
+- Schema Library；
+- Dependency Injection；
+- Configuration Library；
+- Type Checker；
+- Linter；
+- ORM；
+- Database；
+- Worker；
+- Queue；
+- Checkpointer；
+- Deployment Platform；
+- Frontend Framework。
 
 ---
 
 ## Open Questions
 
-1. DQ-02：正式后端语言是否采用 Python，以及语言决策与 LangGraph 的绑定边界。
-2. 目录结构：业务模块与平台模块的具体 Package 层级。
-3. Graph Node 是否允许直接调用 Repository / Application Service。
-4. Dependency Injection 机制选择。
-5. Configuration Management 策略。
-6. Test Architecture 分层。
-7. 是否需要 Architecture Tests（如 import-linter）。
-8. API / Worker / CLI 等接入方式的边界。
-9. 未来服务提取的具体接口形态。
+1. 目录结构：业务模块与平台模块的具体 Package 层级。
+2. Graph Node 是否允许直接调用 Repository / Application Service。
+3. Dependency Injection 机制选择。
+4. Configuration Management 策略。
+5. Test Architecture 分层。
+6. 是否需要 Architecture Tests（如 import-linter）。
+7. API / Worker / CLI 等接入方式的边界。
+8. 未来服务提取的具体接口形态。
 
 ---
 
@@ -457,7 +973,9 @@ Risks：
 - DEC-024：Versioned Domain State
 - DEC-033：Runtime Reliability
 - DEC-034：Technical Spike and Readiness Gate
+- DEC-035：Temporary Spike Stack
 - DEC-038：Dependency-driven RFC Governance
+- RFC-001-DQ-01：Modular Monolith First
 
 ## Related Specifications
 
