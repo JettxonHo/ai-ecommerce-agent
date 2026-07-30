@@ -2663,16 +2663,501 @@ PROHIBITED
 
 ---
 
+### DQ-05：Skill Code Shape and Architectural Relationships
+
+#### Question
+
+Skill 的正式代码形态是什么？它在架构中处于什么位置、与 Application Use Case、Repository、LLM/Retrieval、LangGraph Node、事务和版本管理的关系是什么？
+
+#### Decision
+
+Status: ACCEPTED
+
+Skill 是**业务模块 Application Layer 内**具有明确执行契约、可独立运行和独立评估的**无状态业务能力组件**。Application Use Case 通过 **Prepare–Execute–Commit** 协调 Skill 与业务事务：Skill 只负责**业务能力执行**（如生成、抽取、检索、评估），**不**直接访问业务 Repository、**不**拥有 Current Truth、**不**开启或提交业务事务，也**不**与 LangGraph Node 等同。
+
+Skill 的正式代码形态落位为：
+
+```text
+modules/<module>/application/skills/<skill_slug>/
+```
+
+每个 Skill 是一个内聚单元，包含执行契约、实现、Prompt 资产与输出 Schema 的版本化组合；它不是独立 Package、不是 Domain Service、不是 Application Use Case 的同义词，也不是 Entrypoint。
+
+#### Skill Architectural Position
+
+Skill 属于 Application Layer，位于所属业务模块内部：
+
+```text
+modules/<module>/
+└── application/
+    ├── use_cases/          # Application Use Case（拥有业务事务）
+    ├── services/           # Stage / Coordination Application Service
+    └── skills/
+        └── <skill_slug>/   # Skill（无状态业务能力组件）
+            ├── contract        # Skill 输入/输出契约
+            ├── implementation  # Skill 业务能力实现
+            ├── prompts         # Prompt 资产（如适用）
+            └── schemas         # 输出 Schema（如适用）
+```
+
+- Skill 归业务模块所有，**不**放入 shared kernel 作为通用工具；
+- Skill 不是跨模块自由调用的公共服务；跨模块使用必须经过所属模块的公开 Application Contract（见 DQ-04 跨模块边界）；
+- Skill 是 Application Layer 的组成，不是独立 Layer。
+
+#### Skill Stateless Boundary
+
+Skill 是**无状态**业务能力组件：
+
+1. Skill 不持有跨执行的可变业务状态；
+2. Skill 不读取或写入 Current Truth；
+3. Skill 不持久化业务结果；
+4. Skill 的输入完全由其执行契约的入参提供；
+5. Skill 的输出通过 Candidate Result 返回给调用方；
+6. Skill 运行所需的运行时依赖（Model Runtime、Retrieval）通过注入获得，Skill 不自行创建。
+
+无状态不等于无依赖——Skill 依赖注入的 Port，但不拥有业务状态与持久化。
+
+#### Prepare-Execute-Commit Model
+
+Application Use Case 以 **Prepare–Execute–Commit** 协调 Skill 与业务事务：
+
+```text
+Prepare   —— Application Use Case 准备 Skill 输入（从 Current Truth /
+             Evidence / 入参装配），并开启业务事务边界
+Execute   —— 调用 Skill 执行，得到 Candidate Result（未落库的业务候选）
+Commit    —— Application Use Case 校验并决定是否将 Candidate Result
+             写入 Current Truth，随后提交业务事务
+```
+
+- Skill 只参与 **Execute** 阶段，产出 Candidate Result；
+- 写入 Current Truth、更新 Evidence/Audit/Idempotency 由 Application Use Case 在 Commit 阶段完成；
+- 因此 Skill 失败不直接导致部分业务落库；业务一致性由 Application Use Case 与 DQ-04 事务边界保证。
+
+#### Skill Repository and Transaction Boundary
+
+| 能力 | Skill 是否允许 |
+|------|----------------|
+| 直接访问业务 Repository | **PROHIBITED** |
+| 读取 Current Truth | **PROHIBITED**（由 Use Case Prepare 注入输入） |
+| 写入 Current Truth | **PROHIBITED** |
+| 开启 / 提交业务事务 | **PROHIBITED** |
+| 拥有 Current Truth | **NO** |
+| 更新 Evidence / Audit / Idempotency | **PROHIBITED**（由 Use Case 负责） |
+
+```text
+Skill Direct Business Repository Access:
+PROHIBITED
+
+Skill Business Transaction Ownership:
+NO
+```
+
+Skill 所需数据由 Application Use Case 在 Prepare 阶段以输入契约形式注入；Skill 不反向查询业务持久层。
+
+#### Skill Provider Access Boundary
+
+Skill 可以调用 Provider 能力，但**只能**通过 Application 定义的抽象 Port：
+
+1. Skill 通过注入的 **ModelRuntimePort** 调用 LLM 能力；
+2. Skill 通过注入的 **RetrievalPort** 调用检索能力；
+3. Skill **不得**直接 import 或实例化任何具体 Provider SDK（OpenAI/Anthropic/向量库等）；
+4. ModelRuntimePort / RetrievalPort 由 Application 定义、由 Infrastructure 实现（见 DQ-04 Port Ownership）；
+5. Skill 不知道具体 Provider、模型名、连接串或凭证。
+
+```text
+Skill Direct Provider SDK Access:
+PROHIBITED
+
+Skill Allowed Provider Access:
+ModelRuntimePort / RetrievalPort (Application-defined abstractions only)
+```
+
+#### Skill Input and Output Contract
+
+每个 Skill 具有明确的执行契约：
+
+1. **输入契约**：Skill 入参的结构化定义，由 Application Use Case 在 Prepare 阶段装配；
+2. **输出契约**：Skill 产出 Candidate Result 的结构化定义；
+3. 输入/输出契约是 Skill 的公开边界，调用方与 Skill 实现解耦；
+4. Candidate Result 是**业务候选**，不是已确认的 Current Truth——是否落库由 Application Use Case 决定；
+5. Skill 输入/输出契约的变化必须反映在 Skill 版本中（见 Version Boundary）。
+
+#### Skill LangGraph Boundary
+
+Skill 与 LangGraph 的关系经由 Application Layer 间接建立，二者**不直接耦合**：
+
+```text
+LangGraph Node
+  -> Stage / Coordination Application Service
+    -> Skill Executor
+      -> Skill
+```
+
+1. LangGraph Node 只调用公开 Application Service（DQ-04 已确认）；
+2. Application Service 通过 **Skill Executor** 调用具体 Skill；
+3. LangGraph Node **不**直接 import、构造或调用 Skill；
+4. Skill **不**感知 LangGraph 的存在，不读取 Graph State、不写 Checkpoint；
+5. Skill 与 LangGraph Node **不是**同一概念、不一一对应。
+
+```text
+LangGraph Node Direct Skill Invocation:
+PROHIBITED
+
+Skill == LangGraph Node:
+NO
+```
+
+#### Skill Independent Execution
+
+Skill **必须**能够脱离 LangGraph 独立运行和独立评估：
+
+1. Skill 可在不启动 LangGraph 的情况下被直接调用执行（给定符合契约的输入）；
+2. Skill 可独立进行单元测试与评估测试；
+3. Skill 的执行不依赖 Graph State、Node 上下文或 Checkpoint；
+4. 独立运行能力是 Skill 可评估性（Evaluation）与可测试性的前提。
+
+```text
+Skill Independent Execution:
+REQUIRED
+```
+
+#### Skill Version Boundary
+
+Skill 的版本由多个可独立演进的部分组合而成，必须分别管理：
+
+| 版本维度 | 内容 |
+|----------|------|
+| Contract Version | 输入/输出契约版本 |
+| Implementation Version | 业务能力实现版本 |
+| Prompt Version | Prompt 资产版本（如适用） |
+| Output Schema Version | 输出结构化 Schema 版本（如适用） |
+
+1. 四个维度可独立变更，但必须可被追踪与关联；
+2. Contract 变更是破坏性变更的最高信号，调用方依赖 Contract Version；
+3. Prompt 与 Output Schema 变更影响输出质量与解析，须纳入 Evaluation 覆盖；
+4. Skill 版本用于评估对比、回归检测与可追溯性；
+5. 具体版本存储形式（文件/注册表）不在本 Decision 范围，见 Open Questions。
+
+#### Skill Evaluation and Test Boundary
+
+Skill 作为可独立运行组件，须支持以下测试层次：
+
+1. **Contract Test**：验证 Skill 输入/输出契约符合定义；
+2. **Unit Test**：以注入的 Fake Port 测试 Skill 业务能力逻辑，不依赖真实 Provider；
+3. **Integration Test**：经 Stage Application Service + Skill Executor 调用 Skill 的集成路径；
+4. **Evaluation Test**：针对 Prompt/Output Schema/实现版本的输出质量评估；
+5. **Architecture Test**：强制 Skill 不直接访问 Repository、不直接 import Provider SDK、不依赖 LangGraph。
+
+```text
+Skill Direct Repository Access (Architecture Test):
+ENFORCED — PROHIBITED
+
+Skill Direct Provider SDK Import (Architecture Test):
+ENFORCED — PROHIBITED
+
+Skill LangGraph Dependency (Architecture Test):
+ENFORCED — PROHIBITED
+```
+
+#### Decision Boundary
+
+本 Decision 已确认：
+
+1. Skill 是业务模块 Application Layer 内的无状态业务能力组件；
+2. Skill 落位 `modules/<module>/application/skills/<skill_slug>/`；
+3. Skill 不是独立 Package、不是 Domain Service、不是 Use Case 同义词；
+4. Skill 是无状态的，不持有跨执行可变业务状态；
+5. Skill 不读取或写入 Current Truth；
+6. Skill 不持久化业务结果；
+7. Application Use Case 以 Prepare–Execute–Commit 协调 Skill 与业务事务；
+8. Skill 只参与 Execute 阶段，产出 Candidate Result；
+9. Candidate Result 是业务候选，是否落库由 Application Use Case 决定；
+10. Skill 直接访问业务 Repository = PROHIBITED；
+11. Skill 业务事务所有权 = NO；
+12. Skill 不更新 Evidence / Audit / Idempotency；
+13. Skill 所需数据由 Use Case 在 Prepare 阶段以输入契约注入；
+14. Skill 只能通过 Application 定义的 ModelRuntimePort / RetrievalPort 调用 Provider 能力；
+15. Skill 直接 import 或实例化具体 Provider SDK = PROHIBITED；
+16. LangGraph Node 经 Stage Application Service + Skill Executor 调用 Skill；
+17. LangGraph Node 直接调用 Skill = PROHIBITED；
+18. Skill 与 LangGraph Node 不是同一概念、不一一对应；
+19. Skill 不感知 LangGraph、不读 Graph State、不写 Checkpoint；
+20. Skill 必须能脱离 LangGraph 独立运行与独立评估 = REQUIRED；
+21. Skill 版本分 Contract / Implementation / Prompt / Output Schema 四个维度分别管理；
+22. Skill 须支持 Contract / Unit / Integration / Evaluation / Architecture 五类测试；
+23. Architecture Test 强制 Skill 不直接访问 Repository、不 import Provider SDK、不依赖 LangGraph；
+24. 本 Decision 不选择模型 Provider、Retrieval Backend、Schema Library、Prompt Registry 或 Evaluation Framework；
+25. 本 Decision 接受后仍不授权生产实现。
+
+本 Decision 尚未确认：
+
+- 具体模型 Provider；
+- Retrieval Backend；
+- Schema / Validation Library；
+- Prompt 存储与版本注册形式（Prompt Registry）；
+- Evaluation Framework 与评测数据集形式；
+- Skill Executor 的具体实现机制；
+- Configuration Management；
+- API Framework；
+- Database 和 ORM；
+- Worker 和 Queue；
+- Architecture Test 工具；
+- Production Skeleton。
+
+#### Traceability
+
+- RFC-001-DQ-01：Modular Monolith First；
+- RFC-001-DQ-02：Python Backend and LangGraph Boundary；
+- RFC-001-DQ-03：Repository and Package Layout；
+- RFC-001-DQ-04：Layer Responsibilities, Transaction Ownership and Dependency Rules；
+- DEC-015：Skill Execution Contract；
+- DEC-020：MVP Skills Scope；
+- DEC-026：Skill Specification；
+- DEC-027 / DEC-028 / DEC-030：MVP Skill Specifications；
+- DEC-033：Runtime Reliability；
+- DEC-038：RFC Governance；
+- Architecture Baseline v1；
+- Spike-001 Transaction and Recovery Evidence。
+
+---
+
+### DQ-06：Dependency Injection, Configuration and Application Bootstrap
+
+#### Question
+
+系统如何进行依赖注入与对象装配？配置在哪里加载与验证、Secret 的边界是什么、资源生命周期由谁管理、Application Bootstrap 的职责与形态是什么？
+
+#### Decision
+
+Status: ACCEPTED
+
+系统采用 **Constructor Injection + 显式 Factory Functions + 集中式 Composition Root（`bootstrap/`）**；MVP **不**引入第三方 DI Framework。**配置仅由 Bootstrap 加载、类型化、验证并冻结为不可变对象**，启动失败即 fail-fast；**Secret 只注入需要它的 Infrastructure Adapter**，不进入 Domain / Application / Skill / Graph State / API Response；**禁止全局 Service Locator 与可变运行状态**；**资源生命周期由 Application Bootstrap 统一管理**。
+
+#### Dependency Injection Model
+
+1. 默认采用 **Constructor Injection**：依赖通过构造函数显式传入；
+2. 使用**显式 Factory Functions** 构造复杂对象及其依赖；
+3. MVP 阶段**不引入第三方 DI Framework**（无容器、无自动注入魔法）；
+4. 依赖关系在代码中显式可见，便于审查、测试与推理；
+5. 装配逻辑集中在 Composition Root，业务代码不做服务定位。
+
+```text
+DI Framework for MVP:
+NONE (Constructor Injection + Explicit Factory)
+
+Global Service Locator:
+PROHIBITED
+```
+
+#### Composition Root
+
+**Composition Root** 集中位于 `bootstrap/`：
+
+1. 所有对象图的构造与依赖装配**只**在 Composition Root 完成；
+2. Composition Root 是**唯一**知道具体实现（Infrastructure Adapter）与接口（Application Port）绑定关系的代码；
+3. 业务层（Domain / Application）不参与装配，不知道具体实现；
+4. 各 Entrypoint（API / Worker / CLI）不自行装配，统一由 Bootstrap 提供已装配的对象图；
+5. 测试通过注入 Fake / Stub 替换真实 Adapter，无需修改业务代码。
+
+```text
+Composition Root Location:
+bootstrap/
+
+Business Code Self-wiring / Service Location:
+PROHIBITED
+```
+
+#### Configuration Loading and Validation
+
+1. 配置**仅**由 **Bootstrap** 加载；
+2. 配置在加载后立即**类型化**（typed）与**验证**（validated）；
+3. 验证失败的配置导致**启动失败（fail-fast）**，不进入部分可用状态；
+4. 验证通过的配置被冻结为**不可变（immutable）**配置对象后注入；
+5. 业务代码不直接读取环境变量或配置文件；
+6. 配置按边界分层，各层只接收自己需要的配置子集。
+
+```text
+Configuration Load Location:
+Bootstrap only
+
+Configuration Validation:
+typed + validated + immutable, fail-fast on error
+
+Business Code Direct env/config Access:
+PROHIBITED
+```
+
+#### Configuration Layer Boundary
+
+| 层 | 配置可见性 |
+|----|-----------|
+| Domain | **不接收**任何配置；纯业务核心 |
+| Application | 只接收**业务流程级**配置（如超时、重试策略、开关），不接收连接串/凭证 |
+| Infrastructure | 接收**适配器级**配置（连接串、Endpoint、凭证引用、Provider 参数） |
+| Bootstrap | 加载、验证并分发全部配置；唯一全量配置持有者 |
+
+1. Domain 配置依赖 = PROHIBITED；
+2. Application 不知道 Infrastructure 的连接细节；
+3. Infrastructure 适配器只接收自身所需配置，不持有全量配置；
+4. 配置分发由 Bootstrap 在装配时完成。
+
+#### Secret Boundary
+
+Secret（API Key、Database Password、Token 等）的边界**严格受限**：
+
+1. Secret **只**注入**需要它的 Infrastructure Adapter**；
+2. Secret **不得**进入 Domain / Application Command / Application Result / Skill Input / Skill Result / Graph State / Checkpoint / Business Audit / Runtime Trace Payload / API Response；
+3. Secret **不得**写入 Git Repository、GitHub Issue 或 PR；
+4. **不得**打印或持久化完整 API Key / Database Password / Authorization Header / `.env` 内容 / Secret Manager 返回值；
+5. Secret 的获取方式（环境变量 / Secret Manager）由 Infrastructure 适配器封装，业务层无感知。
+
+```text
+Secret Injection Target:
+Infrastructure Adapter that needs it ONLY
+
+Secret in Domain / Application / Skill / Graph State / Checkpoint /
+Audit / Trace / API Response / Git / Issue / PR:
+PROHIBITED
+
+Logging or Persisting full Secret value:
+PROHIBITED
+```
+
+#### Environment File Boundary
+
+1. Repository **只**提交 `.env.example`（占位值，无真实凭证）；
+2. `.env`（真实凭证）**不得**提交，须被 `.gitignore` 排除；
+3. `.env.example` 列出全部必需配置键，便于 Bootstrap 校验完整性；
+4. 生产环境凭证来源（Secret Manager 等）不在本 Decision 范围，见 Open Questions。
+
+```text
+.env committed to Repository:
+PROHIBITED
+
+.env.example (placeholder only) committed:
+REQUIRED
+```
+
+#### Resource Lifetime Management
+
+资源生命周期由 **Application Bootstrap 统一管理**，按作用域分级：
+
+| 作用域 | 含义 | 示例 |
+|--------|------|------|
+| Application | 进程级长生命周期 | 连接池、Model Runtime Client、全局配置 |
+| UseCase | 单个 Use Case 执行期 | Unit of Work、事务资源 |
+| WorkflowRun | 单次 Workflow 运行期 | Graph 运行上下文、Checkpoint 句柄 |
+| SkillExecution | 单次 Skill 执行期 | 单次模型调用、检索会话 |
+
+1. 长生命周期资源（连接池等）由 Bootstrap 创建并在进程结束时关闭；
+2. 短生命周期资源由对应作用域创建与释放；
+3. **禁止**模块级可变单例持有连接或运行状态；
+4. **禁止**全局可变运行状态。
+
+```text
+Global Mutable Runtime State:
+PROHIBITED
+
+Module-level Mutable Singleton holding connection/state:
+PROHIBITED
+
+Resource Lifetime Owner:
+Application Bootstrap (scoped)
+```
+
+#### Test Replacement Boundary
+
+依赖注入形态必须支持测试替换：
+
+1. 测试通过 Constructor / Factory 注入 **Fake / Stub** 替换真实 Infrastructure Adapter；
+2. 替换**不**需要修改业务代码或依赖容器魔法；
+3. Composition Root 显式装配使测试可构造精简对象图；
+4. Skill / Use Case 可在不启动真实 Provider / 数据库的情况下测试（与 DQ-05 独立运行一致）。
+
+```text
+Test Replacement Mechanism:
+Injected Fakes / Stubs via Constructor / Factory
+
+Test Requiring Real Provider / Database for Business Logic:
+NOT REQUIRED
+```
+
+#### Sync and Async Boundary
+
+同步 / 异步执行策略、API / Worker / CLI 的进程边界**不**在本 Decision 范围，留待 RFC-001-DQ-07 决定。本 Decision 仅确认装配、配置、Secret 与资源生命周期模型，与具体同步/异步运行模型正交。
+
+#### Decision Boundary
+
+本 Decision 已确认：
+
+1. 默认采用 Constructor Injection；
+2. 使用显式 Factory Functions 装配；
+3. MVP 不引入第三方 DI Framework；
+4. Composition Root 集中位于 `bootstrap/`；
+5. Composition Root 是唯一绑定接口与实现的位置；
+6. 全局 Service Locator = PROHIBITED；
+7. 业务代码不做服务定位、不自行装配；
+8. 配置仅由 Bootstrap 加载；
+9. 配置类型化、验证、不可变，验证失败 fail-fast；
+10. 业务代码不直接读取环境变量 / 配置文件；
+11. Domain 不接收任何配置；
+12. Application 只接收业务流程级配置；
+13. Infrastructure 只接收适配器级配置；
+14. Secret 只注入需要它的 Infrastructure Adapter；
+15. Secret 不进入 Domain / Application / Skill / Graph State / Checkpoint / Audit / Trace / API Response / Git / Issue / PR；
+16. 不打印或持久化完整 Secret 值；
+17. Repository 只提交 `.env.example`（占位值），`.env` 不得提交；
+18. 资源生命周期由 Application Bootstrap 统一管理；
+19. 资源按 Application / UseCase / WorkflowRun / SkillExecution 作用域分级；
+20. 全局可变运行状态 = PROHIBITED；
+21. 模块级可变单例持有连接 / 状态 = PROHIBITED；
+22. 测试通过注入 Fake / Stub 替换真实 Adapter，无需修改业务代码；
+23. 同步 / 异步与 API / Worker / CLI 进程边界留待 DQ-07；
+24. 本 Decision 不选择 DI Framework、Secret Manager、Settings Library 或 Deployment Platform；
+25. 本 Decision 接受后仍不授权生产实现。
+
+本 Decision 尚未确认：
+
+- 第三方 DI Framework（MVP 不引入，后续是否引入未决）；
+- Settings / Configuration Library；
+- Secret Manager 及生产凭证来源；
+- API Framework；
+- Worker 和 Queue；
+- 同步 / 异步执行策略与进程边界（DQ-07）；
+- Database 和 ORM；
+- Architecture Test 工具；
+- Deployment Platform；
+- Production Skeleton。
+
+#### Traceability
+
+- RFC-001-DQ-01：Modular Monolith First；
+- RFC-001-DQ-02：Python Backend and LangGraph Boundary；
+- RFC-001-DQ-03：Repository and Package Layout（Bootstrap and Composition Root）；
+- RFC-001-DQ-04：Layer Responsibilities, Transaction Ownership and Dependency Rules（Constructor Injection / Composition Root）；
+- RFC-001-DQ-05：Skill Code Shape（Provider Port 注入边界）；
+- DEC-023：LangGraph StateGraph；
+- DEC-024：State Separation；
+- DEC-033：Runtime Reliability；
+- DEC-038：RFC Governance；
+- Architecture Baseline v1；
+- Spike-001 Transaction and Recovery Evidence。
+
+---
+
 ## Open Questions
 
-1. Skill 的正式代码形态（RFC-001-DQ-05）。
-2. Configuration Management。
-3. API Framework。
-4. Database 和 ORM。
-5. Worker 和 Queue。
-6. Architecture Test 工具。
-7. Deployment Platform。
-8. Production Skeleton Authorization Gate。
+1. API、Worker、CLI 与 Workflow Runtime 的进程边界，以及同步/异步执行策略（RFC-001-DQ-07）。
+2. API Framework。
+3. Database 和 ORM。
+4. Worker 和 Queue。
+5. Architecture Test 工具。
+6. Settings / Configuration Library。
+7. Secret Manager 与生产凭证来源。
+8. Prompt Registry 与版本注册形式。
+9. Evaluation Framework 与评测数据集形式。
+10. Deployment Platform。
+11. Production Skeleton Authorization Gate。
 
 ---
 
@@ -2697,6 +3182,8 @@ PROHIBITED
 - RFC-001-DQ-02：Backend Language and LangGraph Binding
 - RFC-001-DQ-03：Repository and Package Directory Structure
 - RFC-001-DQ-04：Layer Responsibilities and Dependency Rules
+- RFC-001-DQ-05：Skill Code Shape and Architectural Relationships
+- RFC-001-DQ-06：Dependency Injection, Configuration and Application Bootstrap
 
 ## Related Specifications
 

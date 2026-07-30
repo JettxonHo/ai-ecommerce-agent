@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01~DQ-04 已接受。下一议题：[RFC-001-DQ-05：Skill Code Shape](#dq-05-skill-code-shape)。
+> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01~DQ-06 已接受。下一议题：[RFC-001-DQ-07：Process Boundaries and Sync/Async Execution Strategy](#dq-07-process-boundaries-and-syncasync-execution-strategy)。
 
 ---
 
@@ -87,32 +87,70 @@ RFC-001-DQ-01 Modular Monolith First = ACCEPTED
 RFC-001-DQ-02 Backend Language and LangGraph Binding = ACCEPTED
 RFC-001-DQ-03 Repository and Package Directory Structure = ACCEPTED
 RFC-001-DQ-04 Layer Responsibilities and Dependency Rules = ACCEPTED
-RFC-001-DQ-05 Skill Code Shape = PROPOSED
+RFC-001-DQ-05 Skill Code Shape and Architectural Relationships = ACCEPTED
+RFC-001-DQ-06 Dependency Injection, Configuration and Application Bootstrap = ACCEPTED
+RFC-001-DQ-07 Process Boundaries and Sync/Async Execution Strategy = PROPOSED
 ```
 
-## DQ-05: Skill Code Shape
+## DQ-07: Process Boundaries and Sync/Async Execution Strategy
 
-RFC-001-DQ-05 下一轮优先讨论：
+RFC-001-DQ-07 下一轮优先讨论：
 
-1. Skill 是独立 Package、Class、Service 还是 Function；
-2. Skill 是否属于业务模块；
-3. Skill 与 Application Use Case 是否为同一概念；
-4. Skill 是否可以直接调用 Repository；
-5. Skill 是否可以直接调用 LLM 和 Retrieval；
-6. Skill 输入输出 Contract；
-7. Skill Version；
-8. Skill Validator；
-9. Skill 是否拥有事务；
-10. LangGraph Node 如何调用 Skill；
-11. Skill 是否可脱离 LangGraph 独立运行；
-12. Skill 如何用于 Unit、Integration 和 Evaluation Tests。
+1. API、Worker、CLI 与 Workflow Runtime 的进程边界；
+2. 各 Entrypoint 是单进程还是多进程；
+3. Workflow Runtime 与 API 是否同进程；
+4. 同步 / 异步执行策略；
+5. 长运行 Workflow 的执行与调度模型；
+6. 是否需要独立 Worker 进程；
+7. 是否引入 Queue / Message Broker；
+8. Human Review 暂停与 Resume 的进程语义；
+9. 并发与资源隔离边界；
+10. 进程间通信与状态共享边界；
+11. 各进程的配置与生命周期归属（承接 DQ-06 Bootstrap）；
+12. 本议题不锁定具体 API Framework、Queue、Deployment Platform。
 
-在 RFC-001-DQ-05 被用户明确接受前：
+在 RFC-001-DQ-07 被用户明确接受前：
 
-- 不创建生产 Skill Package；
-- 不创建生产 Application Service；
-- 不迁移 Spike 代码；
+- 不创建 API；
+- 不创建 Worker；
+- 不引入 Queue；
+- 不决定生产运行模型；
 - RFC-001 保持 `DRAFTING`。
+
+## DQ-06: Dependency Injection, Configuration and Application Bootstrap
+
+RFC-001-DQ-06 已接受：
+
+1. 默认采用 Constructor Injection + 显式 Factory Functions + 集中式 Composition Root（`bootstrap/`）；
+2. MVP 不引入第三方 DI Framework；
+3. 禁止全局 Service Locator 与可变运行状态；
+4. 配置仅由 Bootstrap 加载，类型化、验证、不可变，验证失败 fail-fast；
+5. Domain 不接收配置；Application 只接收业务流程级配置；Infrastructure 只接收适配器级配置；
+6. Secret 只注入需要它的 Infrastructure Adapter，不进入 Domain / Application / Skill / Graph State / Checkpoint / Audit / Trace / API Response / Git / Issue / PR；
+7. Repository 只提交 `.env.example`（占位值），`.env` 不得提交；
+8. 资源生命周期由 Application Bootstrap 统一管理，按 Application / UseCase / WorkflowRun / SkillExecution 作用域分级；
+9. 测试通过注入 Fake / Stub 替换真实 Adapter，无需修改业务代码；
+10. 同步/异步与 API / Worker / CLI 进程边界留待 RFC-001-DQ-07；
+11. 本 Decision 不选择 DI Framework、Secret Manager、Settings Library 或 Deployment Platform。
+
+## DQ-05: Skill Code Shape and Architectural Relationships
+
+RFC-001-DQ-05 已接受：
+
+1. Skill 是业务模块 Application Layer 内具有明确执行契约、可独立运行和独立评估的无状态业务能力组件；
+2. Skill 落位 `modules/<module>/application/skills/<skill_slug>/`；
+3. Application Use Case 以 Prepare–Execute–Commit 协调 Skill 与业务事务；
+4. Skill 只参与 Execute 阶段，产出 Candidate Result（业务候选，未落库）；
+5. Skill 直接访问业务 Repository = PROHIBITED；Skill 业务事务所有权 = NO；
+6. Skill 不读/写 Current Truth、不更新 Evidence / Audit / Idempotency；
+7. Skill 只能通过 Application 定义的 ModelRuntimePort / RetrievalPort 调用 Provider 能力；
+8. Skill 直接 import 具体 Provider SDK = PROHIBITED；
+9. LangGraph Node 经 Stage Application Service + Skill Executor 间接调用 Skill，不直接调用；
+10. Skill 与 LangGraph Node 不是同一概念；Skill 不感知 LangGraph；
+11. Skill 必须能脱离 LangGraph 独立运行与独立评估 = REQUIRED；
+12. Skill 版本分 Contract / Implementation / Prompt / Output Schema 四维度分管；
+13. Skill 须支持 Contract / Unit / Integration / Evaluation / Architecture 五类测试；
+14. 本 Decision 不选择模型 Provider、Retrieval Backend、Schema Library、Prompt Registry 或 Evaluation Framework。
 
 ## DQ-04: Layer Responsibilities and Dependency Rules
 
@@ -140,5 +178,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-05 Skill Code Shape
+Next Topic: RFC-001-DQ-07 Process Boundaries and Sync/Async Execution Strategy
 ```
