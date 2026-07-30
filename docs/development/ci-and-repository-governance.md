@@ -52,7 +52,14 @@ Package Import Regression 本地复现：
 uv build
 uv venv /tmp/import-regression
 VIRTUAL_ENV=/tmp/import-regression uv pip install dist/ai_ecommerce_agent-*.whl
-/tmp/import-regression/bin/python -c "import ai_ecommerce_agent; print('OK')"
+/tmp/import-regression/bin/python - <<'PY'
+import importlib.resources as resources
+
+import ai_ecommerce_agent
+
+assert resources.files("ai_ecommerce_agent").joinpath("py.typed").is_file()
+print("package import OK; py.typed present")
+PY
 ```
 
 Secret Detection 本地复现（gitleaks 安装方式任选官方发布渠道；版本应与 CI 一致，见 §6）：
@@ -81,6 +88,15 @@ gitleaks detect --source . --config .gitleaks.toml --verbose --redact --no-banne
 
 升级任何工具都是一次独立变更（Dependency PR 或专门的工具升级 PR），不得混入业务变更。
 
+### 第三方 Action 清单
+
+| Action | SHA Pin | 版本 | 来源 / 维护者 | License | 用途 | 授予权限 |
+|---|---|---|---|---|---|---|
+| `actions/checkout` | `11bd71901bbe5b1630ceea73d27597364c9af683` | v4.2.2 | GitHub 官方（`actions` org） | MIT | 检出仓库代码 | `contents: read`（Workflow 级） |
+| `astral-sh/setup-uv` | `d0cc045d04ccac9d8b7881df0226f9e82c39688e` | v6.8.0 | Astral 官方（`astral-sh` org） | MIT | 安装 uv（锚定 0.12.0）＋ Python（3.13.14）＋依赖缓存 | `contents: read`（Workflow 级） |
+
+gitleaks 不以 Action 引入（发布二进制 ＋ SHA-256 校验，见 §6）。新增第三方 Action 必须先在本表登记（SHA Pin ＋ 来源 ＋ License ＋ 用途 ＋ 权限），并经用户审查。
+
 ## 5. Dependency Audit（pip-audit）
 
 - `pip-audit` 作为 **dev/security 依赖锁定在 `uv.lock`**（`apps/backend/pyproject.toml` 的 `dev` 组）。
@@ -107,7 +123,7 @@ gitleaks detect --source . --config .gitleaks.toml --verbose --redact --no-banne
 | 候选 | 结论 | 理由 |
 |---|---|---|
 | **Gitleaks**（✅ 选用，v8.30.1） | Required Check 实现 | MIT License；维护活跃（持续发布）；规则集覆盖 API Keys / Access Tokens / Private Keys / Cloud Credentials / Database Credentials / Authorization Headers / `.env` 内容 / Provider Secrets；支持 Git 全历史 + 工作树扫描；`--redact` 保证匹配值不进日志；单一发布二进制即可本地复用，本地与 CI 行为一致 |
-| TruffleHog | 未选用 | AGPL-3.0（许可约束更重）；核心能力依赖在线 verification（对第三方服务发起网络请求），作为确定性 Required Check 不如离线规则扫描稳定；运行更重 |
+| TruffleHog | 未选用 | 维护活跃，但 AGPL-3.0（许可约束更重）；核心能力依赖在线 verification（对第三方服务发起网络请求），作为确定性 Required Check 不如离线规则扫描稳定；运行更重 |
 | GitHub Secret Scanning | **补充层**（非 Required Check） | 平台原生、Public 仓库免费、含 Push Protection；已在仓库设置中启用（见 §10）。但其告警是异步平台信号，不是可在 PR 上确定性阻塞的检查，因此不能替代 CI Required Check；两者互补 |
 
 ### 安装与供应链
