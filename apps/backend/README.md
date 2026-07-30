@@ -2,13 +2,17 @@
 
 This is the backend production package foundation for the AI E-commerce Agent.
 
-**Current scope (FND-001 + FND-002):** a minimal, installable, buildable,
-testable Python package with a unified local quality toolchain, plus
+**Current scope (FND-001 + FND-002 + FND-003):** a minimal, installable,
+buildable, testable Python package with a unified local quality toolchain,
 executable architecture enforcement (Import Linter contracts + custom
-architecture tests with positive/negative fixtures). These directories
+architecture tests with positive/negative fixtures), and CI plus repository
+protection (GitHub Actions required checks, dependency audit, secret
+detection, Dependabot, branch protection). These directories
 establish *where* production Python code lives, *how* dependencies are
 locked, *how* local quality checks run uniformly, and *how* the accepted
-architecture is enforced automatically — nothing more.
+architecture is enforced automatically — nothing more. CI reuses exactly the
+local commands below (see
+[CI and Repository Governance](../../docs/development/ci-and-repository-governance.md)).
 
 ## Requirements
 
@@ -104,6 +108,7 @@ All development-only; none are runtime dependencies of the package.
 | `pytest-cov` | Branch-aware coverage measurement, threshold deferred (FND-001) |
 | `pytest-socket` | Default network blocking for non-`live` tests (FND-002): minimal, maintained, MIT; provides the socket-level guard and `SocketBlockedError` semantics that a hand-rolled conftest patch would duplicate poorly |
 | `import-linter` | Executable import-graph architecture contracts (FND-002): minimal, maintained, BSD-2-Clause; the standard tool for layer/boundary contracts — a hand-written equivalent would be the prohibited "large custom architecture framework" |
+| `pip-audit` | Known-vulnerability audit of the locked environment (FND-003): maintained, Apache-2.0; the standard OSV-backed auditor — runs in CI as the `security / dependency-audit` required check and locally via `uv run pip-audit --progress-spinner off --skip-editable` |
 
 ## Coverage
 
@@ -146,11 +151,21 @@ Not implemented yet (and **not** claimed to exist):
 - LangGraph runtime / graphs / checkpointer
 - Model / retrieval / observability runtimes
 - Business modules, business workflows, or production bootstrap
-- CI / GitHub Actions / branch protection (FND-003)
 
 Architecture tests reference future package shapes (`modules.<module>.*`,
 `orchestration/`, `entrypoints/`, `shared_kernel/`, `bootstrap/`) through
 test-only fixtures; those packages do not exist in the production tree.
+
+## CI and repository protection (FND-003)
+
+The repository's required CI checks run exactly the commands in the table
+above — no CI-only quality rules exist. The eight stable required checks
+(`quality / format`, `quality / lint`, `quality / typecheck`,
+`quality / architecture`, `test / unit-contract`, `test / package-build`,
+`security / dependency-audit`, `security / secret-detection`) plus
+Dependabot, secret detection and `main` branch protection are documented in
+[docs/development/ci-and-repository-governance.md](../../docs/development/ci-and-repository-governance.md),
+including how to reproduce every required check locally.
 
 ## Spike source boundary
 
