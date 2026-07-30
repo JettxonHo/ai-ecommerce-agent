@@ -16,6 +16,7 @@ dev = [
     "pyright>=1.1.400",
     "pytest>=8.4.0",
     "pytest-cov>=6.0.0",
+    "pytest-socket>=0.7.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -66,11 +67,27 @@ testpaths = ["tests"]
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "-W",
+]
+# Warnings-as-errors policy (FND-001) lives here, not in ``-W error``, so the
+# single filter list below is authoritative: pytest applies command-line ``-W``
+# filters after the ini list, where they would take precedence and silently
+# nullify any exception. One precise exception: pytest-socket's
+# SocketBlockedError emits a UserWarning while being raised; letting that
+# single warning through (instead of escalating it to an error mid-raise)
+# keeps the SocketBlockedError itself assertable. No other warning is relaxed.
+filterwarnings = [
     "error",
+    "default::UserWarning:pytest_socket",
 ]
 markers = [
     "unit: hermetic, fast unit tests with no external resources",
+    "integration: tests against real technical adapters with isolated resources; never production services",
+    "contract: public contract, port, adapter compliance, schema, event and dispatch payload tests",
+    "architecture: layer direction, module boundary, public facade, module DAG, configuration boundary and spike isolation checks",
+    "e2e: complete business or runtime flows across real components",
+    "evaluation: AI output quality evaluation with fixed fixtures or scorers",
+    "live: real external network or providers; costly or nondeterministic; opt-in only, never in default selections",
+    "slow: exceeds the fast-test budget; still part of the full local suite",
 ]
 
 [tool.coverage.run]
