@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01~DQ-07 已接受。下一议题：[RFC-001-DQ-08：模块公开契约、跨模块 Command / Query / Event 协作与循环依赖治理](#dq-08-模块公开契约跨模块-command--query--event-协作与循环依赖治理)。
+> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01~DQ-08 已接受。下一议题：[RFC-001-DQ-09：代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线](#dq-09-代码质量工具链architecture-enforcementci-quality-gate-与测试基线)。
 
 ---
 
@@ -90,32 +90,47 @@ RFC-001-DQ-04 Layer Responsibilities and Dependency Rules = ACCEPTED
 RFC-001-DQ-05 Skill Code Shape and Architectural Relationships = ACCEPTED
 RFC-001-DQ-06 Dependency Injection, Configuration and Application Bootstrap = ACCEPTED
 RFC-001-DQ-07 Process Boundaries and Sync/Async Execution Strategy = ACCEPTED
-RFC-001-DQ-08 模块公开契约与跨模块协作 = PROPOSED
+RFC-001-DQ-08 Module Public Contracts, Cross-module Collaboration and Cycle Governance = ACCEPTED
+RFC-001-DQ-09 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线 = PROPOSED
 ```
+
+## DQ-09: 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线
+
+RFC-001-DQ-09 下一轮优先讨论：
+
+1. Python Formatter；
+2. Python Linter；
+3. Type Checker；
+4. Import 和模块边界检查；
+5. Architecture Test 工具；
+6. Unit、Integration、Contract 和 E2E 测试分层；
+7. PR 必须通过的 CI Checks；
+8. Coverage 是否设硬门槛；
+9. Warning 是否允许；
+10. Dependency 和安全扫描；
+11. Test Marker 与运行时间预算；
+12. Foundation Skeleton 的最低质量标准。
+
+在 RFC-001-DQ-09 被用户明确接受前：
+
+- 不引入正式质量工具链；
+- 不创建生产 CI；
+- 不创建 Production Skeleton；
+- RFC-001 保持 `DRAFTING`。
 
 ## DQ-08: 模块公开契约、跨模块 Command / Query / Event 协作与循环依赖治理
 
-RFC-001-DQ-08 下一轮优先讨论：
+RFC-001-DQ-08 已接受：
 
-1. `public.py` 应暴露什么；
-2. Command、Query、Result 和 Public Error 的正式规则；
-3. 模块之间是否允许直接同步调用；
-4. 哪些调用必须通过 Orchestration；
-5. 是否允许共享 Domain Entity；
-6. 跨模块只读查询规则；
-7. Application Event 与 Domain Event 的边界；
-8. 是否允许进程内 Event Bus；
-9. 如何禁止循环依赖；
-10. 如何处理跨模块组合事务；
-11. 如何设计 Architecture Tests；
-12. 模块公开契约如何版本化。
-
-在 RFC-001-DQ-08 被用户明确接受前：
-
-- 不创建正式模块 Public Contract；
-- 不创建跨模块 Event Bus；
-- 不创建生产 API 或 Worker；
-- RFC-001 保持 `DRAFTING`。
+1. 每个业务模块通过唯一稳定入口 `modules.<module>.public`（`modules/<module>/public.py`）暴露跨模块契约，其他模块只能通过该 Public Facade 使用公开能力；
+2. Public Facade 可暴露 Command / Query / Result / Public Error / Application Service Protocol / Published Application Event / Stable Identifier / Version Reference / Immutable Snapshot；不得暴露 ORM Model / Database Session / Repository Implementation / Mutable Domain Entity / Graph State / LangGraph Node / Provider SDK / Secret；Public Contract 必须 Typed / Immutable / Serializable / Version-aware / Infrastructure-neutral；
+3. 跨模块数据读取返回不可变 Owner Module Public Snapshot，不返回内部 Aggregate / ORM Entity；
+4. 跨模块读取经 `Target Module Public Query`；Query 无副作用、返回 Public Snapshot；禁止 `Consumer Module → Target Module Repository → Direct SQL / ORM`；共享 Database Instance ≠ 共享数据所有权；
+5. 状态修改由数据所有模块 Application Service 执行；`Direct module-to-module state-changing Command = PROHIBITED BY DEFAULT`；跨 Stage 协调由 Orchestration 完成；跨模块原子操作仅经 Explicit Composite Application Use Case；
+6. Domain Event 模块内部（过去式，不发送）；Application Event 表示已提交业务事实，仅用于非关键提交后副作用；Human Review / Current Truth / Idempotency / 核心路由 / Durable Resume 不得依赖普通最终一致 Event；`Workflow Orchestration ≠ Event Choreography`；进程内 Event Bus 不承担 API→Worker 可靠调度；Event Handler 必须 Idempotent / Duplicate-consumption-safe；
+7. 模块依赖图必须为 Directed Acyclic Graph，禁止循环依赖（含逻辑业务调用循环）；循环依赖须通过提升 Orchestration / Public Query / Port 注入 / 提取基础概念 / 重新划分模块 / Composite Use Case 解决，不得用延迟 Import 或扩大 Shared Kernel 掩盖；`shared_kernel/` 保持最小；
+8. Public Error 稳定结构化（`error_code / category / message / retryability / relevant_reference`），不泄漏技术异常；Breaking Change 显式版本化并更新 Consumer Contract Tests；Architecture Tests 强制跨模块 Import 只能指向 Public Facade 且依赖图无环；
+9. 本 Decision 不选择 Event Bus / Outbox / Schema Library / Contract Test Framework；接受后仍不授权创建正式 Public Contract、Application Event Runtime、Event Bus 或生产业务代码。
 
 ## DQ-07: Process Boundaries and Sync/Async Execution Strategy
 
@@ -194,5 +209,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-08 模块公开契约、跨模块 Command / Query / Event 协作与循环依赖治理
+Next Topic: RFC-001-DQ-09 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线
 ```

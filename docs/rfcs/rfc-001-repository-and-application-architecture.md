@@ -3425,9 +3425,184 @@ Local/Test Combined Runtime:       ALLOWED
 
 ---
 
+## Decision Question 08: Module Public Contracts, Cross-module Collaboration and Cycle Governance
+
+> **Decision Status:** `ACCEPTED`
+> **User Decision:** `ACCEPTED`
+
+**Decision:** Business modules expose one Public Facade. Cross-module reads use synchronous Public Queries returning immutable snapshots. State changes remain owned by the target module. Cross-stage coordination is performed by Orchestration. Only non-critical post-commit reactions use Application Events. Module dependencies must remain acyclic and are enforced through Architecture Tests.
+
+### Module Public Facade
+
+每个业务模块通过唯一稳定入口暴露跨模块契约：
+
+```text
+modules.<module>.public
+```
+
+概念路径：`modules/<module>/public.py`。其他模块只能通过该 Public Facade 使用目标模块的公开能力。
+
+允许：
+
+```python
+from ai_ecommerce_agent.modules.human_review.public import (
+    GetApprovedStrategy,
+    ApprovedStrategySnapshot,
+)
+```
+
+禁止：
+
+```python
+from ai_ecommerce_agent.modules.human_review.domain import ...
+from ai_ecommerce_agent.modules.human_review.application.services import ...
+from ai_ecommerce_agent.modules.human_review.infrastructure import ...
+from ai_ecommerce_agent.modules.human_review.application.skills import ...
+```
+
+`public.py` 可以重新导出内部定义的稳定 Contract，但对外 Import Path 必须保持为 `modules.<module>.public`。
+
+### Public Contract Surface
+
+Public Facade 可以暴露：`Public Command / Public Query / Public Result / Public Error / Application Service Protocol / Published Application Event / Stable Identifier / Version Reference / Immutable Snapshot`。
+
+Public Facade 不得暴露：`ORM Model / Database Session / Repository Implementation / Mutable Domain Entity / Aggregate Internal / Infrastructure Adapter / Infrastructure Error / Graph State / LangGraph Node / Checkpoint Object / Provider SDK Type / Global Settings / Secret / Database Table Structure / Internal Helper`。
+
+Public Contract 必须：`Typed / Immutable / Serializable / Version-aware / Infrastructure-neutral`。
+
+### Public Snapshot Boundary
+
+跨模块数据读取必须返回不可变公开 Snapshot，而不是内部 Domain Entity。推荐：`ApprovedStrategySnapshot / ProductFactsSnapshot / ReviewPackageSnapshot / MarketingBriefSnapshot`。禁止返回：`ApprovedStrategyAggregate / ProductFactsEntity / ORM Entity / Lazy-loaded Relationship`。外部模块不得持有或修改目标模块内部 Aggregate。某个业务类型被多个模块使用，不代表它应被移动到 `shared_kernel/`；优先使用 `Owner Module Public Snapshot` 而非共享可变业务模型。
+
+### Command Contract
+
+Command 表示请求状态所有模块执行一个业务状态变化。推荐业务意图命名：`SubmitReview / ApproveStrategy / CreateMarketingBriefVersion / InvalidateDownstreamStage`。禁止持久化实现命名：`UpdateReviewRow / SetStatusColumn / InsertStrategyRecord`。Public Command 必须：表达业务意图；包含目标业务 ID；包含必要 Version 或 Expected Version；支持 Idempotency Key；包含必要调用者或授权上下文引用；不包含 ORM Entity / Database Session / Graph State / Secret。Command 必须由拥有目标状态的 Application Service 执行。
+
+### Cross-module Command Rule
+
+正式默认规则：`Direct module-to-module state-changing Command = PROHIBITED BY DEFAULT`。Module A 不得任意调用 Module B 的状态修改 Command。跨 Stage 状态变化默认由 `Orchestration` 或 `Explicit Composite Application Use Case` 协调。例如 `Workflow Orchestration → RunProductPositioningStage → CreateReviewPackage → Interrupt for Human Review`，而不是 `product_positioning module` 直接控制 `human_review module state machine`。允许例外必须同时满足：明确业务所有权；单向依赖；不形成循环；不隐藏跨模块事务；已在 Spec、RFC 或 Architecture Review 中声明；具有对应 Contract Test 和 Architecture Test。
+
+### Query Contract
+
+Query 表示只读业务请求。例如：`GetApprovedStrategy / GetCurrentProductFacts / GetReviewPackageStatus / GetMarketingBriefVersion`。Query 必须：无业务副作用；不修改状态；不触发 Workflow；不发布业务 Event；返回 Public Snapshot；执行读取权限和业务可见性检查；返回结构化 Public Error。Query 不得通过读取操作隐藏写入（更新业务状态 / 修改 Current Truth / 发布 Event / 触发下游 Stage / 自动恢复 Workflow）。
+
+### Cross-module Read Rule
+
+跨模块读取正式采用：`Consumer Module → Target Module Public Query → Target Module Application Query Handler → Public Snapshot`。禁止：`Consumer Module → Target Module Repository → Direct SQL / ORM / Internal Table`。共享 Database Instance 不等于共享数据所有权；数据库表不得成为模块间隐式 API。
+
+### Orchestration Responsibility
+
+以下操作应由 `orchestration/` 或明确跨模块 Coordinator 执行：一个 Stage 完成后启动下一个 Stage；Product Positioning 后创建 Human Review Package；Human Review 提交后调度 Resume；Approved Strategy 后启动 Marketing Brief；Rerun 导致下游 Stage 失效；Cancel、Resume、Recovery；跨模块 Workflow Routing；多 Stage 状态协调。Orchestration 可以：调用模块 Public Application Contract；根据明确 Result 决定确定性路由；管理 Interrupt、Resume 和 Runtime Retry。Orchestration 不得：拥有模块业务规则；直接访问模块 Infrastructure；直接读写模块内部表；直接更新 Current Truth；直接提交跨模块隐藏事务。
+
+### Composite Application Use Case
+
+跨模块原子操作只能通过明确建模的 `Composite Application Use Case` 执行。Composite Use Case 必须：有明确业务所有者；有明确输入、输出和错误 Contract；有明确事务边界；通过 Public Port 或正式协调接口访问参与模块；不直接 Import 其他模块 Infrastructure；不允许参与 Service 各自进行隐藏 Commit；具有原子性、失败和幂等测试；与 RFC-002 的持久化事务架构保持一致。禁止 `Service A begins transaction → Service B begins hidden transaction → Partial commit`。默认跨模块流程继续采用多个短事务：`Transaction A → commit → Orchestration → Transaction B`。
+
+### Domain Event
+
+Domain Event 表示模块内部 Domain 已发生的业务事实。例如：`StrategyApproved / ReviewPackageSuperseded / ProductFactsInvalidated`。Domain Event：由 Domain 产生；使用过去式语义；不包含 Infrastructure 类型；不负责发送；不直接调用其他模块；默认属于发布模块内部；不自动等于跨模块 Published Application Event。
+
+### Application Event
+
+Application Event 表示：一个 Application Transaction 已成功提交，并允许其他能力响应该事实。例如：`StrategyApprovedEvent / MarketingBriefVersionCreatedEvent / SourceSetReindexedEvent`。Application Event 可以用于：通知；非关键索引更新；Analytics；非关键 Projection；可重建缓存；外部集成；提交后非原子副作用。Application Event 必须在业务 Commit 成功后产生。
+
+### Event Boundary
+
+正式规则：`Required Immediate Consistency → Command or Composite Use Case`；`Post-commit Non-critical Reaction → Application Event`。以下能力不得依赖普通最终一致 Event：Human Review Approval；Current Truth 更新；Idempotency；同一业务 Commit 的原子数据；必须立即返回的业务验证；LangGraph 核心确定性路由；Durable Resume Intent（除非使用可靠 Outbox 或等价机制）。
+
+### Event Choreography Prohibition
+
+核心 Workflow 不得被隐藏为 Event 链：`Event A → Handler B → Event C → Handler D`。具有以下特征的流程必须由 LangGraph Orchestration 表达：明确 Stage；Human Interrupt；Resume；Retry；Cancellation；状态查询；Recovery；可审计路由。正式规则：`Workflow Orchestration ≠ Event Choreography`。
+
+### In-process Event Bus Boundary
+
+未来可以使用进程内 Event Dispatcher 处理：非关键、可重试、可忽略或可重建、不要求跨进程保证的提交后动作。纯进程内 Event Bus 不得承担：API → Worker Durable Dispatch；Durable Resume；跨进程可靠工作；关键业务副作用；必须保证的通知。本 Decision 不选择 Event Bus、Outbox 或 Broker。
+
+### Event Handler Rules
+
+Event Handler 可以：接收已提交的 Application Event；调用自身模块公开 Application Service；创建非关键 Projection；创建新的 Durable Work Intent；记录 Metrics 和 Analytics。Event Handler 不得：直接访问其他模块 Repository；修改发布者模块内部状态；假设 Event 只执行一次；无限发布 Event；使用 Event 顺序作为未经声明的不变量；失败后伪造成功。Event Handler 必须具备 `Idempotent` 或 `Duplicate-consumption-safe` 语义。
+
+### Module Dependency Graph
+
+模块依赖必须形成 `Directed Acyclic Graph`（有向无环图）。每个模块必须明确：依赖哪些目标模块；依赖目标模块的哪种 Public Contract；属于 Query、Event 或经批准的 Command Dependency；数据所有权；上游和下游关系。禁止 `Module A → Module B 且 Module B → Module A`；也禁止没有 Import 循环但存在逻辑业务调用循环。
+
+### Circular Dependency Resolution
+
+发生循环依赖时，不得使用以下方式掩盖：延迟 Import；函数内部 Import；修改 `PYTHONPATH`；把大量类型移动到 Shared Kernel；使用全局 Event Bus 隐藏调用；直接访问共享数据库。必须从以下方式解决：1) 将控制权提升到 Orchestration；2) 将只读需求改为 Public Query；3) 由需要能力的一方定义 Port，并通过 Bootstrap 注入；4) 提取真正稳定的基础概念；5) 重新划分业务模块；6) 通过明确 Composite Use Case 处理必要原子操作。
+
+### Shared Kernel Boundary
+
+`shared_kernel/` 只允许保存真正稳定、无单一业务所有者的基础类型，例如：`Identifier Base / Version Reference / Clock Protocol / Correlation ID / Generic Pagination / Infrastructure-neutral Result Base / Generic Technical Error Base`。不得保存：`Product Facts Entity / Customer Insight Entity / Approved Strategy Aggregate / Marketing Brief Domain Model / Review State Machine / Evidence Business Rule / Skill-specific Schema`。不得为了减少 Import 数量而扩大 Shared Kernel。
+
+### Public Error Contract
+
+模块对外错误必须是稳定的 Application-level Error。例如：`ReviewPackageNotFound / ReviewPackageStale / ReviewAlreadySubmitted / ApprovedStrategyUnavailable`。Public Error 至少应包含：`error_code / category / message / retryability / relevant_reference`；需要时可以包含：`expected_version / actual_version / conflicting_state / recovery_hint`。不得暴露：`Database Driver Error / ORM Exception / Provider SDK Error / Internal File Path / Database Table Name / Raw Stack Trace / Secret`。调用者只能依据 Public Error Code、Category 和 Retryability 处理，不得解析异常字符串决定业务路由。
+
+### Public Contract Versioning
+
+虽然当前使用单 Repository 和统一 Release，Public Contract 仍必须区分 `Contract-compatible Change` 与 `Contract-breaking Change`。通常兼容：新增可选字段；新增独立 Query；新增不影响现有调用者的 Public Error；新增 Event Metadata。通常不兼容：删除字段；修改字段业务含义；改变 ID 或 Version 语义；将 Query 改为有副作用；修改 Command 幂等语义；将 Snapshot 替换为内部 Entity；改变 Event 所表示的业务事实。Breaking Change 必须：更新 Contract Version；更新 Consumer；更新 Contract Test；在统一 Release 中协调；必要时修订 RFC 或 Architecture Baseline。
+
+### Contract Test Requirements
+
+每个 Public Contract 至少需要：
+
+- **Schema Tests**：验证字段、类型、必填项、默认值、序列化、Version。
+- **Consumer Contract Tests**：验证调用者只依赖公开字段和公开行为。
+- **Error Contract Tests**：验证 Error Code 稳定、Retryability 明确、技术异常不会泄漏。
+- **Event Contract Tests**：验证 Event 在 Commit 后产生、具有 Event ID、Payload 可序列化、不包含 Secret 或内部 Entity、重复消费安全。
+
+### Architecture Test Requirements
+
+未来 Architecture Tests 至少验证：`Cross-module imports must target: modules.<target>.public`。禁止跨模块 Import `modules.<target>.domain / .application / .infrastructure / .application.skills`。还必须验证：模块依赖图无环；`shared_kernel` 不依赖业务模块；Public Contract 不 Import ORM；Public Contract 不 Import LangGraph；Public Result 不包含可变 Domain Entity；Event Handler 不访问其他模块 Infrastructure；Orchestration 只 Import 模块 Public Facade；Production 不通过数据库表绕过 Public Contract；Event 不从失败或未提交事务中正式发布。
+
+### Collaboration Matrix
+
+| Collaboration Type                   | Decision              | Default Owner       |
+| ------------------------------------ | --------------------- | ------------------- |
+| Cross-module Public Query            | Allowed               | Calling Application |
+| Direct Repository Read               | Prohibited            | —                   |
+| Direct Module-to-module Command      | Prohibited by default | Orchestration       |
+| Cross-stage Coordination             | Allowed               | Orchestration       |
+| Cross-module Atomic Write            | Exception only        | Composite Use Case  |
+| Post-commit Non-critical Side Effect | Allowed               | Application Event   |
+| Event-driven Core Workflow           | Prohibited            | LangGraph           |
+| Shared Mutable Domain Entity         | Prohibited            | Public Snapshot     |
+| Shared Database as Module API        | Prohibited            | Public Query        |
+| Circular Module Dependency           | Prohibited            | DAG Enforcement     |
+
+### Hard Rules
+
+```text
+Stable Cross-module Import:          modules.<module>.public
+Cross-module Internal Import:        PROHIBITED
+Public Mutable Domain Entity:        PROHIBITED
+Cross-module Read:                   Public Query Contract
+Cross-module State Change:           Owning Application Service
+Cross-stage Coordination:            Orchestration
+Direct Module-to-module Command:     PROHIBITED BY DEFAULT
+Cross-module Atomic Operation:       Explicit Composite Application Use Case only
+Core Workflow through Events:        PROHIBITED
+Post-commit Non-critical Side Effects: Application Events allowed
+Module Dependency Graph:             DIRECTED ACYCLIC GRAPH
+Shared Database as Module API:       PROHIBITED
+Technical Exception Leakage:         PROHIBITED
+```
+
+### Decision Boundary
+
+本 Decision 已确认：每个模块通过 `modules.<module>.public` 提供唯一稳定公开入口；`public.py` 是 Public Facade；其他模块不得 Import 目标模块内部 Domain、Application、Infrastructure 或 Skill；Public Contract 可以暴露 Command、Query、Result、Public Error、Service Protocol、Published Event 和不可变 Snapshot；Public Contract 不得暴露 ORM、Repository、Database Session、Graph State、内部 Entity 或 Provider SDK；Public 输入输出必须类型化、不可变、可序列化并与 Infrastructure 无关；跨模块读取通过目标模块 Public Query；Query 必须无副作用并返回 Public Snapshot；状态修改由拥有状态的模块 Application Service 执行；模块之间直接调用状态修改 Command 默认禁止；跨 Stage 协调由 Orchestration 完成；经审查的单向 Command 例外可以存在但不得形成循环或隐藏事务；跨模块流程默认由多个短事务组成；跨模块原子操作只能通过 Composite Application Use Case；共享数据库不得成为模块间隐式 API；禁止跨模块直接 SQL 或 ORM 访问；Domain Event 默认属于模块内部；Application Event 表示已提交的业务事实；非关键提交后副作用可以使用 Application Event；Human Review、Current Truth、Idempotency 和核心路由不得依赖普通 Event 最终一致性；Event 链不得替代 LangGraph Workflow；进程内 Event Bus 不得承担 API 到 Worker 的可靠调度；Event Handler 必须重复消费安全；模块依赖图必须为 DAG；禁止通过延迟 Import 掩盖循环依赖；Shared Kernel 必须保持最小；跨模块业务数据优先使用 Owner Module Public Snapshot；Public Error 必须稳定、结构化且不泄漏技术异常；调用者只能依据 Public Error Contract 处理；Breaking Change 必须显式版本化并更新 Consumer Contract Tests；Architecture Tests 必须验证跨模块 Import 只能指向 Public Facade 且模块依赖图无环；本 Decision 不选择 Event Bus、Outbox、Schema Library 或 Contract Test Framework；本 Decision 接受后仍不授权创建正式 Public Contract、Event Bus 或生产业务代码。
+
+本 Decision 尚未确认：Python Formatter；Linter；Type Checker；Architecture Test 工具；Contract Test Framework；CI Quality Gate；Coverage Policy；Dependency Scan；Security Scan；Warning Policy；Foundation Skeleton 最低质量标准；Event Bus；Outbox；Schema Library；Production Public Contract Implementation。
+
+### Traceability
+
+关联：RFC-001-DQ-01 Modular Monolith First；RFC-001-DQ-03 Repository and Module Layout；RFC-001-DQ-04 Layer and Transaction Boundaries；RFC-001-DQ-05 Skill Architecture；RFC-001-DQ-07 API and Worker Process Boundary；DEC-011 Deterministic Workflow；DEC-015 Contract-based Skills；DEC-021 Primary Agent Architecture；DEC-024 Business State Ownership；DEC-029 Human Review；DEC-031 Xiaohongshu Mapping Adapter；DEC-033 Retry and Recovery；DEC-038 RFC Governance；Architecture Baseline v1。
+
+---
+
 ## Open Questions
 
-1. 模块公开契约、跨模块 Command / Query / Event 协作与循环依赖治理（RFC-001-DQ-08）。
+1. 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线（RFC-001-DQ-09）。
 2. Durable Dispatch 的具体实现（RFC-002 / RFC-003）。
 3. API Framework 与 HTTP Endpoint（RFC-004）。
 4. Database 和 ORM（RFC-002）。
@@ -3438,10 +3613,11 @@ Local/Test Combined Runtime:       ALLOWED
 9. Secret Manager 与生产凭证来源。
 10. Prompt Registry 与版本注册形式。
 11. Evaluation Framework 与评测数据集形式。
-12. Architecture Test 工具。
-13. Deployment Platform 与 Process Health Check / Worker Scaling Policy。
-14. Graph Version Migration（RFC-003 / RFC-007）。
-15. Production Skeleton Authorization Gate。
+12. Event Bus / Outbox（跨进程可靠调度）。
+13. Schema Library 与 Contract Test Framework。
+14. Deployment Platform 与 Process Health Check / Worker Scaling Policy。
+15. Graph Version Migration（RFC-003 / RFC-007）。
+16. Production Skeleton Authorization Gate。
 
 ---
 
@@ -3469,6 +3645,7 @@ Local/Test Combined Runtime:       ALLOWED
 - RFC-001-DQ-05：Skill Code Shape and Architectural Relationships
 - RFC-001-DQ-06：Dependency Injection, Configuration and Application Bootstrap
 - RFC-001-DQ-07：Process Boundaries and Sync/Async Execution Strategy
+- RFC-001-DQ-08：Module Public Contracts, Cross-module Collaboration and Cycle Governance
 
 ## Related Specifications
 
