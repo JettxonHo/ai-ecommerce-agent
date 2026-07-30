@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation 仍未授权。**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成（均 APPROVED FOR ISSUE PLANNING，Issue Creation / Implementation 未授权），Foundation Candidate Planning 现已完成**。下一议题：**Foundation Candidate Final Review**（检查范围完整性 / 依赖顺序 / 授权状态准确性；用户明确授权前不创建任何 Foundation Issue / Branch / PR，不执行 Foundation Implementation）。
+> **当前阶段：** DEC-038 已接受，**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation 仍未授权。**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30，Decision Conflict = NONE）均已完成**——Final Review 后 Candidate 状态：**FND-001 = READY FOR AUTHORIZATION；FND-002 = READY, BLOCKED BY FND-001；FND-003 = READY, BLOCKED BY FND-001 AND FND-002**；三者 Issue Creation / Implementation 均未授权。下一正式 Gate：**FND-001 Issue Creation and Implementation Authorization Gate**（只有用户明确回复「确认授权创建并实施 FND-001」才可授权创建 FND-001 Issue / Branch / PR、修改 Repository、执行 FND-001 范围内的 Foundation Implementation；该授权不包括 FND-002 / FND-003 或任何业务实现；用户明确授权前不创建任何 Foundation Issue / Branch / PR，不执行 Foundation Implementation）。
 
 ---
 
@@ -123,41 +123,30 @@ RFC-001-DQ-10 已接受：
 - Foundation Planning 不得开始；
 - RFC-001 保持 `DRAFTING`。
 
-## 下一议题：Foundation Candidate Final Review
+## 下一议题：FND-001 Issue Creation and Implementation Authorization Gate
 
 **RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**——DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过（八项审查全部 PASS，Decision Conflict = NONE FOUND）。RFC-001 的接受**仅开放 Foundation Planning**。
 
-**FND-001 Issue Candidate 已形成并经用户「确认形成」（2026-07-30）**——Candidate Status = `APPROVED FOR ISSUE PLANNING`；追踪 RFC-001-DQ-02 / DQ-03 / DQ-09 / DQ-10 + DEC-036 / DEC-038。但 **FND-001 Issue Creation = NOT AUTHORIZED，FND-001 Implementation = NOT AUTHORIZED**。规划文档见 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)。
+**FND-001 / FND-002 / FND-003 Issue Candidate 均已经形成并经用户确认（2026-07-30）**，追踪分别为 RFC-001-DQ-02/03/09/10、DQ-03~06/08/09/10、DQ-06/08/09/10 + DEC-036 / DEC-038。规划文档见 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)。
 
-**FND-002 Issue Candidate 已形成并经用户「确认」（2026-07-30）**——Candidate Status = `APPROVED FOR ISSUE PLANNING`；deps FND-001 = MERGED；追踪 RFC-001-DQ-03 / DQ-04 / DQ-05 / DQ-06 / DQ-08 / DQ-09 / DQ-10 + DEC-036 / DEC-038。但 **FND-002 Issue Creation = NOT AUTHORIZED，FND-002 Implementation = NOT AUTHORIZED**。规划文档同上。
+**Foundation Candidate Final Review 已完成（PASS，2026-07-30）**——范围完整性（COMPLETE）/ 职责分离（NO DUPLICATION）/ 依赖顺序 `FND-001→FND-002→FND-003`（VALID、ACYCLIC）/ 后续 RFC 范围泄漏（RFC-002~007 均 NO SCOPE LEAKAGE）/ RFC-001-DQ-10 一致性（PASS）/ Acceptance Criteria（三者均 EXECUTABLE）/ Mandatory Stop Conditions（SUFFICIENT）/ Decision Conflict（NONE）全部通过。完整报告见规划文档「Foundation Candidate Final Review」。
 
-**FND-003 Issue Candidate 已形成并经用户「确认」（2026-07-30）**——Candidate Status = `APPROVED FOR ISSUE PLANNING`；deps FND-001 + FND-002 = MERGED；追踪 RFC-001-DQ-06 / DQ-08 / DQ-09 / DQ-10 + DEC-036 / DEC-038；范围 = GitHub Actions / Stable Required Checks / Dependency Audit / Secret Detection / Dependabot / PR / Issue Templates / Branch Protection / Repository Governance Documentation。但 **FND-003 Issue Creation = NOT AUTHORIZED，FND-003 Implementation = NOT AUTHORIZED**。规划文档同上。
-
-Foundation Candidate Planning 现已完成，三个候选均已确认：
+Final Review 后 Candidate 状态：
 
 ```text
-FND-001  Backend Package and Local Tooling Foundation        = APPROVED FOR ISSUE PLANNING
-FND-002  Architecture Enforcement and Test Foundation        = APPROVED FOR ISSUE PLANNING
-FND-003  CI, Security and Repository Protection              = APPROVED FOR ISSUE PLANNING
+FND-001  Backend Package and Local Tooling Foundation        = READY FOR AUTHORIZATION
+FND-002  Architecture Enforcement and Test Foundation        = READY, BLOCKED BY FND-001
+FND-003  CI, Security and Repository Protection              = READY, BLOCKED BY FND-001 AND FND-002
 ```
 
-下一议题为 **Foundation Candidate Final Review**，必须检查：
+**推荐授权边界：** 下一步只授权 `FND-001 Issue Creation + FND-001 Implementation`，不同时授权 FND-002 或 FND-003（FND-002 依赖 FND-001 真实 Package；FND-003 依赖前两者真实命令；分阶段授权便于逐个审查；符合 RFC-001-DQ-10）。
 
-1. FND-001、FND-002、FND-003 范围是否完整；
-2. 三者是否存在重复职责；
-3. 依赖顺序是否正确；
-4. 是否提前侵入 RFC-002～RFC-007；
-5. Acceptance Criteria 是否可执行；
-6. Required Verification 是否完整；
-7. Mandatory Stop Conditions 是否覆盖越界风险；
-8. 是否满足 RFC-001-DQ-10；
-9. 是否可以向用户提出 FND-001 Issue Creation and Implementation Authorization；
-10. 当前授权状态是否仍准确。
+**下一正式 Gate：** 只有用户明确回复「确认授权创建并实施 FND-001」，才能授权：创建 FND-001 GitHub Issue、创建 FND-001 Branch（`foundation/001-backend-package-local-tooling`）、创建 FND-001 Pull Request、修改 Repository、执行 FND-001 范围内的 Foundation Implementation。该授权仍**不**包括 FND-002、FND-003 或任何业务实现，也**不**代表自动 Merge、自动执行后续 Issue、自动创建业务模块、自动进入 RFC-002。
 
 - **Final Review 是审查，不是实施授权**——不自动创建 GitHub Issue，不开始任何 Foundation Implementation。
 - 每个 Foundation Issue 仍需**单独明确的用户授权**，按依赖顺序 `FND-001 → FND-002 → FND-003` 执行，遵循 One Issue → One Branch → One PR → Required Verification → User Merge Gate。
 - 在用户明确授权前：**不创建任何 Foundation Issue；不创建 Branch；不创建 PR；不修改 Repository；不执行 Foundation Implementation。**
-- Foundation Implementation、Business Implementation 与 Production Implementation 保持 `NOT AUTHORIZED`；17 类 Mandatory Stop Conditions 持续有效。
+- Foundation Implementation、Business Implementation 与 Production Implementation 保持 `NOT AUTHORIZED`；Mandatory Stop Conditions 持续有效。
 
 ## DQ-09: 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线
 
@@ -267,16 +256,17 @@ Development Status = CONDITIONALLY READY
 
 Foundation Planning = AUTHORIZED
 Foundation Candidate Planning = COMPLETED
-FND-001 Candidate Status = APPROVED FOR ISSUE PLANNING
+Foundation Candidate Final Review = PASS（2026-07-30，Decision Conflict = NONE）
+FND-001 Candidate Status = READY FOR AUTHORIZATION
 FND-001 Issue Creation = NOT AUTHORIZED
 FND-001 Implementation = NOT AUTHORIZED
-FND-002 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-002 Candidate Status = READY, BLOCKED BY FND-001
 FND-002 Issue Creation = NOT AUTHORIZED
 FND-002 Implementation = NOT AUTHORIZED
-FND-003 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-003 Candidate Status = READY, BLOCKED BY FND-001 AND FND-002
 FND-003 Issue Creation = NOT AUTHORIZED
 FND-003 Implementation = NOT AUTHORIZED
 Foundation / Business / Production Implementation = NOT AUTHORIZED
 
-Next Topic: Foundation Candidate Final Review（检查 FND-001/002/003 范围完整性 / 重复职责 / 依赖顺序 / 是否侵入 RFC-002~007 / Acceptance Criteria 可执行性 / Required Verification 完整性 / Mandatory Stop 覆盖 / RFC-001-DQ-10 符合性 / 可否提出 FND-001 Issue Creation and Implementation Authorization / 授权状态准确性；用户明确授权前不创建任何 Foundation Issue / Branch / PR / 不修改 Repository / 不执行 Foundation Implementation）
+Next Topic: FND-001 Issue Creation and Implementation Authorization Gate（Final Review = PASS；只有用户明确回复「确认授权创建并实施 FND-001」才可授权创建 FND-001 GitHub Issue / Branch / PR、修改 Repository、执行 FND-001 范围内的 Foundation Implementation；该授权不包括 FND-002 / FND-003 或任何业务实现；用户明确授权前不创建任何 Foundation Issue / Branch / PR / 不修改 Repository / 不执行 Foundation Implementation）
 ```

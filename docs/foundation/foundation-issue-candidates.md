@@ -12,19 +12,22 @@
 ```text
 RFC-001 Status = ACCEPTED
 
-FND-001 Candidate Status = APPROVED FOR ISSUE PLANNING
+Foundation Candidate Planning Status = COMPLETED
+Foundation Candidate Final Review = PASS
+
+FND-001 Candidate Status = READY FOR AUTHORIZATION
+FND-002 Candidate Status = READY, BLOCKED BY FND-001
+FND-003 Candidate Status = READY, BLOCKED BY FND-001 AND FND-002
+
 FND-001 Issue Creation = NOT AUTHORIZED
 FND-001 Implementation = NOT AUTHORIZED
 
-FND-002 Candidate Status = APPROVED FOR ISSUE PLANNING
 FND-002 Issue Creation = NOT AUTHORIZED
 FND-002 Implementation = NOT AUTHORIZED
 
-FND-003 Candidate Status = APPROVED FOR ISSUE PLANNING
 FND-003 Issue Creation = NOT AUTHORIZED
 FND-003 Implementation = NOT AUTHORIZED
 
-Foundation Candidate Planning Status = COMPLETED
 Foundation Planning Status = AUTHORIZED
 Foundation Implementation Status = NOT AUTHORIZED
 Business Implementation Status = NOT AUTHORIZED
@@ -49,24 +52,24 @@ FND-002  Architecture Enforcement and Test Foundation        (deps: FND-001)
 FND-003  CI, Security and Repository Protection              (deps: FND-001 + FND-002)
 ```
 
-执行顺序遵循依赖：`FND-001 → FND-002 → FND-003`，遵循 **One Issue → One Branch → One PR → Required Verification → User Merge Gate**。任一 Candidate 在被单独授权创建 Issue 前，都停留在 `APPROVED FOR ISSUE PLANNING` / `PROPOSED` 状态。
+执行顺序遵循依赖：`FND-001 → FND-002 → FND-003`，遵循 **One Issue → One Branch → One PR → Required Verification → User Merge Gate**。Foundation Candidate Final Review（PASS，2026-07-30）后，FND-001 已升级为 `READY FOR AUTHORIZATION`，FND-002 / FND-003 分别为 `READY, BLOCKED BY FND-001` / `READY, BLOCKED BY FND-001 AND FND-002`；任一 Candidate 在被单独授权创建 Issue 前，其 Issue Creation / Implementation 均保持 `NOT AUTHORIZED`。
 
 | Candidate | 主题 | 依赖 | Candidate Status | Issue Creation | Implementation |
 |---|---|---|---|---|---|
-| **FND-001** | Backend Package and Local Tooling Foundation | RFC-001 = ACCEPTED（无前置 Foundation Issue） | **APPROVED FOR ISSUE PLANNING** | NOT AUTHORIZED | NOT AUTHORIZED |
-| **FND-002** | Architecture Enforcement and Test Foundation | FND-001 | **APPROVED FOR ISSUE PLANNING** | NOT AUTHORIZED | NOT AUTHORIZED |
-| **FND-003** | CI, Security and Repository Protection | FND-001 + FND-002 | **APPROVED FOR ISSUE PLANNING** | NOT AUTHORIZED | NOT AUTHORIZED |
+| **FND-001** | Backend Package and Local Tooling Foundation | RFC-001 = ACCEPTED（无前置 Foundation Issue） | **READY FOR AUTHORIZATION** | NOT AUTHORIZED | NOT AUTHORIZED |
+| **FND-002** | Architecture Enforcement and Test Foundation | FND-001 | **READY, BLOCKED BY FND-001** | NOT AUTHORIZED | NOT AUTHORIZED |
+| **FND-003** | CI, Security and Repository Protection | FND-001 + FND-002 | **READY, BLOCKED BY FND-001 AND FND-002** | NOT AUTHORIZED | NOT AUTHORIZED |
 
 ---
 
-## FND-001：Backend Package and Local Tooling Foundation（APPROVED FOR ISSUE PLANNING）
+## FND-001：Backend Package and Local Tooling Foundation（READY FOR AUTHORIZATION）
 
-**用户确认：** 「确认形成」——接受 FND-001 的候选范围、边界、依赖与验收方向。
+**用户确认：** 「确认形成」——接受 FND-001 的候选范围、边界、依赖与验收方向。Final Review（2026-07-30）通过后，Candidate Status 由 `APPROVED FOR ISSUE PLANNING` 升级为 `READY FOR AUTHORIZATION`。
 
 **Candidate Status：**
 
 ```text
-FND-001 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-001 Candidate Status = READY FOR AUTHORIZATION
 FND-001 Issue Creation = NOT AUTHORIZED
 FND-001 Implementation = NOT AUTHORIZED
 ```
@@ -289,14 +292,14 @@ docs: document backend development commands
 
 ---
 
-## FND-002：Architecture Enforcement and Test Foundation（APPROVED FOR ISSUE PLANNING）
+## FND-002：Architecture Enforcement and Test Foundation（READY, BLOCKED BY FND-001）
 
-**用户确认：** 「确认」——接受 FND-002 的候选范围、依赖、验收标准和禁止边界。
+**用户确认：** 「确认」——接受 FND-002 的候选范围、依赖、验收标准和禁止边界。Final Review（2026-07-30）通过后，Candidate Status 由 `APPROVED FOR ISSUE PLANNING` 升级为 `READY, BLOCKED BY FND-001`。
 
 **Candidate Status：**
 
 ```text
-FND-002 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-002 Candidate Status = READY, BLOCKED BY FND-001
 FND-002 Issue Creation = NOT AUTHORIZED
 FND-002 Implementation = NOT AUTHORIZED
 ```
@@ -559,14 +562,14 @@ docs: document architecture enforcement workflow
 
 ---
 
-## FND-003：CI, Security and Repository Protection（APPROVED FOR ISSUE PLANNING）
+## FND-003：CI, Security and Repository Protection（READY, BLOCKED BY FND-001 AND FND-002）
 
-**用户确认：** 「确认」——接受 FND-003 的候选范围、依赖、验收标准、安全规则和禁止边界。
+**用户确认：** 「确认」——接受 FND-003 的候选范围、依赖、验收标准、安全规则和禁止边界。Final Review（2026-07-30）通过后，Candidate Status 由 `APPROVED FOR ISSUE PLANNING` 升级为 `READY, BLOCKED BY FND-001 AND FND-002`。
 
 **Candidate Status：**
 
 ```text
-FND-003 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-003 Candidate Status = READY, BLOCKED BY FND-001 AND FND-002
 FND-003 Issue Creation = NOT AUTHORIZED
 FND-003 Implementation = NOT AUTHORIZED
 ```
@@ -855,10 +858,145 @@ docs: document repository protection
 
 ---
 
+## Foundation Candidate Final Review（PASS，2026-07-30）
+
+> **Status: FINAL REVIEW COMPLETE — 审查非授权。** 本节记录已完成的 Foundation Candidate Final Review 结论。Final Review **不**创建 GitHub Issue、不创建 Branch、不创建 Pull Request、不修改 Repository、不执行 Foundation Implementation。每个 Foundation Issue 仍需**单独、明确的用户授权**。
+
+### 一、审查对象
+
+```text
+FND-001  Backend Package and Local Tooling Foundation
+FND-002  Architecture Enforcement and Test Foundation
+FND-003  CI, Security and Repository Protection
+```
+
+审查前状态：三者均 `APPROVED FOR ISSUE PLANNING`；`Foundation Candidate Planning = COMPLETED`；所有 Issue Creation / Implementation 均 `NOT AUTHORIZED`。
+
+### 二、范围完整性审查
+
+**FND-001：Backend Package and Local Tooling** — 建立 `apps/backend/` Python 项目、Python 3.13 约束、`src/ai_ecommerce_agent/` Package、`pyproject.toml`、`uv.lock`、Ruff、Pyright、pytest、Coverage 测量基础、统一本地质量命令、Backend README、Package Build/Install/Import 验证。回答：生产后端代码放在哪里、如何安装、如何构建、如何在本地执行最基本的质量检查。**范围结论：COMPLETE。**
+
+**FND-002：Architecture Enforcement and Test Foundation** — 建立 Import Linter、Architecture Test 分类、pytest Strict Markers、Layer Direction Contract、Public Facade-only Import Contract、Module Dependency DAG、Spike Isolation、Configuration/Skill/Orchestration Boundary、Positive/Negative Fixtures、默认无网络测试边界、清晰的 Architecture Violation Report。回答：如何把 RFC-001 的架构原则转化为机器可执行、可产生失败结果的检查。**范围结论：COMPLETE。**
+
+**FND-003：CI, Security and Repository Protection** — 建立 GitHub Actions、Stable Required Status Checks、`uv sync --locked`、`pip-audit`、Secret Detection、Dependabot、PR Template、三类 Issue Template、`main` Branch Protection、Workflow 最小权限、第三方 Action 治理、CI Negative Verification、Repository Governance 文档。回答：如何保证本地质量规则不能被绕过，并阻止违规代码进入 `main`。**范围结论：COMPLETE。**
+
+### 三、职责重复审查
+
+- **Ruff / Pyright / pytest 配置** — 主要归属 FND-001；FND-002 只扩展 pytest Marker / Architecture Tests / Import Linter / Test Selection；FND-003 只调用既有命令。**NO DUPLICATION。**
+- **Architecture Enforcement** — 主要归属 FND-002；FND-001 只建立基础工具；FND-003 只把 Architecture Check 接入 CI。**NO DUPLICATION。**
+- **GitHub Actions 与 Branch Protection** — 唯一归属 FND-003；FND-001/002 只保证本地命令可被未来 CI 复用。**NO DUPLICATION。**
+- **Security** — FND-001（不引入无用途 Dependency / 不读取生产 Secret / Package Import 无副作用）、FND-002（测试默认无网络 / Configuration 和 Secret Boundary Fixture）、FND-003（Secret Scanner / Dependency Audit / Workflow 权限 / Supply-chain 和 Repository Protection）分属不同层级，无冲突。**NO DUPLICATION。**
+
+### 四、依赖顺序审查
+
+正式顺序 `FND-001 → FND-002 → FND-003`。FND-002 依赖 FND-001（需有效 Python Project / `uv.lock` / pytest / Ruff / Pyright / 统一命令入口），不能先于 FND-001 实施——**DEPENDENCY VALID**。FND-003 依赖 FND-001 + FND-002（需接入前者安装和质量命令、后者 Import Linter 和 Architecture Tests），提前实施只能创建空 CI 或重复配置——**DEPENDENCY VALID**。整体依赖图：**ACYCLIC**。
+
+### 五、后续 RFC 范围泄漏审查
+
+三个 Foundation Candidate 均未选择或创建以下任何能力，均 **NO SCOPE LEAKAGE**：
+
+- **RFC-002** — 未选 Database / ORM / Migration / Repository Implementation / Unit of Work / Outbox / Current Truth Schema / Idempotency Schema。
+- **RFC-003** — 未创建 LangGraph / Production Graph / Graph State / Checkpointer / Worker / Queue / Durable Dispatch / Resume Runtime（FND-002 仅用普通 Python Fixture 模拟边界，不安装 LangGraph）。
+- **RFC-004** — 未选 API Framework / Route / Request-Response / Authentication / Human Review Endpoint / SSE / WebSocket。
+- **RFC-005** — 未创建 Parser / Embedding / Vector Store / Retrieval Runtime / Source Index。
+- **RFC-006** — 未选 Model Provider / Model SDK / Prompt Registry / Structured Output Runtime / Provider Fallback / Live Model Evaluation。
+- **RFC-007** — 未创建 Trace Provider / Metrics Exporter / Alerting / Dashboard / Runtime Operations / Production Redaction Runtime。
+
+### 六、与 RFC-001-DQ-10 的一致性
+
+RFC-001-DQ-10 允许首批 Foundation Work 包含 Python Package、本地质量工具、Architecture Tests、CI、Repository Security——三个 Candidate 恰好分别覆盖（FND-001 = Package + Local Tooling；FND-002 = Architecture Tests；FND-003 = CI + Repository Security），同时继续禁止业务模块、Production Bootstrap、Database、API、Worker、Production LangGraph、Model/Retrieval/Observability Runtime。**一致性结论：PASS。**
+
+### 七、Acceptance Criteria 可执行性
+
+- **FND-001** — 可由 `uv sync --locked` / Package Build / Install / Import / Ruff / Pyright / pytest / Coverage Measurement / Import Side-effect Test 验证。**EXECUTABLE。**
+- **FND-002** — 可由 Import Linter / Positive/Negative Fixtures / Marker Strictness / Network Blocking / Architecture Violation Output / FND-001 Regression Checks 验证。**EXECUTABLE。**
+- **FND-003** — 可由 GitHub Actions Runs / Stable Status Check Names / Branch Protection / Secret Scanner Test Token / `pip-audit` / Lockfile Drift / Negative CI Commits / PR Merge Blocking / GitHub 设置证据验证。**EXECUTABLE。**
+
+### 八、Mandatory Stop Conditions 审查
+
+三个 Candidate 已覆盖主要越界风险：Python 版本冲突；需选择 Database/ORM/API/Queue；需引入 LangGraph；需创建真实业务模块；需复制 Spike Source；需削弱 Ruff/Pyright/Architecture Gate；需扩大 Shared Kernel；需依赖真实网络或 Secret；需提高 Workflow 权限；需绕过 Branch Protection；发现真实 Credential；需修改 Accepted RFC/DEC；实施范围超出当前 Issue。**结论：SUFFICIENT。**
+
+### 九、主要风险与缓解
+
+1. **Foundation 过度复杂** — 缓解：FND-001 只建最小 Python Package；FND-002 只实现已接受硬规则；FND-003 只接入已有命令；禁止空业务模块和空 CI Job；每个新增 Dependency 必须说明用途。
+2. **Architecture Fixture 与真实架构脱节** — 缓解：Fixture 保持最小；每个 Contract 同时具有正/负向示例；真实业务模块进入后继续增加真实 Architecture Regression Tests；Fixture 不作为 Production Design Source。
+3. **CI 配置成本过高** — 缓解：本地和 CI 使用相同命令；Stable Required Checks；Cache 只优化速度不改变正确性；不创建尚未存在的 Integration/E2E/Live Job。
+4. **GitHub Plan 限制** — 缓解：真实记录可用/不可用能力；记录 Residual Risk；建立人工补偿控制；不声称未启用的保护已经存在。
+
+### 十、Decision Conflict Review
+
+```text
+Conflict between FND-001 and FND-002: NONE
+Conflict between FND-002 and FND-003: NONE
+Conflict with RFC-001: NONE
+Conflict with Accepted DEC: NONE
+Scope leakage into RFC-002 through RFC-007: NONE
+Circular Foundation dependency: NONE
+Implementation accidentally authorized: NO
+```
+
+不存在需要额外 RFC 或 Technical Spike 才能启动 FND-001 的阻塞问题。
+
+### 十一、最终 Candidate 状态
+
+```text
+FND-001 Candidate Status = READY FOR AUTHORIZATION
+FND-002 Candidate Status = READY, BLOCKED BY FND-001
+FND-003 Candidate Status = READY, BLOCKED BY FND-001 AND FND-002
+
+FND-001 Implementation = NOT AUTHORIZED
+FND-002 Implementation = NOT AUTHORIZED
+FND-003 Implementation = NOT AUTHORIZED
+```
+
+### 十二、推荐授权边界
+
+建议下一步**只**授权：`FND-001 Issue Creation + FND-001 Implementation`，不同时授权 FND-002 或 FND-003。原因：FND-002 依赖 FND-001 的真实 Package 和工具配置；FND-003 依赖前两个 Issue 的真实命令；分阶段授权便于用户逐个审查；符合 RFC-001-DQ-10；可在 FND-001 中及时发现 Python 3.13 或工具兼容问题；防止 Foundation 变成超大实施任务。
+
+### 十三、FND-001 推荐执行流程（用户正式授权后）
+
+```text
+Create FND-001 GitHub Issue
+↓
+Create foundation/001-backend-package-local-tooling
+↓
+Create bounded Pull Request
+↓
+Implement only FND-001 scope
+↓
+Run required verification
+↓
+Produce PR evidence
+↓
+User reviews
+↓
+User decides merge
+```
+
+用户授权 FND-001 **不**代表：自动 Merge、自动执行 FND-002、自动执行 FND-003、自动创建业务模块、自动进入 RFC-002。
+
+### 十四、最终审查结论
+
+```text
+Candidate Completeness: PASS
+Responsibility Separation: PASS
+Dependency Order: PASS
+RFC-001 Alignment: PASS
+Later RFC Scope Protection: PASS
+Acceptance Criteria: EXECUTABLE
+Mandatory Stop Conditions: SUFFICIENT
+Decision Conflict: NONE
+Foundation Candidate Final Review: PASS
+```
+
+**正式建议：** 批准进入 FND-001 的 Issue Creation and Implementation Authorization Gate。
+
+---
+
 ## Immediate Next Topic
 
 ```text
-Foundation Candidate Final Review
+FND-001 Issue Creation and Implementation Authorization Gate
 ```
 
-Foundation Candidate Planning 现已完成（FND-001 / FND-002 / FND-003 均 APPROVED FOR ISSUE PLANNING）。Final Review 必须检查：FND-001/002/003 范围完整性；三者是否存在重复职责；依赖顺序是否正确；是否提前侵入 RFC-002～RFC-007；Acceptance Criteria 是否可执行；Required Verification 是否完整；Mandatory Stop Conditions 是否覆盖越界风险；是否满足 RFC-001-DQ-10；是否可以向用户提出 FND-001 Issue Creation and Implementation Authorization；当前授权状态是否仍准确。**在用户明确授权前：不创建任何 Foundation Issue、不创建 Branch、不创建 PR、不修改 Repository、不执行 Foundation Implementation。**
+Foundation Candidate Planning 与 Final Review 均已完成（Final Review = PASS）。**下一正式 Gate：** 只有用户明确回复类似「确认授权创建并实施 FND-001」，才能授权创建 FND-001 GitHub Issue、创建 FND-001 Branch、创建 FND-001 Pull Request、修改 Repository、执行 FND-001 范围内的 Foundation Implementation。该授权仍**不**包括 FND-002、FND-003 或任何业务实现。**在用户明确授权前：不创建任何 Foundation Issue、不创建 Branch、不创建 PR、不修改 Repository、不执行 Foundation Implementation。**

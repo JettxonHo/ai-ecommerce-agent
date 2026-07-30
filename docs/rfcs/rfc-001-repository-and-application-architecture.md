@@ -4130,7 +4130,7 @@ Production Implementation = NOT AUTHORIZED
 - 17 类 Mandatory Stop Conditions 持续有效；遇未决架构问题必须停止并提交 Decision Conflict / Mandatory Stop Report，不得静默决定。
 - **关于 Merge PR / Delete Branch：** 本 RFC 的决策文档直接在本 Repository 的 `main` 分支上开发与提交，未创建独立的 RFC-001 PR 或 RFC Branch，因此 DEC-038 流程中的「Merge RFC-001 PR / Delete RFC Branch」步骤在当前工作流下不适用；对应 GitHub Issue #5 已随本次接受关闭。
 
-**Immediate Next Topic：** **FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成并经用户确认（2026-07-30，均 APPROVED FOR ISSUE PLANNING；Issue Creation / Implementation 未授权，见 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)），Foundation Candidate Planning 现已完成**。下一议题为 **Foundation Candidate Final Review**（检查范围完整性 / 依赖顺序 / 授权状态准确性，可否提出 FND-001 Issue Creation and Implementation Authorization；用户明确授权前不创建任何 Foundation Issue / Branch / PR，不修改 Repository，不执行 Foundation Implementation）。
+**Immediate Next Topic：** **FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成并经用户确认，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30）均已完成**（见 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)）。Final Review 后 Candidate 状态：**FND-001 = READY FOR AUTHORIZATION；FND-002 = READY, BLOCKED BY FND-001；FND-003 = READY, BLOCKED BY FND-001 AND FND-002**；三者 Issue Creation / Implementation 均未授权。下一正式 Gate 为 **FND-001 Issue Creation and Implementation Authorization Gate**——只有用户明确回复「确认授权创建并实施 FND-001」才可授权创建 FND-001 GitHub Issue / Branch / PR、修改 Repository、执行 FND-001 范围内的 Foundation Implementation；该授权不包括 FND-002 / FND-003 或任何业务实现。**用户明确授权前不创建任何 Foundation Issue / Branch / PR，不修改 Repository，不执行 Foundation Implementation。**
 
 ---
 

@@ -1277,7 +1277,7 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 | LLM Runtime and Structured Output | PENDING RFC | RFC-006 |
 | Observability and Runtime Operations | PENDING RFC | RFC-007 |
 
-> **RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**——DQ-01~10 全部 ACCEPTED 且 Final Consistency Review 通过。DQ-10 已确认 Acceptance 与 Authorization 严格分离、Foundation Scope（Package + Quality + Architecture Tests + CI + Repository Security）、Foundation Issue Candidates（FND-001/002/003）与 Mandatory Stop Conditions。RFC-001 Acceptance 不自动授权实现；**Foundation Planning 现已开放（AUTHORIZED）**，但仅允许生成并审查 FND-001/002/003 Issue Candidates（不自动创建 Issue）；**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成（均 APPROVED FOR ISSUE PLANNING，Issue Creation / Implementation 未授权），Foundation Candidate Planning 现已完成**；**Foundation Implementation 需单独明确授权（NOT AUTHORIZED）**；Production CI、Production Skeleton、质量工具版本锁定、Secret Scanner、业务模块、API、Worker、CLI、Database、Production LangGraph 与 Production Runtime 创建仍 **NOT AUTHORIZED**。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
+> **RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**——DQ-01~10 全部 ACCEPTED 且 Final Consistency Review 通过。DQ-10 已确认 Acceptance 与 Authorization 严格分离、Foundation Scope（Package + Quality + Architecture Tests + CI + Repository Security）、Foundation Issue Candidates（FND-001/002/003）与 Mandatory Stop Conditions。RFC-001 Acceptance 不自动授权实现；**Foundation Planning 现已开放（AUTHORIZED）**，但仅允许生成并审查 FND-001/002/003 Issue Candidates（不自动创建 Issue）；**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30，Decision Conflict = NONE）均已完成**——Final Review 后 Candidate 状态：FND-001 = READY FOR AUTHORIZATION，FND-002 = READY BLOCKED BY FND-001，FND-003 = READY BLOCKED BY FND-001 AND FND-002，三者 Issue Creation / Implementation 均未授权；**Foundation Implementation 需单独明确授权（NOT AUTHORIZED）**；Production CI、Production Skeleton、质量工具版本锁定、Secret Scanner、业务模块、API、Worker、CLI、Database、Production LangGraph 与 Production Runtime 创建仍 **NOT AUTHORIZED**。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
 
 ## 21. Final Status
 
@@ -1289,18 +1289,19 @@ Development Status = CONDITIONALLY READY
 
 Foundation Planning = AUTHORIZED（生成并审查 FND Issue Candidates）
 Foundation Candidate Planning = COMPLETED（FND-001 / FND-002 / FND-003 均已形成）
-FND-001 Candidate Status = APPROVED FOR ISSUE PLANNING
+Foundation Candidate Final Review = PASS（2026-07-30，Decision Conflict = NONE）
+FND-001 Candidate Status = READY FOR AUTHORIZATION
 FND-001 Issue Creation = NOT AUTHORIZED
 FND-001 Implementation = NOT AUTHORIZED
-FND-002 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-002 Candidate Status = READY, BLOCKED BY FND-001
 FND-002 Issue Creation = NOT AUTHORIZED
 FND-002 Implementation = NOT AUTHORIZED
-FND-003 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-003 Candidate Status = READY, BLOCKED BY FND-001 AND FND-002
 FND-003 Issue Creation = NOT AUTHORIZED
 FND-003 Implementation = NOT AUTHORIZED
 Foundation Implementation = NOT AUTHORIZED
 Business Implementation = NOT AUTHORIZED
 Production Implementation = NOT AUTHORIZED
 
-Next Topic: Foundation Candidate Final Review（检查范围完整性 / 依赖顺序 / 授权状态准确性，可否提出 FND-001 Issue Creation and Implementation Authorization；用户明确授权前不创建任何 Foundation Issue / Branch / PR / 不修改 Repository / 不执行 Foundation Implementation）
+Next Topic: FND-001 Issue Creation and Implementation Authorization Gate（Final Review = PASS；只有用户明确回复「确认授权创建并实施 FND-001」才可授权创建 FND-001 GitHub Issue / Branch / PR、修改 Repository、执行 FND-001 范围内的 Foundation Implementation；该授权不包括 FND-002 / FND-003 或任何业务实现；用户明确授权前不创建任何 Foundation Issue / Branch / PR、不修改 Repository、不执行 Foundation Implementation）
 ```
