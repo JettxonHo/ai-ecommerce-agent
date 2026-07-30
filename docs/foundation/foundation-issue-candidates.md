@@ -33,6 +33,9 @@ FND-002 Merge = COMPLETED（用户人工 Merge；Merge Commit = b966491865f57910
 FND-002 Verification = PASS（Post-merge Verification，合并后于 main 执行）
 FND-002 Status = COMPLETED
 FND-002 Completed Date = 2026-07-30
+FND-002 Code Status = COMPLETED
+FND-002 Archive Status = COMPLETED（经本文档归档 PR #13 记录，本归档 PR 合并后正式生效）
+FND-002 Overall Status = COMPLETED
 
 FND-003 Issue Creation = NOT AUTHORIZED
 FND-003 Implementation = NOT AUTHORIZED
@@ -325,6 +328,9 @@ FND-002 Status = COMPLETED（PR #10 已由用户人工 Merge）
 FND-002 Merge = COMPLETED（Merge Commit = b966491865f57910d186542b1eb5191544a254f3；Merge Method = Merge Commit；Merged At = 2026-07-30T17:03:04Z；Merged By = JettxonHo）
 FND-002 Verification = PASS（Post-merge Verification，合并后于 main 执行）
 FND-002 Completed Date = 2026-07-30
+FND-002 Code Status = COMPLETED
+FND-002 Archive Status = COMPLETED（经本文档归档 PR #13 记录，本归档 PR 合并后正式生效）
+FND-002 Overall Status = COMPLETED
 ```
 
 **Parent Architecture Input：**
@@ -1059,7 +1065,7 @@ FND-002 Merged At = 2026-07-30T17:03:04Z
 FND-002 Merged By = JettxonHo（用户）
 FND-002 Completed Date = 2026-07-30
 FND-002 Verification = PASS（Post-merge Verification，合并后于 main 执行）
-FND-002 Archive Pull Request = #13（docs: record FND-002 completion，待用户 Merge）
+FND-002 Archive Pull Request = #13（docs: record FND-002 completion，本归档 PR 合并后正式生效）
 ```
 
 **进入 `main` 的架构与测试基础（135 个文件，+2129/−36）：** `apps/backend/tests/architecture/`（helpers / 15 个 Test-only Fixture / 4 个测试模块 / README）· `apps/backend/tests/conftest.py`（默认网络阻断守卫）· `apps/backend/tests/contract/` · `apps/backend/tests/unit/test_network_guard*.py` · `apps/backend/pyproject.toml`（10 条 Import Linter Contract + 8 Marker + filterwarnings）· `apps/backend/uv.lock`（import-linter + pytest-socket dev-only）· Backend README 与架构测试文档 · 追踪文档状态更新。
@@ -1068,7 +1074,7 @@ FND-002 Archive Pull Request = #13（docs: record FND-002 completion，待用户
 
 **Acceptance Criteria：** 30 项全部满足（详见 PR #10）。**Out-of-scope 检查：** 独立对抗审计确认无真实业务模块 / API / Database / Worker / LangGraph / GitHub Actions / Branch Protection / Dependabot / Secret Scanner / 生产骨架（`apps/backend/src/` 仅 `__init__.py` + `py.typed`）；`docs/rfcs/**` 与 `docs/decisions/**` 零变更（Accepted RFC / DEC 未触碰）。**Known Limitations：** 4 项已记录于 `tests/architecture/README.md` §9 与 PR #10 Description（Known Non-blocking Limitation：字面量不存在 source 硬报错 / 通配符只能替换完整模块段 / orchestration·entrypoints 尚无真实生产包由 Facade 测试兜底 / 真实包落地后补真实包回归），未借此创建任何 Production Skeleton。**Mandatory Stop Conditions：** 实施、同步、合并与 Post-merge Verification 全程未触发任何一条。
 
-**归档治理：** FND-002 代码已由用户合并，但 `main` 文档此前仍记录 `IN REVIEW`，故本完成状态经独立 Documentation-only PR #13（Branch `docs/fnd-002-completion`）归档，不直接 Push 到 `main`。本归档 PR 合并后正式记录 `FND-002 Status = COMPLETED`。
+**归档治理：** FND-002 代码已由用户合并，但 `main` 文档此前仍记录 `IN REVIEW`，故本完成状态经独立 Documentation-only PR #13（Branch `docs/fnd-002-completion`）归档，不直接 Push 到 `main`。本归档 PR 合并后正式记录 `FND-002 Status = COMPLETED`（`Archive Status = COMPLETED`，`Overall Status = COMPLETED`）。
 
 **后续边界：** FND-002 完成将 FND-003 依赖（FND-001 + FND-002 = MERGED）标记为已满足，FND-003 Candidate Status 升级为 `READY FOR AUTHORIZATION`；但 FND-003 Issue Creation / Implementation 仍 **NOT AUTHORIZED**，须用户单独明确授权（授权用语「确认授权创建并实施 FND-003」）。**不**将 Foundation Implementation 整体标记为完成，**不**将 Architecture Readiness 更新为完全 READY（保持 CONDITIONALLY READY），任何业务实现仍 NOT AUTHORIZED。
 
@@ -1095,4 +1101,4 @@ Issue 创建   : NOT REQUIRED（独立文档维护，非 Foundation Issue）
 FND-003 Issue Creation and Implementation Authorization Gate
 ```
 
-FND-001 = **COMPLETED**（PR #7 已由用户 Merge，归档 PR #8 已合并）。FND-002 = **COMPLETED**（PR #10 已由用户人工 Merge，Merge Commit `b966491865f57910d186542b1eb5191544a254f3`，Issue #9 已关闭，Post-merge Verification = PASS）。FND-003 依赖（FND-001 + FND-002 = MERGED）已满足，Candidate Status = `READY FOR AUTHORIZATION`，但 Issue Creation / Implementation 仍 **NOT AUTHORIZED**。**下一正式 Gate：** 由用户确认是否授权创建并实施 FND-003（授权用语「确认授权创建并实施 FND-003」）；只有用户明确授权后才可创建 FND-003 Issue / Branch / PR 并执行 FND-003 范围内的 Foundation Implementation；Coding Agent 不得自动创建 FND-003 Issue、不得自动开始 FND-003 实施。该授权**不**包括任何业务实现；Foundation Implementation 整体仍未完成，Architecture Readiness 保持 CONDITIONALLY READY。本归档 PR #13（Branch `docs/fnd-002-completion`）待用户审查并决定 Merge。
+FND-001 = **COMPLETED**（PR #7 已由用户 Merge，归档 PR #8 已合并）。FND-002 = **COMPLETED**（PR #10 已由用户人工 Merge，Merge Commit `b966491865f57910d186542b1eb5191544a254f3`，Issue #9 已关闭，Post-merge Verification = PASS）。FND-003 依赖（FND-001 + FND-002 = MERGED）已满足，Candidate Status = `READY FOR AUTHORIZATION`，但 Issue Creation / Implementation 仍 **NOT AUTHORIZED**。**下一正式 Gate：** 由用户确认是否授权创建并实施 FND-003（授权用语「确认授权创建并实施 FND-003」）；只有用户明确授权后才可创建 FND-003 Issue / Branch / PR 并执行 FND-003 范围内的 Foundation Implementation；Coding Agent 不得自动创建 FND-003 Issue、不得自动开始 FND-003 实施。该授权**不**包括任何业务实现；Foundation Implementation 整体仍未完成，Architecture Readiness 保持 CONDITIONALLY READY。上述 FND-002 完成状态经本归档 PR #13（Branch `docs/fnd-002-completion`）记录，合并后正式生效。
