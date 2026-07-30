@@ -1,0 +1,65 @@
+name: Bug（缺陷）
+description: 报告缺陷或回归。必须包含回归测试要求。
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **缺陷报告。** 修复 PR 仍须通过全部 Required Checks 与用户 Merge Gate。
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed Behavior
+      description: 实际观察到的行为。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: 期望行为（引用相关 DEC / RFC / Spec 依据）。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: 最小复现步骤（命令 / 输入 / 环境）。
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: 操作系统、Python / uv 版本、相关工具版本、CI Run 链接。
+    validations:
+      required: false
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: 影响范围与严重程度（质量门 / 架构执行 / 安全 / 文档）。
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: 日志、截图、CI 输出要点（不得粘贴真实 Secret）。
+    validations:
+      required: false
+  - type: textarea
+    id: regression-test
+    attributes:
+      label: Regression Test Requirement
+      description: 修复必须附带的回归测试（标记 / 位置 / 断言要点）。
+    validations:
+      required: true
+  - type: input
+    id: related-version
+    attributes:
+      label: Related Version / Commit
+      description: 发现问题的 Commit SHA 或版本。
+    validations:
+      required: false
