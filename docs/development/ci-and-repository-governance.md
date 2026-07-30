@@ -38,7 +38,7 @@
 | `test / unit-contract` | `uv run pytest -m unit && uv run pytest -m contract && uv run pytest -m "not live and not slow"` |
 | `test / package-build` | `uv lock --check && uv build`（Import Regression 见下） |
 | `security / dependency-audit` | `uv run pip-audit --progress-spinner off --skip-editable` |
-| `security / secret-detection` | `gitleaks detect --source . --config .gitleaks.toml --verbose --redact --no-banner` |
+| `security / secret-detection` | `gitleaks detect --source . --verbose --redact --no-banner` |
 
 一键质量门（backend README 统一入口，不含 security 两项）：
 
@@ -67,7 +67,7 @@ Secret Detection 本地复现（gitleaks 安装方式任选官方发布渠道；
 ```bash
 # macOS 示例
 brew install gitleaks
-gitleaks detect --source . --config .gitleaks.toml --verbose --redact --no-banner
+gitleaks detect --source . --verbose --redact --no-banner
 ```
 
 ## 3. 依赖安装与 Lockfile 纪律
@@ -139,11 +139,13 @@ gitleaks 不以 Action 引入（发布二进制 ＋ SHA-256 校验，见 §6）�
 | PR Diff | `pull_request` 触发时在 merge ref 上运行（含 PR 变更） |
 | Working Tree | 始终扫描 |
 | Git History | `fetch-depth: 0` 全历史扫描——「提交后再删除」的 Secret 仍会被发现 |
-| 本地复用 | 同一命令、同一 `.gitleaks.toml`（§2） |
+| 本地复用 | 同一命令（内置默认规则，无自定义配置；见下方 Known Limitation） |
 | 日志 Redaction | `--redact`：报告中匹配值被掩码，CI 日志不含 Secret 物料 |
 | 假阳性策略 | 默认规则集；出现假阳性时逐条加入精确 Allowlist 并在本文档登记原因 |
-| Allowlist | `.gitleaks.toml`：当前**零** Allowlist 条目。**禁止**整目录排除（`tests/`、`docs/`、`config/`、`.env*` 等一律不得整体跳过） |
+| Allowlist | 使用 gitleaks 内置默认规则（不自带自定义配置文件；见 Known Limitation），当前**零** Allowlist 条目。**禁止**整目录排除（`tests/`、`docs/`、`config/`、`.env*` 等一律不得整体跳过） |
 | 测试用 Secret | **绝不使用真实 Secret**。负向验证只使用扫描器官方测试模式与明显假值（如 AWS 文档示例键），且只存在于临时验证 Branch，证据采集后立即删除 |
+
+**Known Limitation（负向验证发现）：** gitleaks 8.30.1 下，带 `useDefault = true` 的自定义配置会**静默漏检**内置默认规则本可检出的模式（FND-003 负向验证实证：同一假值在移除配置文件后立即被检出）。因此本仓库**不携带自定义 gitleaks 配置**运行（使用内置默认规则）。未来如确需 Allowlist，必须：(1) 使用显式完整配置而非 `useDefault`；(2) 上线前通过假值**正向检出复测**（检不出假值的扫描等于没有保护）；(3) 在本节登记每个 Allowlist 条目的假阳性原因。
 
 ## 7. Dependabot
 
@@ -243,6 +245,7 @@ No automatic emergency bypass
 | 风险 | 现状与补偿控制 |
 |---|---|
 | gitleaks 默认规则集之外的新型 Secret 格式 | GitHub Secret Scanning（平台层）互补；规则集随 gitleaks 升级而更新 |
+| gitleaks `useDefault = true` 配置静默漏检（8.30.1 实证） | 不使用自定义配置；引入任何 Allowlist 前必须通过假值正向检出复测（§6 Known Limitation） |
 | pip-audit 依赖 OSV 数据的时效性 | Dependabot Alerts 提供第二路漏洞告警；两者互补 |
 | SHA-pinned Action 上游被攻破 | Pinning 固定了代码版本；Dependabot 每周检查 Actions 更新并由用户审查；checkout/setup-uv 均为官方或 Astral 官方维护 |
 | uv 版本锚定（0.12.0）落后于本地 | 本地与 CI 同版本是刻意选择（可复现优先）；升级走专门 PR |
