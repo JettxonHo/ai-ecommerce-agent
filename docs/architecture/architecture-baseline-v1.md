@@ -99,24 +99,52 @@ Validated Temporary Implementation — Not Production Commitment
 
 > 生产后端语言 / 数据库 / Checkpointer / ORM / LLM / Retrieval / Observability / 部署平台：**全部 `PENDING RFC`**（见 [../rfcs/rfc-register.md](../rfcs/rfc-register.md)）。
 
-## 9. 未决技术决策（PENDING RFC）
+## 9. RFC Governance and Production Decision Gate
 
-| 领域 | 状态 |
-|---|---|
-| Repository and Application Architecture | PENDING RFC |
-| Persistence and Transaction Architecture（生产 DB / ORM） | PENDING RFC |
-| LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | PENDING RFC |
-| API and Human Review Protocol | PENDING RFC |
-| Source Processing and Retrieval Architecture | PENDING RFC |
-| LLM Runtime and Structured Output | PENDING RFC |
-| Observability and Runtime Operations | PENDING RFC |
+> 来源：DEC-038。
 
-> 上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。
+进入正式生产实现前，每个生产技术域必须先经过 RFC 提案、用户 Acceptance Gate 并被接受为 `ACCEPTED`。
 
-## 10. Final Status
+```text
+RFC-001 Repository and Application Architecture
+↓
+RFC-002 Persistence and Transaction Architecture
+↓
+RFC-003 LangGraph Runtime and Checkpoint Architecture
+↓
+RFC-004 API and Human Review Protocol
+↓
+RFC-005 Source Processing and Retrieval Architecture
+↓
+RFC-006 LLM Runtime and Structured Output
+↓
+RFC-007 Observability and Runtime Operations
+```
+
+- PR Merge 不自动等于 RFC Accepted。
+- 每个 RFC 使用独立的 Issue / Branch / PR。
+- 未接受对应 RFC 前，不得开始该域的生产实现；Coding Agent 不得临场选择生产数据库 / ORM / Checkpointer / API / Retrieval / LLM Runtime / Observability。
+
+## 10. 未决技术决策（PENDING RFC）
+
+| 领域 | 状态 | RFC |
+|---|---|---|
+| Repository and Application Architecture | PENDING RFC | RFC-001 |
+| Persistence and Transaction Architecture（生产 DB / ORM） | PENDING RFC | RFC-002 |
+| LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | PENDING RFC | RFC-003 |
+| API and Human Review Protocol | PENDING RFC | RFC-004 |
+| Source Processing and Retrieval Architecture | PENDING RFC | RFC-005 |
+| LLM Runtime and Structured Output | PENDING RFC | RFC-006 |
+| Observability and Runtime Operations | PENDING RFC | RFC-007 |
+
+> 上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
+
+## 11. Final Status
 
 ```text
 Spike Execution Status = COMPLETED
-Architecture Readiness Status = PENDING USER REVIEW
-Development Status = NOT READY
+Architecture Readiness Status = CONDITIONALLY READY
+Development Status = CONDITIONALLY READY
+
+Next Topic: RFC-001 Repository and Application Architecture
 ```

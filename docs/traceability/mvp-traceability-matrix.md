@@ -24,6 +24,15 @@
 
 ## 矩阵
 
+### G. RFC Gate 与下一议题
+
+| Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
+|---|---|---|---|---|---|---|---|
+| RFC Planning and Dependency Order | DEC-038 | specs/governance/rfc-planning-and-dependency-order.md | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
+| Repository and Application Architecture Gate | DEC-038 | specs/governance/rfc-planning-and-dependency-order.md | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
+| Persistence and Transaction Architecture Gate | DEC-038 | specs/governance/rfc-planning-and-dependency-order.md | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
+
+
 ### A. 核心工作流与编排
 
 | Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
@@ -97,6 +106,8 @@
 
 ```text
 Spike Execution Status = COMPLETED
-Architecture Readiness Status = PENDING USER REVIEW
-Development Status = NOT READY
+Architecture Readiness Status = CONDITIONALLY READY
+Development Status = CONDITIONALLY READY
+
+Next Topic: RFC-001 Repository and Application Architecture
 ```

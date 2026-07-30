@@ -3,9 +3,9 @@
 本目录是 Current Truth Layer 的一部分，存放 AI Ecommerce Agent 项目中各 Agent 的规格说明。
 
 > **当前状态（用户决策后）：** Spike Execution Status = **COMPLETED** · Architecture Readiness Status = **CONDITIONALLY READY**（用户已确认，User Decision 记录于 [../readiness/architecture-readiness-report-v1.md](../readiness/architecture-readiness-report-v1.md) §16）· Development Status = **CONDITIONALLY READY**（**仅限**规划与治理范围）。
-> **授权范围：** Architecture RFC · Implementation Planning · MVP Roadmap 草案 · Epic and Dependency Planning · Technical Risk Resolution。
+> **授权范围：** Architecture RFC · Technical Research · Additional Technical Spike · Implementation Planning · MVP Roadmap 草案 · Epic and Dependency Planning · Acceptance Criteria Planning · Technical Risk Resolution。
 > **禁止范围（当前不授权）：** Production Business / Database / API / Retrieval / LLM Runtime / Observability Implementation；正式业务 Coding Issues；未经 RFC 支持的生产实现；Coding Agent 临场选择生产数据库 / ORM / Checkpointer / API / Retrieval / LLM Runtime / Observability；将 Spike 代码迁移为生产模块；将状态更新为完全 READY。
-> **下一议题：** RFC Planning and Dependency Order（RFC-001…RFC-007 按依赖顺序逐个提交用户评审；未替用户接受任何 RFC）。详见 [../readiness/README.md](../readiness/README.md)。
+> **下一议题：** RFC-001: Repository and Application Architecture（DEC-038 已接受，RFC-001—RFC-007 全部状态为 `PROPOSED`，未替用户接受任何 RFC）。详见 [../readiness/README.md](../readiness/README.md) 与 [../rfcs/rfc-register.md](../rfcs/rfc-register.md)。
 
 ---
 
