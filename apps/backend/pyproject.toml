@@ -19,6 +19,7 @@ dev = [
     "pytest-socket>=0.7.0",
     "import-linter>=2.0",
     "pip-audit>=2.10",
+    "six>=1.16",
 ]
 
 [tool.hatch.build.targets.wheel]
