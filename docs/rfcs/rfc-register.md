@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01~DQ-09 已接受。下一议题：[RFC-001-DQ-10：Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口](#dq-10-production-skeleton-范围foundation-work-authorization-gate-与-rfc-001-收口)。
+> **当前阶段：** DEC-038 已接受，RFC-001 处于 `DRAFTING`，DQ-01~DQ-10 已全部接受（RFC-001 整体尚未被用户接受）。下一议题：**RFC-001 Final Consistency Review**（见 [DQ-10](#dq-10-production-skeleton-scope-foundation-authorization-gate-and-rfc-closure已接受)）。
 
 ---
 
@@ -92,33 +92,36 @@ RFC-001-DQ-06 Dependency Injection, Configuration and Application Bootstrap = AC
 RFC-001-DQ-07 Process Boundaries and Sync/Async Execution Strategy = ACCEPTED
 RFC-001-DQ-08 Module Public Contracts, Cross-module Collaboration and Cycle Governance = ACCEPTED
 RFC-001-DQ-09 Quality Toolchain, Architecture Enforcement, CI Quality Gates and Test Baseline = ACCEPTED
-RFC-001-DQ-10 Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口 = PROPOSED
+RFC-001-DQ-10 Production Skeleton Scope, Foundation Authorization Gate and RFC Closure = ACCEPTED
 ```
 
-## DQ-10: Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口
+## DQ-10: Production Skeleton Scope, Foundation Authorization Gate and RFC Closure（已接受）
 
-RFC-001-DQ-10 下一轮优先讨论：
+RFC-001-DQ-10 已接受：
 
-1. RFC-001 接受后允许创建哪些根目录；
-2. 首批后端 Production Skeleton 文件；
-3. 是否创建业务模块目录；
-4. 是否创建 API、Worker 和 CLI 空入口；
-5. 是否允许创建 Bootstrap；
-6. 是否允许建立质量工具配置和 CI；
-7. Foundation Issue 应如何拆分；
-8. Spike-001 代码如何作为证据但不迁移；
-9. Skeleton 的验收测试；
-10. 哪些内容仍必须等待 RFC-002、RFC-003、RFC-004；
-11. RFC-001 整体接受条件；
-12. 接受 RFC-001 后是否立即授权 Foundation Work。
+1. **Acceptance 与 Authorization 严格分离**——`RFC-001 Acceptance ≠ Foundation Planning Authorization ≠ Foundation Implementation Authorization ≠ Business Implementation Authorization`；接受 DQ 或 RFC-001 整体均不授权开发。
+2. **RFC-001 最终接受仅开放 Foundation Planning**——不开放自动创建 Foundation Issues / 自动执行 Foundation Work / 自动建立 Production Skeleton / 业务功能开发；每个 Foundation Issue 需单独明确授权。
+3. **Initial Foundation Scope = Package + Quality Tooling + Architecture Tests + CI + Repository Security**；首批可创建 `apps/backend/`（`pyproject.toml` / `uv.lock` / `.python-version` / Package Root / `py.typed` / `tests/`）与 `.github/` / `scripts/` / `tooling/`；只创建承担真实职责的文件。
+4. **Prohibited Scope**——首批不创建业务模块、`platform/` 具体实现、Production Orchestration / LangGraph、API / Worker / CLI、Production Bootstrap、Database / ORM / Migration、Queue / Checkpointer、Model / Retrieval / Observability Runtime、Frontend Runtime。
+5. **Spike Source Migration PROHIBITED**——Spike-001 仅作 Architecture Evidence / Failure Catalogue / Test Design Input，禁止复制或重命名迁移进 Production。
+6. **Foundation Issue Candidates = FND-001 → FND-002 → FND-003**（依赖顺序，One Issue → One Branch → One PR → Required Verification → User Merge Gate）。
+7. **Mandatory Stop Conditions** 17 类——遇未决架构问题必须停止并提交 Decision Conflict Report / Mandatory Stop Report，不得静默决定。
+8. **RFC-001 Final Acceptance Flow**——DQ-10 ACCEPTED → Archive DQ-10 → **RFC-001 Final Consistency Review** → Final Review Report → 用户明确接受 → RFC-001 Status = ACCEPTED → Merge PR → Close Issue → Delete Branch；PR Merge 不能替代用户接受。
+9. **Production Business Implementation Gate**——按 DEC-038，`RFC-001/002/003 = ACCEPTED` 后才生成 Roadmap Draft v0；`RFC-001~007 = ACCEPTED` 后才生成 Roadmap v1 与完整业务 Backlog。
 
-在 RFC-001-DQ-10 和 RFC-001 整体被用户明确接受前：
+在 RFC-001 整体被用户明确接受前：
 
 - 不创建 Production Skeleton；
 - 不创建 Production CI；
-- 不创建 API、Worker、CLI；
+- 不创建 Foundation Issue；
+- 不创建业务模块、API、Worker、CLI、Database、Production LangGraph；
 - 不迁移 Spike 代码；
+- Foundation Planning 不得开始；
 - RFC-001 保持 `DRAFTING`。
+
+## 下一议题：RFC-001 Final Consistency Review
+
+DQ-01~DQ-10 已全部 ACCEPTED。下一步为 **RFC-001 Final Consistency Review**，输出：(1) DQ-01~DQ-10 完整清单与正式决定；(2) 内部一致性检查；(3) 与 Accepted DEC / Architecture Baseline 的一致性；(4) 未决问题到 RFC-002~RFC-007 的路由；(5) Rejected Alternatives；(6) Risks and Consequences；(7) Foundation Scope；(8) Decision Conflicts；(9) Final Acceptance Recommendation；(10) 当前授权状态。Review 通过且用户明确接受 RFC-001 后，RFC-001 才转为 `ACCEPTED`。
 
 ## DQ-09: 代码质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线
 
@@ -225,5 +228,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-10 Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口
+Next Topic: RFC-001 Final Consistency Review（RFC-001 保持 DRAFTING；Foundation Planning 未开始；Production Implementation 未授权）
 ```

@@ -106,7 +106,7 @@ Validated Temporary Implementation — Not Production Commitment
 进入正式生产实现前，每个生产技术域必须先经过 RFC 提案、用户 Acceptance Gate 并被接受为 `ACCEPTED`。
 
 ```text
-RFC-001 Repository and Application Architecture [DRAFTING — DQ-01~09 ACCEPTED]
+RFC-001 Repository and Application Architecture [DRAFTING — DQ-01~10 ACCEPTED]
 ↓
 RFC-002 Persistence and Transaction Architecture
 ↓
@@ -125,7 +125,85 @@ RFC-007 Observability and Runtime Operations
 - 每个 RFC 使用独立的 Issue / Branch / PR。
 - 未接受对应 RFC 前，不得开始该域的生产实现；Coding Agent 不得临场选择生产数据库 / Checkpointer / API / ORM / Retrieval / LLM Runtime / Observability。
 
-## 10. 已确认质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线（RFC-001-DQ-09）
+## 10. 已确认 Production Skeleton 范围、Foundation 授权门与 RFC 收口（RFC-001-DQ-10）
+
+> 来源：RFC-001-DQ-10（ACCEPTED）。RFC 接受与开发授权严格分离；RFC-001 最终接受仅开放 **Foundation Planning**，不授权 Foundation Implementation、Business Implementation 或任何生产代码的自动创建。**RFC-001 保持 `DRAFTING`；Production Skeleton 创建仍 NOT AUTHORIZED。**
+
+### 10.1 Acceptance 与 Authorization 分离
+
+- `RFC-001 Acceptance ≠ Foundation Planning Authorization ≠ Foundation Implementation Authorization ≠ Business Implementation Authorization`。
+- 接受某个 DQ 不代表授权开发；接受 RFC-001 整体仅使 Repository and Application Architecture 成为正式 Architecture Baseline，不自动授权生产实现。
+- 当前授权状态：`Foundation Planning = NOT AUTHORIZED`、`Foundation Implementation = NOT AUTHORIZED`、`Business Implementation = NOT AUTHORIZED`、`Architecture Readiness / Development = CONDITIONALLY READY`、`Production Implementation = NOT AUTHORIZED`。
+- DQ-10 接受后唯一允许的下一步是 **RFC-001 Final Consistency Review**，不得创建 Production Skeleton。
+
+### 10.2 RFC-001 Final Acceptance Flow
+
+`DQ-10 ACCEPTED → Archive DQ-10 → Final Consistency Review → Final Review Report → 用户明确接受 RFC-001 → RFC-001 Status = ACCEPTED → Merge RFC-001 PR → Close RFC-001 Issue → Delete RFC Branch`。PR Merge 不能替代用户接受；用户未明确接受前 RFC-001 保持 `DRAFTING`、PR 不得 Merge、Issue 保持 OPEN、Foundation Planning 不得自动开始。
+
+### 10.3 RFC-001 Acceptance Result
+
+用户最终接受 RFC-001 后：`RFC-001 Status = ACCEPTED`、`Foundation Planning = AUTHORIZED`、`Foundation Implementation = NOT AUTHORIZED`、`Business Implementation = NOT AUTHORIZED`、Readiness/Development 保持 `CONDITIONALLY READY`、Production Implementation 保持 `NOT AUTHORIZED`。RFC-001 接受只开放 Foundation Planning，不开放自动创建 Foundation Issues / 自动执行 Foundation Work / 自动建立 Production Skeleton / 业务功能开发。
+
+### 10.4 Foundation Implementation Authorization
+
+每个 Foundation Issue 必须单独获得用户明确授权：`RFC-001 ACCEPTED → Generate Foundation Issue Candidates → 用户审查范围与依赖 → 用户明确授权单个 Issue → Create Issue → Create Branch → Create PR → Execute bounded Foundation Work → 用户审查并 Merge`。Foundation Planning 已授权不等于自动执行全部 Foundation Issues。
+
+### 10.5 Foundation Work Definition 与 Initial Skeleton Scope
+
+- Foundation Work = 建立生产代码安全进入 Repository 的工程基础，允许范围：Python Package 基础、Python Version Constraint、Dependency Manifest、Lockfile、Ruff、Pyright、pytest、Coverage、Import Linter、Architecture Tests、GitHub Actions、Dependency Audit、Secret Detection、Dependabot、PR/Issue Templates、本地统一质量命令、Backend Developer Documentation。**不包括业务能力实现**。
+- RFC-001 最终接受且具体 Foundation Issue 授权后，可按需创建 `apps/backend/`（`pyproject.toml` / `uv.lock` / `.python-version` / `README.md` / `src/ai_ecommerce_agent/__init__.py` / `py.typed` / `tests/{architecture,unit,contract}/`）与 Repository 级 `.github/{workflows,ISSUE_TEMPLATE,pull_request_template.md}` / `scripts/` / `tooling/`。
+- 只创建承担真实职责的文件与目录；**不得为匹配架构图批量创建空 Package**。
+
+### 10.6 Business Module Creation Boundary
+
+首批 Foundation Work **不创建** `modules/{product_intake,customer_insight,product_positioning,human_review,marketing_brief,xiaohongshu_adapter,source_evidence}/`。业务模块只能在 `Relevant DEC + Relevant Spec + Accepted RFC + Authorized Implementation Issue` 齐备后按需创建；不得以「提前搭 Skeleton」为由创建空业务模块。
+
+### 10.7 Platform / Orchestration / Entrypoint / Bootstrap Boundary
+
+- 首批不创建具体 `platform/{persistence,workflow_runtime,retrieval_runtime,model_runtime,observability}/` 实现（分别等待 RFC-002 / RFC-003 / RFC-005 / RFC-006 / RFC-007）。
+- 首批不创建 Production LangGraph Graph / Graph Nodes / Graph State / Routing / Checkpoint Adapter / Retry / Resume / Worker Runtime（等待 RFC-003）。
+- 首批不创建 API（Framework / Routes / Schema / Authentication / Human Review Endpoint / Polling/SSE/WebSocket，等待 RFC-004）、Worker（Queue / Durable Dispatch / Job Consumer / Lease / Heartbeat / Resume Consumer，等待 RFC-003）、空 CLI Entrypoint（Production CLI 在明确 Runtime / Management Issue 中创建）。
+- `bootstrap/` 架构位置已确认，但首批 Foundation Work 不实现 Production Bootstrap（Settings/Database/Runtime/API/Worker/Model Provider/Retrieval 均未选择），须等待相关 Accepted RFC 与实施授权。
+
+### 10.8 Persistence / Workflow Runtime / API·HumanReview / Retrieval / LLM / Observability Prohibition
+
+首批 Foundation Work 不得创建：Production Database / ORM / Migration / Repository / Unit of Work / Database Session / 各业务表（RFC-002）；Production LangGraph / Graph State / Checkpointer / Workflow Worker / Queue / Durable Dispatch / Resume / Cancellation / Recovery Runtime（RFC-003）；API Framework / Task/Run/Review Endpoint / Submit·Resume Protocol / Authentication / Authorization / Frontend Status Protocol（RFC-004）；Source Parser / Fragmentation / Embedding / Vector Store / Index / Retrieval Runtime / EvidencePackage Runtime（RFC-005）；Model Provider / Provider Client / Prompt Registry / Structured Output Runtime / Retry·Repair Runtime / Provider Fallback / Live Model Evaluation Runtime（RFC-006）；Production Trace Provider / Metrics Exporter / Alerting / Dashboard / Incident Runtime / Operator Recovery Queue（RFC-007）。
+
+### 10.9 Frontend Boundary
+
+首批 Foundation Work 不创建 Frontend Framework / Web Application / Human Review UI / Task Dashboard / Generated API Client / Frontend Runtime；等待正式 Frontend Architecture Decision 与授权 Issue。
+
+### 10.10 Spike-001 Boundary
+
+Spike-001 继续位于 `spikes/`，仅作为 Architecture Evidence / Failure Catalogue / Regression Scenario Reference / Acceptance Criteria Input / Recovery Test Design Input / Trace Requirement Input；允许提取测试场景、故障模式、设计约束、验收标准、Trace 字段要求、Recovery 测试思路。**禁止** `Copy Spike Source → Rename Package/Imports → Move into Production Package`；Production Implementation 必须依据 Accepted RFC 重新设计与实现。
+
+### 10.11 Foundation Issue Candidates 与 Dependency Order
+
+- **FND-001 Backend Package and Local Tooling Foundation**：`apps/backend/`、Python 3.13 Constraint、`pyproject.toml`、`uv.lock`、`.python-version`、Package Root、`py.typed`、Ruff、Pyright、pytest、Coverage 基础配置、统一本地命令、Backend README；不含业务模块 / Bootstrap / API / Database / LangGraph / Worker / Provider。
+- **FND-002 Architecture Enforcement and Test Foundation**（依赖 FND-001）：Import Linter、`tests/architecture/`、Layer Contracts、Public Facade Contract、DAG Contract、Spike Isolation、Architecture Fixture、Negative Architecture Tests、pytest Strict Marker、测试分类基础、Architecture Test Documentation；不含真实业务模块测试 / Production Repository / Production Graph Runtime / Provider Adapter。
+- **FND-003 CI, Security and Repository Protection**（依赖 FND-001 + FND-002）：GitHub Actions、稳定 Required Check Names、Ruff/Pyright/pytest/Architecture Checks、`pip-audit`、Secret Detection、Dependabot、PR/Issue Template、Branch Protection、Local/CI Command Consistency；不含 Deployment Pipeline / Production Environment / Cloud Infrastructure / Container Registry / Live Model Evaluation / Production Runtime。
+- 依赖顺序 `FND-001 → FND-002 → FND-003`；每个 Issue 用 `One Issue → One Branch → One PR → Required Verification → User Merge Gate`；不得合并为一个无边界大型 Foundation PR（除非用户后续明确修改）。
+
+### 10.12 Architecture Fixture Boundary
+
+业务模块尚未创建时，不得创建虚假生产业务模块以验证 Architecture Rules。允许在 `apps/backend/tests/architecture/fixtures/` 建立测试 Fixture，模拟 Domain 错误 Import Infrastructure / 模块绕过 Public Facade / 循环依赖 / Production Import Spike；Fixture 只属于 Test Code、不得被 Production Import、不代表真实生产模块、用于证明 Architecture Checker 能识别违规。
+
+### 10.13 Foundation Verification Requirements 与 PR Evidence
+
+- Foundation PR 至少证明 15 项：Formatting / Lint / Type 违规失败；Domain Import Infrastructure 失败；跨模块绕过 Public Facade 失败；模块依赖循环失败；Production Import Spike 失败；未注册 pytest Marker 失败；Unit Test 失败阻止 Merge；Coverage Gate 启用后低于阈值失败；Dependency Vulnerability 被检测；Secret Detection 阻止合并；本地与 CI 同一工具配置；Required Check Names 稳定；故意构造的 Architecture Violation 被正确拒绝。**不得通过空测试或无效 Fixture 伪造质量证据。**
+- 每个 Foundation PR 输出：创建/更新文件、本地命令、测试结果、Architecture Check 结果、Type Check 结果、Dependency Audit 结果、Secret Scan 结果、Scope Deviations、未完成项、对应 Issue、相关 DEC/RFC、是否发现新 Architecture Decision、是否触发 Mandatory Stop Condition。
+
+### 10.14 Mandatory Stop Conditions
+
+Foundation Agent 在需要：选择 Database / ORM / API Framework / Worker Framework / Queue·Broker；创建生产 LangGraph / 业务模块；复制 Spike Source；降低 Accepted Quality Gate；修改 Accepted RFC；改变 Repository Root Structure；DQ 间出现矛盾；工具无法实现已接受 Architecture Contract；修改 Branch Protection 绕过失败；发现 Secret 或真实凭证；实施范围超出当前 Issue；创建后续 RFC 范围内技术实现 —— 时必须停止，并提交 Decision Conflict Report 或 Mandatory Stop Report，不得静默决定。
+
+### 10.15 Production Business Implementation Gate
+
+即使 RFC-001 与全部 Foundation Issues 完成，仍不得自动开始业务开发。按 DEC-038：`RFC-001/002/003 = ACCEPTED` 后才生成 MVP Roadmap Draft v0 / Epic Skeleton / Foundation Dependency Graph / Foundation·Runtime Issue Candidates；完整业务 Roadmap / Implementation Backlog / Business Issues 必须等待 `RFC-001 through RFC-007 = ACCEPTED`。
+
+**Hard Rules：** RFC-001 Acceptance / DQ-10 Acceptance 均 DOES NOT AUTHORIZE IMPLEMENTATION；Foundation Planning 仅在 RFC-001 FINAL ACCEPTANCE 后授权；Foundation Implementation 需单独明确授权；Business Implementation 保持未授权；Initial Foundation Scope = PACKAGE + QUALITY + ARCHITECTURE TESTS + CI + REPOSITORY SECURITY；Initial Business Modules / Production Bootstrap / API·Worker·CLI / Database·ORM·Migration / Production LangGraph / Model·Retrieval·Observability 均 NOT IMPLEMENTED；Spike Source Migration PROHIBITED；Foundation Issue Order = FND-001→FND-002→FND-003；RFC-001 Final Acceptance 需 Final Consistency Review + 用户明确接受。
+
+## 11. 已确认质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线（RFC-001-DQ-09）
 
 > 来源：RFC-001-DQ-09（ACCEPTED）。生产代码采用 Ruff、Pyright、pytest、Import Linter 与自定义 Architecture Tests 构成统一质量工具链；所有 PR 必须通过类型、架构、确定性测试、覆盖率、依赖和 Secret 检查，`main` 由 Required Status Checks 保护，AI Live Evaluation 与普通确定性 Merge Gate 分离。**RFC-001 保持 `DRAFTING`；Production CI 与 Skeleton 创建仍 NOT AUTHORIZED。**
 
@@ -217,7 +295,7 @@ CI 失败时 Coding Agent 不得删除失败测试、降低 Coverage Threshold�
 
 尚未确认：Production Skeleton 范围、Foundation Issue 拆分、首批允许创建的目录/文件、CI Workflow 具体实现、Secret Scanner、工具版本、前端 Framework 与工具、Foundation Work Authorization、RFC-001 整体接受条件。
 
-## 11. 已确认模块公开契约、跨模块协作与循环依赖治理（RFC-001-DQ-08）
+## 12. 已确认模块公开契约、跨模块协作与循环依赖治理（RFC-001-DQ-08）
 
 > 来源：RFC-001-DQ-08（ACCEPTED）。
 
@@ -281,7 +359,7 @@ Contract Tests：Schema Tests（字段/类型/必填/默认/序列化/Version）
 
 本 Decision 不选择 Event Bus / Outbox / Schema Library / Contract Test Framework；RFC-001 保持 `DRAFTING`；**正式 Public Contract、Application Event Runtime、Event Bus、生产 Command/Query 实现、跨模块 Composite Use Case 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 12. 已确认进程边界与同步/异步执行策略（RFC-001-DQ-07）
+## 13. 已确认进程边界与同步/异步执行策略（RFC-001-DQ-07）
 
 > 来源：RFC-001-DQ-07（ACCEPTED）。
 
@@ -341,7 +419,7 @@ API 与 Worker 之间只传递轻量 Runtime Reference（`task_id / run_id / thr
 
 本 Decision 不选择 API Framework / Queue / Database Driver / Worker Framework / Deployment Platform；RFC-001 保持 `DRAFTING`；**API、Worker、Production Runtime 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 13. 已确认 Skill 代码形态与架构关系（RFC-001-DQ-05）
+## 14. 已确认 Skill 代码形态与架构关系（RFC-001-DQ-05）
 
 > 来源：RFC-001-DQ-05（ACCEPTED）。
 
@@ -381,7 +459,7 @@ Skill 须支持 **Contract / Unit / Integration / Evaluation / Architecture** �
 
 本 Decision 不选择模型 Provider / Retrieval Backend / Schema Library / Prompt Registry / Evaluation Framework；RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 14. 已确认依赖注入、配置与应用装配（RFC-001-DQ-06）
+## 15. 已确认依赖注入、配置与应用装配（RFC-001-DQ-06）
 
 > 来源：RFC-001-DQ-06（ACCEPTED）。
 
@@ -421,7 +499,7 @@ Repository **只提交 `.env.example`（占位值，无真实凭证）= REQUIRED
 
 本 Decision 不选择 DI Framework / Secret Manager / Settings Library / Deployment Platform；RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 15. 已确认分层职责、事务所有权与依赖规则（RFC-001-DQ-04）
+## 16. 已确认分层职责、事务所有权与依赖规则（RFC-001-DQ-04）
 
 > 来源：RFC-001-DQ-04（ACCEPTED）。
 
@@ -555,7 +633,7 @@ Domain Event 表示 Domain 已发生业务事实，Domain 可产生但不发布�
 
 RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
 
-## 16. 已确认 Repository 与 Package 目录结构（RFC-001-DQ-03）
+## 17. 已确认 Repository 与 Package 目录结构（RFC-001-DQ-03）
 
 > 来源：RFC-001-DQ-03（ACCEPTED）。
 
@@ -901,7 +979,7 @@ production → spikes / prototypes
 - Deployment Platform；
 - Production Skeleton Authorization Gate。
 
-## 17. 已确认生产技术语言边界（RFC-001-DQ-02）
+## 18. 已确认生产技术语言边界（RFC-001-DQ-02）
 
 > 来源：RFC-001-DQ-02（ACCEPTED）。
 
@@ -1042,7 +1120,7 @@ Worker Integration
 - Deployment Platform；
 - Frontend Framework。
 
-## 18. 已确认应用架构（RFC-001-DQ-01）
+## 19. 已确认应用架构（RFC-001-DQ-01）
 
 > 来源：RFC-001-DQ-01（ACCEPTED）。
 
@@ -1187,11 +1265,11 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 - Web Framework：PENDING RFC；
 - Deployment Platform：PENDING RFC。
 
-## 19. 未决技术决策（PENDING RFC）
+## 20. 未决技术决策（PENDING RFC）
 
 | 领域 | 状态 | RFC |
 |---|---|---|
-| Repository and Application Architecture | DRAFTING — DQ-01~09 ACCEPTED | RFC-001 |
+| Repository and Application Architecture | DRAFTING — DQ-01~10 ACCEPTED | RFC-001 |
 | Persistence and Transaction Architecture（生产 DB / ORM） | PENDING RFC | RFC-002 |
 | LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | PENDING RFC | RFC-003 |
 | API and Human Review Protocol | PENDING RFC | RFC-004 |
@@ -1199,14 +1277,14 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 | LLM Runtime and Structured Output | PENDING RFC | RFC-006 |
 | Observability and Runtime Operations | PENDING RFC | RFC-007 |
 
-> RFC-001 仍为 `DRAFTING`（DQ-01~09 ACCEPTED），Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口（DQ-10）尚未确认；Production CI、Production Skeleton、质量工具版本锁定、Secret Scanner、API、Worker、CLI 与 Production Runtime 创建仍 **NOT AUTHORIZED**。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
+> RFC-001 仍为 `DRAFTING`（DQ-01~10 ACCEPTED）。DQ-10 已确认 Acceptance 与 Authorization 严格分离、Foundation Scope（Package + Quality + Architecture Tests + CI + Repository Security）、Foundation Issue Candidates（FND-001/002/003）与 Mandatory Stop Conditions；**RFC-001 整体尚未被用户接受，下一步为 RFC-001 Final Consistency Review**。RFC-001 Acceptance 不自动授权实现；Foundation Planning 仅在 RFC-001 Final Acceptance 后开放；Foundation Implementation 需单独明确授权；Production CI、Production Skeleton、质量工具版本锁定、Secret Scanner、业务模块、API、Worker、CLI、Database、Production LangGraph 与 Production Runtime 创建仍 **NOT AUTHORIZED**。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
 
-## 20. Final Status
+## 21. Final Status
 
 ```text
 Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-10 Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口
+Next Topic: RFC-001 Final Consistency Review（RFC-001 保持 DRAFTING；Foundation Planning 未开始；Production Implementation 未授权）
 ```

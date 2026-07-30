@@ -3768,24 +3768,357 @@ Related: RFC-001-DQ-01~08; DEC-033 Runtime Reliability; DEC-034 Architecture Rea
 
 ---
 
+## Decision Question 10: Production Skeleton Scope, Foundation Authorization Gate and RFC Closure
+
+> **Status:** `ACCEPTED`
+> **User Decision:** `ACCEPTED`
+> **RFC-001 Status:** `DRAFTING`
+
+### Decision
+
+RFC acceptance and implementation authorization are strictly separate.
+
+RFC-001 final acceptance opens **Foundation Planning only** — it does not authorize Foundation Implementation, Business Implementation, or automatic creation of any production code.
+
+Each Foundation Issue requires **separate explicit user authorization**. Accepting RFC-001 (or DQ-10) does not authorize development.
+
+Initial Foundation Work is limited to **package, quality tooling, architecture tests, CI and repository security**. Business modules, persistence, API, workers, production LangGraph, model runtime, retrieval runtime and observability remain unauthorized.
+
+### Acceptance and Authorization Separation
+
+```text
+RFC-001 Acceptance
+≠ Foundation Planning Authorization
+≠ Foundation Implementation Authorization
+≠ Business Implementation Authorization
+```
+
+Accepting a Decision Question does not authorize development. Accepting RFC-001 as a whole only makes Repository and Application Architecture the formal Architecture Baseline — it does not automatically authorize production implementation.
+
+### Current Authorization State
+
+```text
+RFC-001 Status = DRAFTING
+
+Foundation Planning Status = NOT AUTHORIZED
+Foundation Implementation Status = NOT AUTHORIZED
+Business Implementation Status = NOT AUTHORIZED
+
+Architecture Readiness Status = CONDITIONALLY READY
+Development Status = CONDITIONALLY READY
+Production Implementation = NOT AUTHORIZED
+```
+
+After DQ-10 acceptance, the only permitted next step is **RFC-001 Final Consistency Review**. No Production Skeleton may be created.
+
+### RFC-001 Final Acceptance Flow
+
+```text
+RFC-001-DQ-10 = ACCEPTED
+↓
+Archive DQ-10
+↓
+RFC-001 Final Consistency Review
+↓
+RFC-001 Final Review Report
+↓
+User explicitly accepts RFC-001
+↓
+RFC-001 Status = ACCEPTED
+↓
+Merge RFC-001 PR
+↓
+Close RFC-001 Issue
+↓
+Delete RFC Branch
+```
+
+PR Merge cannot replace user acceptance. Before the user explicitly accepts RFC-001:
+
+- RFC-001 stays `DRAFTING`;
+- RFC-001 PR must NOT be merged;
+- RFC-001 Issue stays OPEN;
+- Foundation Planning must not start automatically.
+
+### RFC-001 Acceptance Result
+
+After the user finally accepts RFC-001:
+
+```text
+RFC-001 Status = ACCEPTED
+
+Foundation Planning Status = AUTHORIZED
+Foundation Implementation Status = NOT AUTHORIZED
+Business Implementation Status = NOT AUTHORIZED
+
+Architecture Readiness Status = CONDITIONALLY READY
+Development Status = CONDITIONALLY READY
+Production Implementation = NOT AUTHORIZED
+```
+
+RFC-001 acceptance opens **Foundation Planning only**. It does NOT open: automatic Foundation Issue creation, automatic Foundation Work execution, automatic Production Skeleton, or business feature development.
+
+### Foundation Implementation Authorization
+
+Each Foundation Issue must be individually and explicitly authorized by the user.
+
+```text
+RFC-001 = ACCEPTED
+↓
+Generate Foundation Issue Candidates
+↓
+User reviews scope and dependencies
+↓
+User explicitly authorizes one Foundation Issue
+↓
+Create Issue
+↓
+Create Branch
+↓
+Create PR
+↓
+Execute bounded Foundation Work
+↓
+User reviews and merges
+```
+
+Authorized Foundation Planning does not auto-execute all Foundation Issues.
+
+### Foundation Work Definition
+
+Foundation Work establishes the engineering foundation for production code to safely enter the Repository. Permitted scope includes:
+
+- Python Package base; Python Version Constraint; Dependency Manifest; Lockfile
+- Ruff; Pyright; pytest; Coverage; Import Linter; Architecture Tests
+- GitHub Actions; Dependency Audit; Secret Detection; Dependabot
+- PR / Issue Templates; local unified quality commands; Backend Developer Documentation
+
+Foundation Work does NOT include business capability implementation.
+
+### Initial Foundation Skeleton Scope
+
+After RFC-001 final acceptance AND a specific Foundation Issue is authorized, the following may be created on demand:
+
+```text
+apps/
+└── backend/
+    ├── pyproject.toml
+    ├── uv.lock
+    ├── .python-version
+    ├── README.md
+    ├── src/
+    │   └── ai_ecommerce_agent/
+    │       ├── __init__.py
+    │       └── py.typed
+    └── tests/
+        ├── architecture/
+        ├── unit/
+        └── contract/
+```
+
+Repository-level (per authorized scope):
+
+```text
+.github/
+├── workflows/
+├── ISSUE_TEMPLATE/
+└── pull_request_template.md
+
+scripts/
+tooling/
+```
+
+Only files and directories with real responsibilities may be created. Do NOT bulk-create empty Packages to match the architecture diagram.
+
+### Business Module Creation Boundary
+
+The first Foundation Work does NOT create:
+
+```text
+modules/
+├── product_intake/
+├── customer_insight/
+├── product_positioning/
+├── human_review/
+├── marketing_brief/
+├── xiaohongshu_adapter/
+└── source_evidence/
+```
+
+Business modules may only be created on demand after:
+
+```text
+Relevant DEC
++ Relevant Spec
++ Accepted RFC
++ Authorized Implementation Issue
+```
+
+Do NOT create empty business modules under the pretext of "setting up the Skeleton early".
+
+### Platform Boundary
+
+The first Foundation Work does NOT create concrete production platform implementations:
+
+```text
+platform/persistence/
+platform/workflow_runtime/
+platform/retrieval_runtime/
+platform/model_runtime/
+platform/observability/
+```
+
+These await acceptance and authorization of RFC-002 (Persistence), RFC-003 (Workflow Runtime), RFC-005 (Retrieval), RFC-006 (LLM Runtime), RFC-007 (Observability) respectively.
+
+### Orchestration Boundary
+
+The first Foundation Work does NOT create: Production LangGraph Graph, Graph Nodes, Graph State, Routing, Checkpoint Adapter, Retry Runtime, Resume Runtime, or Worker Runtime. Awaits RFC-003 ACCEPTED + Authorized Runtime Implementation Issue.
+
+### Entrypoint Boundary
+
+- **API** — no API Framework, Routes, Request/Response Schema, Authentication, Human Review Endpoint, Polling/SSE/WebSocket. Awaits RFC-004.
+- **Worker** — no Worker, Queue, Durable Dispatch, Job Consumer, Lease, Heartbeat, Resume Consumer. Awaits RFC-003.
+- **CLI** — no empty CLI Entrypoint required. Production CLI should be created in an explicit Runtime or Management Issue.
+
+### Bootstrap Boundary
+
+Although the architectural position of `bootstrap/` is confirmed, the first Foundation Work does NOT implement Production Bootstrap, because the Settings Library, Database, Runtime, API, Worker, Model Provider, and Retrieval are all unselected. Production Bootstrap awaits the relevant Accepted RFCs and implementation authorization.
+
+### Persistence Prohibition
+
+The first Foundation Work must NOT create: Production Database, ORM, Migration, Repository Implementation, Unit of Work Implementation, Database Session, Current Truth Table, Version Table, Evidence Link Table, Audit Table, Idempotency Table, or Review Table. Awaits RFC-002.
+
+### Workflow Runtime Prohibition
+
+The first Foundation Work must NOT create: Production LangGraph, Graph State, Checkpointer, Workflow Worker, Queue, Durable Dispatch, Resume Runtime, Cancellation Runtime, or Recovery Runtime. Awaits RFC-003.
+
+### API and Human Review Prohibition
+
+The first Foundation Work must NOT create: API Framework, Task Endpoint, Run Endpoint, Review Endpoint, Submit/Resume Protocol, Authentication, Authorization, or Frontend Status Protocol. Awaits RFC-004.
+
+### Retrieval Prohibition
+
+The first Foundation Work must NOT create: Source Parser, Fragmentation, Embedding, Vector Store, Index, Retrieval Runtime, or EvidencePackage Runtime. Awaits RFC-005.
+
+### LLM Runtime Prohibition
+
+The first Foundation Work must NOT create: Model Provider, Provider Client, Prompt Registry, Structured Output Runtime, Retry/Repair Runtime, Provider Fallback, or Live Model Evaluation Runtime. Awaits RFC-006.
+
+### Observability Prohibition
+
+The first Foundation Work must NOT create: Production Trace Provider, Metrics Exporter, Alerting, Dashboard, Incident Runtime, or Operator Recovery Queue. Awaits RFC-007.
+
+### Frontend Boundary
+
+The first Foundation Work does NOT create: Frontend Framework, Web Application, Human Review UI, Task Dashboard, Generated API Client, or Frontend Runtime. Awaits a formal Frontend Architecture Decision and authorized Issue.
+
+### Spike-001 Boundary
+
+Spike-001 stays in `spikes/`. It serves only as: Architecture Evidence, Failure Catalogue, Regression Scenario Reference, Acceptance Criteria Input, Recovery Test Design Input, Trace Requirement Input.
+
+Permitted extraction: test scenarios, failure modes, design constraints, acceptance criteria, Trace field requirements, Recovery test approaches.
+
+Prohibited:
+
+```text
+Copy Spike Source
+↓
+Rename Package or Imports
+↓
+Move into Production Package
+```
+
+Production Implementation must be redesigned and re-implemented based on Accepted RFCs.
+
+### Foundation Issue Candidates
+
+After RFC-001 final acceptance, the following Foundation Issue Candidates may be generated.
+
+**FND-001: Backend Package and Local Tooling Foundation** — scope: `apps/backend/`; Python 3.13 Constraint; `pyproject.toml`; `uv.lock`; `.python-version`; Backend Package Root; `py.typed`; Ruff; Pyright; pytest; Coverage base config; unified local commands; Backend README. Excludes: business modules, Bootstrap, API, Database, LangGraph, Worker, Provider.
+
+**FND-002: Architecture Enforcement and Test Foundation** — depends on FND-001. Scope: Import Linter; `tests/architecture/`; Layer Contracts; Public Facade Contract; DAG Contract; Spike Isolation; Architecture Fixture; Negative Architecture Tests; pytest Strict Marker; test classification base; Architecture Test Documentation. Excludes: real business module tests, Production Repository, Production Graph Runtime, Provider Adapter.
+
+**FND-003: CI, Security and Repository Protection** — depends on FND-001 + FND-002. Scope: GitHub Actions; stable Required Check Names; Ruff; Pyright; pytest; Architecture Checks; `pip-audit`; Secret Detection; Dependabot; PR Template; Issue Template; Branch Protection; Local/CI Command Consistency. Excludes: Deployment Pipeline, Production Environment, Cloud Infrastructure, Container Registry, Live Model Evaluation, Production Runtime.
+
+### Foundation Dependency Order
+
+```text
+FND-001 → FND-002 → FND-003
+```
+
+Each Foundation Issue uses: One Issue → One Branch → One PR → Required Verification → User Merge Gate. Do NOT merge into one unbounded large Foundation PR unless the user explicitly modifies this plan later.
+
+### Architecture Fixture Boundary
+
+While business modules do not yet exist, do NOT create fake production business modules to validate Architecture Rules. Test Fixtures simulating violations (Domain importing Infrastructure, module bypassing Public Facade, circular dependency, Production importing Spike) may be built under `apps/backend/tests/architecture/fixtures/`. Fixtures belong only to Test Code, must not be imported by Production, do not represent real production modules, and exist to prove the Architecture Checker detects violations.
+
+### Foundation Verification Requirements
+
+A Foundation PR must at least prove: (1) Formatting Violation fails; (2) Lint Violation fails; (3) Type Error fails; (4) Domain importing Infrastructure fails; (5) cross-module Public Facade bypass fails; (6) module dependency cycle fails; (7) Production importing Spike fails; (8) unregistered pytest Marker fails; (9) failing Unit Test blocks Merge; (10) Coverage Gate below threshold fails once enabled; (11) Dependency Vulnerability is detected; (12) Secret Detection blocks merge; (13) local and CI use the same tool config; (14) Required Check Names are stable; (15) a deliberately constructed Architecture Violation is correctly rejected.
+
+Do NOT forge quality evidence via empty tests or invalid Fixtures.
+
+### Foundation PR Evidence
+
+Each Foundation PR must output: created/updated files; local commands run; test results; Architecture Check results; Type Check results; Dependency Audit results; Secret Scan results; Scope Deviations; unfinished items; corresponding Issue; related DEC and RFC; whether a new Architecture Decision was discovered; whether a Mandatory Stop Condition was triggered.
+
+### Mandatory Stop Conditions
+
+The Foundation Agent must stop when it needs to: (1) choose a Database; (2) choose an ORM; (3) choose an API Framework; (4) choose a Worker Framework; (5) choose a Queue or Broker; (6) create production LangGraph; (7) create a business module; (8) copy Spike Source; (9) lower an Accepted Quality Gate; (10) modify an Accepted RFC; (11) change the Repository Root Structure; (12) resolve a contradiction between DQs; (13) when a tool cannot implement an accepted Architecture Contract; (14) modify Branch Protection to bypass a failure; (15) when a Secret or real credential is found; (16) when implementation scope exceeds the current Issue; (17) create a technical implementation within a later RFC's scope. Must submit a Decision Conflict Report or Mandatory Stop Report. Do NOT decide silently.
+
+### Production Business Implementation Gate
+
+Even after RFC-001 and all Foundation Issues are complete, business development must NOT start automatically. Per DEC-038, after `RFC-001 = ACCEPTED`, `RFC-002 = ACCEPTED`, `RFC-003 = ACCEPTED`, the following may be generated: MVP Roadmap Draft v0, Epic Skeleton, Foundation Dependency Graph, Foundation/Runtime Issue Candidates. The full business Roadmap, Implementation Backlog and Business Issues must wait for `RFC-001 through RFC-007 = ACCEPTED`.
+
+### Hard Rules
+
+```text
+RFC-001 Acceptance:          DOES NOT AUTHORIZE IMPLEMENTATION
+DQ-10 Acceptance:            DOES NOT AUTHORIZE IMPLEMENTATION
+Foundation Planning:         AUTHORIZED ONLY AFTER RFC-001 FINAL ACCEPTANCE
+Foundation Implementation:   REQUIRES SEPARATE EXPLICIT USER AUTHORIZATION
+Business Implementation:     REMAINS UNAUTHORIZED
+Initial Foundation Scope:    PACKAGE + QUALITY + ARCHITECTURE TESTS + CI + REPOSITORY SECURITY
+Initial Business Modules:    NOT CREATED
+Production Bootstrap:        NOT IMPLEMENTED
+API / Worker / CLI:          NOT IMPLEMENTED
+Database / ORM / Migration:  NOT IMPLEMENTED
+Production LangGraph:        NOT IMPLEMENTED
+Model / Retrieval / Observability: NOT IMPLEMENTED
+Spike Source Migration:      PROHIBITED
+Foundation Issue Order:      FND-001 → FND-002 → FND-003
+RFC-001 Final Acceptance:    REQUIRES FINAL CONSISTENCY REVIEW AND EXPLICIT USER ACCEPTANCE
+```
+
+### Decision Boundary
+
+This Decision confirms (34 points): RFC-001 Acceptance does not auto-authorize Foundation Implementation; DQ-10 Acceptance does not auto-authorize Foundation Implementation; Final Consistency Review is required after DQ-10; RFC-001 must be explicitly accepted by the user; RFC-001 acceptance opens only Foundation Planning; each Foundation Issue requires separate user authorization; Foundation, Business and Production Implementation status are managed separately; initial Foundation Work covers only Package, quality tooling, Architecture Tests, CI and Repository Security; the first batch may create `apps/backend/` and a formal Python Package Root; may create `pyproject.toml`, Lockfile, `.python-version` and Backend README; may create Architecture Test Fixtures; may configure Ruff, Pyright, pytest, Coverage, Import Linter and `pip-audit`; may create GitHub Actions, Dependabot, Secret Detection and PR/Issue Templates; does NOT bulk-create business modules, concrete `platform/` implementations, Production Orchestration, API/Worker/Production CLI, Production Bootstrap, Database/ORM/Migration/Repository/Unit of Work, Queue/Dispatch/Checkpointer/Worker Runtime, or Model/Retrieval/Observability Runtime; Spike-001 serves only as Evidence and Test Design Input; copying or renaming Spike Source into Production is prohibited; Foundation is planned as FND-001/FND-002/FND-003 executed in dependency order with independent Branch/PR per Issue and full verification evidence per PR; the Agent must stop on unresolved architecture questions; RFC-001 stays `DRAFTING` after DQ-10; RFC-001 becomes `ACCEPTED` only after Final Review and explicit user acceptance; Architecture Readiness stays `CONDITIONALLY READY` and Business Implementation stays unauthorized after RFC-001 acceptance; Roadmap Draft v0 is generated only after RFC-001~003 accepted; Roadmap v1 and the full business Backlog only after RFC-001~007 accepted.
+
+### Traceability
+
+Related: RFC-001-DQ-01 (Modular Monolith); DQ-02 (Language Boundary); DQ-03 (Repository Layout); DQ-04 (Layer and Transaction Boundary); DQ-05 (Skill Architecture); DQ-06 (Bootstrap and Configuration); DQ-07 (Process Boundary); DQ-08 (Public Contract and DAG); DQ-09 (Quality Toolchain); DEC-034 (Architecture Readiness Gate); DEC-036 (GitHub Execution Governance); DEC-038 (RFC Governance); Spike-001 Evidence; Architecture Baseline v1; MVP Traceability Matrix.
+
+---
+
 ## Open Questions
 
-1. Production Skeleton 范围、Foundation Work Authorization Gate 与 RFC-001 收口（RFC-001-DQ-10）。
-2. Durable Dispatch 的具体实现（RFC-002 / RFC-003）。
-3. API Framework 与 HTTP Endpoint（RFC-004）。
-4. Database 和 ORM（RFC-002）。
-5. Queue / Broker / Worker Framework（RFC-003）。
-6. Checkpoint Backend 与 Resume State Machine（RFC-003）。
-7. Polling、SSE 或 WebSocket（RFC-004）。
-8. Settings / Configuration Library。
-9. Secret Manager 与生产凭证来源 / Secret Scanner。
-10. Prompt Registry 与版本注册形式。
-11. Evaluation Framework 与评测数据集形式。
-12. Event Bus / Outbox（跨进程可靠调度）。
-13. Schema Library 与 Contract Test Framework。
-14. Deployment Platform 与 Process Health Check / Worker Scaling Policy。
-15. Graph Version Migration（RFC-003 / RFC-007）。
-16. 质量工具版本（Lockfile 固定）、前端 Framework 与工具、CI Workflow 具体实现。
+DQ-01~DQ-10 已全部 ACCEPTED。RFC-001 下一步为 **RFC-001 Final Consistency Review**（见 Decision Question 10）；RFC-001 保持 `DRAFTING`，Foundation Planning 未开始。以下为仍需后续 RFC / Decision 收敛的开放技术问题：
+
+1. Durable Dispatch 的具体实现（RFC-002 / RFC-003）。
+2. API Framework 与 HTTP Endpoint（RFC-004）。
+3. Database 和 ORM（RFC-002）。
+4. Queue / Broker / Worker Framework（RFC-003）。
+5. Checkpoint Backend 与 Resume State Machine（RFC-003）。
+6. Polling、SSE 或 WebSocket（RFC-004）。
+7. Settings / Configuration Library。
+8. Secret Manager 与生产凭证来源 / Secret Scanner。
+9. Prompt Registry 与版本注册形式。
+10. Evaluation Framework 与评测数据集形式。
+11. Event Bus / Outbox（跨进程可靠调度）。
+12. Schema Library 与 Contract Test Framework。
+13. Deployment Platform 与 Process Health Check / Worker Scaling Policy。
+14. Graph Version Migration（RFC-003 / RFC-007）。
+15. 质量工具版本（Lockfile 固定）、前端 Framework 与工具、CI Workflow 具体实现。
 
 ---
 
@@ -3815,6 +4148,7 @@ Related: RFC-001-DQ-01~08; DEC-033 Runtime Reliability; DEC-034 Architecture Rea
 - RFC-001-DQ-07：Process Boundaries and Sync/Async Execution Strategy
 - RFC-001-DQ-08：Module Public Contracts, Cross-module Collaboration and Cycle Governance
 - RFC-001-DQ-09：Quality Toolchain, Architecture Enforcement, CI Quality Gates and Test Baseline
+- RFC-001-DQ-10：Production Skeleton Scope, Foundation Authorization Gate and RFC Closure
 
 ## Related Specifications
 
