@@ -1,0 +1,17 @@
+# Gitleaks configuration (FND-003).
+#
+# Policy:
+# - useDefault = true: the maintained default rule set is authoritative
+#   (API keys, access tokens, private keys, cloud credentials, database
+#   credentials, authorization headers, provider secrets, .env contents).
+# - The allowlist, if ever needed, must contain PRECISE entries only
+#   (specific fixture files or exact false-positive patterns). Whole
+#   directories (tests/, docs/, config/) or whole file classes (.env*)
+#   must never be excluded.
+# - Every allowlist entry must be justified in
+#   docs/development/ci-and-repository-governance.md (Secret Detection
+#   section) with its false-positive reason.
+#
+# No allowlist entries exist today: the repository has zero known
+# false positives.
+useDefault = true
