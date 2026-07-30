@@ -132,7 +132,7 @@ FND-001 Implementation = COMPLETED（PR #7 MERGED，Merge Commit 5b75bcf99eba45f
 FND-001 Merge = COMPLETED（用户 Merge 决定「我已 merged」确认；Merge Method = Merge Commit；Merged By = JettxonHo）
 FND-001 Verification = PASS（Post-merge Smoke Verification）
 FND-001 Code Status = COMPLETED
-FND-001 Archive Status = COMPLETED（经文档归档 PR #8 记录）
+FND-001 Archive Status = COMPLETED（经文档归档 PR #8 记录，Archive Merge Commit e109452a55a30536e5b2a78547bc52b2e466cab9）
 FND-001 Overall Status = COMPLETED
 FND-001 Completed Date = 2026-07-30
 FND-002 Candidate Status = IN REVIEW（2026-07-30 用户明确授权「确认授权创建并实施 FND-002」）

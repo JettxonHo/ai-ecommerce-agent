@@ -16,6 +16,8 @@ dev = [
     "pyright>=1.1.400",
     "pytest>=8.4.0",
     "pytest-cov>=6.0.0",
+    "pytest-socket>=0.7.0",
+    "import-linter>=2.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -54,7 +56,13 @@ exclude = [
     "**/__pycache__",
     ".venv",
     ".pytest_cache",
+    # Test-only architecture fixtures deliberately contain fictional module
+    # structures and imports of packages that are not installed (no ORM, no
+    # LangGraph in FND-002); type checking them is noise without value.
+    # Helpers and test modules outside fixtures remain strictly checked.
+    "tests/architecture/fixtures",
 ]
+extraPaths = ["tests/architecture"]
 reportMissingImports = true
 reportMissingTypeStubs = false
 venvPath = "."
@@ -66,11 +74,27 @@ testpaths = ["tests"]
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "-W",
+]
+# Warnings-as-errors policy (FND-001) lives here, not in ``-W error``, so the
+# single filter list below is authoritative: pytest applies command-line ``-W``
+# filters after the ini list, where they would take precedence and silently
+# nullify any exception. One precise exception: pytest-socket's
+# SocketBlockedError emits a UserWarning while being raised; letting that
+# single warning through (instead of escalating it to an error mid-raise)
+# keeps the SocketBlockedError itself assertable. No other warning is relaxed.
+filterwarnings = [
     "error",
+    "default::UserWarning:pytest_socket",
 ]
 markers = [
     "unit: hermetic, fast unit tests with no external resources",
+    "integration: tests against real technical adapters with isolated resources; never production services",
+    "contract: public contract, port, adapter compliance, schema, event and dispatch payload tests",
+    "architecture: layer direction, module boundary, public facade, module DAG, configuration boundary and spike isolation checks",
+    "e2e: complete business or runtime flows across real components",
+    "evaluation: AI output quality evaluation with fixed fixtures or scorers",
+    "live: real external network or providers; costly or nondeterministic; opt-in only, never in default selections",
+    "slow: exceeds the fast-test budget; still part of the full local suite",
 ]
 
 [tool.coverage.run]
@@ -82,5 +106,168 @@ show_missing = true
 exclude_also = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",
+]
+
+# ---------------------------------------------------------------------------
+# Architecture contracts (FND-002, RFC-001-DQ-03/04/06/08/09/10)
+#
+# Executable import-graph enforcement via Import Linter (`uv run lint-imports`).
+# Two further architecture rules — public-facade-only cross-module imports and
+# the module dependency DAG — are expressed as custom pytest architecture
+# tests (see tests/architecture/) because Import Linter's built-in contracts
+# cannot express same-module-relative logic and its acyclic contract errors
+# before the `modules` package exists; both use the same grimp graph engine.
+#
+# Empty-package tolerance: wildcard expressions that match nothing yet are
+# silently kept, so every contract below is live today and tightens itself
+# automatically as real packages land. Literal sources are never used for
+# packages that do not exist yet (Import Linter treats those as hard errors).
+# Optional layers are marked with parentheses so a partially built module
+# cannot fail a legitimate work-in-progress state.
+# ---------------------------------------------------------------------------
+
+[tool.importlinter]
+root_packages = ["ai_ecommerce_agent"]
+include_external_packages = true
+
+# Rule 1 — Production and Spike isolation: production code must never depend
+# on throwaway exploration code, directly or indirectly (RFC-001-DQ-10).
+[[tool.importlinter.contracts]]
+name = "Production and Spike isolation"
+type = "forbidden"
+source_modules = ["ai_ecommerce_agent", "ai_ecommerce_agent.*"]
+forbidden_modules = ["spikes", "prototypes"]
+
+# Rule 4 — Infrastructure direction, per business module: infrastructure may
+# implement application ports; application may use domain; neither lower layer
+# may reach upward (RFC-001-DQ-04).
+[[tool.importlinter.contracts]]
+name = "Module layer direction"
+type = "layers"
+containers = ["ai_ecommerce_agent.modules.*"]
+layers = ["(infrastructure)", "(application)", "(domain)"]
+
+# Rule 9 — Shared kernel independence + top-level direction: shared_kernel
+# depends on nothing above it; platform serves modules but never imports
+# them; orchestration and entrypoints sit above modules (RFC-001-DQ-03/08).
+# Bootstrap is deliberately absent here: it assembles everything and is
+# governed one-way by the "Bootstrap not imported by core" contract.
+# Containerless layers are absolute module names (optional via parentheses).
+[[tool.importlinter.contracts]]
+name = "Top-level package direction"
+type = "layers"
+layers = [
+    "(ai_ecommerce_agent.entrypoints)",
+    "(ai_ecommerce_agent.orchestration)",
+    "(ai_ecommerce_agent.modules)",
+    "(ai_ecommerce_agent.platform)",
+    "(ai_ecommerce_agent.shared_kernel)",
+]
+
+# Rule 2 — Domain independence, internal: domain may only lean on stdlib,
+# same-module code and the shared kernel — never on technical layers
+# (RFC-001-DQ-04).
+[[tool.importlinter.contracts]]
+name = "Domain internal dependencies"
+type = "forbidden"
+source_modules = ["ai_ecommerce_agent.modules.*.domain"]
+forbidden_modules = [
+    "ai_ecommerce_agent.platform",
+    "ai_ecommerce_agent.orchestration",
+    "ai_ecommerce_agent.entrypoints",
+    "ai_ecommerce_agent.bootstrap",
+]
+
+# Rule 2 — Domain independence, external: no workflow runtime, ORM, web
+# framework or provider SDK in domain (RFC-001-DQ-04). External forbidden
+# modules must be top-level packages (Import Linter constraint).
+[[tool.importlinter.contracts]]
+name = "Domain external dependencies"
+type = "forbidden"
+source_modules = ["ai_ecommerce_agent.modules.*.domain"]
+forbidden_modules = [
+    "langgraph",
+    "sqlalchemy",
+    "django",
+    "flask",
+    "fastapi",
+    "starlette",
+    "openai",
+    "anthropic",
+]
+
+# Rule 3 — Application independence, internal: application defines ports and
+# use cases; it must not import runtime/composition layers (RFC-001-DQ-04).
+[[tool.importlinter.contracts]]
+name = "Application internal dependencies"
+type = "forbidden"
+source_modules = ["ai_ecommerce_agent.modules.*.application"]
+forbidden_modules = [
+    "ai_ecommerce_agent.platform",
+    "ai_ecommerce_agent.orchestration",
+    "ai_ecommerce_agent.entrypoints",
+    "ai_ecommerce_agent.bootstrap",
+]
+
+# Rule 3 — Application independence, external: infrastructure-neutral
+# application layer; same technology blocklist as domain (RFC-001-DQ-04).
+[[tool.importlinter.contracts]]
+name = "Application external dependencies"
+type = "forbidden"
+source_modules = ["ai_ecommerce_agent.modules.*.application"]
+forbidden_modules = [
+    "langgraph",
+    "sqlalchemy",
+    "django",
+    "flask",
+    "fastapi",
+    "starlette",
+    "openai",
+    "anthropic",
+]
+
+# Rule 8 — Bootstrap direction: bootstrap wires the application together, so
+# core business code (every business module layer, skills included, plus the
+# shared kernel) must never import bootstrap (RFC-001-DQ-06).
+[[tool.importlinter.contracts]]
+name = "Bootstrap not imported by core"
+type = "forbidden"
+source_modules = [
+    "ai_ecommerce_agent.modules.*",
+    "ai_ecommerce_agent.shared_kernel.*",
+]
+forbidden_modules = ["ai_ecommerce_agent.bootstrap"]
+
+# Rule 6 — Orchestration boundary: orchestration coordinates through module
+# public contracts and the workflow runtime; it never touches persistence or
+# provider SDKs directly (LangGraph itself is allowed here: orchestration is
+# where graphs are built, per RFC-001-DQ-02/DQ-07).
+[[tool.importlinter.contracts]]
+name = "Orchestration external dependencies"
+type = "forbidden"
+source_modules = ["ai_ecommerce_agent.orchestration.*"]
+forbidden_modules = [
+    "sqlalchemy",
+    "django",
+    "flask",
+    "fastapi",
+    "starlette",
+    "openai",
+    "anthropic",
+]
+
+# Rule 7 — Entrypoint boundary: entrypoints never bypass the application
+# layer into persistence, graphs or providers (RFC-001-DQ-04/DQ-07). Web
+# frameworks are intentionally NOT forbidden here: entrypoints host them.
+[[tool.importlinter.contracts]]
+name = "Entrypoint external dependencies"
+type = "forbidden"
+source_modules = ["ai_ecommerce_agent.entrypoints.*"]
+forbidden_modules = [
+    "langgraph",
+    "sqlalchemy",
+    "django",
+    "openai",
+    "anthropic",
 ]
 
