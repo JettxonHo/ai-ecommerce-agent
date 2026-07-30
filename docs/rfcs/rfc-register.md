@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，进入依赖驱动的 RFC Planning 阶段。当前所有 RFC 初始状态均为 `PROPOSED`。下一议题：[RFC-001 Repository and Application Architecture](#required-rfc-清单)。
+> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01 已接受。下一议题：[RFC-001-DQ-02：Backend Language and LangGraph Binding](#dq-02-backend-language-and-langgraph-binding)。
 
 ---
 
@@ -20,7 +20,7 @@
 
 | # | RFC 主题 | Wave | 优先级 | 当前状态 | 阻塞的生产模块 | 关联 DEC / Spec | 关联 Spike 未验证项 |
 |---|---|---|---|---|---|---|---|
-| RFC-001 | **Repository and Application Architecture**（生产代码仓与应用结构、模块边界、部署单元） | Wave 1 | P0 | `PROPOSED` | 所有生产模块 | DEC-011/021/023 · architecture/system-architecture | R-1 |
+| RFC-001 | **Repository and Application Architecture**（生产代码仓与应用结构、模块边界、部署单元） | Wave 1 | P0 | `DRAFTING` | 所有生产模块 | DEC-011/021/023 · architecture/system-architecture | R-1 |
 | RFC-002 | **Persistence and Transaction Architecture**（生产数据库、ORM、原子提交与幂等的生产实现） | Wave 1 | P0 | `PROPOSED` | Business Repository / Current Truth | DEC-024/029/033 · architecture/data-architecture | R-1, R-4 |
 | RFC-003 | **LangGraph Runtime and Checkpoint Architecture**（生产 Checkpointer 选型、Safe Resume、序列化兼容） | Wave 2 | P0 | `PROPOSED` | Workflow Runtime / Resume | DEC-013/023/024/033 · runtime/failure-recovery spec | R-3 |
 | RFC-004 | **API and Human Review Protocol**（生产 API 边界、Human Review 提交/暂停协议、权限） | Wave 3 | P0 | `PROPOSED` | Review / Orchestration 接口层 | DEC-007/029 · workflow/human-review spec | R-1 |
@@ -79,6 +79,14 @@ RFC-003 = ACCEPTED
 
 当 RFC-001 至 RFC-007 全部被接受，允许生成 MVP Development Roadmap v1、Final Epic Map、Implementation Backlog、Acceptance Criteria、Traceability Matrix v1。
 
+## RFC-001 Current Status
+
+```text
+RFC-001 Status = DRAFTING
+RFC-001-DQ-01 Modular Monolith First = ACCEPTED
+RFC-001-DQ-02 Backend Language and LangGraph Binding = PROPOSED
+```
+
 ## Final Status
 
 ```text
@@ -86,5 +94,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001 Repository and Application Architecture
+Next Topic: RFC-001-DQ-02 Backend Language and LangGraph Binding
 ```

@@ -106,7 +106,7 @@ Validated Temporary Implementation — Not Production Commitment
 进入正式生产实现前，每个生产技术域必须先经过 RFC 提案、用户 Acceptance Gate 并被接受为 `ACCEPTED`。
 
 ```text
-RFC-001 Repository and Application Architecture
+RFC-001 Repository and Application Architecture [DRAFTING — DQ-01 ACCEPTED]
 ↓
 RFC-002 Persistence and Transaction Architecture
 ↓
@@ -123,13 +123,163 @@ RFC-007 Observability and Runtime Operations
 
 - PR Merge 不自动等于 RFC Accepted。
 - 每个 RFC 使用独立的 Issue / Branch / PR。
-- 未接受对应 RFC 前，不得开始该域的生产实现；Coding Agent 不得临场选择生产数据库 / ORM / Checkpointer / API / Retrieval / LLM Runtime / Observability。
+- 未接受对应 RFC 前，不得开始该域的生产实现；Coding Agent 不得临场选择生产数据库 / Checkpointer / API / ORM / Retrieval / LLM Runtime / Observability。
 
-## 10. 未决技术决策（PENDING RFC）
+## 10. 已确认应用架构（RFC-001-DQ-01）
+
+> 来源：RFC-001-DQ-01（ACCEPTED）。
+
+AI Ecommerce Agent 的 MVP 与首个生产版本采用：
+
+```text
+Application Architecture Style:
+Modular Monolith First
+```
+
+正式含义：
+
+```text
+Single Repository
++
+One Primary Backend Deployment Unit
++
+Business Capability Modules
++
+Platform Capability Modules
++
+Strict Dependency Direction
++
+Explicit Application and Repository Interfaces
++
+Separated Data Ownership
++
+Replaceable Infrastructure Adapters
++
+Future Service Extraction Boundaries
+```
+
+### 10.1 Deployment Boundary
+
+MVP 默认采用：
+
+```text
+One Primary Backend Application
+```
+
+初始不拆分为独立服务（Task / Workflow / Source / Retrieval / Human Review / Brief / Model Runtime Service）。
+
+### 10.2 Repository Boundary
+
+项目使用一个 Git Repository，但 Repository 内必须维持清晰的模块和依赖边界。
+
+### 10.3 Module Boundary（概念划分）
+
+**Business Capability Modules：**
+
+```text
+Product Intake and Fact Extraction
+Customer Insight Analysis
+Product Positioning
+Human Review
+Marketing Brief Generation
+Xiaohongshu Mapping Adapter
+```
+
+**Platform Capability Modules：**
+
+```text
+Source and Evidence
+Workflow Runtime
+Persistence
+Retrieval Runtime
+Model Runtime
+Observability
+Configuration
+Identity and Access
+```
+
+### 10.4 Module Collaboration
+
+模块之间必须通过明确边界协作：
+
+- Application Service
+- Domain Contract
+- Repository Interface
+- Provider Interface
+- Command
+- Query
+- Published Application Event
+
+不得任意访问其他模块内部类、绕过 Application Layer 修改数据、直接访问其他模块 Repository Implementation、以数据库表作为隐式 API、通过 LangGraph State 共享完整业务对象、或将 Prompt 作为唯一契约。
+
+### 10.5 Dependency Direction
+
+```text
+Interface
+↓
+Application
+↓
+Domain
+
+Infrastructure → implements → Repository and Provider Interfaces
+```
+
+Domain 不得依赖具体框架、数据库、ORM、LLM SDK、Vector DB、Message Queue、Observability Provider 或部署平台。
+
+### 10.6 Data Ownership Boundary
+
+允许 Modular Monolith 在 MVP 阶段共享一个数据库实例，但必须保持：
+
+```text
+Shared Database Instance ≠ Shared Data Ownership
+```
+
+必须区分 Business Domain / Workflow Runtime / Checkpoint / Source and Evidence / Retrieval Index / Audit / Observability Data。正式数据库、Schema、ORM 和事务方案由 RFC-002 决定。
+
+### 10.7 Graph and Database Boundary
+
+Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ 接受前，Graph Node 不得临场定义 Domain Version 写入、Current Truth 更新、Evidence Link 事务、幂等、审计或失效逻辑。
+
+### 10.8 Future Service Extraction
+
+必须保留未来服务提取边界，但服务拆分只能由可验证的规模、组织、安全、性能或可靠性需求触发，不得仅因“微服务更先进”而拆分。
+
+### 10.9 Decision Boundary
+
+已确认：
+
+1. Modular Monolith First；
+2. 不采用 Multi-service First；
+3. One Primary Backend Deployment Unit；
+4. One Git Repository；
+5. 按业务能力与平台能力划分模块；
+6. 模块通过明确接口协作；
+7. 不允许任意访问其他模块内部实现；
+8. 共享数据库实例不代表共享数据所有权；
+9. Domain 不依赖具体框架或基础设施；
+10. 保留未来服务提取能力；
+11. 服务拆分由可验证需求触发。
+
+尚未确认：
+
+- 正式后端语言；
+- 正式目录结构；
+- 具体 Domain / Application / Infrastructure / Interface 分层；
+- LangGraph 所属层；
+- Graph Node 是否可直接访问 Repository；
+- Skill 代码形态；
+- Repository Interface / Implementation 位置；
+- Dependency Injection；
+- Configuration Management；
+- Test Layering；
+- API / Worker 接入方式；
+- Production Database / ORM / Web Framework / Deployment Platform。
+
+## 11. 未决技术决策（PENDING RFC）
 
 | 领域 | 状态 | RFC |
 |---|---|---|
-| Repository and Application Architecture | PENDING RFC | RFC-001 |
+| Repository and Application Architecture | DRAFTING — DQ-01 ACCEPTED | RFC-001 |
 | Persistence and Transaction Architecture（生产 DB / ORM） | PENDING RFC | RFC-002 |
 | LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | PENDING RFC | RFC-003 |
 | API and Human Review Protocol | PENDING RFC | RFC-004 |
@@ -137,7 +287,7 @@ RFC-007 Observability and Runtime Operations
 | LLM Runtime and Structured Output | PENDING RFC | RFC-006 |
 | Observability and Runtime Operations | PENDING RFC | RFC-007 |
 
-> 上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
+> RFC-001 仍为 `DRAFTING`，详细包结构与依赖架构尚未确认。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
 
 ## 11. Final Status
 
@@ -146,5 +296,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001 Repository and Application Architecture
+Next Topic: RFC-001-DQ-02 Backend Language and LangGraph Binding
 ```
