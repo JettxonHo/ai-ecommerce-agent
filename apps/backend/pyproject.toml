@@ -1,0 +1,86 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-ecommerce-agent"
+version = "0.1.0"
+description = "AI E-commerce Agent backend production package."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.0",
+    "pyright>=1.1.400",
+    "pytest>=8.4.0",
+    "pytest-cov>=6.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_ecommerce_agent"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/ai_ecommerce_agent"]
+
+[tool.ruff]
+target-version = "py313"
+src = ["src", "tests"]
+extend-exclude = [
+    ".venv",
+    ".pytest_cache",
+    ".ruff_cache",
+    "dist",
+    "build",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+include = ["src", "tests"]
+exclude = [
+    "**/__pycache__",
+    ".venv",
+    ".pytest_cache",
+]
+reportMissingImports = true
+reportMissingTypeStubs = false
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-W",
+    "error",
+]
+markers = [
+    "unit: hermetic, fast unit tests with no external resources",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/ai_ecommerce_agent"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+
