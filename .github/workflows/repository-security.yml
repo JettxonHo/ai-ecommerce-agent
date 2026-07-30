@@ -31,7 +31,7 @@ concurrency:
 
 jobs:
   dependency-audit:
-    name: dependency-audit
+    name: security / dependency-audit
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -62,7 +62,7 @@ jobs:
         run: uv run pip-audit --progress-spinner off --skip-editable
 
   secret-detection:
-    name: secret-detection
+    name: security / secret-detection
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

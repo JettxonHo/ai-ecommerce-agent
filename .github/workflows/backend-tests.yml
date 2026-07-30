@@ -30,7 +30,7 @@ defaults:
 
 jobs:
   unit-contract:
-    name: unit-contract
+    name: test / unit-contract
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -54,7 +54,7 @@ jobs:
         run: uv run pytest -m "not live and not slow"
 
   package-build:
-    name: package-build
+    name: test / package-build
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

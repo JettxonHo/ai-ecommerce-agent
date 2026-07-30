@@ -36,7 +36,7 @@ defaults:
 
 jobs:
   format:
-    name: format
+    name: quality / format
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -56,7 +56,7 @@ jobs:
         run: uv run ruff format --check .
 
   lint:
-    name: lint
+    name: quality / lint
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -76,7 +76,7 @@ jobs:
         run: uv run ruff check .
 
   typecheck:
-    name: typecheck
+    name: quality / typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -96,7 +96,7 @@ jobs:
         run: uv run pyright
 
   architecture:
-    name: architecture
+    name: quality / architecture
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
