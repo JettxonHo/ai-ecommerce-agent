@@ -20,7 +20,7 @@ FND-002 Candidate Status = READY, BLOCKED BY FND-001
 FND-003 Candidate Status = READY, BLOCKED BY FND-001 AND FND-002
 
 FND-001 Issue Creation = AUTHORIZED（2026-07-30，用户明确授权「确认授权创建并实施 FND-001」，GitHub Issue #6 已创建）
-FND-001 Implementation = IN IMPLEMENTATION（2026-07-30，Branch foundation/001-backend-package-local-tooling；Merge = USER DECISION REQUIRED）
+FND-001 Implementation = IN REVIEW（2026-07-30，Branch foundation/001-backend-package-local-tooling；PR #7 已创建待用户审查；Merge = USER DECISION REQUIRED）
 
 FND-002 Issue Creation = NOT AUTHORIZED
 FND-002 Implementation = NOT AUTHORIZED
@@ -56,11 +56,11 @@ FND-003  CI, Security and Repository Protection              (deps: FND-001 + FN
 
 | Candidate | 主题 | 依赖 | Candidate Status | Issue Creation | Implementation |
 |---|---|---|---|---|---|
-| **FND-001** | Backend Package and Local Tooling Foundation | RFC-001 = ACCEPTED（无前置 Foundation Issue） | **READY FOR AUTHORIZATION** | **AUTHORIZED（Issue #6）** | **IN IMPLEMENTATION** |
+| **FND-001** | Backend Package and Local Tooling Foundation | RFC-001 = ACCEPTED（无前置 Foundation Issue） | **READY FOR AUTHORIZATION** | **AUTHORIZED（Issue #6）** | **IN REVIEW（PR #7）** |
 | **FND-002** | Architecture Enforcement and Test Foundation | FND-001 | **READY, BLOCKED BY FND-001** | NOT AUTHORIZED | NOT AUTHORIZED |
 | **FND-003** | CI, Security and Repository Protection | FND-001 + FND-002 | **READY, BLOCKED BY FND-001 AND FND-002** | NOT AUTHORIZED | NOT AUTHORIZED |
 
-> **FND-001 执行状态（2026-07-30）：** 用户明确回复「确认授权创建并实施 FND-001」，授权 FND-001 Issue Creation + Implementation。已创建 [GitHub Issue #6](https://github.com/JettxonHo/ai-ecommerce-agent/issues/6) 与 Branch `foundation/001-backend-package-local-tooling`，进入实施。**Merge 仍为 USER DECISION REQUIRED**；FND-002 / FND-003 与任何业务实现均未授权。
+> **FND-001 执行状态（2026-07-30）：** 用户明确回复「确认授权创建并实施 FND-001」，授权 FND-001 Issue Creation + Implementation。已创建 [GitHub Issue #6](https://github.com/JettxonHo/ai-ecommerce-agent/issues/6) 与 Branch `foundation/001-backend-package-local-tooling`，实施完成并提交 [PR #7](https://github.com/JettxonHo/ai-ecommerce-agent/pull/7)（含完整验证证据），现待用户审查。**Merge 仍为 USER DECISION REQUIRED**；FND-002 / FND-003 与任何业务实现均未授权。
 
 ---
 
@@ -73,7 +73,7 @@ FND-003  CI, Security and Repository Protection              (deps: FND-001 + FN
 ```text
 FND-001 Candidate Status = READY FOR AUTHORIZATION
 FND-001 Issue Creation = AUTHORIZED（2026-07-30，GitHub Issue #6）
-FND-001 Implementation = IN IMPLEMENTATION（2026-07-30，Branch foundation/001-backend-package-local-tooling；Merge = USER DECISION REQUIRED）
+FND-001 Implementation = IN REVIEW（2026-07-30，Branch foundation/001-backend-package-local-tooling；PR #7 已创建待用户审查；Merge = USER DECISION REQUIRED）
 ```
 
 ### 主要追踪
