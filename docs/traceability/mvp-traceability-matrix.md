@@ -41,6 +41,9 @@
 | RFC-001-DQ-08 Module Public Contracts, Cross-module Collaboration and Cycle Governance（Public Facade `modules.<module>.public` / Immutable Snapshot / Cross-module Public Query / Owning Application Service State Change / Orchestration Coordination / Composite Use Case / Application Event Post-commit / DAG Dependency / Public Error Contract / Architecture Tests） | RFC-001 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §12 | RFC-001, RFC-002, RFC-003, RFC-004 | _(placeholder)_ | _(placeholder)_ |
 | RFC-001-DQ-09 Quality Toolchain, Architecture Enforcement, CI Quality Gates and Test Baseline（Ruff Formatter/Linter / Pyright Strict-first / pytest Strict Markers / Import Linter + Custom Architecture Tests / Deterministic Required PR Tests / Branch-aware Coverage 80% / pip-audit / Secret Detection / Protected main Required Checks / Live Evaluation separated） | RFC-001 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §11 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | RFC-001-DQ-10 Production Skeleton Scope, Foundation Authorization Gate and RFC Closure（Acceptance vs Authorization Separation / Foundation Planning Gate / Foundation Implementation separate authorization / Initial Foundation Scope = Package + Quality + Architecture Tests + CI + Repository Security / Business Modules·Platform·Orchestration·API·Worker·Bootstrap·DB·LangGraph·Model·Retrieval·Observability NOT IMPLEMENTED / Spike Source Migration Prohibited / FND-001→FND-002→FND-003 / Mandatory Stop Conditions） | DEC-034, DEC-036, DEC-038 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §10 | RFC-001, RFC-002, RFC-003, RFC-004, RFC-005, RFC-006, RFC-007 | _(placeholder: Future Roadmap Draft v0)_ | _(placeholder)_ |
+| **FND-001 Candidate — Backend Package and Local Tooling Foundation**（APPROVED FOR ISSUE PLANNING；Backend Package `apps/backend/src/ai_ecommerce_agent/` + Python 3.13 + uv Lockfile + Ruff/Pyright/pytest/Coverage Local Tooling + Unified Local Commands；Issue Creation & Implementation NOT AUTHORIZED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | — | docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-02 / DQ-03 / DQ-09 / DQ-10） | _(placeholder: FND-001 Issue，未授权创建)_ | _(placeholder)_ |
+| FND-002 Candidate — Architecture Enforcement and Test Foundation（PROPOSED；deps: FND-001；Import Linter Contracts + Architecture Fixtures + Test Classification） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | — | docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-09） | _(placeholder: FND-002 Issue，未授权创建)_ | _(placeholder)_ |
+| FND-003 Candidate — CI, Security and Repository Protection（PROPOSED；deps: FND-001 + FND-002；GitHub Actions + Branch Protection + Secret Detection + Required Status Checks） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | — | docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-09） | _(placeholder: FND-003 Issue，未授权创建)_ | _(placeholder)_ |
 
 
 ### A. 核心工作流与编排
@@ -120,8 +123,11 @@ RFC-001 Status = ACCEPTED (2026-07-30)
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Foundation Planning = AUTHORIZED（仅生成并审查 FND Issue Candidates）
+Foundation Planning = AUTHORIZED（生成并审查 FND Issue Candidates）
+FND-001 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-001 Issue Creation = NOT AUTHORIZED
+FND-001 Implementation = NOT AUTHORIZED
 Foundation / Business / Production Implementation = NOT AUTHORIZED
 
-Next Topic: 生成并审查 FND-001 / FND-002 / FND-003 Issue Candidates（仅生成候选，不自动创建 Issue，不开始 Foundation Implementation）
+Next Topic: 生成并审查 FND-002 Issue Candidate（Architecture Enforcement and Test Foundation；deps FND-001；仅生成候选，不自动创建 Issue，不开始 Foundation Implementation）
 ```

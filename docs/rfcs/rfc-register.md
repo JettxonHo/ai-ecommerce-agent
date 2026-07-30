@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation 仍未授权。下一议题：**生成并审查 FND-001 / FND-002 / FND-003 Issue Candidates**（仅生成候选，不自动创建 Issue）。
+> **当前阶段：** DEC-038 已接受，**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation 仍未授权。**FND-001 Issue Candidate 已形成（APPROVED FOR ISSUE PLANNING，Issue Creation / Implementation 未授权）**。下一议题：**生成并审查 FND-002 Issue Candidate**（Architecture Enforcement and Test Foundation；deps FND-001；仅生成候选，不自动创建 Issue）。
 
 ---
 
@@ -123,16 +123,18 @@ RFC-001-DQ-10 已接受：
 - Foundation Planning 不得开始；
 - RFC-001 保持 `DRAFTING`。
 
-## 下一议题：FND-001 / FND-002 / FND-003 Issue Candidates
+## 下一议题：FND-002 / FND-003 Issue Candidates
 
-**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**——DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过（八项审查全部 PASS，Decision Conflict = NONE FOUND）。
+**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**——DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过（八项审查全部 PASS，Decision Conflict = NONE FOUND）。RFC-001 的接受**仅开放 Foundation Planning**。
 
-按 DQ-10 的 Acceptance / Authorization 分离，RFC-001 的接受**仅开放 Foundation Planning**。下一步是**生成并审查** Foundation Issue Candidates：
+**FND-001 Issue Candidate 已形成并经用户「确认形成」（2026-07-30）**——Candidate Status = `APPROVED FOR ISSUE PLANNING`；追踪 RFC-001-DQ-02 / DQ-03 / DQ-09 / DQ-10 + DEC-036 / DEC-038。但 **FND-001 Issue Creation = NOT AUTHORIZED，FND-001 Implementation = NOT AUTHORIZED**。规划文档见 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)。
+
+下一步是**生成并审查**剩余 Foundation Issue Candidates：
 
 ```text
-FND-001  Backend Package and Local Tooling Foundation
-FND-002  Architecture Enforcement and Test Foundation   (deps: FND-001)
-FND-003  CI, Security and Repository Protection          (deps: FND-001 + FND-002)
+FND-001  Backend Package and Local Tooling Foundation        = APPROVED FOR ISSUE PLANNING
+FND-002  Architecture Enforcement and Test Foundation        (deps: FND-001)         ← 下一议题
+FND-003  CI, Security and Repository Protection              (deps: FND-001 + FND-002)
 ```
 
 - **仅生成候选（Issue Candidates）供用户审查**——不自动创建 GitHub Issue，不开始任何 Foundation Implementation。
@@ -241,8 +243,15 @@ RFC-001-DQ-04 已接受：
 
 ```text
 Spike Execution Status = COMPLETED
+RFC-001 Status = ACCEPTED (2026-07-30)
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: 生成并审查 FND-001 / FND-002 / FND-003 Issue Candidates（RFC-001 已 ACCEPTED；仅生成候选，不自动创建 Issue；Foundation / Business / Production Implementation 未授权）
+Foundation Planning = AUTHORIZED
+FND-001 Candidate Status = APPROVED FOR ISSUE PLANNING
+FND-001 Issue Creation = NOT AUTHORIZED
+FND-001 Implementation = NOT AUTHORIZED
+Foundation / Business / Production Implementation = NOT AUTHORIZED
+
+Next Topic: 生成并审查 FND-002 Issue Candidate（Architecture Enforcement and Test Foundation；deps FND-001；仅生成候选，不自动创建 Issue；Foundation / Business / Production Implementation 未授权）
 ```
