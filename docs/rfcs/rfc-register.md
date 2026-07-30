@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01、DQ-02 已接受。下一议题：[RFC-001-DQ-03：Repository and Package Directory Structure](#dq-03-repository-and-package-directory-structure)。
+> **当前阶段：** DEC-038 已接受，RFC-001 进入 `DRAFTING`，DQ-01、DQ-02、DQ-03 已接受。下一议题：[RFC-001-DQ-04：Layer Responsibilities and Dependency Rules](#dq-04-layer-responsibilities-and-dependency-rules)。
 
 ---
 
@@ -85,28 +85,32 @@ RFC-003 = ACCEPTED
 RFC-001 Status = DRAFTING
 RFC-001-DQ-01 Modular Monolith First = ACCEPTED
 RFC-001-DQ-02 Backend Language and LangGraph Binding = ACCEPTED
-RFC-001-DQ-03 Repository and Package Directory Structure = PROPOSED
+RFC-001-DQ-03 Repository and Package Directory Structure = ACCEPTED
+RFC-001-DQ-04 Layer Responsibilities and Dependency Rules = PROPOSED
 ```
 
-## DQ-03: Repository and Package Directory Structure
+## DQ-04: Layer Responsibilities and Dependency Rules
 
-RFC-001-DQ-03 下一轮优先讨论：
+RFC-001-DQ-04 下一轮优先讨论：
 
-- 是否采用 `src/` Layout；
-- 按业务模块优先还是按技术层优先；
-- Domain、Application、Infrastructure、Interface 如何组织；
-- Workflow、Skills、Retrieval 和 Shared Platform 的位置；
-- API、Worker 和 CLI 的入口；
-- Tests 如何镜像生产模块；
-- Migration、Scripts、Config 和 Documentation 的位置；
-- Spike 与 Production 的物理隔离；
-- Import Boundary；
-- Architecture Test 的放置方式。
+1. Domain 可以依赖哪些类型；
+2. Application Service 的正式职责；
+3. Port 应由哪一层定义；
+4. Infrastructure 如何实现 Port；
+5. Transaction 在哪一层开启；
+6. Graph Node 可以调用什么；
+7. Graph Node 是否可以访问 Repository；
+8. API Handler 是否可以调用 Domain；
+9. Entrypoint 是否可以开启事务；
+10. 跨模块同步调用规则；
+11. Application Event 边界；
+12. Composition Root 权限；
+13. 如何通过 Architecture Test 阻止越界。
 
-在 RFC-001-DQ-03 被用户明确接受前：
+在 RFC-001-DQ-04 被用户明确接受前：
 
-- 不创建正式生产 Package；
-- 不创建生产源码目录；
+- 不创建正式 Production Skeleton；
+- 不创建生产源码；
 - 不迁移 Spike 代码；
 - RFC-001 保持 `DRAFTING`。
 
@@ -117,5 +121,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-03 Repository and Package Directory Structure
+Next Topic: RFC-001-DQ-04 Layer Responsibilities and Dependency Rules
 ```

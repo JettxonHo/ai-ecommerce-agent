@@ -31,8 +31,9 @@
 | RFC Planning and Dependency Order | DEC-038 | specs/governance/rfc-planning-and-dependency-order.md | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | specs/governance/rfc-planning-and-dependency-order.md | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | specs/governance/rfc-planning-and-dependency-order.md | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
-| RFC-001-DQ-01 Modular Monolith First | RFC-001 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §11 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
-| RFC-001-DQ-02 Backend Language and LangGraph Binding | RFC-001 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §10 | RFC-001, RFC-003 | _(placeholder)_ | _(placeholder)_ |
+| RFC-001-DQ-01 Modular Monolith First | RFC-001 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §12 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
+| RFC-001-DQ-02 Backend Language and LangGraph Binding | RFC-001 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §11 | RFC-001, RFC-003 | _(placeholder)_ | _(placeholder)_ |
+| RFC-001-DQ-03 Repository and Package Directory Structure | RFC-001 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §10 | RFC-001, RFC-002, RFC-004 | _(placeholder)_ | _(placeholder)_ |
 
 
 ### A. 核心工作流与编排
@@ -111,5 +112,5 @@ Spike Execution Status = COMPLETED
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY
 
-Next Topic: RFC-001-DQ-03 Repository and Package Directory Structure
+Next Topic: RFC-001-DQ-04 Layer Responsibilities and Dependency Rules
 ```

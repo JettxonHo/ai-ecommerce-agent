@@ -944,17 +944,963 @@ Risks：
 - Frontend Framework。
 
 ---
+### DQ-03：Repository and Package Directory Structure
+
+**Status:** `ACCEPTED`
+
+#### Question
+
+项目应采用怎样的代码仓结构、应用根目录与后端 Package 目录结构？业务模块、平台能力、编排、入口与依赖装配如何组织？
+
+#### Decision
+
+Repository 采用：
+
+```text
+Single Repository
++
+Multi-project Layout
+```
+
+正式应用位于根目录：
+
+```text
+apps/
+```
+
+概念结构：
+
+```text
+AI Ecommerce Agent/
+├── AGENTS.md
+├── README.md
+│
+├── apps/
+│   ├── backend/
+│   └── web/
+│
+├── contracts/
+├── docs/
+├── spikes/
+├── prototypes/
+├── scripts/
+├── tooling/
+└── .github/
+```
+
+具体目录只在存在真实文件和已授权工作时创建，不得批量制造空目录。
+
+#### Application Roots
+
+**Python Backend**
+
+正式 Python 后端位于：
+
+```text
+apps/backend/
+```
+
+生产 Python 源码唯一合法根路径：
+
+```text
+apps/backend/src/ai_ecommerce_agent/
+```
+
+正式 Python Package 名：
+
+```text
+ai_ecommerce_agent
+```
+
+**TypeScript Frontend**
+
+正式 TypeScript Web Frontend 位于：
+
+```text
+apps/web/
+```
+
+本 Decision 不选择具体前端 Framework。
+
+**Shared Contracts**
+
+前后端正式契约位于：
+
+```text
+contracts/
+```
+
+概念结构可以包括：
+
+```text
+contracts/
+├── openapi/
+├── json-schema/
+└── error-codes/
+```
+
+具体 Contract Generation、Schema Library 与 API Versioning 由后续 RFC 决定。
+
+#### Python Package Layout
+
+正式后端采用：
+
+```text
+src Layout
+```
+
+建议结构：
+
+```text
+apps/backend/
+├── pyproject.toml
+├── uv.lock
+├── .python-version
+├── README.md
+│
+├── src/
+│   └── ai_ecommerce_agent/
+│
+├── tests/
+├── migrations/
+└── scripts/
+```
+
+采用 `src/` Layout 的目的：
+
+- 避免测试意外从 Repository Working Directory 直接 Import；
+- 验证 Package 安装和 Import 配置；
+- 降低本地环境与部署环境不一致；
+- 提前暴露缺失依赖和 Package 配置错误；
+- 明确生产源码唯一根目录。
+
+#### Backend Package Organization
+
+正式后端采用：
+
+```text
+Business Capability Modules First
++
+Independent Platform Capabilities
++
+Dedicated Orchestration
++
+Explicit Entrypoints
++
+Central Composition Root
+```
+
+推荐概念结构：
+
+```text
+apps/backend/src/ai_ecommerce_agent/
+├── modules/
+├── platform/
+├── orchestration/
+├── entrypoints/
+├── bootstrap/
+└── shared_kernel/
+```
+
+该结构是正式 Architecture Contract，但本次任务不得直接创建生产目录。
+
+#### Business Capability Modules
+
+业务能力位于：
+
+```text
+modules/
+```
+
+概念模块包括：
+
+```text
+modules/
+├── product_intake/
+├── customer_insight/
+├── product_positioning/
+├── human_review/
+├── marketing_brief/
+├── xiaohongshu_adapter/
+└── source_evidence/
+```
+
+具体模块边界可在后续 RFC 或 Spec 中细化，但不得违背已接受的 MVP Skill 和 Workflow Decisions。
+
+**Internal Business Module Structure**
+
+单个业务模块内部采用：
+
+```text
+domain/
+application/
+infrastructure/
+public.py
+```
+
+概念示例：
+
+```text
+modules/
+└── product_positioning/
+    ├── domain/
+    ├── application/
+    ├── infrastructure/
+    ├── public.py
+    └── __init__.py
+```
+
+不存在实际内容时，不要求创建对应空目录或空文件。
+
+**Domain Directory**
+
+`domain/` 用于：
+
+- Entity；
+- Value Object；
+- Domain Service；
+- Business Rule；
+- Domain Error；
+- Domain Validation；
+- Version Rule；
+- Evidence Rule；
+- Review Rule；
+- Invalidation Rule。
+
+Domain 不得依赖：
+
+- LangGraph；
+- Web Framework；
+- ORM；
+- Database Driver；
+- Model SDK；
+- Vector Database SDK；
+- Message Queue SDK；
+- Checkpoint Backend；
+- Observability Provider。
+
+**Application Directory**
+
+`application/` 用于：
+
+- Command；
+- Query；
+- Application Service；
+- Port；
+- Result；
+- Use Case；
+- Transaction Coordination；
+- Idempotency Coordination；
+- Audit Coordination。
+
+Application 可以依赖本模块 Domain。
+
+Application 不得依赖具体 Infrastructure Implementation。
+
+**Infrastructure Directory**
+
+`infrastructure/` 用于：
+
+- Repository Implementation；
+- Persistence Adapter；
+- External Provider Adapter；
+- ORM Mapping；
+- Database Integration；
+- Third-party SDK Adapter。
+
+Infrastructure 负责实现 Application 或 Domain 定义的 Port。
+
+具体 Database、ORM 和 Adapter 技术不在本 Decision 中选择。
+
+**Module Public Contract**
+
+每个业务模块使用明确的公开表面，例如：
+
+```text
+public.py
+```
+
+其可以导出：
+
+- Public Command；
+- Public Query；
+- Application Service Protocol；
+- Public Result；
+- Public Error；
+- Published Application Event。
+
+其他模块不得直接访问目标模块的：
+
+```text
+infrastructure/
+internal domain implementation
+private repository implementation
+```
+
+模块间调用必须通过公开 Application Contract 或正式 Port。
+
+#### Platform Capabilities
+
+平台能力位于：
+
+```text
+platform/
+```
+
+概念结构：
+
+```text
+platform/
+├── persistence/
+├── workflow_runtime/
+├── model_runtime/
+├── retrieval_runtime/
+├── observability/
+├── configuration/
+├── identity/
+└── messaging/
+```
+
+平台模块不等于业务模块。其负责多个业务能力共享的技术设施和 Adapter，但不得拥有业务规则。
+
+具体平台技术由后续 RFC 决定。
+
+#### Orchestration Boundary
+
+LangGraph 与跨模块 Workflow 位于：
+
+```text
+orchestration/
+```
+
+概念结构：
+
+```text
+orchestration/
+├── workflows/
+└── adapters/
+    └── langgraph/
+```
+
+跨模块主流程，例如：
+
+```text
+Product Intake
+→ Customer Insight
+→ Product Positioning
+→ Human Review
+→ Marketing Brief
+→ Xiaohongshu Adapter
+```
+
+属于 Application-level Orchestration，不属于单个业务模块内部。
+
+`orchestration/` 可以依赖：
+
+- 各业务模块的公开 Application Contract；
+- Workflow Runtime Platform；
+- Runtime-level Types。
+
+不得：
+
+- 实现 Domain Rule；
+- 拥有 Business Transaction；
+- 直接更新 Current Truth；
+- 直接使用其他模块的 Repository Implementation；
+- 直接写 ORM Model；
+- 将完整 Domain Object 放入 Graph State。
+
+Graph Node 的完整职责将在 RFC-001-DQ-04 中确认。
+
+#### Entrypoints
+
+外部入口位于：
+
+```text
+entrypoints/
+├── api/
+├── worker/
+└── cli/
+```
+
+**API Entrypoint**
+
+未来负责：
+
+- HTTP Route；
+- Request Schema；
+- Response Schema；
+- Authentication Adapter；
+- API Error Mapping；
+- 请求级依赖入口。
+
+不得放置 Domain Rule 或业务事务。
+
+**Worker Entrypoint**
+
+未来负责：
+
+- Background Job Consumer；
+- Scheduled Job；
+- Queue Handler；
+- Workflow Worker Entry。
+
+是否独立进程、是否使用 Queue，尚未决定。
+
+**CLI Entrypoint**
+
+未来负责：
+
+- 管理命令；
+- 数据检查；
+- Recovery 入口；
+- 本地维护任务；
+- 开发辅助执行。
+
+CLI 不得绕过 Application Service 直接修改业务数据。
+
+#### Bootstrap and Composition Root
+
+依赖装配位于：
+
+```text
+bootstrap/
+```
+
+概念职责：
+
+- 加载 Configuration；
+- 创建 Application；
+- 创建数据库连接；
+- 创建 Repository Implementation；
+- 创建 Provider Adapter；
+- 装配 Workflow；
+- 装配 API、Worker、CLI；
+- 管理 Application Lifecycle。
+
+Bootstrap 是少数允许同时了解：
+
+- Application Port；
+- Infrastructure Implementation；
+- Orchestration；
+- Entrypoint；
+
+的区域。
+
+具体 Dependency Injection 技术尚未选择。
+
+#### Shared Kernel
+
+允许保留严格受限的：
+
+```text
+shared_kernel/
+```
+
+只允许放置：
+
+- 通用 Identifier 类型；
+- Clock Protocol；
+- 无业务语义的 Result；
+- 通用 Error Base；
+- 基础 Typing Utility。
+
+不得放置：
+
+- 具体业务规则；
+- Product Positioning；
+- Human Review；
+- Evidence Business Rule；
+- Marketing Brief Schema；
+- Repository Implementation；
+- LangGraph State；
+- ORM Base Model；
+- 各业务模块为了方便而共享的任意代码。
+
+具有明确业务所有权的概念必须属于对应业务模块。
+
+#### Test Layout
+
+正式后端测试位于：
+
+```text
+apps/backend/tests/
+```
+
+测试类别：
+
+```text
+tests/
+├── unit/
+├── integration/
+├── contract/
+├── architecture/
+└── e2e/
+```
+
+**Unit Tests**
+
+验证：
+
+- Domain Rule；
+- Value Object；
+- Application Service；
+- Validator；
+- 纯函数；
+- 确定性业务逻辑。
+
+不依赖：
+
+- 网络；
+- 真实数据库；
+- LangGraph Runtime；
+- 真实模型。
+
+**Integration Tests**
+
+验证：
+
+- Repository Implementation；
+- Transaction；
+- Database；
+- Checkpointer；
+- Provider Adapter；
+- Retrieval Adapter；
+- Workflow Runtime Integration。
+
+**Contract Tests**
+
+验证：
+
+- API Contract；
+- Provider Contract；
+- Repository Contract；
+- Generated Schema；
+- 前后端 Contract；
+- Adapter Compliance。
+
+**Architecture Tests**
+
+验证：
+
+- Domain 不 Import LangGraph；
+- Domain 不 Import Infrastructure；
+- Application 不 Import Infrastructure Implementation；
+- 模块不 Import 其他模块内部目录；
+- Production 不 Import `spikes/`；
+- Production 不 Import `prototypes/`；
+- Graph Node 不直接 Import ORM Model；
+- Entrypoint 不包含 Domain Rule；
+- Import Boundary 与 Package Boundary。
+
+具体 Architecture Test 工具尚未选择。
+
+**End-to-End Tests**
+
+验证：
+
+- 完整 Workflow；
+- Human Review；
+- Retry 和 Recovery；
+- API 到业务结果；
+- 关键 Portfolio Demo 场景。
+
+**Test Organization**
+
+Unit Test 大体镜像生产模块，例如：
+
+```text
+tests/unit/modules/product_positioning/
+tests/unit/modules/human_review/
+```
+
+Integration、Contract、Architecture 与 E2E 按验证场景组织，例如：
+
+```text
+tests/integration/persistence/
+tests/integration/workflow_runtime/
+tests/architecture/test_import_boundaries.py
+tests/e2e/test_marketing_brief_workflow.py
+```
+
+不要求每个源码文件机械对应一个同名测试文件。
+
+#### Database Migrations
+
+正式数据库 Migration 位于：
+
+```text
+apps/backend/migrations/
+```
+
+不放入可 Import 的生产 Python Package。
+
+具体 Migration Tool、Database 和 Schema Strategy 由 RFC-002 决定。
+
+#### Configuration and Secret Boundary
+
+目录层面允许未来使用：
+
+```text
+apps/backend/.env.example
+apps/backend/src/ai_ecommerce_agent/bootstrap/settings.py
+```
+
+规则：
+
+- `.env.example` 只能包含变量名称和非敏感示例；
+- `.env`、Secret、Token 不得提交；
+- Domain 和 Application 不直接读取环境变量；
+- Configuration 由 Bootstrap 加载并注入。
+
+具体 Configuration Library 尚未决定。
+
+#### Spike and Prototype Isolation
+
+技术验证继续位于 Repository 根目录：
+
+```text
+spikes/
+prototypes/
+```
+
+正式规定：
+
+```text
+spikes/
+≠
+apps/backend/src/
+```
+
+生产 Package 禁止：
+
+```python
+from spikes...
+from prototypes...
+```
+
+允许关系：
+
+```text
+Spike Evidence
+→ informs RFC and Production Tests
+→ production implementation is rebuilt under accepted architecture
+```
+
+禁止关系：
+
+```text
+Spike Source
+→ rename or move
+→ Production Source
+```
+
+现有 Spike-001 继续作为 Architecture Evidence 保存。
+
+#### Repository-level Directories
+
+`docs/`
+
+继续保存：
+
+- Decisions；
+- Specs；
+- RFCs；
+- Architecture；
+- Readiness；
+- Roadmap；
+- Traceability；
+- Sessions。
+
+`scripts/`
+
+保存 Repository 级辅助脚本，例如：
+
+- 文档校验；
+- Repository 检查；
+- Schema Generation Entry；
+- 本地开发辅助。
+
+业务运行脚本应优先放在所属应用内部。
+
+`tooling/`
+
+保存实际存在的 Repository 级工程工具，例如：
+
+- Architecture Test 配置；
+- Schema Generation；
+- CI 辅助；
+- Lint 和 Formatting Integration。
+
+不得在没有实际工具时创建空目录。
+
+`.github/`
+
+保存：
+
+- Workflow；
+- Issue Template；
+- Pull Request Template；
+- Repository Automation。
+
+具体 CI 方案尚未决定。
+
+#### Import Boundary
+
+当前确认的方向性规则：
+
+```text
+entrypoints
+↓
+bootstrap / orchestration
+↓
+application public contracts
+↓
+domain
+```
+
+Infrastructure：
+
+```text
+infrastructure
+→ implements
+→ application or domain ports
+```
+
+允许：
+
+```text
+module.application → module.domain
+module.infrastructure → module.application ports
+orchestration → module.public
+entrypoints → bootstrap
+bootstrap → application + infrastructure + orchestration
+```
+
+禁止：
+
+```text
+domain → application
+domain → infrastructure
+domain → orchestration
+domain → entrypoints
+
+application → infrastructure implementation
+application → LangGraph
+application → API framework
+
+module A → module B infrastructure
+module A → module B private implementation
+
+production → spikes
+production → prototypes
+```
+
+完整职责和依赖规则将在 RFC-001-DQ-04 中确认。
+
+#### Cross-module Data Boundary
+
+模块之间不得使用数据库表作为隐式 API。
+
+即使共享同一 Database Instance，也不得：
+
+- 直接写入其他模块的内部表；
+- 通过其他模块 ORM Model 修改数据；
+- 绕过 Application Contract；
+- 直接调用其他模块 Repository Implementation。
+
+跨模块读取和写入必须通过：
+
+- Public Application Contract；
+- Application Port；
+- 明确 Query Service；
+- 用户后续确认的 Published Application Event。
+
+#### Directory Creation Boundary
+
+接受本 Decision 不等于立即创建生产目录。
+
+本阶段只授权：
+
+- 更新 RFC；
+- 更新 Architecture Baseline；
+- 更新 Traceability；
+- 更新 RFC Register；
+- 记录未来 Architecture Test 要求。
+
+暂不授权：
+
+- 创建 `apps/backend/src/ai_ecommerce_agent/`；
+- 创建正式 Python Package；
+- 批量创建空目录；
+- 创建 Production Skeleton；
+- 迁移 Spike 代码；
+- 创建业务模块源码；
+- 创建数据库 Migration；
+- 创建 API、Worker 或 CLI 实现。
+
+正式 Skeleton 必须等待：
+
+```text
+RFC-001 = ACCEPTED
++
+Foundation Work explicitly authorized
+```
+
+#### Rejected Alternatives
+
+**Technology-layer-first Root Layout**
+
+未选择：
+
+```text
+domain/
+application/
+infrastructure/
+interfaces/
+```
+
+作为整个应用的顶层主要组织方式。
+
+原因：
+
+- 单个业务能力被拆散；
+- 模块所有权不清晰；
+- 随业务增长跨目录跳转增加；
+- 不利于未来模块提取；
+- Coding Agent 修改范围难以限定。
+
+技术层仍保留在业务模块内部。
+
+**Flat Application Layout**
+
+拒绝：
+
+```text
+app.py
+services.py
+repositories.py
+models.py
+utils.py
+```
+
+原因：
+
+- 无法体现模块边界；
+- 容易演化为公共代码堆积；
+- LangGraph、API、事务和业务规则容易混合；
+- 无法通过路径约束 Agent。
+
+**Multi-repository Initial Layout**
+
+当前不采用多个 Repository。
+
+原因：
+
+- 与 Modular Monolith First 不一致；
+- 增加版本协调和本地开发复杂度；
+- 当前没有独立服务和团队边界。
+
+#### Trade-offs
+
+Positive：
+
+- 正式生产代码路径明确；
+- 业务能力代码集中；
+- 平台、编排和入口职责可分离；
+- 更利于 Coding Agent 限定修改范围；
+- 支持未来模块提取；
+- Spike 与生产代码物理隔离；
+- Architecture Tests 可以验证边界；
+- 前后端契约有独立位置。
+
+Risks：
+
+- 模块内部结构可能机械复制；
+- `platform/` 可能成为技术垃圾场；
+- `shared_kernel/` 可能膨胀；
+- `public.py` 可能暴露过多内部细节；
+- 跨模块调用可能绕过公开接口；
+- Orchestration 可能吸收业务逻辑；
+- Agent 可能提前创建大量空目录。
+
+#### Required Mitigations
+
+后续必须明确：
+
+- Domain、Application、Infrastructure、Entrypoint 与 Orchestration 职责；
+- Port Ownership；
+- Transaction Ownership；
+- Public Contract Rules；
+- Cross-module Call Rules；
+- Architecture Test Rules；
+- Empty Directory Prohibition；
+- Production Skeleton Authorization Gate。
+
+#### Decision Boundary
+
+本 Decision 已确认：
+
+1. Repository 使用单仓库、多项目布局；
+2. 正式应用位于 `apps/`；
+3. Python 后端位于 `apps/backend/`；
+4. TypeScript 前端位于 `apps/web/`；
+5. 共享正式契约位于 `contracts/`；
+6. 后端采用 `src/` Layout；
+7. 正式 Python Package 名为 `ai_ecommerce_agent`；
+8. 生产源码唯一根路径为 `apps/backend/src/ai_ecommerce_agent/`；
+9. 后端以业务能力模块优先组织；
+10. 业务模块内部使用 `domain/application/infrastructure/public` 边界；
+11. 平台能力位于 `platform/`；
+12. LangGraph 与跨模块 Workflow 位于 `orchestration/`；
+13. API、Worker、CLI 位于 `entrypoints/`；
+14. 依赖装配位于 `bootstrap/`；
+15. `shared_kernel/` 必须最小化；
+16. 后端测试分为 unit、integration、contract、architecture、e2e；
+17. Unit Test 大体镜像生产模块；
+18. Migration 位于 `apps/backend/migrations/`；
+19. Spike 和 Prototype 保持在根目录独立区域；
+20. Production 禁止 Import Spike 或 Prototype；
+21. 模块间通过公开 Application Contract 协作；
+22. 数据库表不能作为隐式模块 API；
+23. Architecture Tests 必须验证 Import Boundary；
+24. 目录按实际文件按需创建；
+25. 当前不选择 API Framework、Database、ORM、Queue、前端 Framework 或部署平台；
+26. 当前不创建生产 Skeleton，不迁移 Spike 代码。
+
+本 Decision 尚未确认：
+
+- Domain、Application、Infrastructure、Entrypoint 的完整职责；
+- Port 应由 Domain 还是 Application 定义；
+- Transaction 在哪一层开始；
+- Graph Node 是否可以直接访问 Repository Interface；
+- API Handler 是否可以调用 Domain；
+- 跨模块同步调用和事件规则；
+- Dependency Injection 形式；
+- Configuration 技术；
+- Architecture Test 工具；
+- API Framework；
+- Database；
+- ORM；
+- Worker；
+- Queue；
+- Deployment Platform。
+
+---
+
 
 ## Open Questions
 
-1. 目录结构：业务模块与平台模块的具体 Package 层级。
-2. Graph Node 是否允许直接调用 Repository / Application Service。
-3. Dependency Injection 机制选择。
-4. Configuration Management 策略。
-5. Test Architecture 分层。
-6. 是否需要 Architecture Tests（如 import-linter）。
-7. API / Worker / CLI 等接入方式的边界。
-8. 未来服务提取的具体接口形态。
+1. Domain、Application、Infrastructure、Entrypoint 与 Orchestration 的正式职责和依赖规则（RFC-001-DQ-04）。
+2. Port 应由 Domain 还是 Application 定义。
+3. Transaction 在哪一层开始。
+4. Graph Node 是否可以直接访问 Repository Interface。
+5. API Handler 是否可以调用 Domain。
+6. 跨模块同步调用和事件规则。
+7. Dependency Injection 形式。
+8. Configuration 技术。
+9. Architecture Test 工具。
+10. API Framework、Database、ORM、Worker、Queue、Deployment Platform。
 
 ---
 
@@ -976,6 +1922,7 @@ Risks：
 - DEC-035：Temporary Spike Stack
 - DEC-038：Dependency-driven RFC Governance
 - RFC-001-DQ-01：Modular Monolith First
+- RFC-001-DQ-02：Backend Language and LangGraph Binding
 
 ## Related Specifications
 
