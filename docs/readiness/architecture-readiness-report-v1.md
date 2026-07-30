@@ -1,6 +1,6 @@
 # Architecture Readiness Report v1
 
-> **Status: DRAFT — PENDING USER REVIEW**
+> **Status: DECIDED — CONDITIONALLY READY（用户已确认）**
 > **治理来源：** DEC-034（Technical Spike & Architecture Readiness Gate）
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3) · Spike Issue #1（CLOSED）· Spike PR #2（MERGED，merge commit `a60ff3b`）
 > **Spike 证据：** [../spikes/spike-001-langgraph-runtime-and-recovery/spike-report.md](../spikes/spike-001-langgraph-runtime-and-recovery/spike-report.md) · [test-results](../spikes/spike-001-langgraph-runtime-and-recovery/test-results.md) · [runtime-evidence](../spikes/spike-001-langgraph-runtime-and-recovery/runtime-evidence.md) · [limitations](../spikes/spike-001-langgraph-runtime-and-recovery/limitations.md)
@@ -22,8 +22,8 @@ Spike-001 在最小、确定性、可复现、可抛弃的临时环境中，对�
 
 ```text
 Spike Execution Status = COMPLETED（S0—S6 全部完成，Gate A—E 通过）
-Architecture Readiness Status = PENDING USER REVIEW
-Development Status = NOT READY
+Architecture Readiness Status = CONDITIONALLY READY（用户已确认，见 §16）
+Development Status = CONDITIONALLY READY（限授权范围，见 §13/§14）
 ```
 
 ## 3. MVP Scope Coverage
@@ -135,52 +135,64 @@ Post-Spike Review 未发现新的 blocking / major / minor / documentation findi
 6. LLM Runtime and Structured Output
 7. Observability and Runtime Operations
 
-## 13. Allowed Next Work（建议，待用户确认）
+## 13. Allowed Next Work（用户已确认授权范围）
 
-- 起草并接受上述 Required RFC。
+用户在人工 Gate 明确授权进入以下**规划与治理类**工作（仍**不**含任何生产实现）：
+
+- 起草并接受上述 Required RFC（**Architecture RFC**）。
+- 进行 **Implementation Planning**（实现规划，非生产编码）。
+- 形成 **MVP Roadmap 草案**（规划草案，非正式排产承诺）。
+- 进行 **Epic and Dependency Planning**（Epic 与依赖规划）。
+- 进行 **Technical Risk Resolution**（技术风险消解）。
 - 形成 / 完善 Architecture Baseline v1（见 [../architecture/architecture-baseline-v1.md](../architecture/architecture-baseline-v1.md)）。
-- 进行 Implementation Planning（仅规划，非生产实现）。
-- 维护 Traceability Matrix 的 Future Placeholder。
+- 维护 Traceability Matrix 的 Future Placeholder（接受相关 RFC 后方可实例化）。
 
-## 14. Prohibited Next Work（在用户明确确认前）
+## 14. Prohibited Next Work（用户明确：当前不授权）
 
-- 开始未经 RFC 支持的生产实现。
-- Coding Agent 临场选择生产数据库 / Checkpointer / API / ORM / Retrieval / Observability。
+- **Production Business Implementation**（正式业务实现）。
+- **Production Database Implementation**（生产数据库实现）。
+- **Production API Implementation**（生产 API 实现）。
+- **Production Retrieval Implementation**（生产检索实现）。
+- **Production LLM Runtime Implementation**（生产 LLM 运行时实现）。
+- **Production Observability Implementation**（生产可观测性实现）。
+- **正式业务 Coding Issues** 的创建与执行。
+- 开始**未经 RFC 支持**的生产实现；Coding Agent **临场**选择生产数据库 / ORM / Checkpointer / API / Retrieval / LLM Runtime / Observability。
 - 将 Spike 代码直接迁移为生产模块。
-- 创建正式 MVP Roadmap / Epic / 生产业务 Issue。
-- 将 Development Status 改为 READY。
+- 将 Development Status 改为**完全 READY**。
 
-## 15. Readiness Recommendation（仅建议）
+## 15. Readiness Recommendation（已被用户采纳）
 
-> `Claude Recommendation ≠ READY`。最终 READY / CONDITIONALLY READY / NOT READY 由用户人工 Gate 明确确认。
+> 本节原为 Agent 建议；用户已在人工 Gate **采纳**本建议（见 §16）。
 
-**RECOMMENDED: CONDITIONALLY READY**
+**RECOMMENDED: CONDITIONALLY READY**（原建议，已被用户采纳为最终决定）
 
 理由：
 - Spike 范围内**架构运行时行为全部通过**，核心架构**可行**。
 - 暴露的 4 个缺陷均为**可隔离、已修复、有回归测试**的实现层问题；**无**未解决的核心架构阻塞。
 - 存在**明确、有限、可隔离**的未决项（R-1~R-4），需以 Required RFC 收敛后方可开始对应生产实现。
 
-**Conditions（条件）：**
-- 允许开始 Architecture RFC 与 Implementation Planning。
-- **不允许**开始未经 RFC 支持的生产实现。
-- **不允许** Coding Agent 临场选择生产数据库 / Checkpointer / API / ORM / Retrieval / Observability。
-- 对应生产模块开始前必须先接受相关 RFC。
+**Conditions（用户已确认的条件）：**
+- 允许开始 **Architecture RFC**。
+- 允许开始 **Implementation Planning**。
+- 允许生成 **MVP Roadmap 草案**。
+- **不允许**开始未经 RFC 支持的正式生产实现。
+- Coding Agent **不得临场**选择生产数据库、ORM、Checkpointer、API、Retrieval、LLM Runtime 或 Observability。
+- 每个生产模块开始前必须满足对应 **RFC Gate**（先接受相关 RFC）。
 
-## 16. User Decision
+## 16. User Decision（用户最终决定）
 
 ```text
-PENDING
+Architecture Readiness Decision = CONDITIONALLY READY
 ```
 
-> 由用户在人工 Gate 后填写：READY / CONDITIONALLY READY / NOT READY，及允许范围与条件。**本报告不替用户填写 READY。**
+> 用户在人工 Gate 审查本报告、Readiness Issue #3 与 Readiness PR #4 后，**明确接受** `CONDITIONALLY READY` 建议并确认上述 Conditions。本决定由用户作出，非 Agent 自行宣布。
 
 ## 17. Final Status
 
 ```text
 Spike Execution Status = COMPLETED
-Architecture Readiness Status = PENDING USER REVIEW
-Development Status = NOT READY
+Architecture Readiness Status = CONDITIONALLY READY
+Development Status = CONDITIONALLY READY
 ```
 
-> 本报告的提交**不**改变上述状态；不 Merge Readiness PR、不关闭 Readiness Issue、不自行宣布 READY、不创建 MVP Roadmap、不开始生产开发。等待用户最终人工 Gate。
+> `Development Status = CONDITIONALLY READY` **仅限** §13 授权的规划与治理范围；**不**等于完全 READY，**不**授权任何生产实现。下一议题为 **RFC Planning and Dependency Order**（RFC-001…RFC-007 按依赖顺序逐个提交用户评审；本任务未替用户接受任何 RFC）。
