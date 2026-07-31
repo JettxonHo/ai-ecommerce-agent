@@ -42,8 +42,8 @@
 | RFC-001-DQ-09 Quality Toolchain, Architecture Enforcement, CI Quality Gates and Test Baseline（Ruff Formatter/Linter / Pyright Strict-first / pytest Strict Markers / Import Linter + Custom Architecture Tests / Deterministic Required PR Tests / Branch-aware Coverage 80% / pip-audit / Secret Detection / Protected main Required Checks / Live Evaluation separated） | RFC-001 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §11 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | RFC-001-DQ-10 Production Skeleton Scope, Foundation Authorization Gate and RFC Closure（Acceptance vs Authorization Separation / Foundation Planning Gate / Foundation Implementation separate authorization / Initial Foundation Scope = Package + Quality + Architecture Tests + CI + Repository Security / Business Modules·Platform·Orchestration·API·Worker·Bootstrap·DB·LangGraph·Model·Retrieval·Observability NOT IMPLEMENTED / Spike Source Migration Prohibited / FND-001→FND-002→FND-003 / Mandatory Stop Conditions） | DEC-034, DEC-036, DEC-038 | docs/rfcs/rfc-001-repository-and-application-architecture.md | — | architecture-baseline-v1 §10 | RFC-001, RFC-002, RFC-003, RFC-004, RFC-005, RFC-006, RFC-007 | _(placeholder: Future Roadmap Draft v0)_ | _(placeholder)_ |
 | **FND-001 — Backend Package and Local Tooling Foundation**（**COMPLETED**；Issue #6 CLOSED；PR #7 MERGED；Merge Commit `5b75bcf99eba45f47fa501bfcf60d1e637601a07`；Merged 2026-07-30T12:38:48Z by JettxonHo（用户 Merge 决定「我已 merged」）；Post-merge Smoke Verification = PASS；Backend Package `apps/backend/src/ai_ecommerce_agent/` + Python 3.13 + uv Lockfile + Ruff/Pyright/pytest/Coverage Local Tooling + Unified Local Commands；Code Status = COMPLETED，Archive Status = COMPLETED（经文档归档 PR #8 记录），Overall Status = COMPLETED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | apps/backend/ | PR #7 + docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-02 / DQ-03 / DQ-09 / DQ-10） | [Issue #6](https://github.com/JettxonHo/ai-ecommerce-agent/issues/6) | [PR #7](https://github.com/JettxonHo/ai-ecommerce-agent/pull/7)（MERGED） |
-| **FND-002 — Architecture Enforcement and Test Foundation**（**IN REVIEW**；Issue Creation COMPLETED（[Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9)）；Import Linter 10 Contracts + 自定义 grimp 规则（Public Facade / Module DAG）+ AST 语义测试（环境访问 / 技术泄漏 / Skill Boundary）+ pytest 8-Marker 分类 + 默认 Network Protection + 统一 Architecture Test 命令；Branch `foundation/002-architecture-test-foundation`；依赖 FND-001 = MERGED ✓；Merge = USER DECISION REQUIRED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | — | docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-03 / DQ-04 / DQ-05 / DQ-06 / DQ-08 / DQ-09 / DQ-10） | [Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9) | [PR #10](https://github.com/JettxonHo/ai-ecommerce-agent/pull/10) |
-| **FND-003 Candidate — CI, Security and Repository Protection**（**READY, BLOCKED BY FND-002**；deps: FND-001 = MERGED ✓，FND-002 = MERGED（未满足）；GitHub Actions + 8 Stable Required Checks（Fast Static / Deterministic Test / Security Gate）+ Dependency Audit（pip-audit）+ Secret Detection + Dependabot + PR / Issue Templates + `main` Branch Protection + Repository Governance Documentation；Issue Creation & Implementation NOT AUTHORIZED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | — | docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-06 / DQ-08 / DQ-09 / DQ-10）, FND-001, FND-002, GitHub Governance, Security Foundation | _(placeholder: FND-003 Issue，未授权创建)_ | _(placeholder)_ |
+| **FND-002 — Architecture Enforcement and Test Foundation**（**COMPLETED**；Issue Creation COMPLETED（[Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9)，CLOSED / COMPLETED）；PR #10 已由用户人工 Merge（Merge Commit `b966491865f57910d186542b1eb5191544a254f3`，2026-07-30T17:03:04Z，Merged By = JettxonHo）；Post-merge Verification = PASS；Import Linter 10 Contracts + 自定义 grimp 规则（Public Facade / Module DAG）+ AST 语义测试（环境访问 / 技术泄漏 / Skill Boundary）+ pytest 8-Marker 分类 + 默认 Network Protection + 统一 Architecture Test 命令；Branch `foundation/002-architecture-test-foundation`（已完全合并）；依赖 FND-001 = MERGED ✓；Code Status = COMPLETED，Archive Status = COMPLETED（经文档归档 PR #13 记录），Overall Status = COMPLETED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | apps/backend/tests/architecture/ | PR #10 + docs/foundation/foundation-issue-candidates.md | RFC-001（DQ-03 / DQ-04 / DQ-05 / DQ-06 / DQ-08 / DQ-09 / DQ-10） | [Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9)（CLOSED） | [PR #10](https://github.com/JettxonHo/ai-ecommerce-agent/pull/10)（MERGED） |
+| **FND-003 — CI, Security and Repository Protection**（**COMPLETED**；2026-07-31 用户授权创建并实施；PR #15 已由用户 Merge（Merge Commit `3f012b6405a6464b629873441ff50eff8c5d52ec`，2026-07-30T20:34:09Z / SGT 2026-07-31T04:34:09+08:00，Merged By = JettxonHo）；Post-merge Verification = PASS（main 8/8 Required Checks + 本地全量验证）；deps: FND-001 = MERGED ✓，FND-002 = MERGED ✓；3 Workflows + 8 Stable Required Checks（`quality / format`・`lint`・`typecheck`・`architecture`；`test / unit-contract`・`package-build`；`security / dependency-audit`・`secret-detection`）+ Dependency Audit（pip-audit，锁定 dev 依赖）+ Secret Detection（gitleaks 8.30.1，SHA-256 校验发布二进制，全历史 + `--redact`，内置默认规则）+ Dependabot（github-actions + uv 生态，weekly，不自动 Merge）+ PR / Issue Templates + `main` Branch Protection（Require PR / 8 Required Checks / strict / Conversation Resolution / enforce_admins）+ Repository Governance Documentation；PR #15 Required Checks 全绿；受控负向验证 9 场景全部真实阻止（含 `mergeable_state = blocked`）；5 维度对抗审计 PASS（0 BLOCKING/HIGH）；负向验证发现并修复 gitleaks `useDefault` 静默漏检缺陷；完成归档经本 Documentation PR #22 记录，合并后 Archive / Overall Status = COMPLETED） | DEC-036, DEC-038 | docs/foundation/foundation-issue-candidates.md | — | PR #15 + docs/foundation/foundation-issue-candidates.md + docs/development/ci-and-repository-governance.md | RFC-001（DQ-06 / DQ-08 / DQ-09 / DQ-10）, FND-001, FND-002, GitHub Governance, Security Foundation | [Issue #14](https://github.com/JettxonHo/ai-ecommerce-agent/issues/14)（CLOSED） | [PR #15](https://github.com/JettxonHo/ai-ecommerce-agent/pull/15)（MERGED） |
 
 
 ### A. 核心工作流与编排
@@ -135,14 +135,30 @@ FND-001 Code Status = COMPLETED
 FND-001 Archive Status = COMPLETED（经文档归档 PR #8 记录，Archive Merge Commit e109452a55a30536e5b2a78547bc52b2e466cab9）
 FND-001 Overall Status = COMPLETED
 FND-001 Completed Date = 2026-07-30
-FND-002 Candidate Status = IN REVIEW（2026-07-30 用户明确授权「确认授权创建并实施 FND-002」）
-FND-002 Issue Creation = COMPLETED（2026-07-30，用户明确授权「确认授权创建并实施 FND-002」，Issue #9）
-FND-002 Implementation = COMPLETED（2026-07-30，Branch foundation/002-architecture-test-foundation；PR #10）
-FND-002 Status = IN REVIEW（PR #10 待用户审查；Merge = USER DECISION REQUIRED）
-FND-003 Candidate Status = READY, BLOCKED BY FND-002
-FND-003 Issue Creation = NOT AUTHORIZED
-FND-003 Implementation = NOT AUTHORIZED
-Foundation / Business / Production Implementation = NOT AUTHORIZED（仅 FND-001 / FND-002 单项授权；FND-002 = IN REVIEW 未合并；FND-003 尚未实施）
+FND-002 Candidate Status = COMPLETED（2026-07-30 用户明确授权「确认授权创建并实施 FND-002」；PR #10 已由用户 Merge）
+FND-002 Issue Creation = COMPLETED（2026-07-30，用户明确授权「确认授权创建并实施 FND-002」，Issue #9，CLOSED / COMPLETED）
+FND-002 Implementation = COMPLETED（2026-07-30，Branch foundation/002-architecture-test-foundation；PR #10 已合并）
+FND-002 Merge = COMPLETED（用户人工 Merge；Merge Commit b966491865f57910d186542b1eb5191544a254f3；Merge Method = Merge Commit；Merged At = 2026-07-30T17:03:04Z；Merged By = JettxonHo）
+FND-002 Verification = PASS（Post-merge Verification，合并后于 main 执行）
+FND-002 Status = COMPLETED
+FND-002 Completed Date = 2026-07-30
+FND-002 Code Status = COMPLETED
+FND-002 Archive Status = COMPLETED（经文档归档 PR #13 记录，本归档 PR 合并后正式生效）
+FND-002 Overall Status = COMPLETED
+FND-003 Candidate Status = COMPLETED（2026-07-31 用户授权创建并实施；PR #15 已由用户 Merge；经本 Documentation 归档 PR #22 记录，本归档 PR 合并后正式生效）
+FND-003 Issue Creation = COMPLETED（2026-07-31，Issue #14，CLOSED / COMPLETED）
+FND-003 Implementation = COMPLETED（2026-07-31，PR #15 已由用户 Merge）
+FND-003 Merge = COMPLETED（Merge Commit 3f012b6405a6464b629873441ff50eff8c5d52ec；Merge Method = Merge Commit；Merged At = 2026-07-30T20:34:09Z / SGT 2026-07-31T04:34:09+08:00；Merged By = JettxonHo）
+FND-003 Verification = PASS（Post-merge：main 8/8 Required Checks + 本地全量验证）
+FND-003 Code Status = COMPLETED
+FND-003 Archive Status = COMPLETED（经本 Documentation 归档 PR #22 记录，本归档 PR 合并后正式生效）
+FND-003 Overall Status = COMPLETED
+FND-003 Completed Date = 2026-07-31
+Foundation Implementation Status = COMPLETED（FND-001 / FND-002 / FND-003 全部完成并合并；本归档 PR 合并后正式生效）
+Foundation Archive Status = COMPLETED（PR #8 / PR #13 / 本归档 PR；本归档 PR 合并后正式生效）
+Foundation Program Status = COMPLETED（本归档 PR 合并后正式生效）
+Business / Production Implementation = NOT AUTHORIZED（Foundation 完成不授权任何业务或生产实现）
+RFC-002 Authorization = NOT AUTHORIZED
 
-Next Topic: FND-002 Pull Request Review and Merge Gate（FND-002 Issue Creation + Implementation 已经用户明确授权；PR 完成验证后进入 IN REVIEW，由用户审查并决定 Merge；Coding Agent 不得自行 Merge；该授权不包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue、不开始 FND-003 实施）
+Next Topic: RFC-002 Authorization Gate（RFC-002 — Persistence and Transaction Architecture；状态 = PENDING USER DECISION；RFC-002 Drafting / Issue Creation / Implementation 均 NOT AUTHORIZED；Coding Agent 不得起草或开始；业务实现仍未授权）
 ```

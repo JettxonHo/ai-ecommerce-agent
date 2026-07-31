@@ -1,0 +1,108 @@
+# Repository security gate (FND-003, RFC-001-DQ-06/DQ-09).
+#
+# Stable check names (referenced by branch protection):
+#   security / dependency-audit
+#   security / secret-detection
+#
+# Security rules:
+# - No repository secrets are referenced anywhere in this workflow. Fork
+#   pull requests therefore cannot receive secrets (there are none to leak),
+#   and `pull_request_target` is deliberately never used.
+# - Dependency audit runs against the exact locked environment
+#   (`uv sync --locked`), so results match `uv.lock`.
+# - Secret scanner output is redacted (`--redact`): matched values never
+#   appear in CI logs.
+name: security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# New commits on a pull request cancel that PR's previous run; post-merge
+# verification on main is never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  dependency-audit:
+    name: security / dependency-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/backend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.12.0"
+          python-version: "3.13.14"
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+          cache-suffix: py3.13.14
+      - name: Install locked dependencies (uv sync --locked)
+        run: uv sync --locked
+      # pip-audit (locked dev/security dependency) audits every installed
+      # distribution against OSV. Actionable vulnerabilities fail this check
+      # (non-zero exit). There are no --ignore-vuln entries and no
+      # continue-on-error: temporary risk acceptance requires a separate
+      # Issue with explicit CVE, impact, mitigation and user acceptance.
+      # --skip-editable skips exactly one package: this project itself,
+      # which is not published on PyPI and has zero runtime dependencies;
+      # the skip is reported in the audit output table.
+      - name: Audit locked dependencies (pip-audit)
+        run: uv run pip-audit --progress-spinner off --skip-editable
+
+  secret-detection:
+    name: security / secret-detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Full history: the scan covers git history plus the working tree, so
+      # a secret committed and then "removed" is still detected.
+      - name: Checkout repository (full history)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      # Gitleaks (MIT, actively maintained) is installed as a release binary
+      # verified by a hardcoded SHA-256 checksum, not through a third-party
+      # action: the supply chain is exactly one release artifact whose
+      # integrity is checked before execution. Upgrading gitleaks happens
+      # through a dedicated dependency PR that updates both the version and
+      # the checksum (see docs/development/ci-and-repository-governance.md).
+      - name: Download gitleaks (version + SHA-256 pinned)
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+          GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          mkdir -p "${RUNNER_TEMP}/gitleaks"
+          tar -xzf /tmp/gitleaks.tar.gz -C "${RUNNER_TEMP}/gitleaks" gitleaks
+      # Detection uses gitleaks' embedded default rule set — deliberately
+      # no custom config: gitleaks 8.30.1 configs with `useDefault = true`
+      # were observed to silently miss patterns that the embedded default
+      # detects (found by FND-003 negative verification, proven by positive
+      # re-test). Detected secrets fail the check (exit code 1). --redact
+      # masks every matched value in the report so CI logs never contain
+      # secret material. Any future allowlist must be an explicit full
+      # config, pass a positive-detection re-test before going live, and be
+      # documented in ci-and-repository-governance.md. Allowlist policy:
+      # precise entries only; no whole-directory exclusions.
+      - name: Scan repository for secrets (gitleaks, redacted)
+        run: >
+          "${RUNNER_TEMP}/gitleaks/gitleaks" detect
+          --source .
+          --verbose
+          --redact
+          --no-banner

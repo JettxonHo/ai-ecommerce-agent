@@ -16,8 +16,8 @@ Foundation Candidate Planning Status = COMPLETED
 Foundation Candidate Final Review = PASS
 
 FND-001 Candidate Status = COMPLETED
-FND-002 Candidate Status = IN REVIEW（2026-07-30 用户明确授权「确认授权创建并实施 FND-002」）
-FND-003 Candidate Status = READY, BLOCKED BY FND-002
+FND-002 Candidate Status = COMPLETED（2026-07-30 用户明确授权「确认授权创建并实施 FND-002」；PR #10 已由用户 Merge）
+FND-003 Candidate Status = COMPLETED（2026-07-31 用户授权创建并实施；PR #15 已由用户 Merge，Merge Commit 3f012b6405a6464b629873441ff50eff8c5d52ec；经本文档归档 PR #22 记录，PR #22 合并后正式生效）
 
 FND-001 Issue Creation = COMPLETED（2026-07-30，用户明确授权「确认授权创建并实施 FND-001」，Issue #6）
 FND-001 Implementation = COMPLETED（2026-07-30，PR #7 已合并）
@@ -27,15 +27,30 @@ FND-001 Code Status = COMPLETED
 FND-001 Archive Status = COMPLETED（经本文档归档 PR #8 记录，Archive Merge Commit = e109452a55a30536e5b2a78547bc52b2e466cab9）
 FND-001 Overall Status = COMPLETED
 
-FND-002 Issue Creation = COMPLETED（2026-07-30，用户明确授权「确认授权创建并实施 FND-002」，GitHub Issue #9 已创建）
-FND-002 Implementation = COMPLETED（2026-07-30，实施完成并提交 PR #10 待用户审查）
-FND-002 Status = IN REVIEW（PR #10 待用户审查；Merge = USER DECISION REQUIRED；Coding Agent 不得自行 Merge）
+FND-002 Issue Creation = COMPLETED（2026-07-30，用户明确授权「确认授权创建并实施 FND-002」，GitHub Issue #9 已创建，CLOSED / COMPLETED）
+FND-002 Implementation = COMPLETED（2026-07-30，PR #10 已由用户 Merge）
+FND-002 Merge = COMPLETED（用户人工 Merge；Merge Commit = b966491865f57910d186542b1eb5191544a254f3；Merge Method = Merge Commit；Merged At = 2026-07-30T17:03:04Z；Merged By = JettxonHo）
+FND-002 Verification = PASS（Post-merge Verification，合并后于 main 执行）
+FND-002 Status = COMPLETED
+FND-002 Completed Date = 2026-07-30
+FND-002 Code Status = COMPLETED
+FND-002 Archive Status = COMPLETED（经本文档归档 PR #13 记录，本归档 PR 合并后正式生效）
+FND-002 Overall Status = COMPLETED
 
-FND-003 Issue Creation = NOT AUTHORIZED
-FND-003 Implementation = NOT AUTHORIZED
+FND-003 Issue Creation = COMPLETED（2026-07-31，用户明确授权「确认授权创建并实施 FND-003」，GitHub Issue #14，CLOSED / COMPLETED）
+FND-003 Implementation = COMPLETED（2026-07-31，Branch foundation/003-ci-security-repository-protection；PR #15 已由用户 Merge）
+FND-003 Merge = COMPLETED（用户 Merge；Merge Commit = 3f012b6405a6464b629873441ff50eff8c5d52ec；Merge Method = Merge Commit；Merged At = 2026-07-30T20:34:09Z（Asia/Singapore 2026-07-31T04:34:09+08:00）；Merged By = JettxonHo）
+FND-003 Verification = PASS（Pre-merge：本地基线 + CI + 负向验证 9 场景 + 5 维度对抗审计 + 85 项验收验证；Post-merge：main 上 8/8 Required Checks + 本地全量验证）
+FND-003 Code Status = COMPLETED
+FND-003 Archive Status = COMPLETED（经本文档归档 PR #22 记录，PR #22 合并后正式生效）
+FND-003 Overall Status = COMPLETED
+FND-003 Completed Date = 2026-07-31
 
 Foundation Planning Status = AUTHORIZED
-Foundation Implementation Status = NOT AUTHORIZED（除 FND-001 / FND-002 单项授权外；FND-002 = IN REVIEW 未合并，FND-003 尚未实施，Foundation 整体未完成）
+Foundation Implementation Status = COMPLETED（FND-001 / FND-002 / FND-003 均已授权、实施并合并；经本归档 PR 记录，本归档 PR 合并后正式生效）
+Foundation Verification Status = PASS（三项 Foundation Work 的 Pre-merge 与 Post-merge 验证均通过）
+Foundation Archive Status = COMPLETED（FND-001 经 PR #8、FND-002 经 PR #13、FND-003 经本归档 PR 记录；本归档 PR 合并后正式生效）
+Foundation Program Status = COMPLETED（RFC-001-DQ-10 首批 Foundation 范围 = Package + Quality + Architecture Tests + CI + Repository Security 全部完成；本归档 PR 合并后正式生效）
 Business Implementation Status = NOT AUTHORIZED
 
 Architecture Readiness = CONDITIONALLY READY
@@ -58,17 +73,41 @@ FND-002  Architecture Enforcement and Test Foundation        (deps: FND-001)
 FND-003  CI, Security and Repository Protection              (deps: FND-001 + FND-002)
 ```
 
-执行顺序遵循依赖：`FND-001 → FND-002 → FND-003`，遵循 **One Issue → One Branch → One PR → Required Verification → User Merge Gate**。Foundation Candidate Final Review（PASS，2026-07-30）后，FND-001 已升级为 `READY FOR AUTHORIZATION`，FND-002 / FND-003 分别为 `READY, BLOCKED BY FND-001` / `READY, BLOCKED BY FND-001 AND FND-002`；任一 Candidate 在被单独授权创建 Issue 前，其 Issue Creation / Implementation 均保持 `NOT AUTHORIZED`。**（2026-07-30 状态更新：FND-001 = COMPLETED（PR #7 已由用户 Merge，归档经 PR #8 记录）；FND-002 已经用户单独授权「确认授权创建并实施 FND-002」并实施完成，Status = IN REVIEW（PR #10）；FND-003 = `READY, BLOCKED BY FND-002`，仍 NOT AUTHORIZED。）**
+执行顺序遵循依赖：`FND-001 → FND-002 → FND-003`，遵循 **One Issue → One Branch → One PR → Required Verification → User Merge Gate**。Foundation Candidate Final Review（PASS，2026-07-30）后，FND-001 已升级为 `READY FOR AUTHORIZATION`，FND-002 / FND-003 分别为 `READY, BLOCKED BY FND-001` / `READY, BLOCKED BY FND-001 AND FND-002`；任一 Candidate 在被单独授权创建 Issue 前，其 Issue Creation / Implementation 均保持 `NOT AUTHORIZED`。**（2026-07-30/31 状态更新：FND-001 = COMPLETED（PR #7 已由用户 Merge，归档经 PR #8 记录）；FND-002 = COMPLETED（PR #10 已由用户人工 Merge，Merge Commit `b966491`，Issue #9 CLOSED，Post-merge Verification = PASS）；FND-003 = `COMPLETED`（2026-07-31 用户授权创建并实施，PR #15 已由用户 Merge，Merge Commit `3f012b6`；完成归档经本 Documentation PR 记录，合并后正式生效。）**
 
 | Candidate | 主题 | 依赖 | Candidate Status | Issue Creation | Implementation |
 |---|---|---|---|---|---|
 | **FND-001** | Backend Package and Local Tooling Foundation | RFC-001 = ACCEPTED（无前置 Foundation Issue） | **COMPLETED** | **COMPLETED（Issue #6）** | **COMPLETED（PR #7 已合并，Merge Commit 5b75bcf）** |
-| **FND-002** | Architecture Enforcement and Test Foundation | FND-001 = MERGED ✓ | **IN REVIEW** | **COMPLETED（Issue #9）** | **COMPLETED（PR #10，待用户 Merge）** |
-| **FND-003** | CI, Security and Repository Protection | FND-001 + FND-002 | **READY, BLOCKED BY FND-002** | NOT AUTHORIZED | NOT AUTHORIZED |
+| **FND-002** | Architecture Enforcement and Test Foundation | FND-001 = MERGED ✓ | **COMPLETED** | **COMPLETED（Issue #9，CLOSED）** | **COMPLETED（PR #10 已合并，Merge Commit b966491）** |
+| **FND-003** | CI, Security and Repository Protection | FND-001 + FND-002 = MERGED ✓ | **COMPLETED** | COMPLETED（Issue #14，CLOSED） | COMPLETED（PR #15 已由用户 Merge；归档经本 PR 记录，合并后生效） |
 
-> **FND-001 完成记录（2026-07-30）：** 用户授权实施后，已创建 [Issue #6](https://github.com/JettxonHo/ai-ecommerce-agent/issues/6) 与 Branch `foundation/001-backend-package-local-tooling`，实施 [PR #7](https://github.com/JettxonHo/ai-ecommerce-agent/pull/7)（`foundation: establish backend package and local tooling`）。用户 Merge 决定「我已 merged」——**PR #7 已合并**（Merge Commit `5b75bcf99eba45f47fa501bfcf60d1e637601a07`，Merge Method = Merge Commit，2026-07-30T12:38:48Z，Merged By = JettxonHo）。Post-merge Smoke Verification = PASS（`uv sync --locked` / Ruff Format Check / Ruff Lint / Pyright / pytest / Build / 干净环境 Install / Import / Import 无副作用 / Branch-aware Coverage 可运行，Coverage Merge Threshold = DEFERRED）。FND-001 Code Status = COMPLETED；文档归档（本状态更新）经本独立 Documentation PR（PR #8）记录并已合并（Archive Merge Commit `e109452a55a30536e5b2a78547bc52b2e466cab9`），FND-001 Archive Status 与 Overall Status = COMPLETED。FND-002 依赖（FND-001 = MERGED）已满足；FND-002 随后已经用户单独授权「确认授权创建并实施 FND-002」（2026-07-30）并实施完成，Status = IN REVIEW（PR #10，Merge = USER DECISION REQUIRED）；FND-003 与任何业务实现均仍未授权。
+> **FND-001 完成记录（2026-07-30）：** 用户授权实施后，已创建 [Issue #6](https://github.com/JettxonHo/ai-ecommerce-agent/issues/6) 与 Branch `foundation/001-backend-package-local-tooling`，实施 [PR #7](https://github.com/JettxonHo/ai-ecommerce-agent/pull/7)（`foundation: establish backend package and local tooling`）。用户 Merge 决定「我已 merged」——**PR #7 已合并**（Merge Commit `5b75bcf99eba45f47fa501bfcf60d1e637601a07`，Merge Method = Merge Commit，2026-07-30T12:38:48Z，Merged By = JettxonHo）。Post-merge Smoke Verification = PASS（`uv sync --locked` / Ruff Format Check / Ruff Lint / Pyright / pytest / Build / 干净环境 Install / Import / Import 无副作用 / Branch-aware Coverage 可运行，Coverage Merge Threshold = DEFERRED）。FND-001 Code Status = COMPLETED；文档归档（本状态更新）经本独立 Documentation PR（PR #8）记录并已合并（Archive Merge Commit `e109452a55a30536e5b2a78547bc52b2e466cab9`），FND-001 Archive Status 与 Overall Status = COMPLETED。FND-002 依赖（FND-001 = MERGED）已满足；FND-002 随后已经用户单独授权「确认授权创建并实施 FND-002」（2026-07-30）并实施完成，PR #10 已由用户人工 Merge（Merge Commit `b966491865f57910d186542b1eb5191544a254f3`，2026-07-30T17:03:04Z），FND-002 Status = COMPLETED；FND-003 依赖已满足（READY FOR AUTHORIZATION）但 Issue Creation / Implementation 仍未授权，任何业务实现亦未授权。
 >
-> **FND-002 执行状态（2026-07-30）：** 用户明确回复「确认授权创建并实施 FND-002」，授权 FND-002 Issue Creation + Implementation。已创建 [GitHub Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9) 与 Branch `foundation/002-architecture-test-foundation`，实施完成并提交 [PR #10](https://github.com/JettxonHo/ai-ecommerce-agent/pull/10)（`foundation: enforce architecture and test boundaries`，含完整验证证据），现待用户审查。**Merge 仍为 USER DECISION REQUIRED**；FND-003 与任何业务实现均未授权。
+> **FND-002 完成记录（2026-07-30/31）：** 用户明确回复「确认授权创建并实施 FND-002」，授权 FND-002 Issue Creation + Implementation。已创建 [GitHub Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9) 与 Branch `foundation/002-architecture-test-foundation`，实施完成并提交 [PR #10](https://github.com/JettxonHo/ai-ecommerce-agent/pull/10)（`foundation: enforce architecture and test boundaries`）；**用户人工 Merge PR #10**（Merge Commit `b966491865f57910d186542b1eb5191544a254f3`，Merge Method = Merge Commit，2026-07-30T17:03:04Z，Merged By = JettxonHo），Issue #9 = CLOSED（COMPLETED）。Post-merge Verification = PASS（合并后于 `main` 执行：`uv sync --locked` / Ruff Format·Lint / Pyright / pytest unit 6 · contract 3 · architecture 27 · test-fast 36 / `lint-imports` 10 kept, 0 broken / Package Build + 干净环境 Install + Import 回归 / Positive 4·Negative 11 Fixtures / Marker 严格性 / Network Blocking / Out-of-scope 验证全部通过；Mandatory Stop Conditions = NONE）。FND-002 Status = COMPLETED；文档归档经本独立 Documentation PR #13（Branch `docs/fnd-002-completion`）记录。FND-003 依赖已满足（READY FOR AUTHORIZATION）但仍 NOT AUTHORIZED，任何业务实现亦未授权。
+
+> **FND-003 实施记录（2026-07-31）：** 用户明确回复「确认授权创建并实施 FND-003」，授权 FND-003 Issue Creation + Implementation + Repository Settings Changes + 受控临时负向验证 Branch/PR（Business 仍 NOT AUTHORIZED；Merge = USER DECISION REQUIRED）。已创建 [GitHub Issue #14](https://github.com/JettxonHo/ai-ecommerce-agent/issues/14) 与 Branch `foundation/003-ci-security-repository-protection`（自最新 `main`），实施并提交 [PR #15](https://github.com/JettxonHo/ai-ecommerce-agent/pull/15)（`foundation: establish CI and repository protection`）。实施内容 = 3 个 GitHub Actions Workflows（`backend-quality.yml` / `backend-tests.yml` / `repository-security.yml`）产生 8 个 Stable Required Checks（`quality / format`・`quality / lint`・`quality / typecheck`・`quality / architecture`、`test / unit-contract`・`test / package-build`、`security / dependency-audit`・`security / secret-detection`），CI 全量复用 `apps/backend/` 本地配置与统一命令（`uv sync --locked` / Ruff / Pyright / pytest markers / Import Linter / `uv build` / Package Import Regression / `uv lock --check` Lockfile Drift 闸门）+ pip-audit 依赖审计（锁定为 dev 依赖）+ gitleaks 8.30.1 Secret Detection（发布二进制 SHA-256 校验、全历史扫描、`--redact`、内置默认规则）+ Dependabot（github-actions + uv 生态，weekly，不自动 Merge）+ PR Template（14 节）+ 三类 Issue Templates（implementation / architecture-decision / bug，模板不授权）+ `main` Branch Protection（Require PR / 8 Required Checks / strict / Conversation Resolution / Block Force Push・Deletion / enforce_admins）+ Dependabot Alerts・Security Updates・GitHub Secret Scanning + Push Protection 启用 + 治理文档 `docs/development/ci-and-repository-governance.md`（含 Secret Scanner 选型记录与 GitHub Plan 限制评估）。验证 = Phase A/B 审计与基线 PASS（8 项本地质量门 + Package Build/Import Regression）；5 维度对抗审计 PASS（Actions 安全 / 供应链 Pinning / 检查名·触发器·缓存 / 规范符合性 / 范围纪律；0 BLOCKING/HIGH）；受控负向验证 9 场景全部真实阻止（Ruff Format / Ruff Lint / Pyright / Architecture / Unit Failure / Lockfile Drift / Secret Detection / Dependency Audit Failure / Required Check Failure Blocks Merge——`mergeable_state = blocked`；临时 PR #17/#18/#19 已关闭并删除 Branch；未使用真实 Secret）。负向验证发现并修复一项真实缺陷：gitleaks 8.30.1 `useDefault = true` 自定义配置静默漏检内置默认可检出的模式（Commit `cbb9e7b` 修复：移除自定义配置，使用内置默认规则并登记 Known Limitation）。**用户已 Merge PR #15**（Merge Commit `3f012b6405a6464b629873441ff50eff8c5d52ec`，Merge Method = Merge Commit，Merged At = 2026-07-30T20:34:09Z / Asia/Singapore 2026-07-31T04:34:09+08:00，Merged By = JettxonHo，parents = `49bcb50`[main] + `b7d9aa4`[Branch HEAD]，无 Rebase / 无 Force Push / 无历史丢失），Issue #14 = CLOSED（COMPLETED）。**Post-merge Verification = PASS**：合并后 `main`（`3f012b6`）的 push Workflow Runs 中 8/8 Stable Required Checks 全部 success（event = push，branch = main，commit = Merge Commit；quality Run 30579735283 / test Run 30579735133 / security Run 30579735374）；本地 Post-merge 全量验证全部通过（`uv sync --locked` / Ruff Format·Lint / Pyright 0 errors / pytest unit 6·contract 3·architecture 27·test-fast 36 / `lint-imports` 10 kept, 0 broken / `uv lock --check` / `uv build` / 干净 venv Install + Import Regression（py.typed）/ Positive 4·Negative 11 Fixtures / Marker 严格性受控负证（未知 Marker 收集期报错）/ Network Blocking（`test_network_guard.py` 2 passed）/ `pip-audit` = No known vulnerabilities found / 本地 gitleaks 全历史扫描 = no leaks found）；Repository Protection 复核全部 VERIFIED（Branch Protection 8 contexts·strict·enforce_admins·Require PR（approving 0）·Conversation Resolution·Block Force Push·Block Deletion；Secret Scanning + Push Protection = enabled；Dependabot alerts·security updates = enabled、`allow_auto_merge = false`、`dependabot.yml` 在 main；Workflow `contents: read`·无 `pull_request_target`·无浮动 ref·零 Repository Secret）。Implementation Branch 已安全清理（`git branch --merged` + `merge-base --is-ancestor` 双重验证后 `git branch -d` + 远程删除；三个临时验证 Branch 均已不存在）。**FND-003 Code Status = COMPLETED；完成归档经本 Documentation PR #22 记录，PR #22 合并后 Archive Status / Overall Status = COMPLETED。**
+
+> **FND-003 完成记录（2026-07-31）：**
+
+```text
+FND-003 Issue = #14（CLOSED / COMPLETED）
+FND-003 Implementation PR = #15（MERGED）
+Implementation Merge Commit = 3f012b6405a6464b629873441ff50eff8c5d52ec
+Merge Date UTC = 2026-07-30T20:34:09Z
+Merge Date Asia/Singapore = 2026-07-31T04:34:09+08:00
+Merge Method = Merge Commit（parents 49bcb50 + b7d9aa4）
+Merged By = JettxonHo
+Post-merge Required Checks = 8/8 PASS（push to main）
+Post-merge Local Verification = PASS
+Branch Protection = VERIFIED
+Secret Scanning = VERIFIED（enabled）
+Push Protection = VERIFIED（enabled）
+Dependabot = VERIFIED（alerts + security updates enabled；version updates configured；auto merge disabled）
+Implementation Branch Cleanup = COMPLETED
+Dependabot PR #16 / #20 / #21 = Independent / USER DECISION REQUIRED（不属 FND-003 Completion）
+```
+
+> **Foundation Program 完成记录（2026-07-31）：** RFC-001-DQ-10 首批 Foundation 范围（Package + Quality + Architecture Tests + CI + Repository Security）的三个 Candidate 全部完成：FND-001 = COMPLETED（PR #7，归档 PR #8）、FND-002 = COMPLETED（PR #10，归档 PR #13）、FND-003 = COMPLETED（PR #15，归档经本 Documentation PR #22 记录）。**Foundation Implementation Status = COMPLETED、Foundation Verification Status = PASS、Foundation Archive Status = COMPLETED、Foundation Program Status = COMPLETED**（经本归档 PR 记录，本归档 PR 合并后正式生效）。Foundation 完成**不**意味着 Architecture 全部 READY、RFC-002~RFC-007 已接受、业务开发已授权或 Production Runtime 已授权：Architecture Readiness 与 Development Status 保持 **CONDITIONALLY READY**，Business / Production Implementation 保持 **NOT AUTHORIZED**。下一架构议题 = **RFC-002 — Persistence and Transaction Architecture**（RFC-002 Authorization Gate = PENDING USER DECISION；Drafting / Issue Creation / Implementation = NOT AUTHORIZED）。
 
 ---
 
@@ -308,18 +347,23 @@ docs: document backend development commands
 
 ---
 
-## FND-002：Architecture Enforcement and Test Foundation（IN REVIEW）
+## FND-002：Architecture Enforcement and Test Foundation（COMPLETED）
 
-**用户确认：** 「确认」——接受 FND-002 的候选范围、依赖、验收标准和禁止边界。Final Review（2026-07-30）通过后，Candidate Status 由 `APPROVED FOR ISSUE PLANNING` 升级为 `READY, BLOCKED BY FND-001`。2026-07-30 FND-001 完成后，用户明确回复「确认授权创建并实施 FND-002」，完成实施并进入 `IN REVIEW`。
+**用户确认：** 「确认」——接受 FND-002 的候选范围、依赖、验收标准和禁止边界。Final Review（2026-07-30）通过后，Candidate Status 由 `APPROVED FOR ISSUE PLANNING` 升级为 `READY, BLOCKED BY FND-001`。2026-07-30 FND-001 完成后，用户明确回复「确认授权创建并实施 FND-002」，完成实施，PR #10 已由用户人工 Merge，进入 `COMPLETED`。
 
 **Candidate Status：**
 
 ```text
-FND-002 Candidate Status = IN REVIEW（2026-07-30 用户明确授权「确认授权创建并实施 FND-002」；依赖 FND-001 = MERGED 已满足）
-FND-002 Issue Creation = COMPLETED（2026-07-30，GitHub Issue #9）
-FND-002 Implementation = COMPLETED（2026-07-30，Branch foundation/002-architecture-test-foundation；PR #10）
-FND-002 Status = IN REVIEW（PR #10 待用户审查；Merge = USER DECISION REQUIRED；Coding Agent 不得自行 Merge）
-FND-002 Merge = USER DECISION REQUIRED
+FND-002 Candidate Status = COMPLETED（2026-07-30 用户明确授权「确认授权创建并实施 FND-002」；依赖 FND-001 = MERGED 已满足）
+FND-002 Issue Creation = COMPLETED（2026-07-30，GitHub Issue #9，CLOSED）
+FND-002 Implementation = COMPLETED（2026-07-30，Branch foundation/002-architecture-test-foundation；PR #10 已合并）
+FND-002 Status = COMPLETED（PR #10 已由用户人工 Merge）
+FND-002 Merge = COMPLETED（Merge Commit = b966491865f57910d186542b1eb5191544a254f3；Merge Method = Merge Commit；Merged At = 2026-07-30T17:03:04Z；Merged By = JettxonHo）
+FND-002 Verification = PASS（Post-merge Verification，合并后于 main 执行）
+FND-002 Completed Date = 2026-07-30
+FND-002 Code Status = COMPLETED
+FND-002 Archive Status = COMPLETED（经本文档归档 PR #13 记录，本归档 PR 合并后正式生效）
+FND-002 Overall Status = COMPLETED
 ```
 
 **Parent Architecture Input：**
@@ -580,16 +624,20 @@ docs: document architecture enforcement workflow
 
 ---
 
-## FND-003：CI, Security and Repository Protection（READY, BLOCKED BY FND-002）
+## FND-003：CI, Security and Repository Protection（COMPLETED）
 
 **用户确认：** 「确认」——接受 FND-003 的候选范围、依赖、验收标准、安全规则和禁止边界。Final Review（2026-07-30）通过后，Candidate Status 由 `APPROVED FOR ISSUE PLANNING` 升级为 `READY, BLOCKED BY FND-001 AND FND-002`。
 
 **Candidate Status：**
 
 ```text
-FND-003 Candidate Status = READY, BLOCKED BY FND-002（依赖 FND-001 = MERGED 已满足；FND-002 = MERGED 未满足）
-FND-003 Issue Creation = NOT AUTHORIZED
-FND-003 Implementation = NOT AUTHORIZED
+FND-003 Candidate Status = COMPLETED（2026-07-31 用户授权创建并实施；PR #15 已由用户 Merge；经本文档归档 PR #22 记录，PR #22 合并后正式生效）
+FND-003 Issue Creation = COMPLETED（2026-07-31，GitHub Issue #14，CLOSED / COMPLETED）
+FND-003 Implementation = COMPLETED（2026-07-31，Branch foundation/003-ci-security-repository-protection；PR #15 已由用户 Merge，Merge Commit 3f012b6405a6464b629873441ff50eff8c5d52ec）
+FND-003 Merge = COMPLETED（Merge Method = Merge Commit；Merged At = 2026-07-30T20:34:09Z / Asia/Singapore 2026-07-31T04:34:09+08:00；Merged By = JettxonHo）
+FND-003 Code Status = COMPLETED
+FND-003 Archive Status = COMPLETED（经本文档归档 PR #22 记录，PR #22 合并后正式生效）
+FND-003 Overall Status = COMPLETED
 ```
 
 **Parent Architecture Input：**
@@ -605,7 +653,7 @@ FND-001 = MERGED
 FND-002 = MERGED
 ```
 
-FND-003 在 FND-001 和 FND-002 完成并合并前**不得实施**。
+FND-003 在 FND-001 和 FND-002 完成并合并前**不得实施**。（已于 2026-07-30 满足：FND-001 PR #7 Merge Commit `5b75bcf`、FND-002 PR #10 Merge Commit `b966491` 均已合并。FND-003 已于 2026-07-31 经用户授权创建并实施完成，PR #15 已由用户 Merge（Merge Commit `3f012b6`），完成归档经本 Documentation PR 记录。）
 
 ### 主要追踪
 
@@ -1038,12 +1086,56 @@ FND-001 Archive Merged At = 2026-07-30T16:34:23Z
 
 **归档治理：** FND-001 代码已合并，但 `main` 文档此前仍记录 `IN REVIEW`，故本完成状态经独立 Documentation-only PR（Branch `docs/fnd-001-completion`）归档，不直接 Push 到 `main`。本归档 PR 合并前：`FND-001 Code Status = COMPLETED`；`FND-001 Archive Status = IN REVIEW`；`FND-001 Overall Status = CLOSURE IN REVIEW`。本归档 PR（PR #8）合并后正式记录 `FND-001 Status = COMPLETED`（`Archive Status = COMPLETED`，`Overall Status = COMPLETED`）。
 
-**后续边界：** FND-001 完成**不**将 Foundation Implementation 整体标记为完成（FND-002 已经用户随后单独授权并实施完成，PR #10 IN REVIEW 未合并；FND-003 尚未实施），**不**将 Architecture Readiness 更新为完全 READY（保持 CONDITIONALLY READY）。FND-002 的授权来源于用户另行单独授权（2026-07-30「确认授权创建并实施 FND-002」），非 FND-001 完成的自动授权。
+**后续边界：** FND-001 完成**不**将 Foundation Implementation 整体标记为完成（FND-002 已经用户随后单独授权并实施完成，PR #10 已于 2026-07-30 由用户人工 Merge，FND-002 = COMPLETED；FND-003 尚未实施），**不**将 Architecture Readiness 更新为完全 READY（保持 CONDITIONALLY READY）。FND-002 的授权来源于用户另行单独授权（2026-07-30「确认授权创建并实施 FND-002」），非 FND-001 完成的自动授权。
+
+## FND-002 Completion Record（COMPLETED，2026-07-30）
+
+**用户 Merge 决定：** 用户人工 Merge [PR #10](https://github.com/JettxonHo/ai-ecommerce-agent/pull/10)（Coding Agent 未自行 Merge）。
+
+```text
+FND-002 Issue = #9（FND-002: Establish architecture enforcement and test foundation，CLOSED / COMPLETED）
+FND-002 Branch = foundation/002-architecture-test-foundation（已完全合并）
+FND-002 Pull Request = #10（foundation: enforce architecture and test boundaries，MERGED）
+FND-002 Merge Commit = b966491865f57910d186542b1eb5191544a254f3
+FND-002 Merge Method = Merge Commit（标准合并，两个 parent：e109452 + ed86a45）
+FND-002 Merged At = 2026-07-30T17:03:04Z
+FND-002 Merged By = JettxonHo（用户）
+FND-002 Completed Date = 2026-07-30
+FND-002 Verification = PASS（Post-merge Verification，合并后于 main 执行）
+FND-002 Archive Pull Request = #13（docs: record FND-002 completion，本归档 PR 合并后正式生效）
+```
+
+**进入 `main` 的架构与测试基础（135 个文件，+2129/−36）：** `apps/backend/tests/architecture/`（helpers / 15 个 Test-only Fixture / 4 个测试模块 / README）· `apps/backend/tests/conftest.py`（默认网络阻断守卫）· `apps/backend/tests/contract/` · `apps/backend/tests/unit/test_network_guard*.py` · `apps/backend/pyproject.toml`（10 条 Import Linter Contract + 8 Marker + filterwarnings）· `apps/backend/uv.lock`（import-linter + pytest-socket dev-only）· Backend README 与架构测试文档 · 追踪文档状态更新。
+
+**Post-merge Verification（PASS，合并后于最新 `main` = `b966491` 上执行）：** `uv sync --locked`（Lockfile 未变）✓ · `ruff format --check`（132 files）✓ · `ruff check` ✓ · `pyright`（0 errors, 0 warnings）✓ · `pytest -m unit`（6 passed）✓ · `pytest -m contract`（3 passed）✓ · `pytest -m architecture`（27 passed）✓ · `pytest -m "not live and not slow"`（36 passed, 1 deselected）✓ · `pytest -m "not live"`（36 passed）✓ · `pytest -m live`（1 passed，仅创建 socket 不连接，零流量）✓ · `lint-imports`（10 kept, 0 broken）✓ · Package Build（wheel 仅含 `ai_ecommerce_agent/{__init__.py, py.typed}` + dist-info）✓ · 干净 Python 3.13 venv Installation ✓ · Import Regression（来自 `site-packages`，`__version__ = 0.1.0`）✓ · Marker Strictness 受控负证（未注册 Marker → collection 中断，探针随即删除）✓ · Network Blocking（socket 创建与连接均抛 `SocketBlockedError`，`live` 显式豁免）✓ · Architecture Violation Report 四字段（Rule / Source / Illegal Target / Expected Boundary）✓ · Positive Fixtures 4/4 · Negative Fixtures 11/11（失败均来自目标 Architecture Rule，非路径/配置/测试错误）✓。
+
+**Acceptance Criteria：** 30 项全部满足（详见 PR #10）。**Out-of-scope 检查：** 独立对抗审计确认无真实业务模块 / API / Database / Worker / LangGraph / GitHub Actions / Branch Protection / Dependabot / Secret Scanner / 生产骨架（`apps/backend/src/` 仅 `__init__.py` + `py.typed`）；`docs/rfcs/**` 与 `docs/decisions/**` 零变更（Accepted RFC / DEC 未触碰）。**Known Limitations：** 4 项已记录于 `tests/architecture/README.md` §9 与 PR #10 Description（Known Non-blocking Limitation：字面量不存在 source 硬报错 / 通配符只能替换完整模块段 / orchestration·entrypoints 尚无真实生产包由 Facade 测试兜底 / 真实包落地后补真实包回归），未借此创建任何 Production Skeleton。**Mandatory Stop Conditions：** 实施、同步、合并与 Post-merge Verification 全程未触发任何一条。
+
+**归档治理：** FND-002 代码已由用户合并，但 `main` 文档此前仍记录 `IN REVIEW`，故本完成状态经独立 Documentation-only PR #13（Branch `docs/fnd-002-completion`）归档，不直接 Push 到 `main`。本归档 PR 合并后正式记录 `FND-002 Status = COMPLETED`（`Archive Status = COMPLETED`，`Overall Status = COMPLETED`）。
+
+**后续边界：** FND-002 完成将 FND-003 依赖（FND-001 + FND-002 = MERGED）标记为已满足，FND-003 Candidate Status 升级为 `READY FOR AUTHORIZATION`；但 FND-003 Issue Creation / Implementation 仍 **NOT AUTHORIZED**，须用户单独明确授权（授权用语「确认授权创建并实施 FND-003」）。**不**将 Foundation Implementation 整体标记为完成，**不**将 Architecture Readiness 更新为完全 READY（保持 CONDITIONALLY READY），任何业务实现仍 NOT AUTHORIZED。
+
+## Documentation Maintenance Candidates（非 Foundation Implementation 范围）
+
+> **治理说明：** 本节记录与 Foundation Issue 解耦的独立文档维护候选项。**不属于** FND-001 / FND-002 / FND-003 Closure 范围，不得混入任何 Foundation Closure PR；不创建 GitHub Issue / Branch / PR，除非用户单独授权。
+
+**DOC-MAINT-001：RFC Register 与 Architecture Baseline Foundation 状态块同步**
+
+```text
+候选主题     : 同步 docs/rfcs/rfc-register.md 与 docs/architecture/architecture-baseline-v1.md
+               中停留在 Foundation Candidate Final Review 时点的 FND-001 / FND-002 状态块
+               （仍记录 READY FOR AUTHORIZATION / READY, BLOCKED BY ... / 下一 Gate = FND-001）
+状态         : 用户已于 2026-07-30/31 启动独立会话处理（rfc-register 与 baseline 状态块同步、
+               baseline DRAFTING 过期脚注更新），作为独立 Architecture Baseline Documentation
+               Maintenance 变更；不在 FND-002 Closure 范围内，本归档 PR 未修改上述两个文件
+Issue 创建   : NOT REQUIRED（独立文档维护，非 Foundation Issue）
+实施授权     : 由用户在独立会话中单独处理
+```
 
 ## Immediate Next Topic
 
 ```text
-FND-002 Pull Request Review and Merge Gate
+RFC-002 Authorization Gate（PENDING USER DECISION）
 ```
 
-FND-001 = **COMPLETED**（PR #7 已由用户 Merge）。FND-002 Issue Creation + Implementation 已经用户明确授权「确认授权创建并实施 FND-002」，[Issue #9](https://github.com/JettxonHo/ai-ecommerce-agent/issues/9) 已创建，实施已完成并提交 [PR #10](https://github.com/JettxonHo/ai-ecommerce-agent/pull/10)（含完整验证证据）。**下一正式 Gate：** 由用户审查 FND-002 PR 并决定 Merge（`FND-002 Merge = USER DECISION REQUIRED`，Coding Agent 不得自行 Merge；用户 Merge 前 FND-002 Status 不标记 COMPLETED）。该授权**不**包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue、不开始 FND-003 实施。
+FND-001 / FND-002 / FND-003 全部 = **COMPLETED**（PR #7 / #10 / #15 均已由用户 Merge；完成归档分别经 PR #8 / PR #13 / 本 Documentation PR #22 记录）。**Foundation Program Status = COMPLETED**（RFC-001-DQ-10 首批 Foundation 范围全部完成；经本归档 PR 记录，本归档 PR 合并后正式生效）。**下一架构议题：** **RFC-002 — Persistence and Transaction Architecture**；状态 = **RFC-002 Authorization Gate = PENDING USER DECISION**（RFC-002 Drafting / Issue Creation / Implementation = NOT AUTHORIZED；Coding Agent 不得起草 RFC-002、创建其 Issue / Branch、开始数据库或事务实现、启动夜间长任务）。业务实现仍 **NOT AUTHORIZED**；Architecture Readiness 与 Development Status 保持 **CONDITIONALLY READY**（Foundation 完成 ≠ Architecture 全部 READY ≠ RFC-002~007 已接受 ≠ 业务开发已授权）。

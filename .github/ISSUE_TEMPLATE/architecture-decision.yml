@@ -1,0 +1,71 @@
+name: Architecture Decision（架构决定）
+description: 需要用户裁决的架构 / 技术决定议题。决定接受前不得开始实施。
+title: "[Decision]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **架构决定类 Issue。** 在用户明确接受决定以前，**不得开始任何实施**。
+        接受语义见 AGENTS.md 第 6 节（同意 / 确认 / 接受 / 就按这个方案 / 该决策通过）。
+  - type: textarea
+    id: decision-question
+    attributes:
+      label: Decision Question
+      description: 需要裁决的决定问题（一句话）。
+    validations:
+      required: true
+  - type: textarea
+    id: candidates
+    attributes:
+      label: Candidates
+      description: 候选方案清单（每个方案一段：名称 + 简述）。
+    validations:
+      required: true
+  - type: textarea
+    id: trade-offs
+    attributes:
+      label: Trade-offs
+      description: 各候选方案的权衡（成本 / 风险 / 一致性 / 可逆性）。
+    validations:
+      required: true
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Recommendation
+      description: 建议方案及理由（仅为 Proposal，不等于 Accepted）。
+    validations:
+      required: false
+  - type: textarea
+    id: user-decision
+    attributes:
+      label: User Decision
+      description: 用户最终决定（由用户填写；接受后同步写入 docs/decisions/）。
+    validations:
+      required: false
+  - type: dropdown
+    id: status
+    attributes:
+      label: Status
+      options:
+        - Proposed
+        - Accepted
+        - Rejected
+        - Superseded
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected DEC / RFC / Specs
+      description: 本决定影响或产生的 DEC、RFC 与规格文档。
+    validations:
+      required: false
+  - type: textarea
+    id: implementation-prohibition
+    attributes:
+      label: Implementation Prohibition
+      description: 实施禁止声明（默认：在用户明确接受前不得开始实施；如有例外条件，在此写明）。
+      value: 在用户明确接受本决定前，不得开始任何实施。
+    validations:
+      required: true
