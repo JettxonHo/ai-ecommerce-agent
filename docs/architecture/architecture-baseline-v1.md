@@ -205,7 +205,7 @@ Foundation Agent 在需要：选择 Database / ORM / API Framework / Worker Fram
 
 ## 11. 已确认质量工具链、Architecture Enforcement、CI Quality Gate 与测试基线（RFC-001-DQ-09）
 
-> 来源：RFC-001-DQ-09（ACCEPTED）。生产代码采用 Ruff、Pyright、pytest、Import Linter 与自定义 Architecture Tests 构成统一质量工具链；所有 PR 必须通过类型、架构、确定性测试、覆盖率、依赖和 Secret 检查，`main` 由 Required Status Checks 保护，AI Live Evaluation 与普通确定性 Merge Gate 分离。**RFC-001 保持 `DRAFTING`；Production CI 与 Skeleton 创建仍 NOT AUTHORIZED。**
+> 来源：RFC-001-DQ-09（ACCEPTED）。生产代码采用 Ruff、Pyright、pytest、Import Linter 与自定义 Architecture Tests 构成统一质量工具链；所有 PR 必须通过类型、架构、确定性测试、覆盖率、依赖和 Secret 检查，`main` 由 Required Status Checks 保护，AI Live Evaluation 与普通确定性 Merge Gate 分离。**RFC-001 已于 2026-07-30 ACCEPTED；Production CI 与 Skeleton 创建仍 NOT AUTHORIZED。**
 
 ### 10.1 Quality Governance Model
 
@@ -357,7 +357,7 @@ Contract Tests：Schema Tests（字段/类型/必填/默认/序列化/Version）
 
 尚未确认：Python Formatter；Linter；Type Checker；Architecture Test 工具；Contract Test Framework；CI Quality Gate；Coverage Policy；Dependency Scan；Security Scan；Warning Policy；Foundation Skeleton 最低质量标准；Event Bus；Outbox；Schema Library；Production Public Contract Implementation。
 
-本 Decision 不选择 Event Bus / Outbox / Schema Library / Contract Test Framework；RFC-001 保持 `DRAFTING`；**正式 Public Contract、Application Event Runtime、Event Bus、生产 Command/Query 实现、跨模块 Composite Use Case 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
+本 Decision 不选择 Event Bus / Outbox / Schema Library / Contract Test Framework；RFC-001 已于 2026-07-30 ACCEPTED；**正式 Public Contract、Application Event Runtime、Event Bus、生产 Command/Query 实现、跨模块 Composite Use Case 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
 
 ## 13. 已确认进程边界与同步/异步执行策略（RFC-001-DQ-07）
 
@@ -417,7 +417,7 @@ API 与 Worker 之间只传递轻量 Runtime Reference（`task_id / run_id / thr
 
 尚未确认：Durable Dispatch 具体实现；Worker Framework；Queue / Broker；Job Lease / Heartbeat / Ack / Visibility Timeout；Checkpoint Backend；Resume State Machine；API Framework / HTTP Endpoint；Polling / SSE / WebSocket；Deployment Platform；Process Health Check；Worker Scaling Policy；Graph Version Migration；Production Runtime Implementation。
 
-本 Decision 不选择 API Framework / Queue / Database Driver / Worker Framework / Deployment Platform；RFC-001 保持 `DRAFTING`；**API、Worker、Production Runtime 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
+本 Decision 不选择 API Framework / Queue / Database Driver / Worker Framework / Deployment Platform；RFC-001 已于 2026-07-30 ACCEPTED；**API、Worker、Production Runtime 创建保持 NOT AUTHORIZED**；Production Implementation 保持 `NOT AUTHORIZED`。
 
 ## 14. 已确认 Skill 代码形态与架构关系（RFC-001-DQ-05）
 
@@ -457,7 +457,7 @@ Skill 须支持 **Contract / Unit / Integration / Evaluation / Architecture** �
 
 尚未确认：具体模型 Provider、Retrieval Backend、Schema/Validation Library、Prompt Registry、Evaluation Framework、Skill Executor 具体实现机制。
 
-本 Decision 不选择模型 Provider / Retrieval Backend / Schema Library / Prompt Registry / Evaluation Framework；RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
+本 Decision 不选择模型 Provider / Retrieval Backend / Schema Library / Prompt Registry / Evaluation Framework；RFC-001 已于 2026-07-30 ACCEPTED；Production Implementation 保持 `NOT AUTHORIZED`。
 
 ## 15. 已确认依赖注入、配置与应用装配（RFC-001-DQ-06）
 
@@ -497,7 +497,7 @@ Repository **只提交 `.env.example`（占位值，无真实凭证）= REQUIRED
 
 尚未确认：第三方 DI Framework（后续是否引入）、Settings/Configuration Library、Secret Manager 与生产凭证来源、API Framework、Worker/Queue、同步/异步与进程边界（DQ-07）、Database 和 ORM、Architecture Test 工具、Deployment Platform、Production Skeleton。
 
-本 Decision 不选择 DI Framework / Secret Manager / Settings Library / Deployment Platform；RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
+本 Decision 不选择 DI Framework / Secret Manager / Settings Library / Deployment Platform；RFC-001 已于 2026-07-30 ACCEPTED；Production Implementation 保持 `NOT AUTHORIZED`。
 
 ## 16. 已确认分层职责、事务所有权与依赖规则（RFC-001-DQ-04）
 
@@ -631,7 +631,7 @@ Domain Event 表示 Domain 已发生业务事实，Domain 可产生但不发布�
 
 尚未确认：Configuration Management、API Framework、Database 和 ORM、Worker 和 Queue、Architecture Test 工具、Production Skeleton。
 
-RFC-001 保持 `DRAFTING`；Production Implementation 保持 `NOT AUTHORIZED`。
+RFC-001 已于 2026-07-30 ACCEPTED；Production Implementation 保持 `NOT AUTHORIZED`。
 
 ## 17. 已确认 Repository 与 Package 目录结构（RFC-001-DQ-03）
 
@@ -1277,7 +1277,7 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 | LLM Runtime and Structured Output | PENDING RFC | RFC-006 |
 | Observability and Runtime Operations | PENDING RFC | RFC-007 |
 
-> **RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**——DQ-01~10 全部 ACCEPTED 且 Final Consistency Review 通过。DQ-10 已确认 Acceptance 与 Authorization 严格分离、Foundation Scope（Package + Quality + Architecture Tests + CI + Repository Security）、Foundation Issue Candidates（FND-001/002/003）与 Mandatory Stop Conditions。RFC-001 Acceptance 不自动授权实现；**Foundation Planning 现已开放（AUTHORIZED）**，但仅允许生成并审查 FND-001/002/003 Issue Candidates（不自动创建 Issue）；**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30，Decision Conflict = NONE）均已完成**——Final Review 后 Candidate 状态：FND-001 = READY FOR AUTHORIZATION，FND-002 = READY BLOCKED BY FND-001，FND-003 = READY BLOCKED BY FND-001 AND FND-002，三者 Issue Creation / Implementation 均未授权；**Foundation Implementation 需单独明确授权（NOT AUTHORIZED）**；Production CI、Production Skeleton、质量工具版本锁定、Secret Scanner、业务模块、API、Worker、CLI、Database、Production LangGraph 与 Production Runtime 创建仍 **NOT AUTHORIZED**。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
+> **RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**——DQ-01~10 全部 ACCEPTED 且 Final Consistency Review 通过。DQ-10 已确认 Acceptance 与 Authorization 严格分离、Foundation Scope（Package + Quality + Architecture Tests + CI + Repository Security）、Foundation Issue Candidates（FND-001/002/003）与 Mandatory Stop Conditions。RFC-001 Acceptance 不自动授权实现；**Foundation Planning 现已开放（AUTHORIZED）**，但仅允许生成并审查 FND-001/002/003 Issue Candidates（不自动创建 Issue）；**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30，Decision Conflict = NONE）均已完成**——当前 Candidate 状态（以 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)「授权边界（恒定成立）」为基准）：FND-001 = COMPLETED（PR #7 已合并，Merge Commit 5b75bcf，归档 PR #8），FND-002 = IN REVIEW（Issue #9 已创建，实施完成并提交 PR #10，Merge = USER DECISION REQUIRED），FND-003 = READY BLOCKED BY FND-002，Issue Creation / Implementation 均未授权；**Foundation Implementation 仍需单独明确授权（NOT AUTHORIZED；除 FND-001 / FND-002 单项授权外）**；Production CI、Production Skeleton、质量工具版本锁定、Secret Scanner、业务模块、API、Worker、CLI、Database、Production LangGraph 与 Production Runtime 创建仍 **NOT AUTHORIZED**。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
 
 ## 21. Final Status
 
@@ -1290,18 +1290,19 @@ Development Status = CONDITIONALLY READY
 Foundation Planning = AUTHORIZED（生成并审查 FND Issue Candidates）
 Foundation Candidate Planning = COMPLETED（FND-001 / FND-002 / FND-003 均已形成）
 Foundation Candidate Final Review = PASS（2026-07-30，Decision Conflict = NONE）
-FND-001 Candidate Status = READY FOR AUTHORIZATION
-FND-001 Issue Creation = NOT AUTHORIZED
-FND-001 Implementation = NOT AUTHORIZED
-FND-002 Candidate Status = READY, BLOCKED BY FND-001
-FND-002 Issue Creation = NOT AUTHORIZED
-FND-002 Implementation = NOT AUTHORIZED
-FND-003 Candidate Status = READY, BLOCKED BY FND-001 AND FND-002
+FND-001 Candidate Status = COMPLETED
+FND-001 Issue Creation = COMPLETED（2026-07-30，Issue #6）
+FND-001 Implementation = COMPLETED（2026-07-30，PR #7 已合并，Merge Commit 5b75bcf，归档 PR #8）
+FND-002 Candidate Status = IN REVIEW
+FND-002 Issue Creation = COMPLETED（2026-07-30，Issue #9）
+FND-002 Implementation = COMPLETED（2026-07-30，PR #10）
+FND-002 Status = IN REVIEW（PR #10 待用户审查；Merge = USER DECISION REQUIRED）
+FND-003 Candidate Status = READY, BLOCKED BY FND-002
 FND-003 Issue Creation = NOT AUTHORIZED
 FND-003 Implementation = NOT AUTHORIZED
-Foundation Implementation = NOT AUTHORIZED
+Foundation Implementation = NOT AUTHORIZED（除 FND-001 / FND-002 单项授权外）
 Business Implementation = NOT AUTHORIZED
 Production Implementation = NOT AUTHORIZED
 
-Next Topic: FND-001 Issue Creation and Implementation Authorization Gate（Final Review = PASS；只有用户明确回复「确认授权创建并实施 FND-001」才可授权创建 FND-001 GitHub Issue / Branch / PR、修改 Repository、执行 FND-001 范围内的 Foundation Implementation；该授权不包括 FND-002 / FND-003 或任何业务实现；用户明确授权前不创建任何 Foundation Issue / Branch / PR、不修改 Repository、不执行 Foundation Implementation）
+Next Topic: FND-002 Pull Request Review and Merge Gate（FND-001 = COMPLETED；FND-002 已经用户单独明确授权「确认授权创建并实施 FND-002」，Issue #9 已创建，实施完成并提交 PR #10，待用户审查并决定 Merge；FND-002 Merge = USER DECISION REQUIRED，Coding Agent 不得自行 Merge，用户 Merge 前 FND-002 Status 不标记 COMPLETED；该授权不包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue、不开始 FND-003 实施）
 ```
