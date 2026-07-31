@@ -1,0 +1,104 @@
+name: Implementation（实施）
+description: 实施类 Issue（Foundation / 业务实现等）。模板不构成授权。
+title: "[Implementation]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **实施类 Issue。** 本模板不授予任何开发权限：Acceptance ≠ Authorization。
+        只有用户在 Authorization Status 中明确授权后，才可创建实施 Branch 并开始实施；
+        Merge 决定始终由用户保留。沟通语言：中文；技术标识使用项目既有英文规范。
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: 本 Issue 要达成的目标（一段话）。
+    validations:
+      required: true
+  - type: textarea
+    id: relevant-dec
+    attributes:
+      label: Relevant DEC
+      description: 依据的 Accepted Decision（DEC 编号 + 文件链接）。
+    validations:
+      required: false
+  - type: textarea
+    id: relevant-spec
+    attributes:
+      label: Relevant Spec
+      description: 依据的规格文档（Current Specifications / Specs）。
+    validations:
+      required: false
+  - type: textarea
+    id: accepted-rfc
+    attributes:
+      label: Accepted RFC
+      description: 依据的 Accepted RFC（如 RFC-001 及其 DQ 编号）。
+    validations:
+      required: false
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: 前置条件及其状态（例：FND-001 = COMPLETED）。
+    validations:
+      required: true
+  - type: textarea
+    id: in-scope
+    attributes:
+      label: In Scope
+      description: 本 Issue 范围内的变更清单。
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      description: 明确排除的内容（防止范围蔓延）。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: 可逐条核验的验收标准（编号清单）。
+    validations:
+      required: true
+  - type: textarea
+    id: required-tests
+    attributes:
+      label: Required Tests
+      description: 必须通过的测试与命令（本地 + CI）。
+    validations:
+      required: false
+  - type: textarea
+    id: required-evidence
+    attributes:
+      label: Required Evidence
+      description: 必须提供的证据（CI Run、日志、命令输出）。
+    validations:
+      required: false
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback Considerations
+      description: 回滚方式与影响范围。
+    validations:
+      required: false
+  - type: textarea
+    id: mandatory-stop
+    attributes:
+      label: Mandatory Stop Conditions
+      description: 触发即停止并输出 Mandatory Stop Report 的条件清单。
+    validations:
+      required: false
+  - type: textarea
+    id: authorization-status
+    attributes:
+      label: Authorization Status
+      description: |
+        授权状态块（例：Issue Creation = AUTHORIZED / Implementation = AUTHORIZED /
+        Merge = USER DECISION REQUIRED / Business = NOT AUTHORIZED）。
+        未获明确授权前，所有实施类状态必须为 NOT AUTHORIZED。
+    validations:
+      required: true

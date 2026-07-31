@@ -1,0 +1,33 @@
+# Dependabot configuration (FND-003).
+#
+# Policy:
+# - Controlled version updates only. Dependabot PRs are NEVER auto-merged;
+#   the user retains the final merge decision on every dependency PR.
+# - Dependabot PRs must pass all required status checks (quality / test /
+#   security). The `uv` ecosystem maintains both pyproject.toml and uv.lock,
+#   so lockfile drift cannot be introduced by a Dependabot PR.
+# - Major updates open separate PRs and include release notes, making
+#   breaking risk explicit; dependency updates are never mixed with
+#   business changes.
+# - GitHub Actions updates cover the SHA-pinned third-party actions; the
+#   gitleaks release binary is not an action and is upgraded through a
+#   dedicated dependency PR (version + SHA-256 updated together).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: uv
+    directory: "/apps/backend"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    open-pull-requests-limit: 10
