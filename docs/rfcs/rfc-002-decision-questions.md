@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~04 ACCEPTED；DQ-05~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~05 ACCEPTED；DQ-06~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-04 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-05~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
+> - DQ-01~DQ-05 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-06~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -20,8 +20,8 @@
 | DQ-02 | 持久化所有权 / 模块边界 | **已决定（2026-08-01 ACCEPTED）**：单一 PG 服务 + 每表唯一所有模块 + 架构测试强制；每模块独立 schema 暂缓 | DEC-034 逻辑分离恒定 |
 | DQ-03 | Aggregate 与持久化边界 | **已决定（2026-08-02 ACCEPTED）**：聚合边界 = 业务不变量 + 唯一模块所有权；Task Mega Aggregate 拒绝；一 Use Case 一主聚合；UoW 形态移交 DQ-05/06 | DEC-035 六要素单事务（提交协议） |
 | DQ-04 | Domain State Versioning | **已决定（2026-08-02 ACCEPTED）**：`domain_version_id` / `version_number` / `revision` 三类分离 + `expected_revision` 显式并发校验；原分歧 应用层版本 vs `xmin` vs SERIALIZABLE | SQLAlchemy version_id_col 边界（仅 Infrastructure 机制） |
-| DQ-05 | Transaction Boundary | Use Case↔事务对齐、外部调用不入事务 | 连接 checkout 机制（推断） |
-| DQ-06 | Unit of Work Model | 显式 UoW Port 形态、嵌套事务 | SQLAlchemy Session=UoW |
+| DQ-05 | Transaction Boundary | **已决定（2026-08-02 ACCEPTED）**：Application 拥有业务事务 + 一短显式事务一最终提交点 + 长流程多短事务与无事务执行阶段 + 四项 PROHIBITED + Commit-time Revision Revalidation + 默认 READ COMMITTED + SAVEPOINT 仅基础设施机制、嵌套/分布式事务拒绝；原分歧 一 Use Case 一短事务 vs 全程一事务 vs SAVEPOINT 混合 | 连接 checkout 机制（推断） |
+| DQ-06 | Unit of Work Model | 显式 UoW Port 形态、接口位置、Commit/Rollback 负责方（嵌套业务事务禁止已由 DQ-05 决定） | SQLAlchemy Session=UoW |
 | DQ-07 | Concurrency Control | 乐观/悲观/CAS/约束/应用锁取舍 | DEC-022/029 未选型；R-1 GAP |
 | DQ-08 | Idempotency Model | 四层幂等是否统一存储 | Idempotent Consumer 权威 |
 | DQ-09 | Transactional Outbox / Durable Dispatch | 是否首版引入 Outbox | 双写问题权威；RFC-001 移交 |
@@ -186,9 +186,30 @@
 - **Trade-offs：** A 连接占用最短、恢复清晰但需编排外部调用位置；B 简单但资源风险；C 灵活但 SAVEPOINT 会先 flush、易误写中间态。
 - **Failure modes：** B 高并发下连接池耗尽；C 滥用 SAVEPOINT 产生意外部分提交语义。
 - **Impact on later RFCs：** RFC-003（节点边界）、RFC-007（超时/重试参数）。
-- **Recommendation：** **[架构推断] 倾向 A**——Use Case 拥有唯一提交点、外部调用不持有 DB 事务、长流程拆多个短事务；SAVEPOINT 仅留少数确需部分回滚场景。**置信度：中-高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation（历史提案；Superseded by the Accepted Revision below）：** **[架构推断] 倾向 A**——Use Case 拥有唯一提交点、外部调用不持有 DB 事务、长流程拆多个短事务；SAVEPOINT 仅留少数确需部分回滚场景。**置信度：中-高**。**候选关系：** Candidate A 的「一 Use Case 一短事务、外部调用在事务外（装载→外部调用→新事务提交）」方向被接受并由下方用户正式决定修订（补充 Business Transaction Owner = Application 与唯一最终提交点、四项 PROHIBITED 边界、Commit-time Revision Revalidation、External Result Before Commit 非 Current Truth、默认 PostgreSQL 隔离 = READ COMMITTED、SAVEPOINT 仅为有限 Infrastructure 机制、嵌套业务事务禁止、与外部供应商的分布式事务拒绝）；Candidate B（Use Case 全程一个事务）被拒绝；Candidate C（SAVEPOINT 作业务部分回滚机制的混合策略）作为业务事务策略被拒绝（SAVEPOINT 降级为有限 Infrastructure 机制）。
+- **User Decision：** ACCEPTED WITH REVISION
+- **Accepted Candidate：** Candidate A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+
+  > RFC-002-DQ-05 — Transaction Boundary
+  >
+  > 1. **Business Transaction Owner = Application：** 业务事务由 Application 层（Application Use Case）拥有；Entrypoint（API/CLI）与 Graph Node 不 begin/commit 业务事务（与架构基线 §14.3 和 RFC-001-DQ-04 一致）。
+  > 2. **Transactional Application Command = 一个短显式事务 + 一个最终提交点：** 每个事务性 Application Command 在一个短的显式数据库事务中完成状态修改，且有且仅有一个最终提交点（One short explicit transaction, one final commit point）；Use Case 是唯一提交点。
+  > 3. **Long-running Business Operation = 多个短事务 + 无事务执行阶段：** 长流程业务操作（含长 Workflow）由多个短 Application 事务与无事务执行阶段组成（Multiple short transactions + transaction-free execution phases）；不存在跨越整个长流程的单一长业务事务（与架构基线 §14.12 一致）。
+  > 4. **执行模式 = Prepare → Execute Outside Transaction → Commit：** 事务性 Application Command 遵循三段式——Prepare（装载所需状态；任何读取在进入 Execute 阶段前完成）→ Execute Outside Transaction（业务计算与外部调用，不持有数据库事务）→ Commit（一个新的短显式事务完成原子提交）。
+  > 5. **External Calls Inside Database Transaction = PROHIBITED：** 外部调用（LLM、HTTP、外部工具/供应商 I/O）不得在持有开放数据库事务期间进行；外部调用结果必须在随后的新短事务中持久化。
+  > 6. **Human Review Across Open Transaction = PROHIBITED：** 人工审核等待不得跨越开放数据库事务；进入 Human Review 前相关状态（如 Review Package state）必须已提交持久化，审核通过后 Resume 使用新事务。
+  > 7. **Workflow Pause Across Open Transaction = PROHIBITED：** 工作流暂停（interrupt、suspend、waiting 状态）不得跨越开放数据库事务；恢复所需状态必须在暂停前提交持久化（与 DEC-033 Safe Resume Boundary 一致）。
+  > 8. **SQLAlchemy Session Across Workflow Boundary = PROHIBITED：** SQLAlchemy Session 不得跨 Workflow 边界（节点之间、interrupt/resume 之间）持有；Session 生命周期外置于 Application Use Case 边界，Resume 以新 Session、新事务重新执行（与 DEC-033 Safe Resume Boundary 和 Checkpoint Reconciliation 一致）。
+  > 9. **Commit-time Revision Revalidation = REQUIRED：** RFC-002-DQ-04 Accepted Decision 定义的 revision 保护记录 `expected_revision` compare-and-swap 校验必须在提交事务内发生（commit-time revalidation）；不得使用提交前读取阶段获得的 revision 值作为跳过重新校验的直接提交依据；零影响行 = 冲突，Atomic Business Commit 整体回滚。
+  > 10. **DEC-035 Atomic Business Commit = IN FORCE：** DEC-035 六要素单事务保持有效（Commit Together or Rollback Together）；DQ-05 定义业务事务的边界与执行模式，不拆分六要素、不修改 DEC-035。
+  > 11. **External Result Before Commit = NOT CURRENT TRUTH：** 提交前获得的外部调用执行结果（LLM 输出、工具输出等）不是 Business Current Truth；只有经成功提交的 Atomic Business Commit 持久化后才成为正式业务状态；提交前返回给调用方的结果不得被视为权威业务真值。
+  > 12. **Default PostgreSQL Isolation = READ COMMITTED：** 项目默认事务隔离级别为 PostgreSQL READ COMMITTED（即 PostgreSQL 默认隔离级别）；DQ-04 第 13 点留待 DQ-05/DQ-07 的「默认事务隔离级别」空白由本点正式决定。
+  > 13. **Stronger Isolation / Locks / Retry Policy = DEFERRED TO DQ-07：** 需要更强隔离级别（如 SERIALIZABLE / REPEATABLE READ）的 Use Cases、悲观锁、SELECT FOR UPDATE / SKIP LOCKED 策略、40001 serialization-failure 重试、40P01 deadlock 重试、retry 所有权与重试上限，均留待 RFC-002-DQ-07（PROPOSED / PENDING）；DQ-05 不决定任何锁策略或重试策略。
+  > 14. **SAVEPOINT = LIMITED INFRASTRUCTURE MECHANISM ONLY：** SAVEPOINT（SQLAlchemy `begin_nested`）仅可作为有限的 Infrastructure 层机制使用（少数确需事务内部分回滚的场景）；它不是业务事务机制、不构成嵌套业务事务；其提交语义须服从 SQLAlchemy 2.0 官方行为（commit 总作用最外层事务）。
+  > 15. **Nested Business Transaction = PROHIBITED：** 嵌套业务事务被禁止；业务提交点不得嵌套；不得以 SAVEPOINT 构造嵌套的「业务 commit」语义。
+  > 16. **Distributed Transaction with External Providers = REJECTED：** 与外部供应商（LLM provider、外部 HTTP 服务、消息 broker 等）协调的分布式事务 / 两阶段提交被拒绝；业务写入与外部效果之间的一致性经由 DQ-05 决定的事务边界模式（先提交再外部效果，或外部执行后再新事务提交）与幂等 / Durable Dispatch 机制（DQ-08/09，PROPOSED / PENDING）实现，不经由分布式事务。
 
 ---
 
@@ -423,14 +444,14 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~04 ACCEPTED；DQ-05~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~05 ACCEPTED；DQ-06~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-02  Persistence Ownership / Boundaries    = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-03  Aggregate / Persistence Boundary      = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-04  Domain State Versioning               = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
-RFC-002-DQ-05  Transaction Boundary                  = PROPOSED — User Decision: PENDING
+RFC-002-DQ-05  Transaction Boundary                  = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-06  Unit of Work Model                    = PROPOSED — User Decision: PENDING
 RFC-002-DQ-07  Concurrency Control                   = PROPOSED — User Decision: PENDING
 RFC-002-DQ-08  Idempotency Model                     = PROPOSED — User Decision: PENDING
