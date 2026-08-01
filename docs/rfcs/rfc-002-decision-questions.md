@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~07 ACCEPTED；DQ-08~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~08 ACCEPTED；DQ-09~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-07 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-08~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
+> - DQ-01~DQ-08 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-09~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -23,7 +23,7 @@
 | DQ-05 | Transaction Boundary | **已决定（2026-08-02 ACCEPTED）**：Application 拥有业务事务 + 一短显式事务一最终提交点 + 长流程多短事务与无事务执行阶段 + 四项 PROHIBITED + Commit-time Revision Revalidation + 默认 READ COMMITTED + SAVEPOINT 仅基础设施机制、嵌套/分布式事务拒绝；原分歧 一 Use Case 一短事务 vs 全程一事务 vs SAVEPOINT 混合 | 连接 checkout 机制（推断） |
 | DQ-06 | Unit of Work Model | **已决定（2026-08-02 ACCEPTED）**：UoW Port 由 Application 定义 + Infrastructure SQLAlchemy 实现（Session 为不暴露的 Infrastructure 细节）+ 一次性 UoW（NEW→ACTIVE→COMMITTED/ROLLED_BACK→CLOSED）+ 一 UoW / 一 Session / 一短事务 / 一最终结果 + Use Case 显式 commit（Context 退出不自动提交）+ 未提交或异常退出 = rollback/close/discard + Repository 无事务控制权与 Session 暴露、无 Registry/Service Locator + 嵌套业务 UoW 禁止 + Composite 唯一外层 UoW + 纯读独立短 Query Scope；原分歧 显式 UoW vs 隐式自动提交 vs Repository 管理事务 | SQLAlchemy Session=UoW（官方能力；项目采用更严格一次性 UoW） |
 | DQ-07 | Concurrency Control | **已决定（2026-08-02 ACCEPTED）**：分层并发控制（Layered Concurrency Control）——乐观 revision（DQ-04 协议）为普通业务写默认 + 命名数据库唯一约束为重复业务事实最终防线（完整幂等键留 DQ-08）+ Durable Lease + 单调 fencing_token 为执行所有权（进程内锁仅非权威优化）+ SELECT FOR UPDATE SKIP LOCKED 仅限短事务队列式 Claim + Session-level Advisory Lock 禁止 + 40001/40P01 由 Application Transaction Runner 以全新 UoW/Session 最多三次总尝试重试（语义冲突不盲目重试）；Concurrency Scenario Matrix 与真实 PostgreSQL 多 Worker Technical Spike 为实现前置条件（均未授权）；原分歧 乐观/悲观/CAS/约束/应用锁取舍 | DEC-022/029/033 五类并发场景；R-1 GAP |
-| DQ-08 | Idempotency Model | 四层幂等是否统一存储 | Idempotent Consumer 权威 |
+| DQ-08 | Idempotency Model | **已决定（2026-08-02 ACCEPTED）**：Candidate B 为主（各幂等层由 Owning Module 分层存储）+ Candidate C 为强制设计原则（天然幂等 set/ensure/replace 语义，不替代显式记录与唯一约束）+ 统一语义契约（非统一物理表）；Candidate A 作为跨模块万能 Idempotency Table 被拒绝；Retry 复用 Command ID/Idempotency Key/Stage Run ID/Input Fingerprint 并创建新 Attempt ID，Intentional Rerun 创建新逻辑身份（保留 rerun_of）；同 Scope+Key+Fingerprint 重放原 Application Result、不同 Fingerprint 返回 Idempotency Key Conflict；幂等成功记录与 Business Current Truth 同一 DEC-035 原子提交；Consumer Dedup Marker 与消费业务更新同事务；IN_PROGRESS 执行所有权与 DQ-07 Durable Lease/Holder/Attempt ID/fencing_token 协同（旧 Worker 不得完成记录）；瞬时失败不永久固化、确定性终局语义结果可稳定重放；数据库事务重试不得重新调用外部 Provider（复用同一 Provider Call Identity）；Checkpoint/thread_id 不是业务幂等记录；**Idempotency Identity Matrix 为实现前置条件——REQUIRED 但 NOT AUTHORIZED**；物理表/Retention/Security 留 DQ-13/15/17；原分歧 统一幂等表 vs 分层存储 vs 天然幂等语义 | Idempotent Consumer 权威 |
 | DQ-09 | Transactional Outbox / Durable Dispatch | 是否首版引入 Outbox | 双写问题权威；RFC-001 移交 |
 | DQ-10 | Event & Audit Persistence | 审计 vs 事件分离与持久化 | Fowler Audit Log≠Domain Event |
 | DQ-11 | Snapshot vs History | 版本化历史 + 审计，不上完整 ES | DEC-013 排除 ES |
@@ -389,9 +389,292 @@
 - **Trade-offs：** A 简单统一但表语义混杂；B 清晰但多表；C 最优雅但非所有操作可设值化。
 - **Failure modes：** 去重与业务更新不同事务→判重失效；键设计不含输入指纹→同键不同参数被误判重放。
 - **Impact on later RFCs：** RFC-003（resume 幂等）、RFC-004（submit 幂等）。
-- **Recommendation：** **[架构推断] 倾向 A 为主 + C 为辅**——统一带唯一约束的幂等表（含 input fingerprint + 首次结果），操作尽量设计为设值语义。**置信度：中-高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation：** **[架构推断] 倾向 A 为主 + C 为辅**——统一带唯一约束的幂等表（含 input fingerprint + 首次结果），操作尽量设计为设值语义。**置信度：中-高**（历史提案；Superseded by the Accepted Major Revision below）。候选关系：**Candidate A = REJECTED AS UNIVERSAL CROSS-MODULE TABLE**（作为一张跨模块、跨 Command、Workflow、Consumer、Dispatch 与 Provider 调用的万能 Idempotency Table 被拒绝）；**Candidate B = ACCEPTED AS PRIMARY PERSISTENCE DIRECTION**（各幂等层由对应 Owning Module 分层存储）；**Candidate C = ACCEPTED AS MANDATORY DESIGN PRINCIPLE**（天然幂等 set / ensure / replace 语义为强制设计原则，但不替代显式幂等记录与数据库唯一约束）。
+- **User Decision：** ACCEPTED WITH MAJOR REVISION
+- **Accepted Primary Direction：** CANDIDATE B（分层模块私有持久化）
+- **Accepted Supporting Principle：** CANDIDATE C（天然幂等设计原则）
+- **Rejected Direction：** CANDIDATE A AS UNIVERSAL CROSS-MODULE TABLE
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+  > **4.1 分层持久化与统一语义**
+  > 1. 项目采用分层幂等模型，不采用一张跨模块、跨所有语义的 Universal Idempotency Table。
+  > 2. 不同幂等层由相应 Owning Module 持久化。
+  > 3. 所有幂等层共享统一的概念与行为契约，包括：
+  >    - logical operation identity；
+  >    - owning module；
+  >    - idempotency scope；
+  >    - idempotency key；
+  >    - input fingerprint；
+  >    - execution status；
+  >    - retry / rerun semantics；
+  >    - unique constraint；
+  >    - result replay semantics；
+  >    - atomic transaction boundary。
+  > 4. 统一概念契约不意味着统一物理表。
+  > 5. 每份幂等记录必须有且仅有一个 Owning Module，并遵守 DQ-02 的表所有权与跨模块访问边界。
+  > 6. Candidate B 作为主要持久化方向被接受。
+  > 7. Candidate C 作为强制设计原则被接受。
+  > 8. Candidate A 作为一张跨模块、跨 Command、Workflow、Consumer、Dispatch 和 Provider 调用的 Universal Idempotency Table 被拒绝。
+  > 9. 一个具体 Owning Module 可以为其自身同类 Commands 使用模块私有的 Command Idempotency Table。
+  >
+  > **4.2 身份模型**
+  > 10. 必须明确区分：
+  >    - Command ID；
+  >    - Idempotency Key；
+  >    - Attempt ID；
+  >    - Stage Run ID；
+  >    - Review Decision ID；
+  >    - Dispatch ID；
+  >    - Provider Call Identity。
+  > 11. 上述身份不得混用，不得由一个通用 ID 字段隐式取代。
+  > 12. Command ID 表示一次逻辑状态修改 Command。
+  > 13. Command ID 由 Application 层生成。
+  > 14. 同一逻辑 Command 的数据库 Retry 或执行 Retry 必须复用同一 Command ID。
+  > 15. Intentional Rerun 必须创建新的 Command ID。
+  > 16. Rerun 应保留 `rerun_of`、`parent_command_id` 或等价关系。
+  > 17. Idempotency Key 表示调用者要求去重与结果重放的逻辑身份。
+  > 18. Idempotency Key 必须在明确的 Idempotency Scope 内唯一，不得只按整库裸 Key 推断语义。
+  > 19. Idempotency Scope 至少必须等价表达：
+  >    - owning module；
+  >    - operation type；
+  >    - target business scope；
+  >    - tenant/account scope，如未来存在；
+  >    - idempotency key。
+  > 20. Attempt ID 表示一次具体执行尝试。
+  > 21. 每次 Retry 创建新的 Attempt ID。
+  > 22. Attempt ID 不是业务幂等 Key，不得用于判断逻辑 Command 是否已完成。
+  > 23. Stage Run ID 表示一次有意启动的 Stage Run。
+  > 24. 同一 Stage Run 内的 Retry 保持相同 Stage Run ID。
+  > 25. Intentional Rerun 创建新的 Stage Run ID。
+  > 26. Retry 不得创建新的正式 Domain Version。
+  > 27. Intentional Rerun 成功后可以产生新的正式 Domain Version。
+  > 28. Review Decision ID 是不可变的正式业务决定身份，必须由命名唯一约束保护。
+  > 29. 同一 Review Decision 不得正式提交两次。
+  > 30. Dispatch ID 的产生、Outbox 持久化和 Delivery 语义继续由 DQ-09 决定。
+  >
+  > **4.3 Retry 与 Rerun**
+  > 31. Retry 的身份语义：
+  >    ```text
+  >    same Command ID
+  >    same Idempotency Key
+  >    same Stage Run ID
+  >    same Input Fingerprint
+  >    new Attempt ID
+  >    no new intended business operation
+  >    ```
+  > 32. Intentional Rerun 的身份语义：
+  >    ```text
+  >    new Command ID
+  >    new logical Idempotency identity
+  >    new Stage Run ID
+  >    new Attempt ID
+  >    explicit relation to previous run
+  >    may produce new business version after successful commit
+  >    ```
+  > 33. Retry 与 Rerun 不得通过是否发生异常来隐式判断，必须由明确的 Application Intent 区分。
+  >
+  > **4.4 Input Fingerprint**
+  > 34. 每个需要幂等保护的操作必须计算 Versioned Input Fingerprint。
+  > 35. Input Fingerprint 必须基于规范化后的业务有效输入，不得直接依赖原始 JSON 字节顺序或任意序列化结果。
+  > 36. Fingerprint 定义必须明确：
+  >    - canonicalization version；
+  >    - fingerprint schema version；
+  >    - hash algorithm；
+  >    - included business fields；
+  >    - excluded transport and observability fields。
+  > 37. Fingerprint 应包含决定业务效果的字段，例如：
+  >    - target business identity；
+  >    - expected revision；
+  >    - base Domain Version；
+  >    - Command parameters；
+  >    - Source/Evidence Version references；
+  >    - selected operation mode。
+  > 38. Fingerprint 不应包含：
+  >    - trace ID；
+  >    - arrival timestamp；
+  >    - retry counter；
+  >    - Attempt ID；
+  >    - connection metadata；
+  >    - 不影响业务效果的观测字段。
+  > 39. 同一 Scope + Key + 相同 Fingerprint 表示同一个逻辑操作。
+  > 40. 同一 Scope + Key + 不同 Fingerprint 必须返回 Idempotency Key Conflict。
+  > 41. Idempotency Key Conflict 时不得：
+  >    - 覆盖原记录；
+  >    - 执行新业务操作；
+  >    - 把旧结果重放为新请求结果；
+  >    - 盲目自动重试。
+  >
+  > **4.5 状态机与执行所有权**
+  > 42. 幂等执行至少需要表达：
+  >    - IN_PROGRESS；
+  >    - SUCCEEDED；
+  >    - FAILED_TERMINAL；
+  >    - ABANDONED、EXPIRED 或 RETRYABLE 等非终局状态。
+  > 43. 精确 Enum 名称留待实现设计。
+  > 44. IN_PROGRESS 表示逻辑操作已被一个有效 Attempt 领取。
+  > 45. 重复请求看到有效 IN_PROGRESS 时不得再次执行相同业务副作用。
+  > 46. IN_PROGRESS 执行所有权必须与 DQ-07 的：
+  >    - Durable Lease；
+  >    - Lease Holder；
+  >    - Attempt ID；
+  >    - fencing_token；
+  >
+  >    协同。
+  > 47. 只有当前有效 Lease Holder 和 fencing_token 可以把幂等记录转换为最终成功状态。
+  > 48. Lease 过期、被接管或 fencing_token 失效后，旧 Worker 不得写入 SUCCEEDED。
+  > 49. Checkpoint 和 LangGraph thread_id 不作为 Business Idempotency Record。
+  >
+  > **4.6 原子提交与结果重放**
+  > 50. 业务成功时，以下内容必须在同一个 DEC-035 Atomic Business Commit 中提交：
+  >    - Business Current Truth 更新；
+  >    - Domain Version；
+  >    - Formal Evidence Links；
+  >    - Current Truth Pointer；
+  >    - Stage State；
+  >    - Audit Record；
+  >    - Idempotency Record 的成功状态；
+  >    - 不可变 Application Result Snapshot 或结果引用。
+  > 51. 如果业务事务回滚，不得留下 SUCCEEDED Idempotency Record。
+  > 52. 如果业务 Commit 成功但响应丢失，相同 Scope + Key + Fingerprint 的后续请求必须重放原 Application Result。
+  > 53. 结果重放不得再次执行业务副作用。
+  > 54. 重放结果必须是项目自有的稳定 Application Result Snapshot 或不可变结果引用。
+  > 55. 幂等记录不得直接保存或返回：
+  >    - ORM Entity；
+  >    - SQLAlchemy Session；
+  >    - Python Exception 对象；
+  >    - 原始数据库错误；
+  >    - 未脱敏 Secret；
+  >    - 与传输层强绑定的可变对象。
+  > 56. HTTP Status、Headers、Response Body 和 Header 名称继续由 RFC-004 决定。
+  >
+  > **4.7 失败分类**
+  > 57. 确定性的终局业务结果可以记录并稳定重放。
+  > 58. 可记录的终局结果包括已正式确定且再次执行不会改变的业务拒绝或冲突。
+  > 59. 瞬时基础设施失败不得永久固化为终局结果，包括：
+  >    - 连接超时；
+  >    - SQLSTATE 40001；
+  >    - SQLSTATE 40P01；
+  >    - 临时 Provider 不可用；
+  >    - Worker Crash；
+  >    - Lease 过期；
+  >    - 可恢复的网络故障。
+  > 60. 瞬时失败可以使用相同逻辑幂等身份重试，但必须创建新的 Attempt ID。
+  > 61. 重试继续受 DQ-07 的有限重试、Lease 和 Fencing Token 规则约束。
+  > 62. 在领取操作和副作用开始前发生的纯输入验证失败，可以不创建可重放终局记录。
+  >
+  > **4.8 分层幂等**
+  > 63. Business Command Idempotency Record：
+  >    - 由执行该业务状态修改的模块拥有；
+  >    - 与业务状态更新同一 PostgreSQL 事务提交；
+  >    - 不得成为跨模块共享读写表。
+  > 64. Message Consumer Deduplication Record：
+  >    - 由消费模块拥有；
+  >    - 使用 Message ID/Dispatch ID + Consumer Scope 的组合唯一；
+  >    - Dedup Marker 必须与消费产生的业务更新同事务提交；
+  >    - 不得先提交 Dedup Marker 再执行实际业务写入。
+  > 65. Workflow Retry Idempotency：
+  >    - Runtime 负责 Attempt 和运行位置；
+  >    - Business Module 负责防止重复 Business Commit；
+  >    - Resume 必须经过 Command Identity、数据库幂等记录、Lease 与 Fencing 校验；
+  >    - Checkpoint 不替代业务幂等记录。
+  > 66. External Provider Idempotency：
+  >    - Provider Adapter 使用稳定 Provider Call Identity；
+  >    - 同一逻辑调用的 Retry 复用相同 Provider Idempotency Key；
+  >    - Intentional Rerun 使用新的 Provider Call Identity；
+  >    - Provider Key 必须绑定 Input Fingerprint；
+  >    - 数据库事务 Retry 不得生成新的 Provider Key。
+  > 67. Provider 原生支持 Idempotency Key 时，应稳定映射系统逻辑调用身份。
+  > 68. Provider 不支持原生 Idempotency 时，Provider/Integration 模块必须维护 Durable Call Ledger。
+  > 69. Durable Call Ledger 至少记录：
+  >    - Provider Call Identity；
+  >    - Input Fingerprint；
+  >    - execution status；
+  >    - Attempt relationship；
+  >    - result reference；
+  >    - reconciliation state。
+  > 70. 已完成 Provider 调用不得因数据库事务重试被自动再次调用。
+  > 71. 具体 Provider 对账和补偿策略留给相应 Provider RFC 或 Adapter 设计。
+  >
+  > **4.9 天然幂等语义**
+  > 72. 状态修改应尽量采用：
+  >    - set；
+  >    - ensure；
+  >    - replace-to-desired-state；
+  >    - compare-and-set。
+  > 73. 应避免无保护的：
+  >    - increment；
+  >    - append；
+  >    - toggle；
+  >    - duplicate create。
+  > 74. 天然幂等语义不得替代显式记录、唯一约束或执行所有权控制，尤其涉及：
+  >    - 创建 Domain Version；
+  >    - 外部副作用；
+  >    - Review Decision；
+  >    - Dispatch；
+  >    - 计费或配额；
+  >    - append-only Audit；
+  >    - 只能发生一次的正式业务事实。
+  >
+  > **4.10 物理模型与后续边界**
+  > 75. 具体表名、字段名、索引、分区与 Storage Placement 留待实现设计和 DQ-13。
+  > 76. Retention、TTL、删除和 Key 再利用策略由 DQ-15 决定。
+  > 77. DQ-15 决定前不得：
+  >    - 假设 Key 可被短期删除；
+  >    - 自动复用归档 Key；
+  >    - 依赖内存 Cache 作为权威幂等存储。
+  > 78. Fingerprint 和结果存储不得无必要复制敏感原始载荷。
+  > 79. Hashing、Encryption、Redaction、Secret 和 PII 规则继续由 DQ-17 决定。
+  > 80. DQ-08 不提前决定：
+  >    - Outbox/Dispatch 表和 Relay → DQ-09；
+  >    - Event/Audit 分类和持久化顺序 → DQ-10；
+  >    - Workflow Runtime/Checkpoint 协调 → RFC-003；
+  >    - HTTP 幂等 Header、状态码和响应协议 → RFC-004；
+  >    - Retention 数值 → DQ-15；
+  >    - 完整测试分类和 CI → DQ-16；
+  >    - Security/Encryption/PII → DQ-17。
+  >
+  > **4.11 Idempotency Identity Matrix**
+  > 81. 开始幂等实现前必须完成 Idempotency Identity Matrix。
+  > 82. Matrix 至少包含：
+  >    - Operation；
+  >    - Owning Module；
+  >    - Logical Command ID；
+  >    - Idempotency Scope；
+  >    - Idempotency Key Source；
+  >    - Retry Identity；
+  >    - Rerun Identity；
+  >    - Attempt ID；
+  >    - Stage Run ID；
+  >    - Input Fingerprint Fields；
+  >    - Fingerprint Schema Version；
+  >    - State Machine；
+  >    - Unique Constraint；
+  >    - Atomic Transaction Boundary；
+  >    - Result Replay；
+  >    - Provider Idempotency；
+  >    - Retention Owner；
+  >    - Related DQ/DEC/RFC。
+  > 83. DQ-08 接受不授权创建该 Matrix。
+  > 84. Idempotency Identity Matrix Creation = NOT AUTHORIZED。
+  > 85. 本决定不要求新增独立 Technical Spike。
+  > 86. DQ-07 已要求的真实 PostgreSQL 多 Worker Concurrency Technical Spike 继续有效，并应覆盖幂等并发场景。
+  >
+  > **4.12 测试前置语义**
+  > 87. 所有正式幂等语义验证必须使用真实 PostgreSQL。
+  > 88. 后续测试至少覆盖：
+  >    - 同 Key + 同 Fingerprint 并发请求只有一次业务效果；
+  >    - 同 Key + 不同 Fingerprint 返回冲突；
+  >    - Commit 成功但响应丢失后重放原结果；
+  >    - Retry 不创建新 Domain Version；
+  >    - Intentional Rerun 创建新逻辑身份；
+  >    - Review Decision 只提交一次；
+  >    - Consumer Dedup 与业务更新同事务；
+  >    - Worker Crash 后 IN_PROGRESS 接管；
+  >    - stale fencing_token 无法完成记录；
+  >    - Provider 成功但数据库 Commit 失败后不重复调用；
+  >    - 瞬时失败创建新 Attempt；
+  >    - 终局结果稳定重放。
+  > 89. 详细测试组织和 CI 策略继续由 DQ-16 决定。
 
 ---
 
@@ -567,7 +850,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~07 ACCEPTED；DQ-08~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~08 ACCEPTED；DQ-09~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -577,7 +860,7 @@ RFC-002-DQ-04  Domain State Versioning               = ACCEPTED (Candidate A, Ac
 RFC-002-DQ-05  Transaction Boundary                  = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-06  Unit of Work Model                    = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-07  Concurrency Control                   = ACCEPTED (Accepted Direction: Layered Concurrency Control, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
-RFC-002-DQ-08  Idempotency Model                     = PROPOSED — User Decision: PENDING
+RFC-002-DQ-08  Idempotency Model                     = ACCEPTED (Primary Direction: Candidate B, Supporting Principle: Candidate C, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-09  Transactional Outbox / Dispatch       = PROPOSED — User Decision: PENDING
 RFC-002-DQ-10  Event & Audit Persistence             = PROPOSED — User Decision: PENDING
 RFC-002-DQ-11  Snapshot vs History                   = PROPOSED — User Decision: PENDING
