@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~08 ACCEPTED；DQ-09~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~09 ACCEPTED；DQ-10~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-08 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-09~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
+> - DQ-01~DQ-09 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-10~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -24,7 +24,7 @@
 | DQ-06 | Unit of Work Model | **已决定（2026-08-02 ACCEPTED）**：UoW Port 由 Application 定义 + Infrastructure SQLAlchemy 实现（Session 为不暴露的 Infrastructure 细节）+ 一次性 UoW（NEW→ACTIVE→COMMITTED/ROLLED_BACK→CLOSED）+ 一 UoW / 一 Session / 一短事务 / 一最终结果 + Use Case 显式 commit（Context 退出不自动提交）+ 未提交或异常退出 = rollback/close/discard + Repository 无事务控制权与 Session 暴露、无 Registry/Service Locator + 嵌套业务 UoW 禁止 + Composite 唯一外层 UoW + 纯读独立短 Query Scope；原分歧 显式 UoW vs 隐式自动提交 vs Repository 管理事务 | SQLAlchemy Session=UoW（官方能力；项目采用更严格一次性 UoW） |
 | DQ-07 | Concurrency Control | **已决定（2026-08-02 ACCEPTED）**：分层并发控制（Layered Concurrency Control）——乐观 revision（DQ-04 协议）为普通业务写默认 + 命名数据库唯一约束为重复业务事实最终防线（完整幂等键留 DQ-08）+ Durable Lease + 单调 fencing_token 为执行所有权（进程内锁仅非权威优化）+ SELECT FOR UPDATE SKIP LOCKED 仅限短事务队列式 Claim + Session-level Advisory Lock 禁止 + 40001/40P01 由 Application Transaction Runner 以全新 UoW/Session 最多三次总尝试重试（语义冲突不盲目重试）；Concurrency Scenario Matrix 与真实 PostgreSQL 多 Worker Technical Spike 为实现前置条件（均未授权）；原分歧 乐观/悲观/CAS/约束/应用锁取舍 | DEC-022/029/033 五类并发场景；R-1 GAP |
 | DQ-08 | Idempotency Model | **已决定（2026-08-02 ACCEPTED）**：Candidate B 为主（各幂等层由 Owning Module 分层存储）+ Candidate C 为强制设计原则（天然幂等 set/ensure/replace 语义，不替代显式记录与唯一约束）+ 统一语义契约（非统一物理表）；Candidate A 作为跨模块万能 Idempotency Table 被拒绝；Retry 复用 Command ID/Idempotency Key/Stage Run ID/Input Fingerprint 并创建新 Attempt ID，Intentional Rerun 创建新逻辑身份（保留 rerun_of）；同 Scope+Key+Fingerprint 重放原 Application Result、不同 Fingerprint 返回 Idempotency Key Conflict；幂等成功记录与 Business Current Truth 同一 DEC-035 原子提交；Consumer Dedup Marker 与消费业务更新同事务；IN_PROGRESS 执行所有权与 DQ-07 Durable Lease/Holder/Attempt ID/fencing_token 协同（旧 Worker 不得完成记录）；瞬时失败不永久固化、确定性终局语义结果可稳定重放；数据库事务重试不得重新调用外部 Provider（复用同一 Provider Call Identity）；Checkpoint/thread_id 不是业务幂等记录；**Idempotency Identity Matrix 为实现前置条件——REQUIRED 但 NOT AUTHORIZED**；物理表/Retention/Security 留 DQ-13/15/17；原分歧 统一幂等表 vs 分层存储 vs 天然幂等语义 | Idempotent Consumer 权威 |
-| DQ-09 | Transactional Outbox / Durable Dispatch | 是否首版引入 Outbox | 双写问题权威；RFC-001 移交 |
+| DQ-09 | Transactional Outbox / Durable Dispatch | **已决定（2026-08-02 ACCEPTED）**：Candidate B（PostgreSQL-backed Transactional Durable Work Intent）作为 MVP 内部可靠工作调度模型 + Candidate A 不作 MVP 内部任务模型（保留为未来 Integration Event Outbox 方向）+ Candidate C 独立 Broker 不在 MVP 引入（未来仅作 Delivery Backend，不替代事务内 Durable Intent）；业务状态更新与 Durable Work Intent 同一 PostgreSQL Atomic Business Commit（Intent 写入失败整体回滚、回滚不留可领取 Intent）；API 仅在 Intent 持久化提交后返回 accepted（accepted 仅表示工作已可靠记录，不表示 Worker 或业务执行完成）；禁止 asyncio.create_task/内存 Queue/临时 Background Task/单独 Broker Publish/仅 LISTEN-NOTIFY 作为唯一可靠调度；Dispatch ID Retry 稳定、Delivery Attempt 每次新建、Intentional Rerun 新 Dispatch ID（保留 rerun_of）；短事务 SELECT FOR UPDATE SKIP LOCKED Claim + Lease Holder + 单调 fencing_token + Attempt Identity，长执行不持行锁/Session/UoW/连接，最终提交重新验证 Dispatch ID/Lease Holder/fencing_token/Attempt/Fingerprint/expected_revision（旧 Worker 或过期 Lease 不得完成 Intent）；Delivery = at-least-once（不承诺 exactly-once；唯一业务效果由 DQ-08 幂等 + Consumer Dedup + 命名唯一约束 + DQ-07 Lease/Fencing + revision + Atomic Commit 组合保证）；数据库事务 Retry 与 Work Execution Retry 分离（DQ-07 三次事务尝试不直接套用长任务次数；Work Retry/Backoff/Dead-letter/人工恢复/告警留 RFC-003/RFC-007）；LISTEN/NOTIFY 仅非权威唤醒优化、周期性 Polling 为权威恢复路径；不新增独立 Matrix，现有 Idempotency Identity Matrix 与 Concurrency Scenario Matrix 须补充 Dispatch 场景——REQUIRED 但 NOT AUTHORIZED；DQ-07 真实 PostgreSQL 多 Worker Spike 继续有效并覆盖 Durable Dispatch 并发与恢复语义；relay/Worker backend/部署拓扑留 RFC-003，Event 分类留 DQ-10，HTTP/Polling API 协议留 RFC-004，Retention 留 DQ-15，测试留 DQ-16，Security 留 DQ-17；原分歧 是否首版引入 Outbox | 双写问题权威；RFC-001 移交 |
 | DQ-10 | Event & Audit Persistence | 审计 vs 事件分离与持久化 | Fowler Audit Log≠Domain Event |
 | DQ-11 | Snapshot vs History | 版本化历史 + 审计，不上完整 ES | DEC-013 排除 ES |
 | DQ-12 | Source & Evidence Persistence | 原始内容存 DB vs 引用 + 大内容边界 | PG TOAST/bytea/外部存储 |
@@ -691,9 +691,397 @@
 - **Trade-offs：** A 语义最完整但需 relay 组件；B 最简单、与「DB 任务表」天然契合 MVP；C 强大但超范围。**relay/backend 实现属 RFC-003。**
 - **Failure modes：** 开发者提交业务后忘写 outbox（权威缺点）；relay 重复投递（故消费端幂等）；B 高吞吐下轮询负载。
 - **Impact on later RFCs：** RFC-003（dispatch backend 具体实现）、RFC-007（relay 观测）。
-- **Recommendation：** **[架构推断] 倾向 B（DB Job Table 形态的 Durable Work Intent，逻辑等价最简 Outbox）首版引入**，与业务写入同事务；relay/具体 backend 移交 RFC-003。**置信度：中**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation（历史提案；Superseded by the Accepted Major Revision below）：** **[架构推断] 倾向 B（DB Job Table 形态的 Durable Work Intent，逻辑等价最简 Outbox）首版引入**，与业务写入同事务；relay/具体 backend 移交 RFC-003。**置信度：中**。候选关系：**Candidate B = ACCEPTED WITH MAJOR REVISION**（Formal Pattern: PostgreSQL-backed Transactional Durable Work Intent，作为 MVP 内部可靠工作调度模型）；**Candidate A = NOT SELECTED AS MVP INTERNAL WORK MODEL**（不作为 MVP 内部任务调度的主要模型；RETAINED FOR FUTURE INTEGRATION EVENT OUTBOX——当 DQ-10 或后续 RFC 确认需要可靠发布 Integration Event 时，可引入语义独立的 Transactional Event Outbox）；**Candidate C = NOT SELECTED FOR MVP**（独立 Message Broker 不在 MVP 中作为权威 Durable Dispatch 来源；MAY SERVE AS A FUTURE DELIVERY BACKEND；MUST NOT REPLACE TRANSACTIONAL DURABLE INTENT）。
+- **User Decision：** ACCEPTED WITH MAJOR REVISION
+- **Accepted Candidate：** CANDIDATE B
+- **Formal Pattern：** POSTGRESQL-BACKED TRANSACTIONAL DURABLE WORK INTENT
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+  > **3.1 模式选择与语义边界**
+  > 1. MVP 采用 PostgreSQL-backed Transactional Durable Work Intent。
+  > 2. Candidate B 作为 MVP 内部 Durable Dispatch 的主要方向被接受。
+  > 3. Durable Work Intent 表示：
+  >    ```text
+  >    The system must perform this work.
+  >    ```
+  > 4. Durable Work Intent 不表示：
+  >    ```text
+  >    This business fact has already happened.
+  >    ```
+  > 5. Durable Work Intent 不得与以下概念混用：
+  >    - Domain Event；
+  >    - Application Event；
+  >    - Integration Event；
+  >    - Audit Record；
+  >    - State Transition Record；
+  >    - Workflow Checkpoint；
+  >    - Business Current Truth；
+  >    - 通用 Message Envelope。
+  > 6. Candidate A 不作为 MVP 内部任务调度的主要模型。
+  > 7. 当 DQ-10 或后续 RFC 确认需要可靠发布 Integration Event 时，可以引入语义独立的 Transactional Event Outbox。
+  > 8. Durable Work Intent 与 Integration Event Outbox 不得默认共用：
+  >    - 业务身份；
+  >    - 状态机；
+  >    - Payload；
+  >    - Retention；
+  >    - Consumer Protocol；
+  >    - Completion Semantics；
+  >    - Retry Policy。
+  > 9. Candidate C 独立 Message Broker 不在 MVP 中作为权威 Durable Dispatch 来源。
+  > 10. 后续 Message Broker 只能作为：
+  >    - Delivery Backend；
+  >    - Relay Target；
+  >    - Worker Transport；
+  >    - 扩展性基础设施。
+  > 11. Broker 不得替代在业务事务内写入的 Durable Work Intent。
+  >
+  > **3.2 所有权与模块边界**
+  > 12. Durable Dispatch 必须具有明确且唯一的 Owning Module 或 Dispatch Capability。
+  > 13. Dispatch Capability 拥有：
+  >    - Work Intent Repository Port；
+  >    - Infrastructure Repository；
+  >    - ORM Model；
+  >    - Migration；
+  >    - Claim Application Contract；
+  >    - Completion Application Contract；
+  >    - Retry/Cancel/Supersede Application Contract。
+  > 14. 业务模块不得直接访问 Dispatch ORM、表、Session 或 Repository。
+  > 15. 跨模块创建 Work Intent 必须通过明确的 Public Application Contract、Composite Application Use Case 或同一顶层事务编排。
+  > 16. 不得通过共享 ORM、直接 SQL 或 Repository Registry 绕过 DQ-02 的模块边界。
+  >
+  > **3.3 原子创建与 API accepted 边界**
+  > 17. 当业务状态迁移需要可靠触发后续工作时，最外层 Transactional 或 Composite Application Use Case 必须在同一 PostgreSQL 事务中：
+  >    - 写入业务状态；
+  >    - 写入 DEC-035 Atomic Business Commit 的必要参与者；
+  >    - 创建 Durable Work Intent；
+  >    - Commit。
+  > 18. Durable Work Intent 的创建与触发它的业务状态变化必须处于同一 Atomic Business Commit。
+  > 19. Work Intent 写入失败时，整个业务事务必须回滚。
+  > 20. 业务事务回滚时，不得留下可领取的 Work Intent。
+  > 21. 不得先提交业务状态，再尝试以非原子方式补写 Work Intent。
+  > 22. API 只有在 Durable Work Intent 成功持久化并 Commit 后才能返回：
+  >    ```text
+  >    accepted
+  >    ```
+  > 23. `accepted` 只表示：
+  >    ```text
+  >    Durable Work Intent has been reliably recorded.
+  >    ```
+  > 24. `accepted` 不表示：
+  >    - Worker 已领取；
+  >    - Worker 已启动；
+  >    - 外部 Provider 已调用；
+  >    - Workflow 已完成；
+  >    - Business Result 已成功；
+  >    - Current Truth 已更新为最终结果。
+  > 25. HTTP Status、Header、Response Body 与 Polling API 协议继续由 RFC-004 决定。
+  >
+  > **3.4 被禁止的非持久化 Dispatch**
+  > 26. 以下机制不得作为唯一可靠调度保证：
+  >    - `asyncio.create_task`；
+  >    - 临时 Background Task；
+  >    - 进程内 Queue；
+  >    - 内存 Flag；
+  >    - 非持久化 Callback；
+  >    - Fire-and-forget coroutine；
+  >    - 仅依赖 LISTEN/NOTIFY；
+  >    - 仅依赖 Broker Publish；
+  >    - 仅依赖 LangGraph Runtime 内存状态。
+  > 27. 上述机制可以在后续设计中作为性能或唤醒优化，但业务正确性必须依赖 Durable Work Intent。
+  >
+  > **3.5 Dispatch Identity**
+  > 28. 每个逻辑 Durable Work Intent 使用稳定且唯一的 `dispatch_id`。
+  > 29. 同一个逻辑 Intent 的 Work Execution Retry 必须保持相同 `dispatch_id`。
+  > 30. 每次具体领取或执行尝试必须创建新的：
+  >    - `delivery_attempt_id`；
+  >    - 或与 DQ-08 明确一致的 Attempt Identity。
+  > 31. Attempt Identity 不得替代 `dispatch_id`。
+  > 32. Intentional Rerun 必须创建新的 `dispatch_id`。
+  > 33. Intentional Rerun 必须保留：
+  >    - `rerun_of`；
+  >    - `parent_dispatch_id`；
+  >    - 或等价关系。
+  > 34. Retry 与 Rerun 必须由明确 Application Intent 区分，不得只依据异常是否发生来推断。
+  >
+  > **3.6 Durable Intent Envelope**
+  > 35. Durable Work Intent 的稳定 Envelope 至少必须表达：
+  >    - `dispatch_id`；
+  >    - `intent_type`；
+  >    - owning business operation；
+  >    - target business scope；
+  >    - `command_id`；
+  >    - `stage_run_id`，如适用；
+  >    - Input Fingerprint；
+  >    - base `domain_version_id`，如适用；
+  >    - `expected_revision`，如适用；
+  >    - immutable payload 或 payload reference；
+  >    - ordering key，如适用；
+  >    - `created_at`；
+  >    - `available_at`；
+  >    - priority，如适用。
+  > 36. Work Intent Payload 不得包含：
+  >    - ORM Entity；
+  >    - SQLAlchemy Session；
+  >    - UnitOfWork；
+  >    - Repository；
+  >    - 数据库 Connection；
+  >    - lazy-loaded ORM relation；
+  >    - Python Coroutine；
+  >    - 未脱敏 Secret；
+  >    - 无法稳定序列化的进程内对象。
+  > 37. Work Intent 不得只保存：
+  >    ```text
+  >    Go to the database and process the latest state.
+  >    ```
+  > 38. Intent 必须保存足够的不可变身份、版本与 Fingerprint，使 Worker 能判断：
+  >    - 原计划处理什么；
+  >    - 基于哪个业务版本；
+  >    - 当前状态是否已变化；
+  >    - 结果是否 stale；
+  >    - 当前执行属于 Retry 还是 Rerun；
+  >    - 当前 Worker 是否仍拥有执行权。
+  > 39. Payload Snapshot 与 Payload Reference 的具体选择留待实现设计与 DQ-12、DQ-17 边界。
+  >
+  > **3.7 生命周期**
+  > 40. Durable Work Intent 至少需要表达以下生命周期语义：
+  >    - PENDING / AVAILABLE；
+  >    - LEASED / IN_PROGRESS；
+  >    - SUCCEEDED；
+  >    - FAILED_RETRYABLE；
+  >    - FAILED_TERMINAL；
+  >    - CANCELLED；
+  >    - SUPERSEDED。
+  > 41. 精确 Enum 名称留待实现设计。
+  > 42. 状态转换必须是显式、可审计且受并发保护的。
+  > 43. 不得通过删除记录来表达普通成功、失败、取消或取代。
+  > 44. Invalidation、Cancellation 与 Supersession 不等于物理删除。
+  >
+  > **3.8 Claim、Lease 与 Fencing**
+  > 45. Work Intent Claim 必须使用短 PostgreSQL 事务。
+  > 46. 队列式 Claim 可以采用：
+  >    ```text
+  >    select eligible intent
+  >    → SELECT FOR UPDATE SKIP LOCKED
+  >    → assign Lease Holder
+  >    → issue monotonically increasing fencing_token
+  >    → create Attempt Identity
+  >    → update lifecycle state
+  >    → commit
+  >    → release lock/session/connection
+  >    ```
+  > 47. SKIP LOCKED 只允许用于队列式 Claim，不得用于普通 Current Truth 查询。
+  > 48. Claim Commit 后必须释放：
+  >    - PostgreSQL 行锁；
+  >    - SQLAlchemy Session；
+  >    - UnitOfWork；
+  >    - 数据库连接。
+  > 49. Worker 的长时间执行必须发生在数据库事务之外。
+  > 50. Worker 不得在 LLM、HTTP、工具执行、Human Review、Interrupt、Backoff 或跨进程等待期间持有行锁或 Session。
+  > 51. Worker 最终提交时必须在新的短事务中重新验证：
+  >    - `dispatch_id`；
+  >    - current Lease Holder；
+  >    - `fencing_token`；
+  >    - Attempt Identity；
+  >    - `command_id`；
+  >    - Input Fingerprint；
+  >    - `expected_revision`；
+  >    - applicable Idempotency Identity；
+  >    - 所有相关业务不变量。
+  > 52. 只有当前有效 Lease Holder 与 fencing_token 才能：
+  >    - 完成 Intent；
+  >    - 标记 Intent 为 SUCCEEDED；
+  >    - 提交该执行产生的 Business Current Truth；
+  >    - 写入最终结果引用。
+  > 53. Lease 过期、被释放或被接管后，旧 Worker 不得：
+  >    - 完成 Intent；
+  >    - 写入 SUCCEEDED；
+  >    - 提交 Current Truth；
+  >    - 覆盖新 Worker 的结果；
+  >    - 重新绑定到更新后的 Domain Version。
+  >
+  > **3.9 Completion Atomicity**
+  > 54. 当 Work Intent Completion 与该次执行产生的业务结果需要立即一致时，以下内容必须在同一最终短事务中完成：
+  >    - 新业务状态；
+  >    - Domain Version；
+  >    - Evidence Links；
+  >    - Current Truth Pointer；
+  >    - Stage State；
+  >    - Audit Record；
+  >    - Idempotency Result；
+  >    - Work Intent Completion；
+  >    - Result Reference。
+  > 55. 如果最终业务 Commit 失败，不得留下已经成功完成的 Work Intent 状态。
+  > 56. 如果 Work Intent 已成功标记完成，不能再由普通 Worker 重复完成。
+  > 57. 具体完成事务参与者以 DEC-035、DQ-08 与业务不变量为准。
+  >
+  > **3.10 Provider 副作用**
+  > 58. 如果外部 Provider 已成功，但最终数据库 Commit 失败：
+  >    - Retry 保持相同 Provider Call Identity；
+  >    - 不得因数据库事务 Retry 自动重新调用 Provider；
+  >    - 必须通过 Provider 原生 Idempotency、Durable Call Ledger、结果查询或对账恢复。
+  > 59. Provider 副作用与 Work Intent 状态不得被错误解释为分布式 Exactly-once Transaction。
+  > 60. Provider 对账与补偿策略继续由对应 Provider RFC、Adapter 设计或 RFC-003 运行时恢复机制决定。
+  >
+  > **3.11 Delivery Semantics**
+  > 61. Durable Dispatch 的交付语义为：
+  >    ```text
+  >    AT-LEAST-ONCE
+  >    ```
+  > 62. 架构不承诺：
+  >    ```text
+  >    EXACTLY-ONCE DELIVERY
+  >    ```
+  > 63. 唯一业务效果由以下机制组合保证：
+  >    - DQ-08 Idempotency；
+  >    - Consumer Dedup；
+  >    - Named Unique Constraints；
+  >    - DQ-07 Lease；
+  >    - Fencing Token；
+  >    - `revision` / `expected_revision`；
+  >    - Atomic Business Commit。
+  > 64. Worker、Relay 或进程 Crash 可能导致同一个 Intent 再次被领取或投递。
+  > 65. 所有 Worker 和消费者必须能够安全处理重复 Delivery。
+  >
+  > **3.12 数据库事务 Retry 与 Work Retry**
+  > 66. Database Transaction Retry 与 Work Execution Retry 是不同层级。
+  > 67. Database Transaction Retry：
+  >    - 只处理 40001 / 40P01 等事务级瞬时失败；
+  >    - 使用新的 UoW 与 Session；
+  >    - 默认最多三次总事务尝试；
+  >    - 不重新调用外部 Provider；
+  >    - 不创建新的逻辑 Dispatch。
+  > 68. Work Execution Retry：
+  >    - 保持相同 `dispatch_id`；
+  >    - 创建新的 Attempt Identity；
+  >    - 重新取得 Lease；
+  >    - 获得新的 fencing_token；
+  >    - 重新验证业务前置条件。
+  > 69. DQ-07 的「三次事务尝试」不得直接用作 Work Execution 最大次数。
+  > 70. Work Execution Retry 的以下策略由 RFC-003 与 RFC-007 决定：
+  >    - 最大执行次数；
+  >    - Backoff；
+  >    - Jitter；
+  >    - Dead-letter；
+  >    - Terminal Failure；
+  >    - 人工恢复；
+  >    - 运维告警；
+  >    - SLO 与监控指标。
+  > 71. FAILED_RETRYABLE 只有在 `available_at` 满足条件后才可重新领取。
+  > 72. FAILED_TERMINAL 不得由普通 Worker 自动重新领取。
+  > 73. CANCELLED 或 SUPERSEDED Intent 不得启动新的执行。
+  > 74. 已经执行中的 Intent 被取消或取代时，最终 Commit 仍必须通过 Lease、Fencing、Revision 与业务状态检查阻止旧结果落地。
+  >
+  > **3.13 Ordering**
+  > 75. 默认不承诺全局严格顺序。
+  > 76. 只有存在明确业务不变量时，才允许按：
+  >    - Aggregate；
+  >    - Task；
+  >    - Stage；
+  >    - ordering key；
+  >    - 其他具名业务 Scope；
+  >
+  >    提供局部顺序。
+  > 77. 需要顺序的 Intent 必须定义：
+  >    - ordering scope；
+  >    - sequence；
+  >    - 前序失败行为；
+  >    - 是否阻塞后续 Intent；
+  >    - 超时规则；
+  >    - 跳过或人工干预规则。
+  > 78. 不得使用单一全局队列锁实现全系统顺序。
+  > 79. 具体 Ordering 实现与调度算法留给 RFC-003。
+  >
+  > **3.14 Polling 与 Wake-up**
+  > 80. 周期性 PostgreSQL Polling 是恢复所有可执行 Intent 的权威发现路径。
+  > 81. PostgreSQL LISTEN/NOTIFY 或进程内 Signal 可以作为低延迟 Worker Wake-up 优化。
+  > 82. Wake-up Signal 丢失时，Polling 必须仍能发现所有已提交且可执行的 Intent。
+  > 83. LISTEN/NOTIFY、Signal 或 Broker Notification 不得作为：
+  >    - Durable Dispatch Record；
+  >    - Delivery Acknowledgement；
+  >    - 唯一恢复依据；
+  >    - Exactly-once Guarantee。
+  > 84. Worker 唤醒与 Claim 必须保持分离：
+  >    ```text
+  >    Wake-up says:
+  >    There may be work.
+  >
+  >    Database Claim decides:
+  >    Which Worker owns which work.
+  >    ```
+  >
+  > **3.15 RFC 与 DQ 边界**
+  > 85. Relay 与 Worker Backend 的具体实现留给 RFC-003，包括：
+  >    - direct PostgreSQL polling；
+  >    - LISTEN/NOTIFY acceleration；
+  >    - broker relay；
+  >    - worker lifecycle；
+  >    - deployment topology；
+  >    - runtime reconciliation；
+  >    - crash recovery。
+  > 86. DQ-09 不决定 DQ-10 的：
+  >    - Domain Event；
+  >    - Application Event；
+  >    - Integration Event；
+  >    - Audit Record；
+  >    - State Transition Record。
+  > 87. 如果 DQ-10 确认需要 Integration Event 持久化，应使用语义独立的 Event Outbox，不得把 Durable Work Intent 当作事件历史。
+  > 88. Work Intent Retention、Archive、Payload Cleanup 与物理删除由 DQ-15 决定。
+  > 89. 在 DQ-15 决定前，不得依赖快速物理删除作为队列表性能或正确性前提。
+  > 90. Dispatch Payload 的 Encryption、Redaction、Secret 与 PII 规则由 DQ-17 决定。
+  > 91. 完整 Durable Dispatch 测试分类与 CI 执行策略由 DQ-16 决定。
+  >
+  > **3.16 Matrix 与 Spike**
+  > 92. DQ-09 不新增独立 Matrix。
+  > 93. 现有 Idempotency Identity Matrix 必须在后续获得授权时补充：
+  >    - Dispatch ID；
+  >    - Delivery Attempt Identity；
+  >    - Consumer Scope；
+  >    - Provider Call Identity；
+  >    - Retry Identity；
+  >    - Rerun Identity。
+  > 94. 现有 Concurrency Scenario Matrix 必须在后续获得授权时补充：
+  >    - Claim Race；
+  >    - Lease Expiry；
+  >    - Worker Crash；
+  >    - stale fencing_token；
+  >    - duplicate Delivery；
+  >    - Cancel-versus-complete；
+  >    - simultaneous retry；
+  >    - ordering conflict。
+  > 95. DQ-09 接受不授权创建或修改上述 Matrix。
+  > 96. DQ-07 已要求的真实 PostgreSQL 多 Worker Concurrency Technical Spike 继续有效。
+  > 97. 该 Spike 在后续获得独立授权后必须覆盖：
+  >    - concurrent Claim；
+  >    - SKIP LOCKED；
+  >    - Lease Takeover；
+  >    - stale Worker Completion；
+  >    - duplicate Delivery；
+  >    - Worker Crash Recovery；
+  >    - Polling Recovery；
+  >    - Cancel-versus-complete；
+  >    - zero partial business writes。
+  > 98. DQ-09 不要求在决策前新增独立 Technical Spike。
+  > 99. Spike Issue、Branch、PR、代码、测试和基础设施仍需单独明确授权。
+  >
+  > **3.17 测试前置语义**
+  > 100. 所有正式 Durable Dispatch 语义验证必须使用真实 PostgreSQL。
+  > 101. 后续测试至少覆盖：
+  >    - 业务写入与 Work Intent 同事务提交；
+  >    - Intent 插入失败时业务整体回滚；
+  >    - 业务事务回滚后无可领取 Intent；
+  >    - Commit 成功但 Worker 未唤醒时 Polling 恢复；
+  >    - 两个 Worker 不会同时取得同一权威 Lease；
+  >    - Worker Crash 后 Intent 可被接管；
+  >    - stale Worker 无法完成；
+  >    - 同一 Intent 可重复 Delivery，但只有一次业务效果；
+  >    - Provider 成功、数据库 Commit 失败后不重复 Provider 副作用；
+  >    - CANCELLED / SUPERSEDED Intent 不产生 Current Truth；
+  >    - Retry 使用相同 dispatch_id 和新 Attempt；
+  >    - Rerun 创建新的 dispatch_id；
+  >    - 数据库事务 Retry 不重复执行长任务；
+  >    - Work Retry 不受三次事务尝试直接限制；
+  >    - 无部分业务写入。
+  > 102. 详细测试组织与 CI 策略继续由 DQ-16 决定。
 
 ---
 
@@ -850,7 +1238,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~08 ACCEPTED；DQ-09~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~09 ACCEPTED；DQ-10~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -861,7 +1249,7 @@ RFC-002-DQ-05  Transaction Boundary                  = ACCEPTED (Candidate A, Ac
 RFC-002-DQ-06  Unit of Work Model                    = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-07  Concurrency Control                   = ACCEPTED (Accepted Direction: Layered Concurrency Control, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-08  Idempotency Model                     = ACCEPTED (Primary Direction: Candidate B, Supporting Principle: Candidate C, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
-RFC-002-DQ-09  Transactional Outbox / Dispatch       = PROPOSED — User Decision: PENDING
+RFC-002-DQ-09  Transactional Outbox / Dispatch       = ACCEPTED (Candidate B, Formal Pattern: PostgreSQL-backed Transactional Durable Work Intent, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-10  Event & Audit Persistence             = PROPOSED — User Decision: PENDING
 RFC-002-DQ-11  Snapshot vs History                   = PROPOSED — User Decision: PENDING
 RFC-002-DQ-12  Source & Evidence Persistence         = PROPOSED — User Decision: PENDING
