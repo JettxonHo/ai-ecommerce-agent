@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~06 ACCEPTED；DQ-07~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~07 ACCEPTED；DQ-08~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-06 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-07~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
+> - DQ-01~DQ-07 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-08~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -22,7 +22,7 @@
 | DQ-04 | Domain State Versioning | **已决定（2026-08-02 ACCEPTED）**：`domain_version_id` / `version_number` / `revision` 三类分离 + `expected_revision` 显式并发校验；原分歧 应用层版本 vs `xmin` vs SERIALIZABLE | SQLAlchemy version_id_col 边界（仅 Infrastructure 机制） |
 | DQ-05 | Transaction Boundary | **已决定（2026-08-02 ACCEPTED）**：Application 拥有业务事务 + 一短显式事务一最终提交点 + 长流程多短事务与无事务执行阶段 + 四项 PROHIBITED + Commit-time Revision Revalidation + 默认 READ COMMITTED + SAVEPOINT 仅基础设施机制、嵌套/分布式事务拒绝；原分歧 一 Use Case 一短事务 vs 全程一事务 vs SAVEPOINT 混合 | 连接 checkout 机制（推断） |
 | DQ-06 | Unit of Work Model | **已决定（2026-08-02 ACCEPTED）**：UoW Port 由 Application 定义 + Infrastructure SQLAlchemy 实现（Session 为不暴露的 Infrastructure 细节）+ 一次性 UoW（NEW→ACTIVE→COMMITTED/ROLLED_BACK→CLOSED）+ 一 UoW / 一 Session / 一短事务 / 一最终结果 + Use Case 显式 commit（Context 退出不自动提交）+ 未提交或异常退出 = rollback/close/discard + Repository 无事务控制权与 Session 暴露、无 Registry/Service Locator + 嵌套业务 UoW 禁止 + Composite 唯一外层 UoW + 纯读独立短 Query Scope；原分歧 显式 UoW vs 隐式自动提交 vs Repository 管理事务 | SQLAlchemy Session=UoW（官方能力；项目采用更严格一次性 UoW） |
-| DQ-07 | Concurrency Control | 乐观/悲观/CAS/约束/应用锁取舍 | DEC-022/029 未选型；R-1 GAP |
+| DQ-07 | Concurrency Control | **已决定（2026-08-02 ACCEPTED）**：分层并发控制（Layered Concurrency Control）——乐观 revision（DQ-04 协议）为普通业务写默认 + 命名数据库唯一约束为重复业务事实最终防线（完整幂等键留 DQ-08）+ Durable Lease + 单调 fencing_token 为执行所有权（进程内锁仅非权威优化）+ SELECT FOR UPDATE SKIP LOCKED 仅限短事务队列式 Claim + Session-level Advisory Lock 禁止 + 40001/40P01 由 Application Transaction Runner 以全新 UoW/Session 最多三次总尝试重试（语义冲突不盲目重试）；Concurrency Scenario Matrix 与真实 PostgreSQL 多 Worker Technical Spike 为实现前置条件（均未授权）；原分歧 乐观/悲观/CAS/约束/应用锁取舍 | DEC-022/029/033 五类并发场景；R-1 GAP |
 | DQ-08 | Idempotency Model | 四层幂等是否统一存储 | Idempotent Consumer 权威 |
 | DQ-09 | Transactional Outbox / Durable Dispatch | 是否首版引入 Outbox | 双写问题权威；RFC-001 移交 |
 | DQ-10 | Event & Audit Persistence | 审计 vs 事件分离与持久化 | Fowler Audit Log≠Domain Event |
@@ -301,9 +301,77 @@
 - **Trade-offs：** 乐观适合低冲突、失败重试；悲观保证串行但拉长持锁（与短事务张力）；唯一约束是幂等最后防线；应用锁实现重、需防死锁。
 - **Failure modes：** 漏用唯一约束→重复业务版本；悲观锁→死锁；纯乐观在高冲突下重试风暴。
 - **Impact on later RFCs：** RFC-003（重复 resume 防护）、RFC-004（并发编辑）。
-- **Recommendation：** **[架构推断] 分层组合**——以 **DB 唯一约束兜底幂等** + **乐观 version 列做 Current Truth 更新** + **task 领取用悲观/SKIP LOCKED** + **同 task 应用层序列化**。**置信度：中**（并发场景需真实 DB 验证，见 DQ-16）。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation（历史提案；Superseded by the Accepted Revision below）：** **[架构推断] 分层组合**——以 **DB 唯一约束兜底幂等** + **乐观 version 列做 Current Truth 更新** + **task 领取用悲观/SKIP LOCKED** + **同 task 应用层序列化**。**置信度：中**（并发场景需真实 DB 验证，见 DQ-16）。**候选关系：** Optimistic revision（乐观并发 version 列 + WHERE version）被接受为普通业务状态修改的默认并发机制（ACCEPTED AS DEFAULT BUSINESS WRITE CONTROL）；Database unique constraints（DB 唯一约束防重复写入兜底）被接受为重复业务事实的最终完整性防线（ACCEPTED AS FINAL INTEGRITY DEFENSE；完整幂等键体系仍留 DQ-08）；SKIP LOCKED（悲观锁/task 领取）以受限方式被接受——仅限显式队列式 Claim 操作的短事务（ACCEPTED WITH RESTRICTION — QUEUE CLAIM ONLY）；应用层序列化（task-level lock / in-process task serialization）被修订为非权威性能优化（REVISED — NON-AUTHORITATIVE OPTIMIZATION ONLY），不得作为业务正确性来源；Durable Lease + Fencing Token 被要求为执行所有权机制（REQUIRED FOR EXECUTION OWNERSHIP）；Session-level Advisory Lock 被禁止（PROHIBITED）；Transaction-level Advisory Lock 非默认、仅在自然行对象无法表达锁范围时经独立架构审查考虑（NOT DEFAULT / SEPARATE REVIEW REQUIRED）；40001/40P01 有限自动重试归 Application Transaction Runner 所有（最多三次总尝试、每次全新 UoW/Session）；语义冲突（stale revision / stale fencing token / expired Lease / unclassified unique violation 等）不得盲目重试；Concurrency Scenario Matrix 与真实 PostgreSQL 多 Worker Concurrency Technical Spike 为实现前置条件（均 REQUIRED 但本决定不授权）。
+- **User Decision：** ACCEPTED WITH REVISION
+- **Accepted Direction：** LAYERED CONCURRENCY CONTROL
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+
+  > RFC-002-DQ-07 — Concurrency Control
+  >
+  > 1. **项目采用分层并发控制**（layered concurrency control），而非依赖单一通用锁机制。
+  > 2. **Business Current Truth、Aggregate Roots、Current Truth Pointers、Stage State、Review Package state 及其他受保护可变记录的普通状态修改，使用 RFC-002-DQ-04 接受的乐观并发协议**：revision；expected_revision；conditional update（条件更新）；affected-row validation（影响行校验）。
+  > 3. **乐观 revision 是普通业务状态修改的默认并发机制。**
+  > 4. **expected_revision 不匹配是语义业务冲突**（semantic business conflict），不得作为瞬时数据库失败盲目重试。
+  > 5. **以下语义冲突行为是必须的**：并发审批（concurrent approval）必须返回冲突；过期 Human Review 提交必须被拒绝；同时失效（simultaneous invalidation）只允许一个成功提交；后提交者不得静默覆盖较新状态；过期外部执行结果不得重新绑定到较新的 Domain Version。
+  > 6. **SQLAlchemy `version_id_col` 可继续作为 Infrastructure 实现机制**，但 Infrastructure 必须将 stale-state 行为翻译为项目自有的并发结果。
+  > 7. **revision 保护记录不得通过绕过 expected_revision 与 affected-row 校验的 ORM bulk UPDATE 或 DELETE 操作更新。**
+  > 8. **数据库唯一约束是防止重复业务事实的最终完整性防线**（final integrity defense）。
+  > 9. **唯一约束最终必须至少覆盖**：重复的不可变 Domain Version identity 或 numbering；重复的正式 Review Decision identity；重复的已提交业务 Command identity；后续接受的决定所要求的重复 Dispatch 或 Attempt identities；其他已命名的业务唯一性不变量。
+  > 10. **唯一约束违反不得被统一视为可重试错误。**
+  > 11. **Infrastructure 与 Application 错误边界必须识别被违反的命名约束，并至少区分**：已完成的重复操作（already-completed duplicate operation）；幂等重放（idempotent replay）；version-number 分配竞争（version-number allocation race）；重复 Review Decision；真实数据完整性缺陷（genuine data-integrity defect）；未分类唯一约束违反（unclassified unique violation）。
+  > 12. **完整幂等键层级、输入指纹（input fingerprinting）、结果重放与去重存储仍由 RFC-002-DQ-08 拥有。**
+  > 13. **Duplicate Resume、并发 Worker 执行以及同一并发范围的执行所有权，需要 Durable Execution Guard 或 Durable Lease。**
+  > 14. **Durable Lease 模型必须包含以下概念**：`concurrency_scope_id` 或等效的持久化范围标识；当前持有者（current holder）或当前 Attempt identity；Lease 获取时间；Lease 过期时间；单调递增的 generation 或 `fencing_token`；active、released 与 expired 生命周期语义。
+  > 15. **确切表名、字段名、索引与物理存储位置留待实现设计与 RFC-002-DQ-13 边界。**
+  > 16. **Lease 获取必须发生在一个短的 PostgreSQL 事务内。**
+  > 17. **成功的 Lease 获取必须在长时间执行开始前提交。**
+  > 18. **Lease 获取提交之后，行锁、Session、UnitOfWork 与数据库连接必须被释放。**
+  > 19. **Worker 在以下期间不得持有 PostgreSQL 行锁**：LLM 执行；外部 HTTP 或工具调用；Human Review 等待；Workflow Interrupt；retry backoff；长时间计算；跨进程执行。
+  > 20. **每次成功的 Lease 获取、接管（takeover）或重新分配（reassignment）必须颁发一个单调递增的 fencing_token 或 generation。**
+  > 21. **持有较旧 fencing_token 的过期 Worker 不得提交 Business Current Truth**——即使它仍在运行并最终返回一个看似有效的结果。
+  > 22. **Worker Commit 必须在最终短事务内验证**：expected_revision；当前 Lease Holder；当前 fencing_token；当前 Attempt 或 Run identity；后续由 DQ-08 接受的适用幂等身份；Application Command 要求的全部业务不变量。
+  > 23. **若 Lease 已过期、已释放或被另一 Worker 获取，旧 Worker 的结果必须作为 stale 被拒绝。**
+  > 24. **进程本地 asyncio.Lock、threading.Lock、mutex 或内存任务锁只能作为非权威优化使用**（non-authoritative optimization），用于减少重复工作。
+  > 25. **进程本地锁不得成为业务正确性的来源。**
+  > 26. **正确性必须在以下情形下保持完整**：进程重启；Worker 崩溃；多个 Worker 进程；多个部署副本；机器替换；内存状态丢失。
+  > 27. **SELECT FOR UPDATE SKIP LOCKED 仅允许用于显式的队列式 Claim 操作**（explicit queue-like Claim operations）。
+  > 28. **SKIP LOCKED Claim 操作必须使用短事务**：select candidate → lock candidate → assign durable holder / Lease / fencing token → commit → release the lock and connection → execute outside the transaction。
+  > 29. **SKIP LOCKED 不得用于**：普通 Current Truth 读取；Human Review 读取；需要完整一致结果集的查询；绕过 expected_revision 冲突；静默忽略正在被修改的业务对象；跨外部调用持有执行所有权。
+  > 30. **SELECT FOR UPDATE、NOWAIT 及其他悲观行锁机制不是全局默认。**
+  > 31. **Use Case 只有在记录以下内容时才可采用悲观锁**：受保护的业务不变量；为何乐观 expected_revision 不足；要锁定的确切行；确定性锁顺序；blocking、NOWAIT 或 SKIP LOCKED 行为；最大事务时长；超时与错误翻译；任何自动重试是否安全；真实 PostgreSQL 并发测试证据。
+  > 32. **锁定多个业务对象的事务必须使用确定性全局锁顺序**（deterministic global lock order）以降低死锁风险。
+  > 33. **Session-level PostgreSQL Advisory Locks 作为项目默认或权威并发控制机制被禁止。**
+  > 34. **Transaction-level PostgreSQL Advisory Locks 不是默认机制。**
+  > 35. **Transaction-level Advisory Lock 只有在自然数据库行无法表达并发范围时，才可经独立架构审查考虑。**
+  > 36. **PostgreSQL SQLSTATE 40001 serialization_failure 与 SQLSTATE 40P01 deadlock_detected 被归类为可能瞬时的数据库事务失败。**
+  > 37. **40001 与 40P01 的有限自动重试由 Application Transaction Runner 或 Command Executor 拥有。**
+  > 38. **Repository 实现、SQLAlchemy Session 对象与 UnitOfWork 实现不得静默执行自己的事务重试循环。**
+  > 39. **每次事务重试必须**：重新开始整个短事务；创建新的一次性 UnitOfWork；创建新的 SQLAlchemy Session；重新加载当前状态；重新评估业务前置条件；重新运行 revision 与 Lease 验证；丢弃失败尝试中的全部 ORM entities。
+  > 40. **默认重试预算为**：一次初始事务尝试；最多两次重试尝试；共计三次事务尝试。
+  > 41. **无限或无界重试被禁止。**
+  > 42. **Retry backoff 与 jitter 必须发生在任何开放数据库事务、UnitOfWork 或 Session 之外。**
+  > 43. **具体 backoff 时长、jitter 参数、指标与告警阈值可在 RFC-007 下配置**，但有界重试要求不得被移除。
+  > 44. **以下冲突不得盲目或自动重试**：expected_revision 不匹配；stale fencing_token；丢失或过期的 Lease；过期 Human Review 提交；业务不变量拒绝；过期外部结果；未分类的 unique_violation；lock_not_available 或 NOWAIT 失败（除非特定 Use Case 定义了可接受的重试策略）。
+  > 45. **已分类的重复操作只有在 DQ-08 幂等语义下才可转换为幂等响应。**
+  > 46. **外部 LLM、HTTP Provider 或工具执行不得在数据库事务重试循环内运行。**
+  > 47. **当业务前置条件仍然有效时，Commit 事务可使用已产生的、不可变的外部结果进行重试。**
+  > 48. **重试 Commit 事务不得自动重新调用外部 Provider。**
+  > 49. **五类必备并发场景使用以下控制组合**：duplicate resume = Durable Lease + fencing_token + DQ-08 幂等身份；concurrent approval = expected_revision compare-and-swap + 唯一 Review Decision identity；stale worker = Lease Holder 验证 + fencing_token + expected_revision；repeated command = 命名数据库唯一约束 + DQ-08 幂等记录；simultaneous invalidation = 对所属 Aggregate、Stage State 或 Current Truth Pointer 的 expected_revision compare-and-swap。
+  > 50. **LangGraph thread_id 与 Checkpoint identity 用于定位工作流状态与恢复位置。**
+  > 51. **LangGraph thread_id 与 Checkpoint identity 不得被视为**：Business Concurrency Lock；Durable Lease；fencing_token；业务 Idempotency Record；只有一个 Resume 处于活动状态的证明。
+  > 52. **RFC-002-DQ-07 不决定**：完整幂等键层级与响应重放模型；Outbox 与 Dispatch Claim 实现；Event 与 Audit 持久化顺序；Checkpoint 并发与 Runtime 对账；API 冲突状态码或 ETag / If-Match 协议；完整持久化测试分类与 CI 执行设计。
+  > 53. **剩余所有权分配如下**：幂等层级与重放 → RFC-002-DQ-08；Outbox / Durable Dispatch → RFC-002-DQ-09；Event / Audit 语义 → RFC-002-DQ-10；Checkpoint 并发与 Runtime 对账 → RFC-003；API 冲突协议与 ETag / If-Match → RFC-004；完整测试策略 → RFC-002-DQ-16；运维重试指标与阈值 → RFC-007。
+  > 54. **Concurrency Scenario Matrix 在持久化或并发控制实现开始之前是必需的**（required before persistence or concurrency-control implementation begins）。
+  > 55. **Concurrency Scenario Matrix 必须至少标识**：Scenario；Concurrency Scope；Protected Business Invariant；Optimistic Revision requirement；Database Unique Constraint；Durable Lease requirement；fencing_token requirement；Pessimistic Lock requirement；Retry classification；Retry owner；maximum attempts；user-visible conflict result；related DQ, DEC and RFC。
+  > 56. **Concurrency Scenario Matrix 的创建不由 DQ-07 的接受授权**，需要后续的规划或实现就绪（implementation-readiness）授权。
+  > 57. **真实 PostgreSQL 多 Worker Concurrency Technical Spike 在并发控制实现被授权之前是必需的。**
+  > 58. **该 Technical Spike 必须使用**：真实 PostgreSQL；多个独立数据库连接；至少两个独立执行的 Workers 或进程；确定性故障与时序注入；没有任何部分 Current Truth 写入在冲突后存活的证据。
+  > 59. **必备 Technical Spike 必须至少验证**：两个并发 Resume 尝试产生一个权威 Lease；Lease 过期与接管产生更高的 fencing_token；持有 stale fencing_token 的旧 Worker 无法提交；两个使用相同 expected_revision 的审批只允许一个提交；SKIP LOCKED 不会对一个队列项双重领取；40001 与 40P01 重试创建全新 UoW 与 Session 实例；事务重试不重复外部 Provider 调用；并发版本分配不产生重复 Domain Version；冲突回滚产生零部分 Current Truth 写入。
+  > 60. **Concurrency Technical Spike 是必需的，但不被本 Accepted Decision 授权。**
+  > 61. **Spike Issue、Branch、PR、代码、测试或基础设施的创建需要单独明确的用户授权。**
+  > 62. **详细持久化测试组织仍由 DQ-16 拥有。**
+  > 63. **所有正式并发语义测试必须使用真实 PostgreSQL**，而非 SQLite 或内存替代品。
 
 ---
 
@@ -499,7 +567,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~06 ACCEPTED；DQ-07~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~07 ACCEPTED；DQ-08~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -508,7 +576,7 @@ RFC-002-DQ-03  Aggregate / Persistence Boundary      = ACCEPTED (Candidate A, Ac
 RFC-002-DQ-04  Domain State Versioning               = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-05  Transaction Boundary                  = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-06  Unit of Work Model                    = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
-RFC-002-DQ-07  Concurrency Control                   = PROPOSED — User Decision: PENDING
+RFC-002-DQ-07  Concurrency Control                   = ACCEPTED (Accepted Direction: Layered Concurrency Control, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-08  Idempotency Model                     = PROPOSED — User Decision: PENDING
 RFC-002-DQ-09  Transactional Outbox / Dispatch       = PROPOSED — User Decision: PENDING
 RFC-002-DQ-10  Event & Audit Persistence             = PROPOSED — User Decision: PENDING
