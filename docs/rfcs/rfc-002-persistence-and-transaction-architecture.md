@@ -40,8 +40,8 @@
 RFC-002 Status                = IN REVIEW
 RFC-002 Decision Questions    = PROPOSED（DQ-01~17）
 RFC-002 Recommendation        = PROPOSED（非 Accepted）
-RFC-002 Pull Request          = OPEN
-Required Checks               = PENDING（随 PR 验证）
+RFC-002 Pull Request          = OPEN（PR #24）
+Required Checks               = PASS（8/8）
 User Decisions                = PENDING（17 项）
 Implementation                = NOT AUTHORIZED
 ```
@@ -490,8 +490,8 @@ DEC-012 · DEC-013 · DEC-022 · DEC-023 · DEC-024 · DEC-025 · DEC-029 · DEC
 RFC-002 Status                = IN REVIEW
 RFC-002 Decision Questions    = PROPOSED（DQ-01~17）
 RFC-002 Recommendation        = PROPOSED
-RFC-002 Pull Request          = OPEN
-Required Checks               = PENDING（随 PR 验证）
+RFC-002 Pull Request          = OPEN（PR #24）
+Required Checks               = PASS（8/8）
 User Decisions                = PENDING（17 项）
 Implementation                = NOT AUTHORIZED
 
