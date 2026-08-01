@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~05 ACCEPTED；DQ-06~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~06 ACCEPTED；DQ-07~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-05 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-06~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
+> - DQ-01~DQ-06 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-07~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -21,7 +21,7 @@
 | DQ-03 | Aggregate 与持久化边界 | **已决定（2026-08-02 ACCEPTED）**：聚合边界 = 业务不变量 + 唯一模块所有权；Task Mega Aggregate 拒绝；一 Use Case 一主聚合；UoW 形态移交 DQ-05/06 | DEC-035 六要素单事务（提交协议） |
 | DQ-04 | Domain State Versioning | **已决定（2026-08-02 ACCEPTED）**：`domain_version_id` / `version_number` / `revision` 三类分离 + `expected_revision` 显式并发校验；原分歧 应用层版本 vs `xmin` vs SERIALIZABLE | SQLAlchemy version_id_col 边界（仅 Infrastructure 机制） |
 | DQ-05 | Transaction Boundary | **已决定（2026-08-02 ACCEPTED）**：Application 拥有业务事务 + 一短显式事务一最终提交点 + 长流程多短事务与无事务执行阶段 + 四项 PROHIBITED + Commit-time Revision Revalidation + 默认 READ COMMITTED + SAVEPOINT 仅基础设施机制、嵌套/分布式事务拒绝；原分歧 一 Use Case 一短事务 vs 全程一事务 vs SAVEPOINT 混合 | 连接 checkout 机制（推断） |
-| DQ-06 | Unit of Work Model | 显式 UoW Port 形态、接口位置、Commit/Rollback 负责方（嵌套业务事务禁止已由 DQ-05 决定） | SQLAlchemy Session=UoW |
+| DQ-06 | Unit of Work Model | **已决定（2026-08-02 ACCEPTED）**：UoW Port 由 Application 定义 + Infrastructure SQLAlchemy 实现（Session 为不暴露的 Infrastructure 细节）+ 一次性 UoW（NEW→ACTIVE→COMMITTED/ROLLED_BACK→CLOSED）+ 一 UoW / 一 Session / 一短事务 / 一最终结果 + Use Case 显式 commit（Context 退出不自动提交）+ 未提交或异常退出 = rollback/close/discard + Repository 无事务控制权与 Session 暴露、无 Registry/Service Locator + 嵌套业务 UoW 禁止 + Composite 唯一外层 UoW + 纯读独立短 Query Scope；原分歧 显式 UoW vs 隐式自动提交 vs Repository 管理事务 | SQLAlchemy Session=UoW（官方能力；项目采用更严格一次性 UoW） |
 | DQ-07 | Concurrency Control | 乐观/悲观/CAS/约束/应用锁取舍 | DEC-022/029 未选型；R-1 GAP |
 | DQ-08 | Idempotency Model | 四层幂等是否统一存储 | Idempotent Consumer 权威 |
 | DQ-09 | Transactional Outbox / Durable Dispatch | 是否首版引入 Outbox | 双写问题权威；RFC-001 移交 |
@@ -226,9 +226,64 @@
 - **Trade-offs：** A 显式可控、与「唯一提交点」对齐；B 简洁但提交点隐式；C 违反 DEC。
 - **Failure modes：** 嵌套业务事务导致「以为已提交实际未提交」；UoW 泄漏给 Graph Node/Entrypoint。
 - **Impact on later RFCs：** 全部（UoW 是所有写路径基础）。
-- **Recommendation：** **[架构推断] 倾向 A 显式 UoW、禁止嵌套业务事务**（SAVEPOINT 仅基础设施级部分回滚）。**置信度：高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation（历史提案；Superseded by the Accepted Revision below）：** **[架构推断] 倾向 A 显式 UoW、禁止嵌套业务事务**（SAVEPOINT 仅基础设施级部分回滚）。**置信度：高**。**候选关系：** Candidate A 的「显式 UoW 抽象（`UnitOfWork` Port + Use Case 边界 commit）」方向被接受并由下方用户正式决定修订（补充：UnitOfWork Port 由 Application 定义、Infrastructure SQLAlchemy 实现、Session 为不暴露的 Infrastructure 细节、一次性生命周期状态机、一 UoW 对应一 Session/一短事务/一最终结果、显式 commit 且 Context 退出不得自动提交、未 commit 或异常退出必须 rollback/close/discard、Repository 无 begin/commit/rollback/close/SAVEPOINT 权限且不暴露 Session、禁止 Registry/Service Locator/动态 lookup、嵌套业务 UoW 禁止且检测必须立即失败、Composite Application Use Case 唯一外层 UoW 与唯一最终提交点、ACTIVE 期间禁止 ambient/全局/第二个 UoW、SAVEPOINT 与 flush 边界、Engine/sessionmaker 长生命周期 vs concrete Session 短生命周期、禁止 scoped_session/thread-local/ContextVar ambient 机制、并发执行独立 UoW/Session、与 DQ-05 的 Prepare/Commit/Workflow 边界一致、纯读 Query Scope 独立短生命周期、测试覆盖要求与剩余所有权分配）；Candidate B（装饰器/上下文管理器退出自动 commit 的隐式 UoW）作为项目 UnitOfWork 模型被拒绝（Context Manager 仍允许用于生命周期清理，但不得自动提交业务状态）；Candidate C（Repository 内部自管理事务）被拒绝（违反 Application 事务所有权与单一提交点）。
+- **User Decision：** ACCEPTED WITH REVISION
+- **Accepted Candidate：** Candidate A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+
+  > RFC-002-DQ-06 — Unit of Work Model
+  >
+  > 1. **UnitOfWork Port 由 Application 层定义**（The UnitOfWork Port is defined by the Application layer）。
+  > 2. **生产 UnitOfWork 实现属于 Infrastructure 层，可使用 SQLAlchemy**（The production UnitOfWork implementation belongs to the Infrastructure layer and may use SQLAlchemy）。
+  > 3. **SQLAlchemy Session 是 Infrastructure 实现细节**（an Infrastructure implementation detail）。Session 不得暴露给：Domain Models 或 Domain Services；Application Use Cases；Entrypoints 或 API handlers；LangGraph nodes 或 Workflow adapters；Public Application Contracts；外部 Provider adapters。
+  > 4. **每个 Transactional Application Command 创建一个新的 UnitOfWork 实例。**
+  > 5. **一个 UnitOfWork 实例对应**：一个短数据库事务；一个 SQLAlchemy Session；一个显式业务状态迁移；一个最终 commit 或 rollback 结果。
+  > 6. **UnitOfWork 是一次性生命周期对象**（one-shot lifecycle object）：NEW → ACTIVE → COMMITTED or ROLLED_BACK → CLOSED。
+  > 7. **UnitOfWork 在 commit、rollback 或 close 之后不得重用。**
+  > 8. **UnitOfWork 可暴露显式上下文边界**（conceptually：`with uow_factory() as uow: ... uow.commit()`）。
+  > 9. **Application Use Case 必须显式调用 commit()。**
+  > 10. **正常 context-manager 退出不得自动提交**（Normal context-manager exit must not automatically commit）。
+  > 11. **未成功显式 commit 即退出 UnitOfWork 作用域，必须**：回滚活动事务；关闭并丢弃 Session；释放数据库连接；使 UnitOfWork 不可用。
+  > 12. **Use Case 抛出异常时，UnitOfWork 必须**：回滚；关闭并丢弃 Session；释放连接；在 Application 错误边界保留或翻译原始失败。
+  > 13. **Application 可在必要时显式请求 rollback**，但强制安全规则不变：exception or exit without commit → rollback → close → discard。
+  > 14. **每个 Transactional Application Command 最多成功 commit 一次。**
+  > 15. **非法生命周期操作必须显式失败**，包括：第二次 commit；成功 commit 之后 rollback；close 之后访问 Repository；rollback 之后使用事务；重用失败的 UnitOfWork；跨 Workflow 边界重用 UnitOfWork。
+  > 16. **UnitOfWork 仅暴露所属 Application 能力或事务性操作所需的显式、类型化 Repository Ports。**
+  > 17. **UnitOfWork 不得提供**：`get_repository(name)`；通用 repository 字典或 registry；Service Locator；raw Session accessor；通用 `execute_sql()`；任意跨模块 Repository lookup；按字符串或运行时类型的动态 Repository 解析。
+  > 18. **每个业务模块继续拥有**其 Repository Ports、Infrastructure Repository 实现、ORM models 与 tables（与 RFC-002-DQ-02 一致）。
+  > 19. **参与同一 UnitOfWork 的 Repositories 内部共享**同一 Infrastructure 事务与 Session，但该 Session 不得经其公共接口暴露。
+  > 20. **Repository 实现不得调用或控制**：`begin()`；`commit()`；`rollback()`；`close()`；`begin_nested()`；SAVEPOINT 生命周期；UnitOfWork 生命周期迁移。
+  > 21. **Repository 职责限于**：加载其 Port 允许的 Aggregates 或持久化记录；在当前 UoW 内暂存或持久化 Aggregate 变更；执行所属模块允许的查询；返回项目自有的 Domain/Application 结果；将持久化失败传播到 UoW/Application 边界。
+  > 22. **嵌套业务 UnitOfWork 被禁止**（Nested Business UnitOfWork is prohibited）。
+  > 23. **已拥有活动 UnitOfWork 的 Transactional Application Use Case，不得调用另一个会创建新 UnitOfWork 或独立提交的 Transactional Use Case。**
+  > 24. **可复用业务行为必须改为提取为**：Domain Service；transaction-neutral Application Service；接收显式 Ports 的内部 Application 操作；在既有外层 UoW 下执行的另一个操作。
+  > 25. **当多个操作必须参与同一个即时一致性事务时，由 Explicit Composite Application Use Case 拥有唯一外层 UnitOfWork 与唯一最终提交点。**
+  > 26. **Composite Application Use Case 必须**：记录跨 Aggregate 业务不变量；使用显式类型化 Repository Ports；保持唯一模块与表所有权；在模块边界需要处使用 Public Application Contracts；避免共享全局 Session 状态；避免多个嵌套 UnitOfWork 实例；保留唯一外层提交权威。
+  > 27. **UnitOfWork 处于 ACTIVE 期间，禁止**：隐式加入另一个 ambient UnitOfWork；打开第二个业务 UnitOfWork；把子操作的 commit 解释为部分提交；以 SAVEPOINT 作为嵌套业务 commit；把 commit 所有权移交给 Repository；把 UnitOfWork 存入全局、thread-local 或 Workflow 状态。
+  > 28. **检测到嵌套业务 UnitOfWork 企图必须立即失败**，经由项目自有的架构或事务错误（确切错误名留待实现设计）。
+  > 29. **SAVEPOINT 不是嵌套 UnitOfWork，也不由 Application UnitOfWork Port 暴露。**
+  > 30. **任何有限的 Infrastructure 级 SAVEPOINT 使用仍受 RFC-002-DQ-05 治理，且不得**：创建独立业务 commit；拆分 DEC-035 Atomic Business Commit；包裹外部调用或等待期；授予 Repository 提交权威；削弱失败即回滚语义。
+  > 31. **UnitOfWork Port 默认不暴露 flush()。**
+  > 32. **Infrastructure 可在数据库约束、生成值或持久化排序需要时执行内部 SQLAlchemy flush。**
+  > 33. **内部 flush 不是业务 commit，不得表示为业务成功完成。**
+  > 34. **flush 失败时**：当前数据库事务必须回滚；Session 必须关闭并丢弃；当前 UnitOfWork 变为不可用；同一 UnitOfWork 不得继续追加业务写入。
+  > 35. **Engine 与 sessionmaker 可作为 Composition Root 拥有的长生命周期 Infrastructure 资源。**
+  > 36. **每个具体 Session 是短生命周期的**，由一个 UnitOfWork 为一个本地 Transactional Application Command 创建。
+  > 37. **全局可变 Session 被禁止。**
+  > 38. **`scoped_session`、thread-local Session、基于 ContextVar 的 ambient Session 或 ambient UnitOfWork，不得作为主要事务所有权或依赖注入机制。**
+  > 39. **每个并发 Command、Worker 执行、Retry、Rerun 或 Resume 使用独立 UnitOfWork 与独立 Session。**
+  > 40. **与 RFC-002-DQ-05 一致**：Prepare 与 Commit 作为不同 Transactional Application Commands 时使用不同 UnitOfWork 实例；Execute Outside Transaction 无活动 UnitOfWork；Human Review 等待不持有 UnitOfWork；LangGraph Interrupt 不持有 UnitOfWork；retry backoff 不持有 UnitOfWork；UnitOfWork 绝不序列化进 Checkpoint；UnitOfWork 绝不在 Resume 时恢复。
+  > 41. **UnitOfWork 适用于状态修改的 Transactional Application Commands。**
+  > 42. **纯读 Application Queries 使用独立的短 Query Scope 或 Read Model Adapter。**
+  > 43. **纯 Query Scope 必须**：不暴露 commit()；查询结束后关闭 Session 并释放连接；不返回 ORM entities 或 lazy-loaded relationships；不复用 Command UnitOfWork；不成为跨模块持久化 API。
+  > 44. **若读取结果参与后续原子状态变更或并发决策，它必须**：发生在拥有最终 commit 的 UnitOfWork 内；或在 Commit 事务内重新校验（与 RFC-002-DQ-04 和 DQ-05 一致）。
+  > 45. **Candidate A 以此修订被接受**（Candidate A is accepted with this revision）。
+  > 46. **Candidate B（装饰器或 context-manager 退出自动提交）作为项目 UnitOfWork 模型被拒绝。** Context managers 仍允许用于生命周期清理，但成功的业务提交必须保持显式。
+  > 47. **Candidate C（Repository 管理事务）被拒绝**，因其违反 Application 事务所有权与单一提交点。
+  > 48. **RFC-002-DQ-06 不决定**：乐观与悲观并发组合；数据库锁选择；序列化或死锁重试策略；幂等键层级；Outbox API 或 dispatch 实现；Event 或 Audit 发布顺序；HTTP 请求作用域；LangGraph 运行时作用域；Checkpoint 实现；完整持久化测试分类。
+  > 49. **剩余所有权分配如下**：并发、锁与重试 → RFC-002-DQ-07；幂等 → RFC-002-DQ-08；Outbox 与 Durable Dispatch → RFC-002-DQ-09；Event 与 Audit 语义 → RFC-002-DQ-10；API 与 HTTP 请求协议 → RFC-004；Workflow 与 Checkpoint 运行时 → RFC-003；详细持久化测试策略 → RFC-002-DQ-16。
+  > 50. **持久化语义验证必须使用真实 PostgreSQL，至少覆盖**：显式 Use Case commit 成功；未 commit 退出回滚；异常退出回滚；flush 失败回滚并丢弃 Session；Repository 无法独立 commit 或 rollback；嵌套 UnitOfWork 被拒绝；Composite Application Use Case 使用唯一外层 UnitOfWork；UnitOfWork 在 commit 后不可重用；并发 Commands 使用独立 Sessions；Prepare 与 Commit 使用不同 UnitOfWork 实例；Execute Outside Transaction 不持有 Session 或连接；只读 Query Scope 干净关闭；无 UnitOfWork 跨越 Human Review、Interrupt、Retry 或 Resume。详细测试组织与 CI 执行仍由 RFC-002-DQ-16 拥有。
 
 ---
 
@@ -444,7 +499,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~05 ACCEPTED；DQ-06~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~06 ACCEPTED；DQ-07~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -452,7 +507,7 @@ RFC-002-DQ-02  Persistence Ownership / Boundaries    = ACCEPTED (Candidate A, Ac
 RFC-002-DQ-03  Aggregate / Persistence Boundary      = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-04  Domain State Versioning               = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-05  Transaction Boundary                  = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
-RFC-002-DQ-06  Unit of Work Model                    = PROPOSED — User Decision: PENDING
+RFC-002-DQ-06  Unit of Work Model                    = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-07  Concurrency Control                   = PROPOSED — User Decision: PENDING
 RFC-002-DQ-08  Idempotency Model                     = PROPOSED — User Decision: PENDING
 RFC-002-DQ-09  Transactional Outbox / Dispatch       = PROPOSED — User Decision: PENDING
