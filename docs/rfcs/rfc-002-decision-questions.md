@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01 ACCEPTED；DQ-02~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01/02 ACCEPTED；DQ-03~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01 已由用户正式决定（`Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-02~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01 的历史 Recommendation 已被其 Accepted Decision 取代（Superseded by Accepted Revision）。
+> - DQ-01 与 DQ-02 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-03~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -17,7 +17,7 @@
 | DQ | 主题 | 核心分歧 | 主要证据 |
 |---|---|---|---|
 | DQ-01 | 主持久化技术（Business DB 引擎） | **已决定（2026-08-01 ACCEPTED）**：PostgreSQL-only；原分歧 PostgreSQL vs SQLite vs MVP-SQLite→PG | PG/SQLite 官方并发与部署边界 |
-| DQ-02 | 持久化所有权 / 模块边界 | 逻辑 schema 分离粒度 | DEC-034 逻辑分离恒定 |
+| DQ-02 | 持久化所有权 / 模块边界 | **已决定（2026-08-01 ACCEPTED）**：单一 PG 服务 + 每表唯一所有模块 + 架构测试强制；每模块独立 schema 暂缓 | DEC-034 逻辑分离恒定 |
 | DQ-03 | Aggregate 与持久化边界 | 原子提交单元如何划分 | DEC-035 六要素单事务 |
 | DQ-04 | Domain State Versioning | 并发版本由谁产生、隔离级别 | SQLAlchemy version_id_col 边界 |
 | DQ-05 | Transaction Boundary | Use Case↔事务对齐、外部调用不入事务 | 连接 checkout 机制（推断） |
@@ -79,9 +79,25 @@
 - **Trade-offs：** A 强制力与复杂度平衡最好；B 最灵活但易腐蚀；C 过度。
 - **Failure modes：** B 下跨模块直读腐蚀边界；A 下 schema 划分与模块边界错位。
 - **Impact on later RFCs：** RFC-003/004/005 各模块表边界。
-- **Recommendation：** **[架构推断] 倾向 A**——以模块分逻辑边界（命名/schema），用架构测试强制「不得跨模块直读表」。**置信度：高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation（历史提案；Superseded by the Accepted Revision below）：** **[架构推断] 倾向 A**——以模块分逻辑边界（命名/schema），用架构测试强制「不得跨模块直读表」。**置信度：高**。Candidate A 中「按模块分 schema/表前缀」作为候选历史保留；**最终 Accepted Decision 不强制每个业务模块拥有独立 PostgreSQL schema**（见下方第 9/10 点）。
+- **User Decision：** ACCEPTED WITH REVISION
+- **Accepted Candidate：** Candidate A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-01 用户正式决定）：**
+
+  > RFC-002-DQ-02 — Persistence Ownership and Module Boundaries
+  >
+  > 1. MVP 使用**单一 PostgreSQL 数据库服务**。
+  > 2. **每张业务表有且仅有一个所有模块**（exactly one owning module）。
+  > 3. 所有模块**独占拥有**：其 Repository Port 定义；其 Infrastructure Repository 实现；其 ORM / Persistence Models；其所有表的 schema 与 migration 变更；其所有数据的状态修改 Application Use Cases。
+  > 4. 其他模块**不得**：import 所有模块的 ORM / Persistence Models；获取或复用所有模块的 Database Session；调用所有模块的 Repository 实现；通过 SQL 或 ORM 直接查询或修改所有模块的表；使用共享表绕过所有模块的 Public Application Contract。
+  > 5. 跨模块读取必须使用目标模块的 **Public Application Query**（或等价 Public Application Contract）。
+  > 6. 跨模块状态修改必须使用所有模块的 **Public Application Use Case**。
+  > 7. 直接的模块间状态修改访问**默认保持禁止**（与 RFC-001-DQ-08 一致）。
+  > 8. 模块所有权边界必须由以下机制强制：Import Linter；AST / Architecture Tests；Repository Ownership Tests；Migration Ownership Conventions；Pull Request 审查规则。（**单独代码审查不构成充分强制。**）
+  > 9. 架构接受**显式的数据库命名空间与所有权约定**，但 **MVP 不要求每个业务模块拥有独立 PostgreSQL schema**。
+  > 10. 具体物理命名策略（PostgreSQL schema、表前缀或等价命名空间）**留待实现设计**，条件是不得削弱模块所有权。（此为 Deferred，非「不需要物理命名约定」。）
+  > 11. Business / Runtime / Checkpoint 三类存储的物理划分**不由 DQ-02 决定**，继续指派 **RFC-002-DQ-13**（PROPOSED / PENDING）。
 
 ---
 
@@ -373,11 +389,11 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01 ACCEPTED；DQ-02~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01/02 ACCEPTED；DQ-03~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
-RFC-002-DQ-02  Persistence Ownership / Boundaries    = PROPOSED — User Decision: PENDING
+RFC-002-DQ-02  Persistence Ownership / Boundaries    = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-03  Aggregate / Persistence Boundary      = PROPOSED — User Decision: PENDING
 RFC-002-DQ-04  Domain State Versioning               = PROPOSED — User Decision: PENDING
 RFC-002-DQ-05  Transaction Boundary                  = PROPOSED — User Decision: PENDING
