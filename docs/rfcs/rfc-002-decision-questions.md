@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~03 ACCEPTED；DQ-04~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~04 ACCEPTED；DQ-05~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01、DQ-02 与 DQ-03 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-04~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
+> - DQ-01~DQ-04 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-05~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -19,7 +19,7 @@
 | DQ-01 | 主持久化技术（Business DB 引擎） | **已决定（2026-08-01 ACCEPTED）**：PostgreSQL-only；原分歧 PostgreSQL vs SQLite vs MVP-SQLite→PG | PG/SQLite 官方并发与部署边界 |
 | DQ-02 | 持久化所有权 / 模块边界 | **已决定（2026-08-01 ACCEPTED）**：单一 PG 服务 + 每表唯一所有模块 + 架构测试强制；每模块独立 schema 暂缓 | DEC-034 逻辑分离恒定 |
 | DQ-03 | Aggregate 与持久化边界 | **已决定（2026-08-02 ACCEPTED）**：聚合边界 = 业务不变量 + 唯一模块所有权；Task Mega Aggregate 拒绝；一 Use Case 一主聚合；UoW 形态移交 DQ-05/06 | DEC-035 六要素单事务（提交协议） |
-| DQ-04 | Domain State Versioning | 并发版本由谁产生、隔离级别 | SQLAlchemy version_id_col 边界 |
+| DQ-04 | Domain State Versioning | **已决定（2026-08-02 ACCEPTED）**：`domain_version_id` / `version_number` / `revision` 三类分离 + `expected_revision` 显式并发校验；原分歧 应用层版本 vs `xmin` vs SERIALIZABLE | SQLAlchemy version_id_col 边界（仅 Infrastructure 机制） |
 | DQ-05 | Transaction Boundary | Use Case↔事务对齐、外部调用不入事务 | 连接 checkout 机制（推断） |
 | DQ-06 | Unit of Work Model | 显式 UoW Port 形态、嵌套事务 | SQLAlchemy Session=UoW |
 | DQ-07 | Concurrency Control | 乐观/悲观/CAS/约束/应用锁取舍 | DEC-022/029 未选型；R-1 GAP |
@@ -144,9 +144,31 @@
 - **Trade-offs：** A 显式可控、与 client-side ID 一致（INSERT 前可知）；B 省应用代码但耦合后端、官方「strongly recommended 仅在必要时」；C 最简但重试语义重、对批量更新无效。
 - **Failure modes：** A 批量更新绕过校验；B 后端不可移植；C 高冲突下重试风暴。
 - **Impact on later RFCs：** RFC-003（对账读版本）、RFC-004（审核版本）。
-- **Recommendation：** **[架构推断] 倾向 A**——应用层 version 列 + ORM 乐观校验，ID/版本由 Application 产生（契合显式传值优先 + INSERT 前可知 + 幂等键）。**置信度：中-高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation（历史提案；Superseded by the Accepted Revision below）：** **[架构推断] 倾向 A**——应用层 version 列 + ORM 乐观校验，ID/版本由 Application 产生（契合显式传值优先 + INSERT 前可知 + 幂等键）。**置信度：中-高**。**候选关系：** Candidate A 的「应用层显式版本」方向被接受并由下方用户正式决定修订；Candidate B 中「PostgreSQL `xmin` 作为权威 Revision」的方向被拒绝；Candidate C 中「以 SERIALIZABLE 取代显式 Revision」的方向被拒绝（SERIALIZABLE 仍可能作为独立事务隔离策略由后续 DQ（如 DQ-05 / DQ-07）讨论）。
+- **User Decision：** ACCEPTED WITH REVISION
+- **Accepted Direction：** Candidate A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+  > RFC-002-DQ-04 — Domain State Versioning
+  > 1. 架构明确区分 **Domain Version Identity**（`domain_version_id`）、**Domain Version Number**（`version_number`）与 **Concurrency Revision**（`revision`）；三者不得共享同一字段，不得被视为可互换。
+  > 2. **Domain Version Identity：** 每个不可变 Domain Version 拥有稳定且全局唯一的 `domain_version_id`；标识符**由 Application 层在 INSERT 前生成**；采用应用生成的 opaque UUID（具体 UUID variant 可在实现设计时选择）；标识符不可变且绝不得复用。不得将其解释为乐观锁计数器、SQLAlchemy Mapper Version、PostgreSQL `xmin` 或审核 Revision。
+  > 3. **Domain Version Number：** 每个逻辑业务对象维护单调递增的 `version_number`（例如 Strategy Version 1、2、3）；唯一性约束至少覆盖 `(logical_object_id, version_number)`；历史版本在删除或失效后不得被覆盖、重新编号或复用。`version_number` 不得默认与 `revision` 相等。
+  > 4. **Concurrency Revision：** 需要并发保护的可变记录使用独立 `revision` 字段；适用记录包括 Current Truth Pointers、Aggregate Roots、Stage State、Review Package state 以及后续设计识别的其他可变协调记录；`revision` 是 NOT NULL 单调递增整数；revision 表达成功的状态变更，不代表 Domain Version Identity 或 Domain Version Number，不得用作不可变 Domain Version Identity。
+  > 5. 每一个针对 revision 保护记录的状态修改 Command 必须携带 `expected_revision` 或等效的显式并发前置条件。
+  > 6. 更新使用显式 compare-and-swap 语义：`UPDATE ... WHERE id = :id AND revision = :expected_revision`；成功更新递增 `revision`；若影响零行，该操作即为 stale write 或并发冲突，Atomic Business Commit 必须回滚，不得静默覆盖较新状态。
+  > 7. SQLAlchemy 2.x `version_id_col` 可作为 Infrastructure 层乐观并发控制机制使用；SQLAlchemy mapper 概念、Session 异常与 `version_id_col` 细节不得泄漏进 Domain Models 或 Public Application Contracts。
+  > 8. Infrastructure 必须将 SQLAlchemy 特有的 stale-state 行为（适用时包括 `StaleDataError`）转换为项目自有的并发冲突结果或异常（例如 ConcurrencyConflict / StaleRevision / ExpectedRevisionMismatch 之类的项目自有冲突语义；具体命名留待实现设计；本决定不创建任何代码）。
+  > 9. revision 保护记录不得通过绕过 revision 检查的 ORM bulk UPDATE 或 DELETE 操作修改；若明确需要批量操作，必须定义其 expected revision 规则、条件更新行为与 affected-row 校验。
+  > 10. PostgreSQL `xmin` 不是项目权威业务 revision：它不是 Domain Version、不是 Public Contract 字段、不是 Review Package revision、不是稳定的跨系统持久化契约（Candidate B 方向被拒绝）。
+  > 11. PostgreSQL SERIALIZABLE 隔离不是显式 Concurrency Revision 的替代方案（Candidate C 方向被拒绝）。
+  > 12. Transaction Isolation 与 Optimistic Revision 是正交机制；SERIALIZABLE 仍可能作为独立事务隔离策略由后续 DQ 讨论。
+  > 13. 以下内容留待 RFC-002-DQ-05 与 RFC-002-DQ-07（均 PROPOSED / PENDING）：默认事务隔离级别；需要更强隔离级别的 Use Cases；40001 serialization-failure 重试策略；40P01 deadlock 重试策略；SELECT FOR UPDATE 策略；悲观锁使用；retry 所有权与重试上限。
+  > 14. 在 DEC-035 Atomic Business Commit 内，以下内容保持在同一事务中（六要素不可拆保持有效）：创建新的不可变 Domain Version；创建 Formal Evidence Links；更新 Current Truth Pointer；更新 Stage State；写入 Audit Record；写入 Idempotency Record。
+  > 15. Current Truth Pointer、Aggregate Root 或其他受保护协调记录的 revision 检查必须发生在同一 Atomic Business Commit 内。
+  > 16. 产生新的顺序 Domain Version Number 时，版本分配与 Current Truth revision 校验必须构成一个安全提交协议：读取当前 pointer/version → 校验 expected_revision → 分配或校验下一个 version_number → 插入不可变 Domain Version → 条件更新 pointer → 递增 revision → commit；任何 revision 冲突、唯一性冲突或写入失败都使整个事务回滚。
+  > 17. RFC-004 可以将 Concurrency Revision 映射为 HTTP ETag / If-Match 语义，但 HTTP 协议不由 DQ-04 决定。
+  > 18. 持久化语义验证必须使用真实 PostgreSQL，并至少覆盖：两个写者使用相同 expected_revision；过期 Human Review 提交；重复 resume 尝试；Domain Version 与 Pointer 的原子更新；防止无保护的批量更新；冲突回滚且零部分业务写入。
+  > 19. 详细持久化测试策略由 RFC-002-DQ-16（PROPOSED / PENDING）拥有。
 
 ---
 
@@ -401,13 +423,13 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~03 ACCEPTED；DQ-04~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~04 ACCEPTED；DQ-05~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-02  Persistence Ownership / Boundaries    = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-03  Aggregate / Persistence Boundary      = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
-RFC-002-DQ-04  Domain State Versioning               = PROPOSED — User Decision: PENDING
+RFC-002-DQ-04  Domain State Versioning               = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-05  Transaction Boundary                  = PROPOSED — User Decision: PENDING
 RFC-002-DQ-06  Unit of Work Model                    = PROPOSED — User Decision: PENDING
 RFC-002-DQ-07  Concurrency Control                   = PROPOSED — User Decision: PENDING

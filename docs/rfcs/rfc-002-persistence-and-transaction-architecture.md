@@ -12,9 +12,9 @@
 | RFC | RFC-002 |
 | Title | Persistence and Transaction Architecture（持久化与事务架构） |
 | **Status** | **IN REVIEW** |
-| Decision Questions | **DQ-01 = ACCEPTED**・**DQ-02 = ACCEPTED**（均 2026-08-01）・**DQ-03 = ACCEPTED**（2026-08-02；均用户正式决定，Accepted with Revision）；DQ-04 ~ DQ-17 = **PROPOSED** |
-| Recommendation | **PROPOSED**（非 Accepted；DQ-01/02/03 的历史 Recommendation 已被各自 Accepted Decision 取代） |
-| User Decisions | **DQ-01 = ACCEPTED WITH REVISION**；**DQ-02 = ACCEPTED WITH REVISION**；**DQ-03 = ACCEPTED WITH REVISION**；DQ-04 ~ DQ-17 = **PENDING** |
+| Decision Questions | **DQ-01 = ACCEPTED**・**DQ-02 = ACCEPTED**（均 2026-08-01）・**DQ-03 = ACCEPTED**・**DQ-04 = ACCEPTED**（均 2026-08-02；均用户正式决定，Accepted with Revision）；DQ-05 ~ DQ-17 = **PROPOSED** |
+| Recommendation | **PROPOSED**（非 Accepted；DQ-01/02/03/04 的历史 Recommendation 已被各自 Accepted Decision 取代） |
+| User Decisions | **DQ-01 = ACCEPTED WITH REVISION**；**DQ-02 = ACCEPTED WITH REVISION**；**DQ-03 = ACCEPTED WITH REVISION**；**DQ-04 = ACCEPTED WITH REVISION**；DQ-05 ~ DQ-17 = **PENDING**（13 项） |
 | Implementation | **NOT AUTHORIZED** |
 | Depends on | RFC-001（ACCEPTED）· DEC-012/013/022/023/024/025/029/032/033/034/035 |
 | Blocks | Business Repository / Current Truth；为 RFC-003/004/005/006/007 提供持久化契约 |
@@ -28,7 +28,7 @@
 
 本 RFC 定义 AI Ecommerce Agent 的**持久化与事务架构**：生产 Business Current Truth Repository 的技术选型方向、模块持久化所有权、聚合与原子提交边界、领域状态版本化、事务边界、Unit of Work、并发控制、幂等模型、Transactional Outbox / Durable Dispatch 落库形态、事件与审计持久化、快照与历史模型、来源与证据持久化、Workflow Checkpoint 分离、Schema 演进、数据保留、持久化测试策略、安全与敏感数据边界。
 
-它把 DEC-024（三类存储分离、四类状态、四个标识符、六类版本指针）、DEC-029（人工审核持久化与并发）、DEC-033（失败/重试/恢复/幂等）与 RFC-001（Application 拥有事务、Durable Dispatch Boundary、Port 所有权）转化为 **17 个 Decision Question（DQ-01/02 已于 2026-08-01、DQ-03 已于 2026-08-02 由用户正式决定，ACCEPTED；DQ-04~17 仍 PROPOSED、User Decision PENDING）**，每个 DQ 给出候选方案、取舍、失败模式、对后续 RFC 的影响与一份**架构建议（非 Accepted；DQ-01/02/03 的建议已被用户正式决定取代）**。
+它把 DEC-024（三类存储分离、四类状态、四个标识符、六类版本指针）、DEC-029（人工审核持久化与并发）、DEC-033（失败/重试/恢复/幂等）与 RFC-001（Application 拥有事务、Durable Dispatch Boundary、Port 所有权）转化为 **17 个 Decision Question（DQ-01/02 已于 2026-08-01、DQ-03/04 已于 2026-08-02 由用户正式决定，ACCEPTED；DQ-05~17 仍 PROPOSED、User Decision PENDING）**，每个 DQ 给出候选方案、取舍、失败模式、对后续 RFC 的影响与一份**架构建议（非 Accepted；DQ-01/02/03/04 的建议已被用户正式决定取代）**。
 
 本 RFC **不**实现任何持久化、数据库、ORM、迁移、Repository、UoW、Outbox、Queue、LangGraph、API 或业务代码。
 
@@ -41,11 +41,12 @@ RFC-002 Status                = IN REVIEW
 RFC-002-DQ-01                 = ACCEPTED（2026-08-01 用户正式决定，Candidate A，Accepted with Revision）
 RFC-002-DQ-02                 = ACCEPTED（2026-08-01 用户正式决定，Candidate A，Accepted with Revision）
 RFC-002-DQ-03                 = ACCEPTED（2026-08-02 用户正式决定，Candidate A，Accepted with Revision）
-RFC-002 Decision Questions    = DQ-01~03 ACCEPTED；DQ-04~17 PROPOSED
-RFC-002 Recommendation        = PROPOSED（非 Accepted；DQ-01/02/03 Recommendation Superseded by Accepted Decision）
+RFC-002-DQ-04                 = ACCEPTED（2026-08-02 用户正式决定，Candidate A，Accepted with Revision）
+RFC-002 Decision Questions    = DQ-01~04 ACCEPTED；DQ-05~17 PROPOSED
+RFC-002 Recommendation        = PROPOSED（非 Accepted；DQ-01/02/03/04 Recommendation Superseded by Accepted Decision）
 RFC-002 Pull Request          = OPEN（PR #24）
 Required Checks               = PASS（8/8）
-User Decisions                = DQ-01~03 = ACCEPTED WITH REVISION；DQ-04~17 = PENDING（14 项）
+User Decisions                = DQ-01~04 = ACCEPTED WITH REVISION；DQ-05~17 = PENDING（13 项）
 Implementation                = NOT AUTHORIZED
 ```
 
@@ -78,6 +79,7 @@ RFC-002 是 Wave 1 / P0 RFC，阻塞 `Business Repository / Current Truth` 的�
 | RFC-002-DQ-01（2026-08-01 用户 ACCEPTED） | PostgreSQL 是 Business Current Truth 唯一受支持的权威数据库语义；技术栈 = PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；本地开发与正式持久化测试使用真实 PostgreSQL；SQLite 不受支持；SQLite-first → PostgreSQL-later 路线被拒绝（详见 §33 Decision Log） |
 | RFC-002-DQ-02（2026-08-01 用户 ACCEPTED） | MVP 单一 PostgreSQL 数据库服务；每张业务表有且仅有一个所有模块；ORM/Persistence Models、Repository、schema/migration 变更、状态修改 Use Case 由所有模块独占拥有；跨模块读取经目标模块 Public Application Query、状态修改经所有模块 Public Application Use Case；Direct SQL/ORM/Repository 跨模块访问禁止；边界由 Import Linter + AST/Architecture Tests + Repository Ownership Tests + Migration Ownership Conventions + PR 审查强制；每模块独立 PostgreSQL schema 暂缓（MVP 不要求），物理命名留待实现设计；三类存储物理划分归 DQ-13（详见 §33 Decision Log） |
 | RFC-002-DQ-03（2026-08-02 用户 ACCEPTED） | Aggregate 边界 = 业务不变量 + 唯一模块所有权；Atomic Business Commit（DEC-035 六要素）是事务提交协议而非聚合成员资格判据（六要素单事务保持有效）；Task Mega Aggregate 拒绝；默认一个 Use Case 一个主 Aggregate；跨聚合/跨模块显式协调；UoW/事务实现形态移交 DQ-05/06；Aggregate/Invariant Matrix 持久化实施前必备（详见 §33 Decision Log） |
+| RFC-002-DQ-04（2026-08-02 用户 ACCEPTED） | `domain_version_id` / `version_number` / `revision` 三类版本语义明确分离、不得共享字段；Domain Version ID 由 Application 层在 INSERT 前生成（opaque UUID，不可变、不复用）；Version Number 在逻辑业务对象内单调递增、受 `(logical_object_id, version_number)` 唯一性约束保护、删除/失效后不复用；受并发保护的 Current Truth Pointer / Aggregate Root / Stage State / Review Package 等可变记录使用独立 NOT NULL `revision`；状态修改 Command 携带 `expected_revision`，compare-and-swap 条件更新，零影响行 = 冲突且 Atomic Business Commit 整体回滚；SQLAlchemy `version_id_col` 仅为 Infrastructure 机制（`StaleDataError` 等翻译为项目自有冲突语义，mapper/Session 细节不得泄漏进 Domain / Public Contract，bulk UPDATE/DELETE 不得绕过 revision）；PostgreSQL `xmin` 不是权威业务 revision；SERIALIZABLE 不替代显式 revision（隔离级别/重试策略留 DQ-05/07）；DEC-035 六要素保持同一事务；RFC-004 可将 revision 映射 ETag/If-Match（HTTP 协议不由 DQ-04 决定）；持久化语义验证使用真实 PostgreSQL（详细测试策略归 DQ-16）（详见 §33 Decision Log） |
 
 ### 4.3 事实校正（重要）
 
@@ -124,14 +126,14 @@ Spike-001 以三个物理 SQLite 文件（`business/runtime/checkpoints.sqlite`�
 
 ## 8. Decision Questions（决策问题）
 
-**DQ-01/02 已于 2026-08-01、DQ-03 已于 2026-08-02 由用户正式决定（均 ACCEPTED，Accepted with Revision，见 §33 Decision Log）；DQ-04~17 仍 PROPOSED — User Decision: PENDING**。完整 13 字段版本见 [rfc-002-decision-questions.md](rfc-002-decision-questions.md)。
+**DQ-01/02 已于 2026-08-01、DQ-03/04 已于 2026-08-02 由用户正式决定（均 ACCEPTED，Accepted with Revision，见 §33 Decision Log）；DQ-05~17 仍 PROPOSED — User Decision: PENDING**。完整 13 字段版本见 [rfc-002-decision-questions.md](rfc-002-decision-questions.md)。
 
 | DQ | 主题 | 归属 | 置信度 |
 |---|---|---|---|
 | DQ-01 | Primary Persistence Technology | RFC-002 OWNS — **ACCEPTED**（Candidate A，2026-08-01） | 中-高（历史置信度） |
 | DQ-02 | Persistence Ownership / Boundaries | RFC-002 OWNS — **ACCEPTED**（Candidate A，2026-08-01） | 高（历史置信度） |
 | DQ-03 | Aggregate / Persistence Boundary | RFC-002 OWNS — **ACCEPTED**（Candidate A，2026-08-02） | 高（历史置信度） |
-| DQ-04 | Domain State Versioning | RFC-002 OWNS | 中-高 |
+| DQ-04 | Domain State Versioning | RFC-002 OWNS — **ACCEPTED**（Candidate A，2026-08-02） | 中-高（历史置信度） |
 | DQ-05 | Transaction Boundary | RFC-002 OWNS | 中-高 |
 | DQ-06 | Unit of Work Model | RFC-002 OWNS | 高 |
 | DQ-07 | Concurrency Control | RFC-002 OWNS | 中 |
@@ -152,13 +154,13 @@ Spike-001 以三个物理 SQLite 文件（`business/runtime/checkpoints.sqlite`�
 
 ### 9.1 架构主线
 
-在 RFC-001 的分层骨架内，持久化与事务架构的核心主张（Recommendation；**其中第 1、2 条已分别由 DQ-01、DQ-02 Accepted Decision 取代，第 4 条的聚合边界解释已由 DQ-03 Accepted Decision 修订，见 §33**）：
+在 RFC-001 的分层骨架内，持久化与事务架构的核心主张（Recommendation；**其中第 1、2 条已分别由 DQ-01、DQ-02 Accepted Decision 取代，第 4 条的聚合边界解释已由 DQ-03 Accepted Decision 修订、版本语义与提交协议已由 DQ-04 Accepted Decision（2026-08-02）补充正式决定，第 5 条的并发版本底座已由 DQ-04 Accepted Decision 取代，见 §33**）：
 
 1. **主持久化 = PostgreSQL，Business Current Truth Repository 唯一受支持的权威数据库语义（DQ-01 Accepted Decision，2026-08-01）**：技术栈 = **PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic**；**本地开发使用 PostgreSQL**；schema、约束、迁移、事务行为、并发行为与持久化正确性均以 PostgreSQL 语义定义；SQLite **不是**受支持的 backend（SQLite-first → PostgreSQL-later 路线已拒绝）。历史 Recommendation「PG 为目标、本地可用 SQLite 以 PG 语义为准」已被取代（Superseded by Accepted Revision）。（原提案中 SQLAlchemy sync-first 与 Alembic 的方向延续自 RFC-001-DQ-07 Sync-first 约束。）
 2. **持久化所有权与模块边界（DQ-02 Accepted Decision，2026-08-01）**：MVP **单一 PostgreSQL 数据库服务**；**每张业务表有且仅有一个所有模块**；所有模块独占拥有其 Repository Port 定义、Infrastructure Repository 实现、ORM / Persistence Models、schema 与 migration 变更、状态修改 Application Use Cases；跨模块读取经目标模块 **Public Application Query**、跨模块状态修改经所有模块 **Public Application Use Case**；**Direct SQL / ORM / Repository 跨模块访问禁止**，边界由 Import Linter + AST/Architecture Tests + Repository Ownership Tests + Migration Ownership Conventions + PR 审查规则强制（单独代码审查不充分）。**每模块独立 PostgreSQL schema 暂缓**（MVP 不要求；具体物理命名留待实现设计，不得削弱所有权）。历史 Recommendation「单库 + 按模块分 schema/表前缀」中的独立 schema 部分未被采纳（Superseded by Accepted Revision）。**三类存储逻辑分离恒定**（DEC-034）：Business（Current Truth）/ Runtime（执行记录）/ Checkpoint（Graph 检查点）的逻辑职责分离不受影响；**其物理划分（同实例/独立 schema/Checkpoint 数据库产品/Runtime 物理存储/Checkpoint 生命周期）不由 DQ-02 决定，继续由 DQ-13 决定（PROPOSED / PENDING）**。
 3. **业务事务由 Application Use Case 拥有**，长 Workflow 由多个短事务组成（DQ-05、DQ-06），外部调用不持有 DB 事务（[架构推断]，Recommendation）。
-4. **Atomic Business Commit 六要素单事务**（DEC-035）为统一事务**提交协议**（恒定有效；「以六要素划分聚合边界」的解释已由 **DQ-03 Accepted Decision，2026-08-02** 修订：聚合边界 = 业务不变量 + 唯一模块所有权，六要素不是聚合成员资格判据）。
-5. **并发控制分层组合**（DQ-07）：DB 唯一约束兜底幂等 + 应用层 version 列乐观校验 + task 领取悲观/SKIP LOCKED + 同 task 应用层序列化。
+4. **Atomic Business Commit 六要素单事务**（DEC-035）为统一事务**提交协议**（恒定有效；「以六要素划分聚合边界」的解释已由 **DQ-03 Accepted Decision，2026-08-02** 修订：聚合边界 = 业务不变量 + 唯一模块所有权，六要素不是聚合成员资格判据）。**版本语义与提交协议由 DQ-04 Accepted Decision（2026-08-02）正式决定**：`domain_version_id`（不可变、Application 层 INSERT 前生成、opaque UUID）/ `version_number`（逻辑业务对象内单调递增、唯一性约束）/ `revision`（受保护可变记录的独立 NOT NULL 乐观并发 token）三类分离；产生新顺序版本时，版本分配与 Current Truth revision 校验构成一个安全提交协议（读取 pointer → 校验 `expected_revision` → 分配 `version_number` → 插入不可变 Domain Version → 条件更新 pointer → 递增 `revision` → commit），任何 revision/唯一性冲突或写入失败整体回滚；六要素保持同一事务。
+5. **并发控制分层组合**（DQ-07）：DB 唯一约束兜底幂等 + 应用层 version 列乐观校验 + task 领取悲观/SKIP LOCKED + 同 task 应用层序列化。**版本底座已由 DQ-04 Accepted Decision（2026-08-02）正式决定**：受并发保护的 Current Truth Pointer / Aggregate Root / Stage State / Review Package 等可变记录使用独立 NOT NULL `revision`；状态修改 Command 携带 `expected_revision`，compare-and-swap 条件更新，零影响行 = stale write / 并发冲突且 Atomic Business Commit 整体回滚；SQLAlchemy `version_id_col` 仅为 Infrastructure 层机制（`StaleDataError` 等翻译为项目自有冲突语义，mapper/Session 细节不得泄漏进 Domain / Public Contract，bulk UPDATE/DELETE 不得绕过 revision）；PostgreSQL `xmin` 不是权威业务 revision；SERIALIZABLE 不替代显式 revision；**隔离级别与重试策略仍由 DQ-05 / DQ-07 决定（PROPOSED / PENDING）**。
 6. **统一幂等表 + 设值语义**（DQ-08），判重与业务更新同事务。
 7. **Durable Work Intent 落库**（DQ-09）：首版以 DB Job Table 形态（逻辑等价最简 Outbox）与业务写入同事务；relay/backend 移交 RFC-003。
 8. **审计 append-only 同事务原子写 + Application Event 提交后通知**（DQ-10）；**不采用完整 Event Sourcing**（DQ-11，与 DEC-013 一致）。
@@ -222,7 +224,7 @@ Use Case.Commit → BusinessCommitService（新短事务原子提交）
 | 迁移 | Alembic forward-only + 人工 review autogenerate（Recommendation，PROPOSED） | DQ-14 |
 | 模块边界与所有权 | **单一 PG 服务 + 每表唯一所有模块；ORM/Repository/Migration/状态修改 Use Case 模块私有；跨模块仅经 Public Application Contract；Direct SQL/ORM/Repository 禁止；架构测试强制；每模块独立 schema 暂缓、物理命名留待实现设计**（**DQ-02 ACCEPTED，2026-08-01**） | DQ-02 Accepted Decision：DEC-034 + RFC-001-DQ-08 |
 | 聚合边界 | **业务不变量 + 唯一模块所有权；Atomic Business Commit（DEC-035 六要素）= 事务提交协议，非聚合成员资格判据；Task Mega Aggregate REJECTED；默认一 Use Case 一主 Aggregate；跨聚合/跨模块显式协调（Explicit Composite Use Case）；UoW 形态移交 DQ-05/06；Aggregate/Invariant Matrix 实施前必备**（**DQ-03 ACCEPTED，2026-08-02**） | DQ-03 Accepted Decision：DEC-035 + RFC-001-DQ-08 |
-| 版本化 | 应用层 version 列 + ORM 乐观校验 | DQ-04 |
+| 版本化 | **`domain_version_id`（不可变、Application 层 INSERT 前生成、opaque UUID、不复用）/ `version_number`（逻辑对象内单调递增、`(logical_object_id, version_number)` 唯一性约束、删除/失效后不复用）/ `revision`（独立 NOT NULL 乐观并发 token）三类分离；`expected_revision` compare-and-swap 条件更新 + affected-row 校验，零行 = 冲突整体回滚；`version_id_col` 仅 Infrastructure 机制；`xmin` 非权威 revision；SERIALIZABLE 不替代 revision；隔离/重试留 DQ-05/07**（**DQ-04 ACCEPTED，2026-08-02**） | DQ-04 Accepted Decision |
 | 事务边界 | Use Case 唯一提交点、外部调用不入事务、长流程拆短事务 | DQ-05 |
 | UoW | 显式 UoW、禁止嵌套业务事务 | DQ-06 |
 | 并发 | 唯一约束兜底 + 乐观 version + SKIP LOCKED 领取 + task 序列化 | DQ-07 |
@@ -245,7 +247,8 @@ Use Case.Commit → BusinessCommitService（新短事务原子提交）
 | 引擎 | SQLite 作生产引擎 | API+Worker 并发写撞全库单写者、网络文件锁不可靠、托管受限（**2026-08-01 用户正式拒绝：SQLite 不是受支持的 Business Current Truth backend**） |
 | 引擎 | MVP SQLite → 后期迁 PG | 迁移脚本跨方言不可复用、类型/并发/序列需重做（真实成本，非零切换）（**2026-08-01 用户正式拒绝：SQLite-first strategy = REJECTED**） |
 | 事务 | Use Case 全程一个事务 | 外部调用拉长事务→连接池耗尽风险 |
-| 并发 | 纯引擎隔离级（40001 重试） | 高冲突重试风暴、对批量更新无效 |
+| 版本化 | PostgreSQL `xmin` / 服务端触发器作权威 Revision | 耦合后端、不可移植、非稳定跨系统契约（**2026-08-02 用户正式拒绝：`xmin` 不是 Domain Version、不是 Public Contract 字段、不是 Review Package revision、不是权威业务 revision**） |
+| 并发 | 纯引擎隔离级（SERIALIZABLE 40001 重试）**替代显式 revision** | 高冲突重试风暴、对批量更新无效（**2026-08-02 用户正式拒绝作为 revision 替代：SERIALIZABLE 不是显式 Concurrency Revision 的替代方案；SERIALIZABLE 仍可能作为独立隔离策略由后续 DQ 讨论**） |
 | 幂等 | 分层各自存储 | 表分散；统一表 + 唯一约束更可控 |
 | Dispatch | 独立 Message Broker | 引入额外基础设施，超 MVP 倾向 |
 | 历史 | 完整 Event Sourcing | DEC-013 已排除；LLM 外部交互重放/bi-temporal 复杂度高 |
@@ -261,7 +264,7 @@ Use Case.Commit → BusinessCommitService（新短事务原子提交）
 
 - **PostgreSQL-only（DQ-01 Accepted Decision，2026-08-01）**带来生产正确性与语义一致（本地开发、CI 持久化测试、生产同引擎），但本地开发引入服务依赖，上手成本高于 SQLite 零配置（此代价已由用户接受）。
 - **短事务 + 外部调用不入事务**减少连接占用、恢复清晰，但要求 Use Case 显式编排外部调用位置，比「全程一事务」复杂。
-- **分层并发控制**覆盖全面，但组合（乐观+悲观+唯一约束+应用锁）比单一机制难推理，需 DQ-16 真实 DB 验证。
+- **分层并发控制**覆盖全面，但组合（乐观+悲观+唯一约束+应用锁）比单一机制难推理，需 DQ-16 真实 DB 验证。**版本底座已由 DQ-04 Accepted Decision（2026-08-02）正式决定**（三类版本语义分离 + `expected_revision` 条件更新 + 冲突整体回滚）；隔离级别与重试策略的取舍仍归 DQ-05/07（PROPOSED / PENDING）。
 - **DB Job Table 形态 dispatch**最简单且与业务写入同事务，但高吞吐下轮询负载与 relay 复杂度移交 RFC-003。
 - **同实例 Checkpoint 独立 schema**运维最简，但隔离弱于独立物理库；对账权威必须在应用层强制「业务真值优先」。
 - **不上完整 ES**避免 LLM 重放/bi-temporal 复杂度，代价是放弃「事件流重建任意历史状态」能力（DEC-013 已接受此代价）。
@@ -279,6 +282,7 @@ Use Case.Commit → BusinessCommitService（新短事务原子提交）
 | Secret 明文落 checkpoint | 凭证泄漏 | DQ-17：Secret 不入 Graph State/checkpoint + 反序列化白名单 |
 | autogenerate 误判改名 | 错误迁移 | DQ-14：autogenerate 必经人工 review |
 | 同一 thread_id 并发 resume（OSS 无防护） | 重复推进 | DQ-07/13：应用层幂等键/序列化（机制移交 RFC-003） |
+| ORM bulk UPDATE/DELETE 绕过 revision 检查 | 静默覆盖受保护记录 | **DQ-04 Accepted Decision（2026-08-02）禁止绕过 revision 的批量修改**；明确需要的批量操作必须定义 expected revision 规则、条件更新与 affected-row 校验 |
 
 ---
 
@@ -356,13 +360,13 @@ LangGraph 节点结构 · API endpoints · HTTP schema · 检索 chunking · 向
 
 ## 22. Test Strategy（测试策略）
 
-见 DQ-16。原则：**并发/事务/迁移/幂等使用真实 PostgreSQL**——**DQ-01 Accepted Decision（2026-08-01）：repository contract tests、persistence integration tests、transaction tests、concurrency tests 与 migration tests 必须对真实 PostgreSQL 运行；SQLite 不是受支持的 Business Current Truth backend，也不是 PostgreSQL 持久化语义的权威替代**。单元/契约层是否可用快速 fake 属 DQ-16（PROPOSED，PENDING）。因并发语义不可移植（SQLite 全库单写者 vs PG 行级 MVCC）。覆盖：Atomic Commit 回滚（partial_write==0）、重复 submit/resume 幂等、过期 checkpoint 拒绝、取消无部分写入、并发编辑不静默覆盖、迁移前向兼容。填补 Spike R-1（并发）与 R-4（规模）。
+见 DQ-16。原则：**并发/事务/迁移/幂等使用真实 PostgreSQL**——**DQ-01 Accepted Decision（2026-08-01）：repository contract tests、persistence integration tests、transaction tests、concurrency tests 与 migration tests 必须对真实 PostgreSQL 运行；SQLite 不是受支持的 Business Current Truth backend，也不是 PostgreSQL 持久化语义的权威替代**。**DQ-04 Accepted Decision（2026-08-02）：持久化语义验证必须使用真实 PostgreSQL，并至少覆盖——两个写者使用相同 `expected_revision`、过期 Human Review 提交、重复 resume 尝试、Domain Version 与 Pointer 的原子更新、防止无保护的批量更新、冲突回滚且零部分业务写入**。单元/契约层是否可用快速 fake 属 DQ-16（PROPOSED，PENDING）。因并发语义不可移植（SQLite 全库单写者 vs PG 行级 MVCC）。覆盖：Atomic Commit 回滚（partial_write==0）、重复 submit/resume 幂等、过期 checkpoint 拒绝、取消无部分写入、并发编辑不静默覆盖、迁移前向兼容。填补 Spike R-1（并发）与 R-4（规模）。
 
 ---
 
 ## 23. Rollout Plan（推进计划）
 
-1. **本 RFC 审查（当前 Gate）**：用户逐项审查并决定 DQ-01~17——**DQ-01/02/03 已由用户正式决定（DQ-01/02 于 2026-08-01、DQ-03 于 2026-08-02，均 ACCEPTED，Accepted with Revision）；DQ-04~17 仍 PENDING**。
+1. **本 RFC 审查（当前 Gate）**：用户逐项审查并决定 DQ-01~17——**DQ-01/02/03/04 已由用户正式决定（DQ-01/02 于 2026-08-01、DQ-03/04 于 2026-08-02，均 ACCEPTED，Accepted with Revision）；DQ-05~17 仍 PENDING**。
 2. **DQ 接受后**：用户明确接受 RFC-002 整体（Acceptance ≠ Authorization）。
 3. **后续**：RFC-002 ACCEPTED 后，按其契约推进 RFC-003（Checkpointer/dispatch 实现），并仍**不**自动授权任何持久化生产实现——实施需用户另行明确授权。
 
@@ -374,7 +378,7 @@ LangGraph 节点结构 · API endpoints · HTTP schema · 检索 chunking · 向
 
 - **Decision Completeness**：17 个 DQ 全部提出且含完整 13 字段、候选、取舍、失败模式、对后续 RFC 影响——✅ 本 RFC + DQ 文档满足。
 - **Architecture Compatibility**：全部 DQ 与 RFC-001（Application 拥有事务、Port 所有权、Durable Dispatch、Sync-first）及 DEC-024/029/033/034/035 一致、无推翻——✅。
-- **Implementation Readiness**：每个 DQ 给出可落地的候选与 Recommendation，实施者可据接受的 DQ 开始——⏳ DQ-01/02/03 ACCEPTED（2026-08-01/02）；DQ-04~17 待用户接受。注：DQ 接受 ≠ 实施授权（Implementation = NOT AUTHORIZED 恒定；DQ-03 另要求 Aggregate/Invariant Matrix 在持久化实施前完成）。
+- **Implementation Readiness**：每个 DQ 给出可落地的候选与 Recommendation，实施者可据接受的 DQ 开始——⏳ DQ-01/02/03/04 ACCEPTED（2026-08-01/02）；DQ-05~17 待用户接受。注：DQ 接受 ≠ 实施授权（Implementation = NOT AUTHORIZED 恒定；DQ-03 另要求 Aggregate/Invariant Matrix 在持久化实施前完成；DQ-04 的三类版本语义、`expected_revision` 协议与持久化语义验证清单同样不授权实施）。
 - **Traceability**：每条需求追溯到 DEC/RFC-001/官方证据——✅（研究矩阵 + 边界矩阵 + DQ 标注）。
 
 **Acceptance Gate：** 仅用户可将 DQ/RFC 标记 ACCEPTED；Coding Agent 不得自行接受。
@@ -436,13 +440,14 @@ Production Runtime           = NOT AUTHORIZED
 - [x] DQ-01 引擎选型方向——**2026-08-01 用户正式决定：Candidate A（PostgreSQL 唯一受支持的权威数据库语义；SQLAlchemy 2.x sync + Psycopg 3 sync + Alembic；本地与正式测试用真实 PostgreSQL），ACCEPTED WITH REVISION，见 §33 Decision Log**。
 - [x] DQ-02 持久化所有权与模块边界——**2026-08-01 用户正式决定：Candidate A 修订版（单一 PG 服务 + 每表唯一所有模块 + 模块私有 ORM/Repository/Migration/状态修改 Use Case + 跨模块仅经 Public Application Contract + 架构测试强制；每模块独立 PostgreSQL schema 暂缓、物理命名留待实现设计；三类存储物理划分归 DQ-13），ACCEPTED WITH REVISION，见 §33 Decision Log**。
 - [x] DQ-03 Aggregate 与持久化边界——**2026-08-02 用户正式决定：Candidate A 修订版（聚合边界 = 业务不变量 + 唯一模块所有权；Atomic Business Commit = 事务提交协议、非聚合成员资格判据；Task Mega Aggregate REJECTED；默认一 Use Case 一主 Aggregate；跨聚合/跨模块显式协调；UoW/事务实现移交 DQ-05/06；Aggregate/Invariant Matrix 持久化实施前必备），ACCEPTED WITH REVISION，见 §33 Decision Log**。
+- [x] DQ-04 Domain State Versioning——**2026-08-02 用户正式决定：Candidate A 修订版（`domain_version_id` / `version_number` / `revision` 三类明确分离、不得共享字段；Domain Version ID 由 Application 层 INSERT 前生成（opaque UUID、不可变、不复用）；Version Number 逻辑对象内单调递增 + `(logical_object_id, version_number)` 唯一性约束、不复用；受保护可变记录（Current Truth Pointer / Aggregate Root / Stage State / Review Package 等）使用独立 NOT NULL `revision`；状态修改 Command 携带 `expected_revision`，compare-and-swap 条件更新、零影响行 = 冲突且整体回滚；SQLAlchemy `version_id_col` 仅为 Infrastructure 机制（`StaleDataError` 翻译为项目自有冲突语义，mapper/Session 细节不泄漏进 Domain/Public Contract，bulk UPDATE/DELETE 不得绕过 revision）；PostgreSQL `xmin` 不作权威业务 revision；SERIALIZABLE 不替代显式 revision；隔离级别/重试策略留 DQ-05/07；DEC-035 六要素保持同事务；RFC-004 可映射 ETag/If-Match（HTTP 协议不由 DQ-04 决定）；正式持久化测试使用真实 PostgreSQL，测试策略归 DQ-16），ACCEPTED WITH REVISION，见 §33 Decision Log**。
 - [ ] DQ-05「外部调用不入事务」Recommendation 是否接受为设计原则？
 - [ ] DQ-07 并发控制分层组合是否覆盖五类并发场景？
 - [ ] DQ-09 是否首版引入 Durable Work Intent 落库（而非直接 broker）？
 - [ ] DQ-11 「不上完整 ES」立场是否确认（与 DEC-013 一致）？
 - [ ] DQ-13 Checkpoint 同实例独立 schema + 应用层清理是否可接受？
 - [ ] DQ-15 各类数据保留责任划分是否留待合规决定（未虚构周期）？
-- [ ] 全部 17 项 User Decision 是否逐项拍板（DQ-01~03 已决定；DQ-04~17 PENDING）？
+- [ ] 全部 17 项 User Decision 是否逐项拍板（DQ-01~04 已决定；DQ-05~17 PENDING）？
 
 ---
 
@@ -495,6 +500,7 @@ DEC-012 · DEC-013 · DEC-022 · DEC-023 · DEC-024 · DEC-025 · DEC-029 · DEC
 | 用户决定（2026-08-01）DQ-01 Accepted：PostgreSQL + SQLAlchemy 2.x sync + Psycopg 3 sync + Alembic；PostgreSQL-only 语义；SQLite-first 拒绝；RFC-014→DQ-14 修正 | DQ-01 → 约束 DQ-14/16 与全部后续持久化落点 | §33 Decision Log · PR #24 |
 | 用户决定（2026-08-01）DQ-02 Accepted：单一 PG 服务 + 每表唯一所有模块 + 模块私有 ORM/Repository/Migration + 跨模块 Public Contract + 架构测试强制；独立 schema 暂缓；存储物理划分归 DQ-13 | DQ-02 → INTERFACE → RFC-003/004/005 各模块表边界 | §33 Decision Log · PR #24 |
 | 用户决定（2026-08-02）DQ-03 Accepted：聚合边界 = 业务不变量 + 唯一模块所有权；Atomic Business Commit = 事务协议非聚合成员资格；Task Mega Aggregate REJECTED；一 Use Case 一主聚合；跨聚合/跨模块显式协调；UoW 移交 DQ-05/06；Aggregate/Invariant Matrix 实施前必备 | DQ-03 → INTERFACE → RFC-004（Review 提交事务）/RFC-005（Evidence Link 一致性） | §33 Decision Log · PR #24 |
+| 用户决定（2026-08-02）DQ-04 Accepted：`domain_version_id` / `version_number` / `revision` 三类分离；Domain Version ID 由 Application 层 INSERT 前生成；Version Number 单调递增 + 唯一性约束；受保护可变记录独立 NOT NULL `revision`；`expected_revision` compare-and-swap 条件更新 + 冲突整体回滚；`version_id_col` 仅 Infrastructure 机制；`xmin` 非权威 revision；SERIALIZABLE 不替代 revision；隔离/重试留 DQ-05/07；DEC-035 六要素同事务；持久化语义验证用真实 PostgreSQL（测试策略归 DQ-16） | DQ-04 → INTERFACE → RFC-004（可映射 ETag/If-Match，HTTP 协议未决）/DQ-05/07（隔离与重试）/DQ-16（测试分类） | §33 Decision Log · PR #24 |
 
 ---
 
@@ -505,14 +511,15 @@ DEC-012 · DEC-013 · DEC-022 · DEC-023 · DEC-024 · DEC-025 · DEC-029 · DEC
 | 2026-08-01 | **RFC-002-DQ-01 = ACCEPTED（Accepted with Revision）** | 用户 | 接受 Candidate A 并修订：PostgreSQL 是 Business Current Truth Repository 唯一受支持的权威数据库语义；技术栈 = **PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic**；schema/约束/迁移/事务/并发/持久化正确性均以 PostgreSQL 语义定义；**本地开发与正式持久化测试**（repository contract / persistence integration / transaction / concurrency / migration tests）**均对真实 PostgreSQL 运行**；SQLite 不是受支持的 backend，也不是 PostgreSQL 持久化语义的权威替代；SQLite-first → PostgreSQL-later 路线 **REJECTED**；错误引用「RFC-014（迁移策略）」修正为 **RFC-002-DQ-14（Schema Evolution and Migrations）**。原历史 Recommendation「PG 为目标、本地可用 SQLite 以 PG 语义为准」标记为 **Superseded by Accepted Revision**；不建立 SQLite 方言兼容承诺。 |
 | 2026-08-01 | **RFC-002-DQ-02 = ACCEPTED（Accepted with Revision）** | 用户 | 接受 Candidate A 并修订：MVP 使用**单一 PostgreSQL 数据库服务**；**每张业务表有且仅有一个所有模块**；所有模块独占拥有其 Repository Port 定义、Infrastructure Repository 实现、ORM / Persistence Models、schema 与 migration 变更、状态修改 Application Use Cases；其他模块不得 import 其 ORM/Persistence Models、获取或复用其 Database Session、调用其 Repository 实现、直接以 SQL/ORM 查询或修改其表、以共享表绕过 Public Application Contract；跨模块读取经目标模块 **Public Application Query**、跨模块状态修改经所有模块 **Public Application Use Case**；直接模块间状态修改访问默认禁止（与 RFC-001-DQ-08 一致）；边界由 **Import Linter + AST/Architecture Tests + Repository Ownership Tests + Migration Ownership Conventions + PR 审查规则**强制（单独代码审查不充分）；架构接受显式命名空间与所有权约定，但 **MVP 不要求每模块独立 PostgreSQL schema**；具体物理命名（PostgreSQL schema/表前缀/等价命名空间）**留待实现设计**（不得削弱所有权；此为 Deferred，非「不需要命名约定」）；**Business/Runtime/Checkpoint 三类存储物理划分不由 DQ-02 决定，继续指派 RFC-002-DQ-13（PROPOSED/PENDING）**。原历史 Recommendation「按模块分 schema/表前缀」中的独立 schema 部分标记为 **Superseded by Accepted Revision**（作为候选历史保留）。 |
 | 2026-08-02 | **RFC-002-DQ-03 = ACCEPTED（Accepted with Revision）** | 用户 | 接受 Candidate A 并修订：**Aggregate 边界 = 业务不变量 + 唯一模块所有权**（聚合 = 强制同一组业务不变量的最小单元，其数据归属唯一所有模块，与 DQ-02 Accepted Decision 一致）；**Atomic Business Commit（DEC-035 六要素）是事务提交协议（transaction protocol），不是聚合成员资格判据（not aggregate membership）**，六要素单事务不可拆约束保持有效；**Task Mega Aggregate REJECTED**（不采用整个 Task 单一大聚合）；**默认一个 Application Use Case 提交一个主 Aggregate**；**跨聚合 / 跨模块协调要求显式协调**（Explicit Composite Application Use Case，与 RFC-001-DQ-08 一致）；**Unit of Work / 事务实现形态移交 DQ-05（Transaction Boundary）/ DQ-06（Unit of Work Model）**（均 PROPOSED/PENDING）；**Aggregate / Invariant Matrix 是持久化实施前的必备产出（REQUIRED BEFORE PERSISTENCE IMPLEMENTATION）**，该要求不授权任何实施。原历史 Recommendation「以六要素为聚合边界 / 聚合 = 一次原子提交必须一致的最小单元」标记为 **Superseded by Accepted Revision**（候选历史保留）。 |
+| 2026-08-02 | **RFC-002-DQ-04 = ACCEPTED（Accepted with Revision）** | 用户 | 接受 Candidate A 并修订：架构明确区分 **Domain Version Identity**（`domain_version_id`）、**Domain Version Number**（`version_number`）与 **Concurrency Revision**（`revision`），三者不得共享同一字段、不得视为可互换；**Domain Version Identity** = 每个不可变 Domain Version 拥有稳定且全局唯一的 `domain_version_id`，**由 Application 层在 INSERT 前生成**，采用应用生成的 opaque UUID（具体 UUID variant 可在实现设计时选择），不可变且绝不得复用，不得解释为乐观锁计数器 / SQLAlchemy Mapper Version / PostgreSQL `xmin` / 审核 Revision；**Domain Version Number** = 每个逻辑业务对象维护单调递增的 `version_number`（例如 Strategy Version 1、2、3），唯一性约束至少覆盖 `(logical_object_id, version_number)`，历史版本在删除或失效后不得覆盖、重新编号或复用，不得默认与 `revision` 相等；**Concurrency Revision** = 需要并发保护的可变记录（Current Truth Pointers、Aggregate Roots、Stage State、Review Package state 及后续设计识别的其他可变协调记录）使用独立 `revision` 字段，为 NOT NULL 单调递增整数，表达成功的状态变更，不代表 Domain Version Identity / Number，不得用作不可变标识；**每一个针对 revision 保护记录的状态修改 Command 必须携带 `expected_revision` 或等效显式并发前置条件**；更新使用显式 compare-and-swap 语义（`UPDATE ... WHERE id = :id AND revision = :expected_revision`），成功更新递增 `revision`，**零影响行 = stale write / 并发冲突，Atomic Business Commit 必须回滚、不得静默覆盖较新状态**；SQLAlchemy 2.x `version_id_col` **可**作为 Infrastructure 层乐观并发机制，但 mapper 概念 / Session 异常 / `version_id_col` 细节不得泄漏进 Domain Models 或 Public Application Contracts；Infrastructure 必须将 SQLAlchemy stale-state 行为（含适用时的 `StaleDataError`）转换为项目自有并发冲突结果或异常（如 ConcurrencyConflict / StaleRevision / ExpectedRevisionMismatch 类语义，具体命名留待实现设计，本决定不创建代码）；revision 保护记录**不得**经绕过 revision 检查的 ORM bulk UPDATE / DELETE 修改，明确需要的批量操作必须定义 expected revision 规则、条件更新行为与 affected-row 校验；**PostgreSQL `xmin` 不是项目权威业务 revision**（非 Domain Version、非 Public Contract 字段、非 Review Package revision、非稳定跨系统持久化契约——Candidate B 方向拒绝）；**PostgreSQL SERIALIZABLE 隔离不是显式 Concurrency Revision 的替代方案**（Candidate C 方向拒绝；SERIALIZABLE 仍可能作为独立隔离策略由后续 DQ 讨论）；Transaction Isolation 与 Optimistic Revision 正交；**默认隔离级别 / 强隔离 Use Cases / 40001 serialization-failure 重试 / 40P01 deadlock 重试 / SELECT FOR UPDATE / 悲观锁 / retry 所有权与上限留待 DQ-05 与 DQ-07**（均 PROPOSED / PENDING）；DEC-035 Atomic Business Commit 六要素（创建不可变 Domain Version、Formal Evidence Links、更新 Current Truth Pointer、更新 Stage State、写 Audit Record、写 Idempotency Record）**保持同一事务**；Pointer / Aggregate Root / 受保护协调记录的 revision 检查必须在同一 Atomic Business Commit 内；产生新顺序 Version Number 时，版本分配与 Current Truth revision 校验构成一个安全提交协议（读取 pointer/version → 校验 expected_revision → 分配/校验下一 version_number → 插入不可变 Domain Version → 条件更新 pointer → 递增 revision → commit），任何 revision 冲突 / 唯一性冲突 / 写入失败整体回滚；RFC-004 可将 Concurrency Revision 映射为 HTTP ETag / If-Match 语义，但 **HTTP 协议不由 DQ-04 决定**；持久化语义验证**必须使用真实 PostgreSQL**，至少覆盖：两个写者使用相同 expected_revision、过期 Human Review 提交、重复 resume 尝试、Domain Version 与 Pointer 原子更新、防止无保护批量更新、冲突回滚且零部分业务写入；**详细持久化测试策略归 DQ-16**（PROPOSED / PENDING）。原历史 Recommendation「应用层 version 列 + ORM 乐观校验（单一 version 概念）」标记为 **Superseded by Accepted Revision**（候选历史保留：A 接受并修订、B/C 拒绝）。 |
 
 ### Open User Decisions（待用户决定）
 
 ```text
-RFC-002-DQ-04 ~ DQ-17 = PROPOSED — User Decision: PENDING（14 项）
+RFC-002-DQ-05 ~ DQ-17 = PROPOSED — User Decision: PENDING（13 项）
 RFC-002 Acceptance    = USER DECISION REQUIRED
 RFC-002 Merge         = USER DECISION REQUIRED
-Implementation        = NOT AUTHORIZED（DQ-01/02/03 接受不授权任何实施）
+Implementation        = NOT AUTHORIZED（DQ-01/02/03/04 接受不授权任何实施）
 ```
 
 ---
@@ -524,14 +531,15 @@ RFC-002 Status                = IN REVIEW
 RFC-002-DQ-01                 = ACCEPTED（2026-08-01 用户正式决定，Candidate A，Accepted with Revision）
 RFC-002-DQ-02                 = ACCEPTED（2026-08-01 用户正式决定，Candidate A，Accepted with Revision）
 RFC-002-DQ-03                 = ACCEPTED（2026-08-02 用户正式决定，Candidate A，Accepted with Revision）
-RFC-002 Decision Questions    = DQ-01~03 ACCEPTED；DQ-04~17 PROPOSED
-RFC-002 Recommendation        = PROPOSED（DQ-01/02/03 Recommendation Superseded by Accepted Decision）
+RFC-002-DQ-04                 = ACCEPTED（2026-08-02 用户正式决定，Candidate A，Accepted with Revision）
+RFC-002 Decision Questions    = DQ-01~04 ACCEPTED；DQ-05~17 PROPOSED
+RFC-002 Recommendation        = PROPOSED（DQ-01/02/03/04 Recommendation Superseded by Accepted Decision）
 RFC-002 Pull Request          = OPEN（PR #24）
 Required Checks               = PASS（8/8）
-User Decisions                = DQ-01~03 = ACCEPTED WITH REVISION；DQ-04~17 = PENDING（14 项）
+User Decisions                = DQ-01~04 = ACCEPTED WITH REVISION；DQ-05~17 = PENDING（13 项）
 Implementation                = NOT AUTHORIZED
 
-Immediate Next Gate = 用户审查并决定 RFC-002-DQ-04 Domain State Versioning
+Immediate Next Gate = 用户审查并决定 RFC-002-DQ-05 Transaction Boundary
 ```
 
 **Coding Agent 不自行接受任何 DQ、不接受 RFC-002、不 Merge PR、不开始任何持久化/数据库/业务/生产运行时实现。**
