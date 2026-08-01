@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~09 ACCEPTED；DQ-10~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~10 ACCEPTED；DQ-11~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-09 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-10~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
+> - DQ-01~DQ-10 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-11~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -25,7 +25,7 @@
 | DQ-07 | Concurrency Control | **已决定（2026-08-02 ACCEPTED）**：分层并发控制（Layered Concurrency Control）——乐观 revision（DQ-04 协议）为普通业务写默认 + 命名数据库唯一约束为重复业务事实最终防线（完整幂等键留 DQ-08）+ Durable Lease + 单调 fencing_token 为执行所有权（进程内锁仅非权威优化）+ SELECT FOR UPDATE SKIP LOCKED 仅限短事务队列式 Claim + Session-level Advisory Lock 禁止 + 40001/40P01 由 Application Transaction Runner 以全新 UoW/Session 最多三次总尝试重试（语义冲突不盲目重试）；Concurrency Scenario Matrix 与真实 PostgreSQL 多 Worker Technical Spike 为实现前置条件（均未授权）；原分歧 乐观/悲观/CAS/约束/应用锁取舍 | DEC-022/029/033 五类并发场景；R-1 GAP |
 | DQ-08 | Idempotency Model | **已决定（2026-08-02 ACCEPTED）**：Candidate B 为主（各幂等层由 Owning Module 分层存储）+ Candidate C 为强制设计原则（天然幂等 set/ensure/replace 语义，不替代显式记录与唯一约束）+ 统一语义契约（非统一物理表）；Candidate A 作为跨模块万能 Idempotency Table 被拒绝；Retry 复用 Command ID/Idempotency Key/Stage Run ID/Input Fingerprint 并创建新 Attempt ID，Intentional Rerun 创建新逻辑身份（保留 rerun_of）；同 Scope+Key+Fingerprint 重放原 Application Result、不同 Fingerprint 返回 Idempotency Key Conflict；幂等成功记录与 Business Current Truth 同一 DEC-035 原子提交；Consumer Dedup Marker 与消费业务更新同事务；IN_PROGRESS 执行所有权与 DQ-07 Durable Lease/Holder/Attempt ID/fencing_token 协同（旧 Worker 不得完成记录）；瞬时失败不永久固化、确定性终局语义结果可稳定重放；数据库事务重试不得重新调用外部 Provider（复用同一 Provider Call Identity）；Checkpoint/thread_id 不是业务幂等记录；**Idempotency Identity Matrix 为实现前置条件——REQUIRED 但 NOT AUTHORIZED**；物理表/Retention/Security 留 DQ-13/15/17；原分歧 统一幂等表 vs 分层存储 vs 天然幂等语义 | Idempotent Consumer 权威 |
 | DQ-09 | Transactional Outbox / Durable Dispatch | **已决定（2026-08-02 ACCEPTED）**：Candidate B（PostgreSQL-backed Transactional Durable Work Intent）作为 MVP 内部可靠工作调度模型 + Candidate A 不作 MVP 内部任务模型（保留为未来 Integration Event Outbox 方向）+ Candidate C 独立 Broker 不在 MVP 引入（未来仅作 Delivery Backend，不替代事务内 Durable Intent）；业务状态更新与 Durable Work Intent 同一 PostgreSQL Atomic Business Commit（Intent 写入失败整体回滚、回滚不留可领取 Intent）；API 仅在 Intent 持久化提交后返回 accepted（accepted 仅表示工作已可靠记录，不表示 Worker 或业务执行完成）；禁止 asyncio.create_task/内存 Queue/临时 Background Task/单独 Broker Publish/仅 LISTEN-NOTIFY 作为唯一可靠调度；Dispatch ID Retry 稳定、Delivery Attempt 每次新建、Intentional Rerun 新 Dispatch ID（保留 rerun_of）；短事务 SELECT FOR UPDATE SKIP LOCKED Claim + Lease Holder + 单调 fencing_token + Attempt Identity，长执行不持行锁/Session/UoW/连接，最终提交重新验证 Dispatch ID/Lease Holder/fencing_token/Attempt/Fingerprint/expected_revision（旧 Worker 或过期 Lease 不得完成 Intent）；Delivery = at-least-once（不承诺 exactly-once；唯一业务效果由 DQ-08 幂等 + Consumer Dedup + 命名唯一约束 + DQ-07 Lease/Fencing + revision + Atomic Commit 组合保证）；数据库事务 Retry 与 Work Execution Retry 分离（DQ-07 三次事务尝试不直接套用长任务次数；Work Retry/Backoff/Dead-letter/人工恢复/告警留 RFC-003/RFC-007）；LISTEN/NOTIFY 仅非权威唤醒优化、周期性 Polling 为权威恢复路径；不新增独立 Matrix，现有 Idempotency Identity Matrix 与 Concurrency Scenario Matrix 须补充 Dispatch 场景——REQUIRED 但 NOT AUTHORIZED；DQ-07 真实 PostgreSQL 多 Worker Spike 继续有效并覆盖 Durable Dispatch 并发与恢复语义；relay/Worker backend/部署拓扑留 RFC-003，Event 分类留 DQ-10，HTTP/Polling API 协议留 RFC-004，Retention 留 DQ-15，测试留 DQ-16，Security 留 DQ-17；原分歧 是否首版引入 Outbox | 双写问题权威；RFC-001 移交 |
-| DQ-10 | Event & Audit Persistence | 审计 vs 事件分离与持久化 | Fowler Audit Log≠Domain Event |
+| DQ-10 | Event & Audit Persistence | **已决定（2026-08-02 ACCEPTED）**：Domain Event / Audit Record / State Transition Record / Application Event / Integration Event / Observability Event 六类记录语义独立，拒绝 Universal Event / Audit Table（Candidate B）与全项目 Event-driven 架构（Candidate C）；Audit Record 为 append-only 权威问责证据、与对应 Business Current Truth 修改同一 DEC-035 原子提交（写入失败整体回滚，不得异步补写/覆盖/删除；更正仅追加 Correction/Superseding/Reversal Record）；State Transition Record 为显式类型 Audit Record（可物理共用 Audit Ledger，不代表语义合并，不得充当 Integration Event 或 Current Truth）；Domain Event 为模块内部过去式业务事实、默认不自动持久化，需同事务执行的 Handler 在最外层 UoW 内 Commit 前执行、不嵌套 UoW/不独立 Commit/不调用外部 Provider；Application Event 仅 Commit 后本地 best-effort 通知（LOCAL/BEST-EFFORT/NON-DURABLE，不承担必须执行工作）；必须执行工作用 DQ-09 Durable Work Intent，可靠跨边界事实用独立 Transactional Integration Event Outbox（与业务状态/Audit 同 PostgreSQL 事务写入，Delivery = at-least-once，不承诺 exactly-once；Consumer 依 Event Identity + Consumer Scope 去重，Dedup Marker 与消费业务更新同事务；Outbox 与 Work Intent 不共用 Identity/状态机/Payload/Retry/Retention）；CloudEvents-compatible Envelope 仅可选互操作方向，不替代 Outbox/原子提交/Dedup/Delivery Guarantee；Observability Event 归 RFC-007 非权威 Telemetry（失败不回滚业务、不替代 Audit）；六类分类 / Audit Capability / State Transition 共用 Audit Ledger / Application Event best-effort / Outbox 结构 / Classification Table 均为项目 Accepted Decision（非第三方官方强制架构）；Audit Ledger / State Transition / Outbox 不构成 Business Current Truth，不引入 Event Sourcing（Current Truth 留 DQ-11）；Event & Record Classification Table 为持久化实现前置 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED；不新增独立 Matrix 或 Technical Spike，DQ-07 真实 PostgreSQL 多 Worker Spike 继续有效并覆盖 Integration Event 重复投递 / Consumer Dedup / Relay Crash / stale Publish / 无部分业务写入；Event Relay/Broker/Polling/发布状态机/Dead-letter 留 RFC-003，Retention 留 DQ-15，测试留 DQ-16，Security 留 DQ-17；原分歧 审计 vs 事件分离与持久化 | Fowler Audit Log≠Domain Event（权威模式）；项目用户决定 |
 | DQ-11 | Snapshot vs History | 版本化历史 + 审计，不上完整 ES | DEC-013 排除 ES |
 | DQ-12 | Source & Evidence Persistence | 原始内容存 DB vs 引用 + 大内容边界 | PG TOAST/bytea/外部存储 |
 | DQ-13 | Workflow Checkpoint Separation | 同库/分库、生命周期、对账权威 | DEC-023/024；官方无同库建议 |
@@ -1098,9 +1098,371 @@
 - **Trade-offs：** A 语义清晰、符合 Fowler 分界；B 表简但读者需区分；C 牺牲事件驱动能力。
 - **Failure modes：** 审计与事件混表→问责取证困难；事件携带过多状态（State Transfer）→数据冗余拷贝。
 - **Impact on later RFCs：** RFC-007（观测事件流）。
-- **Recommendation：** **[架构推断] 倾向 A**——审计 append-only 同事务原子写、Application Event 提交后通知（不持久化为 Current Truth）。**置信度：高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation（历史提案；Superseded by the Accepted Major Revision below）：** **[架构推断] 倾向 A**——审计 append-only 同事务原子写、Application Event 提交后通知（不持久化为 Current Truth）。**置信度：高**。候选关系：**Candidate A = ACCEPTED WITH MAJOR REVISION**（六类 Event/Record 独立语义 + append-only Audit Record 与业务状态同事务 + 重大修订补充 Integration Event Outbox / Observability / Classification Table 边界）；**Candidate B = REJECTED AS UNIVERSAL EVENT / AUDIT TABLE**（以一张统一事件表同时承载审计与事件被拒绝）；**Candidate C = REJECTED AS PROJECT-WIDE ARCHITECTURE**（仅审计、不持久化事件作为全项目架构被拒绝；Specific Flow With No Integration Event = ALLOWED WHEN NO RELIABLE CROSS-BOUNDARY FACT NOTIFICATION IS REQUIRED, AUDIT RECORD REMAINS REQUIRED WHEN DEC / BUSINESS RULE REQUIRES AUDIT）。
+- **User Decision：** ACCEPTED WITH MAJOR REVISION
+- **Accepted Candidate：** CANDIDATE A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+  > **3.1 事件与记录分类**
+  > 1. Domain Event、Audit Record、State Transition Record、Application Event、Integration Event 与 Observability Event 是不同语义类别。
+  > 2. 不使用一张同时承载审计、业务事件、可靠通知、工作调度、Checkpoint 和 Telemetry 的 Universal Event Table。
+  > 3. 以下类别不得因都具有时间戳或 Payload 而合并为同一种记录：
+  >    - Domain Event；
+  >    - Audit Record；
+  >    - State Transition Record；
+  >    - Application Event；
+  >    - Integration Event；
+  >    - Observability Event；
+  >    - Durable Work Intent；
+  >    - Workflow Checkpoint；
+  >    - Business Current Truth。
+  > 4. 逻辑语义、事务边界、可靠性等级、所有模块、状态机、Retention 和消费者协议必须分别定义。
+  > 5. Candidate A 接受并进行重大修订。
+  > 6. Candidate B 作为 Universal Event / Audit Table 被拒绝。
+  > 7. Candidate C 作为全项目架构被拒绝。
+  > 8. 某个具体业务流程在没有跨边界通知需求时，可以不创建 Integration Event，但不得因此移除 Audit Record。
+  >
+  > **3.2 Domain Event**
+  > 9. Domain Event 表达所属业务模块内部已经发生的业务事实。
+  > 10. Domain Event 名称必须采用过去式，例如：
+  >    - `StrategyApproved`；
+  >    - `BriefGenerated`；
+  >    - `SourceInvalidated`；
+  >    - `ReviewRequested`。
+  > 11. Domain Event 由 Domain Model 创建。
+  > 12. Domain Event 的收集、排序、处理与映射由 Application 层拥有。
+  > 13. Domain Event 默认是模块内部的语义对象，不自动持久化。
+  > 14. 不要求每个 Domain Event 都一对一映射为数据库记录。
+  > 15. 同一 Atomic Business Commit 内需要执行的 Domain Event Handler 必须：
+  >    - 在最外层 Application Use Case 拥有的 UoW 中执行；
+  >    - 在最终 Commit 前执行；
+  >    - 不创建新的嵌套 UoW；
+  >    - 不独立 Commit；
+  >    - 不访问外部 Provider；
+  >    - 不执行 LLM、HTTP、工具调用、消息发布或长时间等待。
+  > 16. Commit 前的 Domain Event Handler 可以修改同一事务内允许修改的业务状态，但必须继续遵守 DQ-03 的 Aggregate 边界和 DQ-06 的单一外层 UoW。
+  > 17. Domain Event 不等于 Audit Record。
+  > 18. Domain Event 不等于 Integration Event。
+  > 19. Domain Event 不等于 Durable Work Intent。
+  > 20. 一个 Domain Event 可以由 Application 显式映射为：
+  >    - Audit Record；
+  >    - State Transition Record；
+  >    - Integration Event；
+  >    - Durable Work Intent；
+  >    - 或以上多个记录。
+  > 21. 映射必须由明确的 Application Policy 决定，不得由 ORM Hook 或数据库触发器隐式推断。
+  >
+  > **3.3 Audit Record**
+  > 22. Audit Record 是正式、持久化、append-only 的权威问责证据。
+  > 23. Audit Record 的主要目的包括：
+  >    - accountability；
+  >    - investigation；
+  >    - compliance；
+  >    - user-visible history；
+  >    - incident analysis；
+  >    - business decision explanation。
+  > 24. Audit Record 必须与对应 Business Current Truth 修改处于同一个 DEC-035 Atomic Business Commit。
+  > 25. Audit Record 写入失败时，整个业务事务必须回滚。
+  > 26. 业务事务回滚时，不得留下该操作的成功 Audit Record。
+  > 27. 不得先提交业务状态，再异步补写必须存在的 Audit Record。
+  > 28. Audit Record 至少应表达：
+  >    - `audit_id`；
+  >    - record type；
+  >    - actor type；
+  >    - actor identity；
+  >    - action；
+  >    - target type；
+  >    - target identity；
+  >    - business operation；
+  >    - `command_id`；
+  >    - correlation identity；
+  >    - causation identity；
+  >    - base Domain Version；
+  >    - resulting Domain Version；
+  >    - before revision；
+  >    - after revision；
+  >    - result；
+  >    - reason 或 reason reference；
+  >    - actual occurrence time；
+  >    - recorded time；
+  >    - schema version。
+  > 29. `occurred_at` 与 `recorded_at` 必须在语义上分离。
+  > 30. `occurred_at` 表示业务事实实际发生或被确认的时间。
+  > 31. `recorded_at` 表示系统持久化该记录的时间。
+  > 32. Audit Record 不得通过 UPDATE 覆盖或改写历史。
+  > 33. Audit 历史更正必须追加新的：
+  >    - Correction Record；
+  >    - Superseding Record；
+  >    - Reversal Record；
+  >    - 或语义等价的 append-only 记录。
+  > 34. 更正记录必须引用被更正记录。
+  > 35. Invalidation 不删除旧 Audit Record。
+  > 36. Retraction、Supersession 和 Reversal 不等于物理删除。
+  > 37. Audit Record 不得无必要复制完整敏感 Payload。
+  > 38. Audit Record 不得包含：
+  >    - 明文 Secret；
+  >    - 未脱敏 Token；
+  >    - 原始密码；
+  >    - 不需要的完整 PII；
+  >    - ORM Entity；
+  >    - SQLAlchemy Session；
+  >    - Python Exception 对象；
+  >    - 原始数据库错误对象。
+  >
+  > **3.4 State Transition Record**
+  > 39. State Transition Record 表达一个明确的业务状态机迁移。
+  > 40. 典型迁移包括：
+  >    - DRAFT → IN_REVIEW；
+  >    - IN_REVIEW → APPROVED；
+  >    - AVAILABLE → LEASED；
+  >    - IN_PROGRESS → FAILED_RETRYABLE；
+  >    - ACTIVE → SUPERSEDED。
+  > 41. State Transition Record 至少应表达：
+  >    - state machine identity；
+  >    - entity type；
+  >    - entity identity；
+  >    - from state；
+  >    - to state；
+  >    - transition type；
+  >    - transition reason；
+  >    - actor；
+  >    - `command_id`；
+  >    - expected revision；
+  >    - resulting revision；
+  >    - occurred time；
+  >    - recorded time；
+  >    - schema version。
+  > 42. State Transition Record 是结构化的状态迁移审计。
+  > 43. 当主要目的为问责、历史分析和状态迁移追踪时，它可以作为一种显式类型的 Audit Record。
+  > 44. State Transition Record 可以物理存储在同一 append-only Audit Ledger 中，但必须具备：
+  >    - 明确 `record_type`；
+  >    - Typed Payload Schema；
+  >    - Schema Version；
+  >    - Transition-specific Constraints；
+  >    - 可验证的 from/to state。
+  > 45. 允许物理共用 Audit Ledger，不代表语义合并。
+  > 46. State Transition Record 不得直接充当 Integration Event。
+  > 47. 当状态迁移需要可靠通知其他边界时，必须额外创建独立 Integration Event Outbox Record。
+  > 48. State Transition Record 不得充当 Business Current Truth。
+  >
+  > **3.5 Application Event**
+  > 49. Application Event 是本进程、本应用边界内的 Commit 后通知。
+  > 50. Application Event 只能在数据库事务成功 Commit 后发布。
+  > 51. Application Event 不得在 Commit 前向外部或异步 Handler 发布。
+  > 52. Application Event 不得携带：
+  >    - 活跃 UoW；
+  >    - SQLAlchemy Session；
+  >    - ORM Entity；
+  >    - Repository；
+  >    - 数据库 Connection；
+  >    - lazy-loaded relationship。
+  > 53. Post-commit Application Event 默认具有以下语义：
+  >    ```text
+  >    LOCAL
+  >    BEST-EFFORT
+  >    NON-DURABLE
+  >    ```
+  > 54. 进程可能在数据库 Commit 后、Application Event 发布前崩溃。
+  > 55. Application Event 的丢失不得破坏业务正确性。
+  > 56. 任何必须执行的后续工作不得仅依赖 Application Event。
+  > 57. 必须执行的后续工作使用 DQ-09 Durable Work Intent。
+  > 58. 必须可靠传播到其他边界的事实使用 Transactional Integration Event Outbox。
+  > 59. Application Event Handler 失败不得回滚已经成功提交的原业务事务。
+  > 60. Application Event Handler 失败的观测、告警和恢复策略归 RFC-007 或相应 Runtime RFC。
+  >
+  > **3.6 Integration Event**
+  > 61. Integration Event 表示已经成功发生、需要传播给其他模块、Bounded Context 或外部系统的业务事实。
+  > 62. Integration Event 名称必须采用过去式。
+  > 63. Integration Event 不得以 Event 名义表达命令式要求。
+  > 64. 「请执行某项工作」的语义属于 Command 或 DQ-09 Durable Work Intent，而不是 Integration Event。
+  > 65. 当 Integration Event 需要可靠发布时，必须使用独立的 Transactional Integration Event Outbox。
+  > 66. Integration Event Outbox Record 必须与以下内容在同一 PostgreSQL Atomic Business Commit 中写入：
+  >    - 产生该事实的业务状态；
+  >    - 必要 Domain Version；
+  >    - Current Truth Pointer；
+  >    - Audit Record；
+  >    - State Transition Record，如适用；
+  >    - Idempotency Result；
+  >    - Integration Event Outbox Record。
+  > 67. Integration Event Outbox 写入失败时，业务事务必须整体回滚。
+  > 68. 业务事务回滚时，不得留下可发布的成功 Integration Event。
+  > 69. 不得先提交业务状态，再以非原子方式补写需要可靠发布的 Integration Event。
+  > 70. Integration Event Outbox 与 DQ-09 Durable Work Intent 必须保持独立语义。
+  > 71. 两者不得默认共用：
+  >    - Identity；
+  >    - State Machine；
+  >    - Payload Schema；
+  >    - Completion State；
+  >    - Retry Policy；
+  >    - Retention Policy；
+  >    - Consumer Protocol。
+  > 72. Integration Event 至少应表达：
+  >    - `event_id`；
+  >    - source；
+  >    - event type；
+  >    - event schema version；
+  >    - subject；
+  >    - occurred time；
+  >    - recorded time；
+  >    - correlation identity；
+  >    - causation identity；
+  >    - `command_id`；
+  >    - Aggregate 或 Business Identity；
+  >    - Domain Version Identity；
+  >    - payload 或 immutable payload reference。
+  > 73. `source` + `event_id` 必须能够唯一识别一个逻辑 Integration Event。
+  > 74. 同一个逻辑 Integration Event 的 Retry 或重复投递必须保持相同 Event Identity。
+  > 75. Intentional Rerun 所产生的新业务事实可以创建新的 Event Identity，但必须保留 Causation/Correlation 关系。
+  > 76. Integration Event Payload 默认只携带消费者真正需要的业务事实和不可变引用。
+  > 77. 默认不采用大型 Event-carried State Transfer。
+  > 78. 只有在消费者必须脱离源系统独立运行时，才可采用 Event-carried State Transfer。
+  > 79. 采用 Event-carried State Transfer 时必须明确：
+  >    - 数据所有权；
+  >    - Schema Evolution；
+  >    - Consumer Compatibility；
+  >    - PII/Security；
+  >    - Payload Size；
+  >    - Retention；
+  >    - Correction/Supersession 语义。
+  > 80. Integration Event Delivery 为：
+  >    ```text
+  >    AT-LEAST-ONCE
+  >    ```
+  > 81. 不承诺：
+  >    ```text
+  >    EXACTLY-ONCE DELIVERY
+  >    ```
+  > 82. Exactly-once Business Effect 依赖：
+  >    - DQ-08 Idempotency；
+  >    - Consumer Dedup；
+  >    - Event Identity；
+  >    - Consumer Scope；
+  >    - Named Unique Constraints；
+  >    - Atomic Business Commit。
+  > 83. Consumer 必须依据 Event Identity 与 Consumer Scope 去重。
+  > 84. Consumer Dedup Marker 与消费产生的业务状态修改必须处于同一数据库事务。
+  > 85. Event Relay、Broker、Polling、发布状态机、Dead-letter 和部署拓扑继续由 RFC-003 决定。
+  > 86. Integration Event Wire Format 可以采用 CloudEvents-compatible Envelope。
+  > 87. CloudEvents-compatible Envelope 只解决事件格式和互操作元数据，不替代：
+  >    - Transactional Outbox；
+  >    - Atomic Commit；
+  >    - Relay；
+  >    - Retry；
+  >    - Consumer Dedup；
+  >    - Delivery Guarantee。
+  > 88. CloudEvents 的具体版本、字段映射与协议选择留给 RFC-003 或独立 Integration Design。
+  >
+  > **3.7 Observability Event**
+  > 89. Observability Event 属于 RFC-007 Telemetry 范围。
+  > 90. Observability Event 是非权威运行记录，不是业务持久化权威。
+  > 91. Observability Event 可以包含：
+  >    - trace ID；
+  >    - span ID；
+  >    - severity；
+  >    - timestamp；
+  >    - observed timestamp；
+  >    - duration；
+  >    - retry count；
+  >    - provider latency；
+  >    - error classification；
+  >    - resource attributes；
+  >    - deployment information。
+  > 92. Observability Event 不是：
+  >    - Business Current Truth；
+  >    - Audit Record；
+  >    - State Transition Record；
+  >    - Idempotency Record；
+  >    - Durable Work Intent；
+  >    - Integration Event。
+  > 93. Observability Event 不得触发权威 Business Current Truth 修改。
+  > 94. Telemetry Exporter、Collector 或 Backend 故障不得回滚业务事务。
+  > 95. Observability Event 可以被采样、聚合或根据运维策略删除。
+  > 96. Audit Record 不得因 Telemetry 已存在而省略。
+  > 97. Telemetry 不得作为正式业务操作已经成功的唯一证据。
+  >
+  > **3.8 所有权和分层边界**
+  > 98. Domain Event Definition 由所属 Business Module 所有。
+  > 99. Audit Ledger 由明确且唯一的 Audit Capability 所有。
+  > 100. Integration Event Outbox 由明确且唯一的 Integration Event Capability 所有。
+  > 101. Observability Pipeline 由 RFC-007 所有。
+  > 102. 业务模块不得直接访问 Audit 或 Integration Event 的 ORM、表、Session 或 Repository。
+  > 103. 业务模块必须通过类型化 Application Port 或 Public Application Contract 创建 Audit 和 Integration Event Records。
+  > 104. 最外层 Application Use Case 在同一个 UoW 中协调：
+  >    - Business State；
+  >    - Audit Record；
+  >    - State Transition Record；
+  >    - Integration Event Outbox；
+  >    - 其他 DEC-035 参与者。
+  > 105. Repository、ORM Hook、SQLAlchemy Event Listener 和数据库 Trigger 不得隐式决定：
+  >    - 是否生成 Domain Event；
+  >    - 是否生成 Audit Record；
+  >    - 是否生成 Integration Event；
+  >    - Integration Event 的业务语义；
+  >    - Event Payload。
+  > 106. Event Translation、Audit Creation 和 Integration Event Selection 由 Application 层显式拥有。
+  > 107. Infrastructure 只负责按照已决定的 Port 和记录模型执行持久化或发布机制。
+  >
+  > **3.9 非 Event Sourcing**
+  > 108. Audit Ledger、State Transition Record 和 Integration Event Outbox 都不是 Business Current Truth。
+  > 109. 系统不得依赖上述记录重建全部 Business Current Truth。
+  > 110. Business Current Truth 继续由 PostgreSQL 业务模型、版本化历史和 Current Truth Pointer 决定。
+  > 111. DQ-10 不引入完整 Event Sourcing。
+  > 112. Audit Log、历史记录或事件 Outbox 的存在不等于采用 Event Sourcing。
+  > 113. Snapshot、Current Truth、版本化历史与历史保留模型继续由 DQ-11 决定。
+  >
+  > **3.10 Retention、安全与测试边界**
+  > 114. Audit、State Transition 和 Integration Event 的 Retention、Archive 与物理删除由 DQ-15 决定。
+  > 115. 在 DQ-15 决定前，不得假设 Audit Records 或 Integration Events 可以短期删除。
+  > 116. 正式测试分类和 CI 执行策略由 DQ-16 决定。
+  > 117. Encryption、Redaction、Secret、PII 和访问控制由 DQ-17 决定。
+  > 118. 所有正式事务语义验证必须使用真实 PostgreSQL。
+  > 119. 后续测试至少覆盖：
+  >    - Business State 与 Audit Record 同事务提交；
+  >    - Audit 写入失败导致业务整体回滚；
+  >    - 业务回滚不留下成功 Audit；
+  >    - State Transition Record 与对应状态修改同事务；
+  >    - Audit Correction 通过追加而不是覆盖；
+  >    - Integration Event Outbox 与业务事实同事务；
+  >    - Outbox 写入失败导致业务整体回滚；
+  >    - Commit 前不发布 Application Event；
+  >    - Commit 成功后才发布 Application Event；
+  >    - Application Event 丢失不影响业务正确性；
+  >    - 重复 Integration Event Delivery 只产生一次业务效果；
+  >    - Consumer Dedup 与消费业务更新同事务；
+  >    - Telemetry Export 失败不回滚业务事务；
+  >    - Durable Work Intent 与 Integration Event 不混用；
+  >    - Event/Audit Records 不作为 Current Truth 重建来源。
+  > 120. DQ-10 不要求新的独立 Technical Spike。
+  > 121. DQ-07 已要求的真实 PostgreSQL 多 Worker Concurrency Technical Spike 继续有效，并应覆盖：
+  >    - Integration Event 重复 Delivery；
+  >    - Consumer Dedup；
+  >    - Relay Crash；
+  >    - stale Event Publish Attempt；
+  >    - 无部分业务写入。
+  >
+  > **3.11 Event & Record Classification Table**
+  > 122. DQ-10 不新增独立 Matrix。
+  > 123. 在持久化实现授权前，Architecture Readiness Package 必须包含 Event & Record Classification Table。
+  > 124. Classification Table 至少列出：
+  >    - Business Occurrence；
+  >    - Domain Event；
+  >    - Audit Record；
+  >    - State Transition Record；
+  >    - Application Event；
+  >    - Integration Event；
+  >    - Observability Event；
+  >    - Owning Module；
+  >    - Persistence Required；
+  >    - Transaction Boundary；
+  >    - Delivery Guarantee；
+  >    - Idempotency Identity；
+  >    - Schema Version；
+  >    - Retention Owner；
+  >    - Security Classification；
+  >    - Related DQ/DEC/RFC。
+  > 125. DQ-10 接受不授权创建或修改该 Classification Table。
+  > 126. Classification Table Creation = NOT AUTHORIZED。
+  > 127. 不得借 DQ-10 归档任务创建 Audit Schema、Event Schema 或 Event Registry。
 
 ---
 
@@ -1238,7 +1600,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~09 ACCEPTED；DQ-10~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~10 ACCEPTED；DQ-11~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -1250,7 +1612,7 @@ RFC-002-DQ-06  Unit of Work Model                    = ACCEPTED (Candidate A, Ac
 RFC-002-DQ-07  Concurrency Control                   = ACCEPTED (Accepted Direction: Layered Concurrency Control, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-08  Idempotency Model                     = ACCEPTED (Primary Direction: Candidate B, Supporting Principle: Candidate C, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-09  Transactional Outbox / Dispatch       = ACCEPTED (Candidate B, Formal Pattern: PostgreSQL-backed Transactional Durable Work Intent, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
-RFC-002-DQ-10  Event & Audit Persistence             = PROPOSED — User Decision: PENDING
+RFC-002-DQ-10  Event & Audit Persistence             = ACCEPTED (Candidate A, Six Independent Event/Record Semantics, Append-only Audit in Same Atomic Commit, Transactional Integration Event Outbox, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-11  Snapshot vs History                   = PROPOSED — User Decision: PENDING
 RFC-002-DQ-12  Source & Evidence Persistence         = PROPOSED — User Decision: PENDING
 RFC-002-DQ-13  Workflow Checkpoint Separation        = PROPOSED — User Decision: PENDING
