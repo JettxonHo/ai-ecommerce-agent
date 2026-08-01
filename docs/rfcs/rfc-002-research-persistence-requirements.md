@@ -4,7 +4,7 @@
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **来源层：** 全部提取自已 Accepted 的 DEC（DEC-012/013/014/022/023/024/025/029/032/033/034/035）、RFC-001（ACCEPTED）、Architecture Baseline v1、Current Specs、Spike-001 证据。
 > **纪律：** 本文件**只**汇总与分类**已接受的**持久化/事务需求与**已明确留白**的开放点；**不**替用户做任何技术选型。凡属 RFC-002 待决项，一律标注 `→ RFC-002-DQ-xx（PENDING）`。
-> **Synchronization Note（2026-08-01）：** RFC-002-DQ-01 已由用户正式决定（**ACCEPTED，Accepted with Revision**）：PostgreSQL 是唯一受支持的权威数据库语义；技术栈 = PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；本地开发与正式持久化测试使用真实 PostgreSQL；SQLite-first → PostgreSQL-later 路线 REJECTED。RFC-002-DQ-02 已由用户正式决定（**ACCEPTED，Accepted with Revision**）：MVP 单一 PostgreSQL 服务；每张业务表唯一所有模块；ORM/Repository/Migration/状态修改 Use Case 模块私有；跨模块仅经 Public Application Contract；Direct SQL/ORM/Repository 跨模块访问禁止；架构测试强制；每模块独立 PostgreSQL schema 暂缓、物理命名留待实现设计；三类存储物理划分继续归 DQ-13。以上均为 **Accepted user decision**，非研究证据；本文件证据底座（DEC/RFC-001/官方能力引用）保持不变。§8 第 1 项的 DQ-01 部分与第 2 项的 DQ-02 部分自此为 ACCEPTED；DQ-14/DQ-06 等部分仍 PENDING。
+> **Synchronization Note（2026-08-01）：** RFC-002-DQ-01 已由用户正式决定（**ACCEPTED，Accepted with Revision**）：PostgreSQL 是唯一受支持的权威数据库语义；技术栈 = PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；本地开发与正式持久化测试使用真实 PostgreSQL；SQLite-first → PostgreSQL-later 路线 REJECTED。RFC-002-DQ-02 已由用户正式决定（**ACCEPTED，Accepted with Revision**）：MVP 单一 PostgreSQL 服务；每张业务表唯一所有模块；ORM/Repository/Migration/状态修改 Use Case 模块私有；跨模块仅经 Public Application Contract；Direct SQL/ORM/Repository 跨模块访问禁止；架构测试强制；每模块独立 PostgreSQL schema 暂缓、物理命名留待实现设计；三类存储物理划分继续归 DQ-13。RFC-002-DQ-03 已由用户正式决定（**ACCEPTED，Accepted with Revision**，2026-08-02）：聚合边界 = 业务不变量 + 唯一模块所有权；Atomic Business Commit（DEC-035 六要素）是事务提交协议、非聚合成员资格判据（六要素单事务保持有效）；Task Mega Aggregate REJECTED；默认一 Use Case 一主 Aggregate；跨聚合/跨模块显式协调；UoW/事务实现形态移交 DQ-05/06；Aggregate/Invariant Matrix 持久化实施前必备。以上均为 **Accepted user decision**，非研究证据；本文件证据底座（DEC/RFC-001/官方能力引用）保持不变。§8 第 1 项的 DQ-01 部分、第 2 项的 DQ-02 部分与第 3 项（DQ-03）自此为 ACCEPTED；DQ-14/DQ-06 等部分仍 PENDING。
 > **重要事实校正：** 全仓库**无**字面等号短语「Business Database = Current Truth」「Checkpointer = Recovery」。权威原文为 Architecture Baseline §2：「三类存储分离：Business（Current Truth）/ Runtime（执行记录）/ Checkpoint（Graph 检查点）物理分离；**Checkpoint ≠ Current Truth**」，及 DEC-023「LangGraph Checkpointer **仅**承载执行恢复、图状态快照、Interrupt 和 Resume」。本文件与 RFC-002 一律引用真实原文。
 
 ---
@@ -167,7 +167,7 @@
 |---|---|---|---|
 | 1 | 生产数据库 / ORM / Migration / Schema Strategy | baseline §14.11/§16.6/§20；data-arch DEC-024「仍待确认」 | DQ-01（**ACCEPTED 2026-08-01**）/DQ-14 |
 | 2 | Repository / Unit of Work / Database Session 实现形态 | baseline §10.8（列为 RFC-002 禁建项） | DQ-02（**ACCEPTED 2026-08-01**：所有权与访问边界）/DQ-06 |
-| 3 | Aggregate 与持久化边界（哪些更新原子提交） | RFC-001 DQ-04 Atomic Business Commit；DEC-024 | DQ-03 |
+| 3 | Aggregate 与持久化边界（哪些更新原子提交） | RFC-001 DQ-04 Atomic Business Commit；DEC-024 | DQ-03（**ACCEPTED 2026-08-02**） |
 | 4 | Domain state versioning 与 optimistic concurrency version 语义 | dec-024（6 类版本已固定概念）；dec-029:634-638（并发版本未选型） | DQ-04/DQ-07 |
 | 5 | Transaction boundary（Use Case↔事务、外部调用不入事务、Review 暂停结束事务、Worker retry 新事务） | baseline §14.3/§12.4；DEC-033 | DQ-05 |
 | 6 | Unit of Work model（显式 UoW、接口位置、Commit/Rollback 负责方、嵌套事务禁止） | baseline §14.4 UoW Port 由 Application 定义 | DQ-06 |

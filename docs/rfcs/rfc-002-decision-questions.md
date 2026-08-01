@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01/02 ACCEPTED；DQ-03~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~03 ACCEPTED；DQ-04~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01 与 DQ-02 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-03~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
+> - DQ-01、DQ-02 与 DQ-03 已由用户正式决定（均 `Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-04~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -18,7 +18,7 @@
 |---|---|---|---|
 | DQ-01 | 主持久化技术（Business DB 引擎） | **已决定（2026-08-01 ACCEPTED）**：PostgreSQL-only；原分歧 PostgreSQL vs SQLite vs MVP-SQLite→PG | PG/SQLite 官方并发与部署边界 |
 | DQ-02 | 持久化所有权 / 模块边界 | **已决定（2026-08-01 ACCEPTED）**：单一 PG 服务 + 每表唯一所有模块 + 架构测试强制；每模块独立 schema 暂缓 | DEC-034 逻辑分离恒定 |
-| DQ-03 | Aggregate 与持久化边界 | 原子提交单元如何划分 | DEC-035 六要素单事务 |
+| DQ-03 | Aggregate 与持久化边界 | **已决定（2026-08-02 ACCEPTED）**：聚合边界 = 业务不变量 + 唯一模块所有权；Task Mega Aggregate 拒绝；一 Use Case 一主聚合；UoW 形态移交 DQ-05/06 | DEC-035 六要素单事务（提交协议） |
 | DQ-04 | Domain State Versioning | 并发版本由谁产生、隔离级别 | SQLAlchemy version_id_col 边界 |
 | DQ-05 | Transaction Boundary | Use Case↔事务对齐、外部调用不入事务 | 连接 checkout 机制（推断） |
 | DQ-06 | Unit of Work Model | 显式 UoW Port 形态、嵌套事务 | SQLAlchemy Session=UoW |
@@ -113,9 +113,21 @@
 - **Trade-offs：** A 与 DEC-035 对齐、事务边界清晰；B 直观但可能与六要素错位；C 优化读写但牺牲一致性语义。
 - **Failure modes：** 聚合过大→长事务/锁争用；聚合过小→跨聚合不变量需补偿（Saga 复杂度）。
 - **Impact on later RFCs：** RFC-004（Review 提交事务）、RFC-005（Evidence Link 一致性）。
-- **Recommendation：** **[架构推断] 倾向 A**——聚合边界服务于六要素原子提交。**置信度：高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation（历史提案；Superseded by the Accepted Revision below）：** **[架构推断] 倾向 A**——聚合边界服务于六要素原子提交。**置信度：高**。Candidate A 中「以『六要素』为聚合边界 / 聚合 = 一次原子提交必须一致的最小单元」表述已被下方用户正式决定取代（聚合边界 = 业务不变量 + 唯一模块所有权；Atomic Business Commit 六要素是事务提交协议，**不是**聚合成员资格判据）；**DEC-035 六要素单事务约束本身作为提交协议保持有效**。
+- **User Decision：** ACCEPTED WITH REVISION
+- **Accepted Candidate：** Candidate A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+
+  > RFC-002-DQ-03 — Aggregate and Persistence Boundary
+  >
+  > 1. **Aggregate 边界 = 业务不变量 + 唯一模块所有权**（Business invariants + unique module ownership）：聚合是强制同一组业务不变量的最小单元，其数据归属唯一所有模块（与 RFC-002-DQ-02 Accepted Decision 一致）。
+  > 2. **Atomic Business Commit（DEC-035 六要素）是事务提交协议**（transaction protocol：一次原子提交必须包含什么），**不是聚合成员资格判据**（not aggregate membership）；六要素单事务不可拆约束保持有效。
+  > 3. **Task Mega Aggregate 被拒绝（REJECTED）**——不采用「整个 Task 作为单一大聚合」。
+  > 4. **默认规则：一个 Application Use Case 默认提交一个主 Aggregate**（One primary Aggregate per Application Use Case）。
+  > 5. **跨聚合 / 跨模块协调要求显式协调**（Explicit coordination required；经 Explicit Composite Application Use Case，与 RFC-001-DQ-08 一致）；跨聚合不变量不得依赖隐式单事务耦合。
+  > 6. **Unit of Work / 事务实现形态不由 DQ-03 决定**，移交 **RFC-002-DQ-05（Transaction Boundary）与 DQ-06（Unit of Work Model）**（均 PROPOSED / PENDING）。
+  > 7. **Aggregate / Invariant Matrix（聚合、其业务不变量、所有模块与提交协议映射的枚举）是持久化实施前的必备产出（REQUIRED BEFORE PERSISTENCE IMPLEMENTATION）**；该要求不授权任何实施（Implementation = NOT AUTHORIZED 恒定）。
 
 ---
 
@@ -389,12 +401,12 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01/02 ACCEPTED；DQ-03~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~03 ACCEPTED；DQ-04~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-02  Persistence Ownership / Boundaries    = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
-RFC-002-DQ-03  Aggregate / Persistence Boundary      = PROPOSED — User Decision: PENDING
+RFC-002-DQ-03  Aggregate / Persistence Boundary      = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-02) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-04  Domain State Versioning               = PROPOSED — User Decision: PENDING
 RFC-002-DQ-05  Transaction Boundary                  = PROPOSED — User Decision: PENDING
 RFC-002-DQ-06  Unit of Work Model                    = PROPOSED — User Decision: PENDING
