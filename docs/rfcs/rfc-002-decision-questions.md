@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01 ACCEPTED；DQ-02~17 PROPOSED）
 
-> **Status:** PROPOSED（全部 DQ 均为提案，**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - 每个 DQ 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。
+> - DQ-01 已由用户正式决定（`Status = ACCEPTED`，`User Decision = ACCEPTED WITH REVISION`）；DQ-02~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01 的历史 Recommendation 已被其 Accepted Decision 取代（Superseded by Accepted Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -16,7 +16,7 @@
 
 | DQ | 主题 | 核心分歧 | 主要证据 |
 |---|---|---|---|
-| DQ-01 | 主持久化技术（Business DB 引擎） | PostgreSQL vs SQLite vs MVP-SQLite→PG | PG/SQLite 官方并发与部署边界 |
+| DQ-01 | 主持久化技术（Business DB 引擎） | **已决定（2026-08-01 ACCEPTED）**：PostgreSQL-only；原分歧 PostgreSQL vs SQLite vs MVP-SQLite→PG | PG/SQLite 官方并发与部署边界 |
 | DQ-02 | 持久化所有权 / 模块边界 | 逻辑 schema 分离粒度 | DEC-034 逻辑分离恒定 |
 | DQ-03 | Aggregate 与持久化边界 | 原子提交单元如何划分 | DEC-035 六要素单事务 |
 | DQ-04 | Domain State Versioning | 并发版本由谁产生、隔离级别 | SQLAlchemy version_id_col 边界 |
@@ -47,10 +47,23 @@
   - **C. MVP SQLite → 后期迁 PostgreSQL**：先零配置，后期重建 PG 迁移基线 + 一次性数据搬迁。
 - **Trade-offs：** A 工程成本最高但生产正确性最强；B 开发最简但 API+Worker 并发写会撞全库单写者（`SQLITE_BUSY`），托管部署受限；C 前期快但**迁移脚本不可直接复用**（Alembic 跨方言）、类型语义/并发语义/序列需重做（官方推断的真实成本，非零成本切换）。
 - **Failure modes：** 选 B 在并发写下频繁 `SQLITE_BUSY`；选 C 低估迁移成本导致 schema/并发回归；选 A 在本地开发引入 Docker 依赖降低上手速度。
-- **Impact on later RFCs：** RFC-003（Checkpointer 是否同实例）、RFC-005（检索索引落点）、RFC-014（迁移策略）。
-- **Recommendation：** **[架构推断] 倾向 A（PostgreSQL 为目标生产引擎），本地开发可用 SQLite 但须以 PG 语义为准**——依据：API+Worker 两进程并发写、托管部署、DEC-024 多指针/约束/版本化的关系完整性需求，均指向行级 MVCC。**置信度：中-高**（取决于 MVP 部署形态）。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Impact on later RFCs：** RFC-003（Checkpointer 是否同实例）、RFC-005（检索索引落点）、RFC-002-DQ-14（Schema Evolution and Migrations）。
+- **Recommendation（历史提案；Superseded by the Accepted Revision below）：** **[架构推断] 倾向 A（PostgreSQL 为目标生产引擎），本地开发可用 SQLite 但须以 PG 语义为准**——依据：API+Worker 两进程并发写、托管部署、DEC-024 多指针/约束/版本化的关系完整性需求，均指向行级 MVCC。**置信度：中-高**（取决于 MVP 部署形态）。其中「本地开发可用 SQLite」已被下方用户正式决定取代；Accepted Decision 不建立任何 SQLite 方言兼容承诺。
+- **User Decision：** ACCEPTED WITH REVISION
+- **Accepted Candidate：** Candidate A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-01 用户正式决定）：**
+
+  > RFC-002-DQ-01 — Primary Persistence Technology Boundary
+  >
+  > 1. PostgreSQL 是 Business Current Truth Repository 唯一受支持的权威数据库语义（sole supported authoritative database semantics）。
+  > 2. 接受的持久化技术栈为：**PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic**。
+  > 3. 数据库 schema、约束、迁移、事务行为、并发行为与持久化正确性均**以 PostgreSQL 语义定义**。
+  > 4. 本地开发使用 PostgreSQL。
+  > 5. Repository contract tests、persistence integration tests、transaction tests、concurrency tests 与 migration tests 必须**对真实 PostgreSQL 运行**。
+  > 6. SQLite **不是**受支持的 Business Current Truth backend，**不是** PostgreSQL 持久化语义的权威替代。
+  > 7. SQLite-first → PostgreSQL-later 迁移策略**被拒绝（REJECTED）**。
+  > 8. 错误的 RFC-014 迁移引用已修正为：**RFC-002-DQ-14 — Schema Evolution and Migrations**。
 
 ---
 
@@ -360,10 +373,10 @@
 
 ---
 
-## 汇总：待用户逐项决定
+## 汇总：待用户逐项决定（DQ-01 ACCEPTED；DQ-02~17 PENDING）
 
 ```text
-RFC-002-DQ-01  Primary Persistence Technology        = PROPOSED — User Decision: PENDING
+RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
 RFC-002-DQ-02  Persistence Ownership / Boundaries    = PROPOSED — User Decision: PENDING
 RFC-002-DQ-03  Aggregate / Persistence Boundary      = PROPOSED — User Decision: PENDING
 RFC-002-DQ-04  Domain State Versioning               = PROPOSED — User Decision: PENDING

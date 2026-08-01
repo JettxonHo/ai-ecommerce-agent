@@ -4,6 +4,7 @@
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **来源层：** 全部提取自已 Accepted 的 DEC（DEC-012/013/014/022/023/024/025/029/032/033/034/035）、RFC-001（ACCEPTED）、Architecture Baseline v1、Current Specs、Spike-001 证据。
 > **纪律：** 本文件**只**汇总与分类**已接受的**持久化/事务需求与**已明确留白**的开放点；**不**替用户做任何技术选型。凡属 RFC-002 待决项，一律标注 `→ RFC-002-DQ-xx（PENDING）`。
+> **Synchronization Note（2026-08-01）：** RFC-002-DQ-01 已由用户正式决定（**ACCEPTED，Accepted with Revision**）：PostgreSQL 是唯一受支持的权威数据库语义；技术栈 = PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；本地开发与正式持久化测试使用真实 PostgreSQL；SQLite-first → PostgreSQL-later 路线 REJECTED。此为 **Accepted user decision**，非研究证据；本文件证据底座（DEC/RFC-001/官方能力引用）保持不变。§8 第 1 项的 DQ-01 部分自此为 ACCEPTED，DQ-14 部分仍 PENDING。
 > **重要事实校正：** 全仓库**无**字面等号短语「Business Database = Current Truth」「Checkpointer = Recovery」。权威原文为 Architecture Baseline §2：「三类存储分离：Business（Current Truth）/ Runtime（执行记录）/ Checkpoint（Graph 检查点）物理分离；**Checkpoint ≠ Current Truth**」，及 DEC-023「LangGraph Checkpointer **仅**承载执行恢复、图状态快照、Interrupt 和 Resume」。本文件与 RFC-002 一律引用真实原文。
 
 ---
@@ -164,7 +165,7 @@
 
 | # | 待决项 | 显式留白来源 | 对应 DQ |
 |---|---|---|---|
-| 1 | 生产数据库 / ORM / Migration / Schema Strategy | baseline §14.11/§16.6/§20；data-arch DEC-024「仍待确认」 | DQ-01/DQ-14 |
+| 1 | 生产数据库 / ORM / Migration / Schema Strategy | baseline §14.11/§16.6/§20；data-arch DEC-024「仍待确认」 | DQ-01（**ACCEPTED 2026-08-01**）/DQ-14 |
 | 2 | Repository / Unit of Work / Database Session 实现形态 | baseline §10.8（列为 RFC-002 禁建项） | DQ-02/DQ-06 |
 | 3 | Aggregate 与持久化边界（哪些更新原子提交） | RFC-001 DQ-04 Atomic Business Commit；DEC-024 | DQ-03 |
 | 4 | Domain state versioning 与 optimistic concurrency version 语义 | dec-024（6 类版本已固定概念）；dec-029:634-638（并发版本未选型） | DQ-04/DQ-07 |

@@ -4,6 +4,7 @@
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **目的：** 精确划定 RFC-002 的**决策所有权**（Owns）与**依赖边界**（later RFC dependency），防止 RFC-002 越权替 RFC-003 ~ RFC-007 做决定。
 > **纪律：** 每条标注 `RFC-002 OWNS`（本 RFC 决定）、`INTERFACE for later RFC`（本 RFC 定义契约、后续 RFC 消费）、`DEFERRED to RFC-00X`（本 RFC 不决定、显式移交）、`OUT OF SCOPE`（本 RFC 显式不涉及）。
+> **Synchronization Note（2026-08-01）：** 矩阵行 1/2 的 DQ-01 已由用户正式决定（**RFC-002-DQ-01 = ACCEPTED，Accepted with Revision**）：PostgreSQL 是唯一受支持的权威数据库语义；技术栈 = PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；本地开发与正式持久化测试使用真实 PostgreSQL；SQLite-first REJECTED。此为 **Accepted user decision**；矩阵行 1/2 的所有权归属与理由（研究证据）不变。
 
 ---
 
@@ -27,8 +28,8 @@
 
 | # | Topic | RFC-002 归属 | 依赖/移交 | 理由（官方/DEC 依据） |
 |---|---|---|---|---|
-| 1 | **主持久化技术（Business DB 引擎）** | **RFC-002 OWNS**（DQ-01） | INTERFACE → RFC-003（Checkpointer 需同实例评估）、RFC-005（检索索引落点） | 业务库选型属持久化决策；SQLite 全库单写者 vs PG 行级 MVCC 是 DQ-01 权衡输入 |
-| 2 | **ORM 与数据访问** | **RFC-002 OWNS**（DQ-01） | INTERFACE → 全部 | SQLAlchemy sync-first 契合 RFC-001 DQ-07；detached/expire 行为是 Repository 不泄漏 ORM 实体的技术根因 |
+| 1 | **主持久化技术（Business DB 引擎）** | **RFC-002 OWNS**（DQ-01 **ACCEPTED 2026-08-01**） | INTERFACE → RFC-003（Checkpointer 需同实例评估）、RFC-005（检索索引落点） | 业务库选型属持久化决策；SQLite 全库单写者 vs PG 行级 MVCC 是 DQ-01 权衡输入 |
+| 2 | **ORM 与数据访问** | **RFC-002 OWNS**（DQ-01 **ACCEPTED 2026-08-01**） | INTERFACE → 全部 | SQLAlchemy sync-first 契合 RFC-001 DQ-07；detached/expire 行为是 Repository 不泄漏 ORM 实体的技术根因 |
 | 3 | **持久化所有权 / 模块边界** | **RFC-002 OWNS**（DQ-02） | INTERFACE → RFC-003/004/005（各模块表边界） | DEC-034 逻辑分离恒定；Shared Instance ≠ Shared Ownership |
 | 4 | **Aggregate 与持久化边界** | **RFC-002 OWNS**（DQ-03） | INTERFACE → 全部模块 | Atomic Business Commit 六要素单事务（DEC-035） |
 | 5 | **Domain State Versioning** | **RFC-002 OWNS**（DQ-04） | INTERFACE → RFC-003（对账需读版本）、RFC-004（审核版本） | DEC-024 六类版本指针 + DEC-029 并发版本未选型 |
