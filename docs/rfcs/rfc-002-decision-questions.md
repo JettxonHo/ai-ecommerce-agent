@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~11 ACCEPTED；DQ-12~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~12 ACCEPTED；DQ-13~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-11 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-12~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
+> - DQ-01~DQ-12 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-13~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -27,7 +27,7 @@
 | DQ-09 | Transactional Outbox / Durable Dispatch | **已决定（2026-08-02 ACCEPTED）**：Candidate B（PostgreSQL-backed Transactional Durable Work Intent）作为 MVP 内部可靠工作调度模型 + Candidate A 不作 MVP 内部任务模型（保留为未来 Integration Event Outbox 方向）+ Candidate C 独立 Broker 不在 MVP 引入（未来仅作 Delivery Backend，不替代事务内 Durable Intent）；业务状态更新与 Durable Work Intent 同一 PostgreSQL Atomic Business Commit（Intent 写入失败整体回滚、回滚不留可领取 Intent）；API 仅在 Intent 持久化提交后返回 accepted（accepted 仅表示工作已可靠记录，不表示 Worker 或业务执行完成）；禁止 asyncio.create_task/内存 Queue/临时 Background Task/单独 Broker Publish/仅 LISTEN-NOTIFY 作为唯一可靠调度；Dispatch ID Retry 稳定、Delivery Attempt 每次新建、Intentional Rerun 新 Dispatch ID（保留 rerun_of）；短事务 SELECT FOR UPDATE SKIP LOCKED Claim + Lease Holder + 单调 fencing_token + Attempt Identity，长执行不持行锁/Session/UoW/连接，最终提交重新验证 Dispatch ID/Lease Holder/fencing_token/Attempt/Fingerprint/expected_revision（旧 Worker 或过期 Lease 不得完成 Intent）；Delivery = at-least-once（不承诺 exactly-once；唯一业务效果由 DQ-08 幂等 + Consumer Dedup + 命名唯一约束 + DQ-07 Lease/Fencing + revision + Atomic Commit 组合保证）；数据库事务 Retry 与 Work Execution Retry 分离（DQ-07 三次事务尝试不直接套用长任务次数；Work Retry/Backoff/Dead-letter/人工恢复/告警留 RFC-003/RFC-007）；LISTEN/NOTIFY 仅非权威唤醒优化、周期性 Polling 为权威恢复路径；不新增独立 Matrix，现有 Idempotency Identity Matrix 与 Concurrency Scenario Matrix 须补充 Dispatch 场景——REQUIRED 但 NOT AUTHORIZED；DQ-07 真实 PostgreSQL 多 Worker Spike 继续有效并覆盖 Durable Dispatch 并发与恢复语义；relay/Worker backend/部署拓扑留 RFC-003，Event 分类留 DQ-10，HTTP/Polling API 协议留 RFC-004，Retention 留 DQ-15，测试留 DQ-16，Security 留 DQ-17；原分歧 是否首版引入 Outbox | 双写问题权威；RFC-001 移交 |
 | DQ-10 | Event & Audit Persistence | **已决定（2026-08-02 ACCEPTED）**：Domain Event / Audit Record / State Transition Record / Application Event / Integration Event / Observability Event 六类记录语义独立，拒绝 Universal Event / Audit Table（Candidate B）与全项目 Event-driven 架构（Candidate C）；Audit Record 为 append-only 权威问责证据、与对应 Business Current Truth 修改同一 DEC-035 原子提交（写入失败整体回滚，不得异步补写/覆盖/删除；更正仅追加 Correction/Superseding/Reversal Record）；State Transition Record 为显式类型 Audit Record（可物理共用 Audit Ledger，不代表语义合并，不得充当 Integration Event 或 Current Truth）；Domain Event 为模块内部过去式业务事实、默认不自动持久化，需同事务执行的 Handler 在最外层 UoW 内 Commit 前执行、不嵌套 UoW/不独立 Commit/不调用外部 Provider；Application Event 仅 Commit 后本地 best-effort 通知（LOCAL/BEST-EFFORT/NON-DURABLE，不承担必须执行工作）；必须执行工作用 DQ-09 Durable Work Intent，可靠跨边界事实用独立 Transactional Integration Event Outbox（与业务状态/Audit 同 PostgreSQL 事务写入，Delivery = at-least-once，不承诺 exactly-once；Consumer 依 Event Identity + Consumer Scope 去重，Dedup Marker 与消费业务更新同事务；Outbox 与 Work Intent 不共用 Identity/状态机/Payload/Retry/Retention）；CloudEvents-compatible Envelope 仅可选互操作方向，不替代 Outbox/原子提交/Dedup/Delivery Guarantee；Observability Event 归 RFC-007 非权威 Telemetry（失败不回滚业务、不替代 Audit）；六类分类 / Audit Capability / State Transition 共用 Audit Ledger / Application Event best-effort / Outbox 结构 / Classification Table 均为项目 Accepted Decision（非第三方官方强制架构）；Audit Ledger / State Transition / Outbox 不构成 Business Current Truth，不引入 Event Sourcing（Current Truth 留 DQ-11）；Event & Record Classification Table 为持久化实现前置 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED；不新增独立 Matrix 或 Technical Spike，DQ-07 真实 PostgreSQL 多 Worker Spike 继续有效并覆盖 Integration Event 重复投递 / Consumer Dedup / Relay Crash / stale Publish / 无部分业务写入；Event Relay/Broker/Polling/发布状态机/Dead-letter 留 RFC-003，Retention 留 DQ-15，测试留 DQ-16，Security 留 DQ-17；原分歧 审计 vs 事件分离与持久化 | Fowler Audit Log≠Domain Event（权威模式）；项目用户决定 |
 | DQ-11 | Snapshot vs History | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/State Transition History + Optional Derived Query Projections**；Candidate B 完整 Event Sourcing 拒绝（违反 DEC-013）、Candidate C 仅当前状态覆盖拒绝（违反 DEC-024）、Delta-only Version History 不作权威历史模型；正式 Business Version 逻辑完整、不可变、独立可读，不依赖事件/Delta 链重放，不经后来变化的 Current Truth Pointer 解释历史；只有成功 Atomic Business Commit 产生正式版本（DB/Work/Provider Retry、Lease、Checkpoint、回滚事务、未提交 LLM 临时结果不得创建）；Current Truth 由带独立 `revision` 的显式 Current Truth Pointer 经 CAS 选择（`MAX(version_number)` 禁止；latest created/approved 与 current effective 语义分离）；Invalidation 不删除版本且不得静默回退（显式 No Current Truth/Promote/Replacement/Restore）；Restore 为新前向 Business Command（新 `domain_version_id`/`version_number`/`command_id`/Audit + `restored_from_version_id`，非数据库 Rollback）；Query Projection 为派生非权威读取模型；通用 Bitemporal Model / SQL AS-OF 不纳入 MVP；五种 Snapshot 术语语义分离；Aggregate / Invariant Matrix 扩展为 REQUIRED 但 NOT AUTHORIZED，不新增独立 Matrix/Spike（现有 DQ-07 Spike 覆盖版本分配/Pointer CAS/Invalidation/Restore 竞争，仍未授权）；原分歧 版本化历史 vs 完整 ES vs 仅当前状态 | DEC-013 排除 ES；DEC-024 不删除历史 |
-| DQ-12 | Source & Evidence Persistence | 原始内容存 DB vs 引用 + 大内容边界 | PG TOAST/bytea/外部存储 |
+| DQ-12 | Source & Evidence Persistence | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index**；Candidate B（全部内容无条件存 PostgreSQL 通用策略）与 Candidate C（全部内容无条件存对象存储仅 DB 引用通用策略）均拒绝；Source/SourceVersion/ContentObject/Acquisition/DerivedArtifact/Fragment/EvidenceLink/Retrieval Index Entry 身份分离（不得通用 `document_id` 合并）；物理 ContentObject 可按 Content Hash 去重但不得合并不同 Source/SourceVersion/Acquisition/Provenance/权限/Evidence Link；PostgreSQL 保存全部权威身份/状态/Provenance/Hash/Fragment/Evidence Link 与对象引用（唯一权威）；中小原始文本/规范化文本/结构化元数据可依显式 Storage Classification Policy 存 PostgreSQL，大型/二进制/流式/对备份影响显著的原始内容用不可变对象存储；TOAST 仅透明物理机制不作业务大小边界，PostgreSQL Large Object 不作 MVP 默认路径；Raw/Normalized/Parsed/Canonical Fragment/Retrieval Chunk 分离——Raw 不可变，Parser/Normalizer/OCR/Chunking 变化创建新 DerivedArtifact/FragmentSet 不覆盖旧结果；每 ContentObject 记录 Hash Algorithm + Content Hash + Byte Length + Media Type（Raw/Normalized Hash 分别计算，对象存储 ETag 不作项目权威 Content Hash）；外部 Blob 优先内容寻址 + 条件创建 + 不可覆盖 Key；不假设 PostgreSQL 与对象存储分布式事务——Prepare Content → Upload Immutable Object → Verify Checksum/Presence → Finalize Metadata in Short PostgreSQL Transaction（数据库不得提交指向未验证对象的正式 SourceVersion；上传成功而 DB Commit 失败只产生待 Reconciliation 的未引用 Orphan，不产生 Business Current Truth；正式引用后对象缺失/损坏 = Integrity Incident，不得静默切换 URL 最新内容或其他 SourceVersion）；EvidenceLink 显式指向不可变 SourceVersion 及适用 Canonical Fragment/Typed Selector（不得指向 Source Current Pointer/URL 最新内容/Pending SourceVersion/未验证对象/仅 Vector ID）；Evidence Links 与 Business Version/Current Truth Pointer 等适用参与者同一 DEC-035 Atomic Business Commit；Retrieval Index 属 RFC-005 派生/可重建/非权威（Embedding/Vector ID/Ranking Score/Search Result 不等于 Evidence；正式提交前回链验证 PostgreSQL SourceVersion/Fragment/Hash/Availability/业务不变量；Index 延迟/损坏/重建不改变 Current Truth 或既有 Evidence Link）；跨 Tenant/Security Domain Content Hash 去重在 DQ-17 决定前不得启用；Retention/Orphan Grace Period/Legal Hold/物理删除留 DQ-15，Encryption/Redaction/PII/对象 Key 安全/跨安全域去重留 DQ-17；**Source & Evidence Storage Classification Table 为 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED**；**External Object Consistency Technical Spike（条件写/Checksum/Multipart/Crash Window/Orphan Reconciliation/Missing/Corrupt Object/真实 Provider 一致性）为外部对象存储实现前置——REQUIRED BEFORE EXTERNAL STORAGE IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 原始内容存 DB vs 引用 + 大内容边界 | DEC-025 Source/Evidence 语义；DEC-012 原始与解析分离；DEC-024 Retrieval Index 独立存储；PG TOAST/Large Object 官方能力 |
 | DQ-13 | Workflow Checkpoint Separation | 同库/分库、生命周期、对账权威 | DEC-023/024；官方无同库建议 |
 | DQ-14 | Schema Evolution & Migrations | forward-only、autogenerate 纪律 | Alembic 官方立场 |
 | DQ-15 | Data Retention & Deletion Boundary | 各类数据保留策略归属 | checkpoint 无内建 TTL |
@@ -1935,9 +1935,362 @@
 - **Trade-offs：** A 平衡事务一致性与体积；B 简单但不可伸缩；C 需「DB 指针+外部对象」一致性协调（官方未涵盖，推断）。
 - **Failure modes：** 大对象入 DB→备份/查询膨胀；外部存储指针失效→证据不可回原文；Fragment 无 checksum→无法验证完整性。
 - **Impact on later RFCs：** RFC-005（检索索引/embedding/chunking——**本 DQ 不决定**）。
-- **Recommendation：** **[架构推断] 倾向 A**——DB 存中小原始内容与全部证据元数据/链接（含 content_hash、parser_version provenance），特大/二进制走外部对象存储 + 引用；Retrieval Index 落点边界定给 RFC-005。**置信度：中**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation：** **[架构推断] 倾向 A**——DB 存中小原始内容与全部证据元数据/链接（含 content_hash、parser_version provenance），特大/二进制走外部对象存储 + 引用；Retrieval Index 落点边界定给 RFC-005。**置信度：中**。（**历史提案；Superseded by the Accepted Major Revision below。**）
+- **Candidate 处置（2026-08-02 用户正式决定）：** Candidate A = **ACCEPTED WITH MAJOR REVISION**（Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；Candidate B = **REJECTED AS UNIVERSAL ALL-CONTENT-IN-POSTGRESQL POLICY**（不表示 PostgreSQL 不能保存中小文本/规范化内容/Fragment/结构化元数据）；Candidate C = **REJECTED AS UNIVERSAL ALL-CONTENT-IN-OBJECT-STORAGE POLICY**（不表示对象存储不能保存大型/二进制/流式/对备份影响显著的原始内容）；PostgreSQL Large Object = **NOT SELECTED AS DEFAULT MVP STORAGE PATH**（未来引入须独立架构与生命周期审查）。
+- **User Decision：** ACCEPTED WITH MAJOR REVISION
+- **Accepted Candidate：** CANDIDATE A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+
+  > **3.1 总体模式**
+  >
+  > 1. MVP 采用以下 Source 与 Evidence 持久化模型：
+  >
+  >    ```text
+  >    POSTGRESQL AUTHORITATIVE SOURCE / EVIDENCE GRAPH
+  >    + IMMUTABLE CONTENT-ADDRESSED SOURCE BLOBS
+  >    + VERSIONED DERIVED ARTIFACTS AND FRAGMENTS
+  >    + EXPLICIT EVIDENCE-TO-CLAIM LINKS
+  >    + REBUILDABLE NON-AUTHORITATIVE RETRIEVAL INDEX
+  >    ```
+  >
+  > 2. PostgreSQL 是 Source/Evidence 业务身份、状态、关系、Provenance、Fragment 和 Evidence Link 的唯一权威来源。
+  > 3. 对象存储只负责保存符合外部存储策略的不可变内容字节。
+  > 4. 对象存储不是 Business Current Truth。
+  > 5. Retrieval Index 不是 Business Current Truth。
+  > 6. Search Result、Vector ID、Embedding 或 Ranking Score 均不是正式 Evidence。
+  > 7. Candidate A 被接受并进行重大修订。
+  > 8. Candidate B 作为「全部内容无条件存入 PostgreSQL」的通用策略被拒绝。
+  > 9. Candidate C 作为「全部内容无条件存入对象存储，仅在数据库保存引用」的通用策略被拒绝。
+  > 10. Candidate B 被拒绝不表示 PostgreSQL 不能保存中小文本、规范化内容、Fragment 或结构化元数据。
+  > 11. Candidate C 被拒绝不表示对象存储不能保存大型、二进制、流式或对数据库备份有显著影响的原始内容。
+  > 12. PostgreSQL Large Object 不作为 MVP 默认存储路径。
+  > 13. 如果未来需要引入 PostgreSQL Large Object，必须进行独立架构与生命周期审查。
+  >
+  > **3.2 核心身份分离**
+  >
+  > 14. 必须明确区分：Source；SourceVersion；ContentObject；Acquisition；DerivedArtifact；Fragment；FragmentSet；EvidenceLink；RetrievalChunk；RetrievalIndexEntry。
+  > 15. 上述身份不得通过一个通用 `document_id`、`source_id` 或无类型 JSON 对象隐式合并。
+  > 16. Source 表示一个逻辑来源。
+  > 17. Source 可以表示：网页；文件来源；API 资源；用户上传来源；外部数据库记录；Provider 返回来源；其他稳定逻辑来源。
+  > 18. Source 不等于一次具体内容抓取结果。
+  > 19. SourceVersion 表示某个 Source 在一次正式捕获中的不可变内容状态。
+  > 20. SourceVersion 必须拥有稳定且不可复用的身份。
+  > 21. SourceVersion 不得被后续抓取结果覆盖。
+  > 22. ContentObject 表示实际物理字节对象。
+  > 23. SourceVersion 必须引用一个已经验证的 ContentObject 或符合 Storage Policy 的 PostgreSQL Inline Content。
+  > 24. Acquisition 表示一次获取尝试或获取活动。
+  > 25. Acquisition 不等于 SourceVersion。
+  > 26. 失败的下载、超时、认证失败、Parser Failure 或 Checksum Failure 不得产生正式 SourceVersion。
+  > 27. DerivedArtifact 表示由 SourceVersion 或其他 DerivedArtifact 生成的版本化派生产物。
+  > 28. Fragment 表示可稳定定位、可验证完整性并可用于 Evidence 引用的内容单位。
+  > 29. RetrievalChunk 表示为检索效果生成的派生切片。
+  > 30. Fragment 与 RetrievalChunk 可以在特定实现中重合，但不得被架构上定义为同一身份。
+  > 31. EvidenceLink 是一个显式业务关系。
+  > 32. EvidenceLink 不等于 Retrieval 命中结果。
+  >
+  > **3.3 Source 和 SourceVersion**
+  >
+  > 33. 一个 Source 可以拥有多个 SourceVersion。
+  > 34. SourceVersion 必须保留：Source Identity；Content Identity；Acquisition Identity；Provenance；Captured/Observed Time；Recorded Time；Validity/Availability 状态；Schema Version。
+  > 35. 同一 Source 多次抓取到不同内容时，必须创建不同 SourceVersion。
+  > 36. 重复抓取到相同物理字节时，可以复用相同 ContentObject。
+  > 37. 复用 ContentObject 不得自动合并不同 SourceVersion。
+  > 38. 是否创建新的 SourceVersion 必须由显式 Application Policy 决定。
+  > 39. 不得仅依据 Content Hash 自动合并：不同来源；不同获取时间；不同权限；不同 Provenance；不同法律或 Retention 要求。
+  > 40. 如果业务需要 Current Source Version，必须使用显式 Source Current Pointer 或等价权威选择规则。
+  > 41. 历史 Business Version 和 EvidenceLink 不得通过 Source Current Pointer 解析内容。
+  > 42. 历史引用必须固定到不可变 SourceVersion。
+  >
+  > **3.4 PostgreSQL 权威数据**
+  >
+  > 43. PostgreSQL 至少保存或等价表达：Source；SourceVersion；Acquisition；ContentObject Metadata；Content Hash Algorithm；Content Hash；Byte Length；Media Type；Character Encoding；Storage Classification；Storage Location Type；Object Reference；Integrity State；Availability State；Provenance；DerivedArtifact；Fragment；FragmentSet；EvidenceLink；Current Pointer，如适用；Revision；Audit References。
+  > 44. PostgreSQL 负责判断：哪个 SourceVersion 正式存在；哪个 ContentObject 已通过验证；哪个 Fragment 属于哪个 SourceVersion；哪个 EvidenceLink 支持哪个 Business Version 或 Claim；哪条关系当前有效；哪个对象发生 Integrity Incident。
+  > 45. 对象存储不得成为 SourceVersion、EvidenceLink 或 Claim 关系的权威查询来源。
+  > 46. Retrieval Index 不得成为 SourceVersion、Fragment 或 EvidenceLink 身份的权威来源。
+  >
+  > **3.5 Storage Classification Policy**
+  >
+  > 47. 内容存储位置必须依据显式 Storage Classification Policy 决定。
+  > 48. RFC-002 不硬编码一个任意字节阈值作为所有内容的永久业务规则。
+  > 49. Storage Classification 至少考虑：Content Size；Media Type；Character Encoding；Streaming Requirement；Range-read Requirement；Backup/Restore Impact；Query Pattern；Parsing Requirement；Retention；Security Classification；Legal Hold；Cost；Expected Access Frequency。
+  > 50. 默认可存入 PostgreSQL 的内容包括：结构化元数据；Source/Evidence 关系；Provenance；中小原始文本；规范化文本；Parsed Structured Data；Canonical Fragment；EvidenceLink；小型 JSONB Metadata。
+  > 51. 默认应考虑外部对象存储的内容包括：大型原始文档；二进制文件；图片；音频；视频；Archive；需要流式访问的内容；对数据库 Backup/Vacuum/Replication 产生显著影响的内容。
+  > 52. 上述分类是默认方向，不替代未来正式 Storage Classification Table。
+  > 53. PostgreSQL TOAST 是透明物理机制。
+  > 54. TOAST 不得被描述为 Source/Evidence 业务存储策略。
+  > 55. TOAST 内部阈值不得被直接当作业务上的 Inline/External 分界。
+  > 56. PostgreSQL Large Object 不作为默认 MVP 路径。
+  > 57. 若未来使用 Large Object，必须单独明确：Ownership；ACL；Backup/Restore；Orphan Cleanup；Driver Support；Transaction Semantics；Migration；Monitoring。
+  >
+  > **3.6 Raw 与 Derived 分离**
+  >
+  > 58. 必须分离：Raw Source Content；Normalized Content；Parsed Artifact；OCR Artifact；Canonical Fragment；Retrieval Chunk；Embedding。
+  > 59. Raw Source Content 表示获取时的原始不可变字节。
+  > 60. Raw Content 不得被 Parser、Normalizer、OCR 或 Chunking Process 原地覆盖。
+  > 61. Normalized Content 是版本化 DerivedArtifact。
+  > 62. Parsed Artifact 是版本化 DerivedArtifact。
+  > 63. OCR Artifact 是版本化 DerivedArtifact。
+  > 64. Parser、Normalizer、OCR、Extraction 或 Chunking 规则发生变化时，必须产生新的 DerivedArtifact Version 或 FragmentSet。
+  > 65. 旧 DerivedArtifact 和旧 FragmentSet 不得因新处理流程运行而被覆盖。
+  > 66. DerivedArtifact 至少必须记录：Derived Artifact Identity；Input SourceVersion/Artifact Identity；Process Type；Processor Identity；Processor Version；Configuration/Profile Version；Output ContentObject 或 Inline Content；Output Hash；Generated Time；Recorded Time；Provenance；Schema Version。
+  > 67. DerivedArtifact 可以从另一个 DerivedArtifact 派生，但必须保留完整 Derivation Chain。
+  > 68. DerivedArtifact 不得静默引用输入 Source 的最新版本。
+  >
+  > **3.7 Content Hash**
+  >
+  > 69. 每个 ContentObject 必须至少记录：Hash Algorithm；Content Hash；Byte Length；Media Type。
+  > 70. Hash 字段不得只保存一个没有算法身份的通用 `checksum`。
+  > 71. Raw Content Hash 必须基于原始字节计算。
+  > 72. Normalized Content Hash 必须基于规范化结果单独计算。
+  > 73. Raw Hash 与 Normalized Hash 不得混用。
+  > 74. Parsed Artifact、Fragment 和 RetrievalChunk 可以拥有各自独立 Hash。
+  > 75. 对象存储 ETag 不得作为项目权威 Content Hash。
+  > 76. Provider 返回的 Checksum 可以作为辅助存储验证信息，但不能替代项目定义的 Content Hash。
+  > 77. Hash Algorithm 升级与安全要求继续由 DQ-17 决定。
+  > 78. 在 DQ-17 决定前，记录模型必须能够显式保存 Algorithm + Value。
+  > 79. Hash 相同只能证明按对应算法计算的字节内容一致。
+  > 80. Hash 相同不能证明：Source 相同；Provenance 相同；权限相同；法律状态相同；Evidence 含义相同。
+  >
+  > **3.8 Content-addressed Object Storage**
+  >
+  > 81. 外部 Blob 应优先使用内容寻址或等价不可变 Object Key。
+  > 82. 推荐 Key 形态可以等价表达：
+  >
+  >    ```text
+  >    <algorithm>/<content-hash>
+  >    ```
+  >
+  > 83. 精确 Bucket、Provider、Region、Prefix 和 Key Encoding 留待实现设计与安全决定。
+  > 84. 写入必须采用 Put-if-absent、Conditional Put 或等价条件创建机制。
+  > 85. 不得无条件覆盖已存在的 Content-addressed Object。
+  > 86. 相同 Key 已存在时，必须验证：Project Content Hash；Byte Length；Media Type，如适用；Provider Checksum，如适用。
+  > 87. 同一 Key 对应不同字节时必须视为严重完整性冲突。
+  > 88. Object Key 不得直接暴露：原始文件名；完整 Source URL；User Name；Tenant Identity；Token；Secret；不必要 PII。
+  > 89. 对象 Key 安全规则由 DQ-17 决定。
+  > 90. 对象存储 Versioning、Object Lock 和 Legal Hold 是否启用留待 DQ-15、DQ-17 和部署设计。
+  >
+  > **3.9 PostgreSQL 与对象存储一致性协议**
+  >
+  > 91. 项目不假设 PostgreSQL 与对象存储之间存在统一分布式 ACID 事务。
+  > 92. 不采用 XA 或其他分布式事务作为 MVP 默认方案。
+  > 93. 外部内容采用以下协议：
+  >
+  >    ```text
+  >    PREPARE CONTENT
+  >    → UPLOAD IMMUTABLE OBJECT
+  >    → VERIFY CHECKSUM / PRESENCE
+  >    → FINALIZE METADATA IN SHORT POSTGRESQL TRANSACTION
+  >    ```
+  >
+  > 94. Prepare Content 阶段发生在数据库事务之外。
+  > 95. Prepare 阶段至少包括：获取或生成内容；计算 Content Hash；计算 Byte Length；确定 Media Type；确定 Storage Classification；生成不可变 Object Key。
+  > 96. Upload 阶段必须使用条件创建或等价不可覆盖语义。
+  > 97. Upload 完成后必须通过服务端 Checksum、HEAD、Metadata 或等价方式验证对象存在和完整性。
+  > 98. 只有验证成功的 Object 才能进入 PostgreSQL Finalization。
+  > 99. Finalization 使用一个短 PostgreSQL 事务。
+  > 100. Finalization 可以包含：ContentObject Metadata；SourceVersion；Acquisition Success；Provenance；DerivedArtifact；Fragment；Source Current Pointer CAS，如适用；Audit；Idempotency Result；Integration Event Outbox；Durable Work Intent。
+  > 101. PostgreSQL 不得提交指向未验证 Object 的正式 SourceVersion。
+  > 102. 不得先提交 Active SourceVersion，再异步尝试上传其 Object。
+  > 103. PostgreSQL Commit 成功后，SourceVersion 才成为正式可引用记录。
+  > 104. PostgreSQL Finalization 失败时，不得产生正式 Business Current Truth、EvidenceLink 或 SourceVersion。
+  >
+  > **3.10 Orphan Object**
+  >
+  > 105. Object Upload 成功但 PostgreSQL Commit 失败时，只产生未引用 Orphan Object。
+  > 106. Orphan Object 不等于正式 ContentObject 业务记录。
+  > 107. Orphan Object 不得自动成为 SourceVersion。
+  > 108. Orphan Object 必须能够通过 Reconciliation 发现。
+  > 109. Reconciler 只能在满足 Grace Period 和引用检查后处理 Orphan。
+  > 110. Orphan Grace Period、Archive 和 Physical Deletion 由 DQ-15 决定。
+  > 111. Reconciler 不得删除仍被任何正式 SourceVersion、DerivedArtifact、EvidenceLink、Legal Hold 或 Audit Requirement 引用的 Object。
+  > 112. Orphan Cleanup 不得依据单次最终一致性读取结果立即删除对象。
+  > 113. Orphan Reconciliation 必须记录可审计结果。
+  >
+  > **3.11 Missing 或 Corrupt Object**
+  >
+  > 114. PostgreSQL 已正式引用的 Object 后续缺失或 Checksum 不匹配时，必须视为 Integrity Incident。
+  > 115. Integrity Incident 不得被静默忽略。
+  > 116. 系统不得静默：重新抓取同一 URL 的最新内容并替换；切换到其他 SourceVersion；切换到其他 Hash；修改历史 SourceVersion；修改历史 EvidenceLink；将损坏对象继续标记为有效。
+  > 117. Integrity Incident 必须至少导致：Availability/Integrity State 更新；Audit 或 Incident Record；告警；依赖分析；必要的 Claim/Evidence Review。
+  > 118. 受影响的 Business Version 不得自动改绑到新 SourceVersion。
+  > 119. 是否需要 Invalidate、Needs Review、Restore 或 Replacement，由对应业务不变量决定。
+  > 120. Missing/Corrupt Object 的恢复与运营流程继续由 RFC-007、DQ-15 和 DQ-17 决定。
+  >
+  > **3.12 Acquisition**
+  >
+  > 121. Acquisition Attempt 与 SourceVersion 必须保持独立。
+  > 122. Acquisition 至少应表达：Acquisition ID；Source Identity；Acquisition Method；Connector/Fetcher Identity；Connector Version；Actor/Agent；Requested Locator；Resolved Locator；Started Time；Completed Time；Upstream Observed Time；Result Classification；HTTP/Provider Metadata 的允许子集；Produced Content Hash，如成功；Error Classification，如失败；Correlation/Causation Identity。
+  > 123. 失败 Acquisition 可以保留运行或 Audit 证据。
+  > 124. 失败 Acquisition 不得创建正式 SourceVersion。
+  > 125. Retry Acquisition 必须遵守 DQ-08 幂等身份模型。
+  > 126. 相同字节的重复获取可以复用 ContentObject。
+  > 127. 复用 ContentObject 不得删除 Acquisition 差异。
+  > 128. Acquisition 是否产生新 SourceVersion，必须由 Application Policy 根据 Provenance、时间和业务语义决定。
+  >
+  > **3.13 Provenance**
+  >
+  > 129. Provenance 至少必须表达：
+  >
+  >    ```text
+  >    Entity:
+  >    SourceVersion / ContentObject / DerivedArtifact
+  >
+  >    Activity:
+  >    Fetch / Upload / Parse / Normalize / OCR / Extract / Chunk
+  >
+  >    Agent:
+  >    User / Connector / Crawler / Provider / Software Version
+  >    ```
+  >
+  > 130. Provenance 至少应记录：`derived_from`；generated-by activity；used entities；responsible actor/agent；processor identity；processor version；model/config/profile version；acquisition method；original locator；resolved locator；occurred time；recorded time；Content Hash；Correlation/Causation Identity。
+  > 131. 项目不要求实现通用 Provenance Graph Database。
+  > 132. 核心 Provenance 身份、外键、状态和约束必须使用类型化字段表达。
+  > 133. Provider-specific 扩展 Metadata 可以使用 Versioned JSONB。
+  > 134. JSONB 扩展不得替代核心外键、身份、状态或约束。
+  > 135. Provenance 记录不得包含未脱敏 Secret 或不必要 PII。
+  >
+  > **3.14 Fragment**
+  >
+  > 136. Fragment 必须属于明确的：SourceVersion；或 DerivedArtifact Version。
+  > 137. Fragment 不得只属于可变 Source。
+  > 138. Fragment 至少应表达：Fragment ID；SourceVersion ID；DerivedArtifact ID，如适用；FragmentSet ID；Segmentation/Profile Version；Ordinal；Locator/Selector；Offset Unit；Start/End；Page/Section/DOM Selector/Timecode，如适用；Fragment Text 或 Immutable Reference；Fragment Hash；Parser/Extractor Version；Created Time；Schema Version。
+  > 139. Offset Unit 必须显式。
+  > 140. 允许的 Offset Unit 示例包括：UTF-8 Byte Offset；Unicode Code Point；PDF Page Coordinate；Audio/Video Timecode；DOM Selector；Section/Paragraph Selector。
+  > 141. 不得只保存无法解释的 `start=100`、`end=200`。
+  > 142. Parser、OCR、Chunking 或 Segmentation Profile 变化时，必须创建新的 FragmentSet。
+  > 143. 新 FragmentSet 不得覆盖旧 Fragment。
+  > 144. Fragment 读取必须能够回到其 SourceVersion 或 DerivedArtifact 的不可变内容。
+  > 145. Fragment Hash 必须与其 Canonical Content Definition 对应。
+  >
+  > **3.15 Canonical Fragment 与 RetrievalChunk**
+  >
+  > 146. Canonical Fragment 是 Evidence 可稳定引用的内容单位。
+  > 147. RetrievalChunk 是检索系统为搜索性能和召回效果生成的派生单位。
+  > 148. EvidenceLink 默认引用 SourceVersion + Canonical Fragment 或 Typed Selector。
+  > 149. RetrievalIndexEntry 默认引用 RetrievalChunk。
+  > 150. RetrievalChunk 必须能够回链到 Canonical Fragment、SourceVersion 或 DerivedArtifact。
+  > 151. 重新 Chunk、重新 Embedding 或更换 Vector Store 不得破坏既有 EvidenceLink。
+  > 152. EvidenceLink 不得只引用 Vector ID。
+  > 153. RetrievalChunk 的生命周期不得隐式控制 SourceVersion 或 EvidenceLink 的生命周期。
+  >
+  > **3.16 EvidenceLink**
+  >
+  > 154. EvidenceLink 是显式的业务关系。
+  > 155. EvidenceLink 至少应表达：EvidenceLink ID；Target Claim、Business Version 或 Decision Identity；SourceVersion ID；Fragment ID 或 Typed Selector；Relation Type；Exact Excerpt 或 Excerpt Hash，如适用；Created Command ID；Created Actor；Created Time；Rationale 或 Rationale Reference；Evidence Status；Schema Version。
+  > 156. Relation Type 可以表达：SUPPORTS；CONTRADICTS；QUALIFIES；CONTEXT；PRIMARY_SOURCE；DERIVED_FROM。
+  > 157. 精确 Relation Type Enum 留待业务模型设计。
+  > 158. EvidenceLink 必须指向不可变 SourceVersion。
+  > 159. EvidenceLink 不得指向：Source Current Pointer；URL 最新内容；Pending SourceVersion；Failed Acquisition；未验证 ContentObject；Missing/Corrupt Object，除非状态明确表达不可用；只有 Vector ID 的 Retrieval Entry。
+  > 160. EvidenceLink 不得因 Source Current Pointer 变化而改变历史含义。
+  > 161. EvidenceLink 的创建、Invalidation 和 Supersession 必须可审计。
+  >
+  > **3.17 Evidence Atomicity**
+  >
+  > 162. 当正式 Business Version 的业务有效性依赖 Evidence 时，以下适用参与者必须处于同一个 DEC-035 PostgreSQL Atomic Business Commit：Business Version；Evidence Links；Current Truth Pointer；Stage State；Audit Record；State Transition Record；Idempotency Result；Integration Event Outbox；Durable Work Intent；Result Reference。
+  > 163. 外部 Blob 必须在最终 PostgreSQL 事务开始前准备并验证完成。
+  > 164. 最终 Commit 只能引用已正式存在并验证可用的：ContentObject；SourceVersion；DerivedArtifact；Fragment。
+  > 165. EvidenceLink 写入失败时，依赖该 Evidence 的 Business Commit 必须整体回滚。
+  > 166. Business Commit 回滚时，不得留下已生效 EvidenceLink 或 Current Truth。
+  > 167. CAS 冲突不得留下孤立 EvidenceLink。
+  > 168. Database Retry 不得重新上传已经成功验证的相同 Blob。
+  > 169. Database Retry 必须复用同一逻辑 Command 与 Content Identity。
+  >
+  > **3.18 Evidence Invalidation**
+  >
+  > 170. SourceVersion、ContentObject、DerivedArtifact 或 Fragment 后续被判定为以下状态时，不得改写历史 EvidenceLink：Corrupt；Unavailable；Retracted；Superseded；Unsafe；Legally Restricted；Integrity Failed。
+  > 171. 应通过新的状态、Invalidation Record、Audit、State Transition 或 Review Workflow 表达变化。
+  > 172. 历史 EvidenceLink 不得被静默改绑到 Source 的最新版本。
+  > 173. 依赖该 Evidence 的 Business Version 不得被静默改写。
+  > 174. 是否导致：Claim Invalid；Needs Review；Current Truth Invalidation；Replacement；Restore；仍可保留历史展示；由相应业务不变量决定。
+  > 175. Invalidation Does Not Mean Deletion 继续有效。
+  >
+  > **3.19 Retrieval Index**
+  >
+  > 176. Retrieval Index 属于 RFC-005。
+  > 177. RFC-005 拥有：Chunking Strategy；Embedding；Vector Store；Retrieval Index；Ranking；Search Runtime；Reindex/Rebuild Strategy。
+  > 178. RFC-005 不得重新定义 Source、SourceVersion、Fragment 或 EvidenceLink 的权威身份。
+  > 179. Retrieval Index 是派生、可重建、非权威存储。
+  > 180. Index Entry 至少必须回链到：SourceVersion ID；Fragment ID 或 DerivedArtifact ID；Index Generation；Chunking Profile Version；Embedding Model/Version，如适用；Input Content Hash。
+  > 181. Embedding、Vector ID、Ranking Score 和 Search Result 不等于 Evidence。
+  > 182. 正式 Evidence Commit 前，必须解析回 PostgreSQL 中的 SourceVersion、Fragment 或 Typed Selector。
+  > 183. 正式 Commit 前必须验证：Identity；Content Hash；Availability；Integrity；Evidence Policy；Business Invariants。
+  > 184. Retrieval Index 延迟、损坏、丢失、删除或重建不得改变 Business Current Truth。
+  > 185. Retrieval Index 变化不得改变既有 EvidenceLink 的历史含义。
+  > 186. Index 可以被重新生成，而无需修改 SourceVersion 或 Business Version。
+  >
+  > **3.20 Deduplication**
+  >
+  > 187. ContentObject 可以按项目 Content Hash 物理去重。
+  > 188. 物理去重不得合并：Source Identity；SourceVersion Identity；Acquisition；Provenance；Access Control；EvidenceLink；Retention Policy；Legal Hold；Security Classification。
+  > 189. 跨 Tenant 或跨 Security Domain 的物理去重在 DQ-17 决定前不得启用。
+  > 190. 同一 Security Domain 内的去重仍必须遵守权限和引用计数/引用追踪规则。
+  > 191. 物理去重不得造成跨权限域的内容存在性泄露。
+  >
+  > **3.21 Retention 与删除**
+  >
+  > 192. Retention、Archive、Cold Storage、Legal Hold、Physical Deletion 和 Orphan Grace Period 由 DQ-15 决定。
+  > 193. 只要仍存在必须保留的以下引用，就不得物理删除对应 ContentObject：Business Version；EvidenceLink；Audit Requirement；Legal Hold；Active SourceVersion；Required DerivedArtifact。
+  > 194. 正常 Invalidation、Retraction 或 Supersession 不等于物理删除。
+  > 195. 如果法规要求删除原始内容，应保留依法允许保留的：Tombstone；Deletion Proof；Hash 或受限完整性信息；受影响引用状态；Audit Evidence。
+  > 196. 数据库引用不得因物理删除而静默变成无法解释的悬空引用。
+  > 197. 具体删除例外由 DQ-15 和 DQ-17 决定。
+  >
+  > **3.22 安全边界**
+  >
+  > 198. Encryption、Redaction、Secret、PII、Access Control、Object Key Security 和跨域去重由 DQ-17 决定。
+  > 199. 在 DQ-17 决定前不得：将 Secret 写入对象 Key；在日志中输出 Presigned URL；启用跨 Tenant 去重；依据 Hash 暴露内容存在性；无限制复制敏感原始载荷。
+  > 200. Source/Evidence Metadata 和 ContentObject 必须能够分别应用安全策略。
+  > 201. 对象存储访问权限不得通过公开 URL 作为默认长期授权模型。
+  > 202. Presigned URL 等具体访问协议留给 RFC-004、DQ-17 或实现设计。
+  >
+  > **3.23 所有权边界**
+  >
+  > 203. Source/Evidence Capability 是以下持久化资产的唯一所有者：Source；SourceVersion；Acquisition；ContentObject Metadata；DerivedArtifact；Fragment；FragmentSet；EvidenceLink；Object Storage Adapter；Integrity Reconciliation。
+  > 204. 业务模块不得直接访问 Source/Evidence ORM、表、Repository 或 Object Key。
+  > 205. 业务模块不得直接通过对象存储 SDK 绕过 Source/Evidence Capability。
+  > 206. 跨模块操作必须通过类型化 Application Port 或 Public Application Contract。
+  > 207. Source/Evidence Capability 负责权威身份、完整性和引用验证。
+  > 208. RFC-005 负责 Retrieval，但不拥有 Source/Evidence 权威业务身份。
+  > 209. Infrastructure 负责 PostgreSQL 和 Object Storage 的技术实现，不拥有业务语义决定。
+  >
+  > **3.24 Readiness Artifact**
+  >
+  > 210. 在 Source/Evidence 持久化实现授权前，Architecture Readiness Package 必须包含：
+  >
+  >    ```text
+  >    Source & Evidence Storage Classification Table
+  >    ```
+  >
+  > 211. Classification Table 至少包含：Content Class；Media Type；Authoritative Identity；Inline/External；Size/Streaming Policy；Canonical Byte Definition；Hash Algorithm；Compression；Storage Key Strategy；Provenance Requirements；Parser/Normalizer；Fragment Strategy；Evidence Eligibility；Retrieval Index Mapping；Retention Owner；Security Classification；Failure Recovery；Related DQ/DEC/RFC。
+  > 212. DQ-12 接受不授权创建该 Classification Table。
+  > 213. Source & Evidence Storage Classification Table Creation = NOT AUTHORIZED。
+  > 214. DQ-12 不新增独立 Matrix。
+  > 215. 已要求的 Aggregate/Invariant、Idempotency 和其他 Readiness Artifacts 继续保持原授权状态。
+  >
+  > **3.25 External Object Consistency Technical Spike**
+  >
+  > 216. DQ-12 决策归档前不要求执行 Technical Spike。
+  > 217. 在启用任何外部对象存储生产或正式持久化实现前，必须完成单独授权的：
+  >
+  >    ```text
+  >    External Object Consistency Technical Spike
+  >    ```
+  >
+  > 218. 该 Spike 与 PostgreSQL Concurrency Technical Spike 是不同的验证对象。
+  > 219. PostgreSQL Concurrency Spike 不能证明对象存储 Provider 的：Conditional Write；Multipart Checksum；Read-after-write；Object Metadata；Crash Window；Orphan Reconciliation。
+  > 220. External Object Consistency Spike 最低验证：Conditional Put / Put-if-absent；同 Hash 并发上传；同 Key 不同字节冲突；Provider Checksum；Multipart Upload Checksum；Upload 成功、DB Commit 失败产生可回收 Orphan；DB Commit 不引用未验证 Object；Missing Object 检测；Corrupt Object 检测；Retry 不重复创建 SourceVersion；Reconciler 不删除仍被引用 Object；真实目标 Provider 的 Read-after-write；无部分 Business Current Truth 写入。
+  > 221. Spike 必须针对未来实际选定的 Provider 和配置执行。
+  > 222. 本次接受不选择具体对象存储 Provider。
+  > 223. 本次接受不授权创建 Spike Issue、Branch、PR、代码、测试、Bucket、账号或基础设施。
+  > 224. External Object Consistency Technical Spike = REQUIRED / NOT AUTHORIZED。
+  >
+  > **3.26 测试前置语义**
+  >
+  > 225. 所有正式 PostgreSQL 事务语义测试必须使用真实 PostgreSQL。
+  > 226. 外部对象一致性测试必须使用真实目标 Object Storage Provider 或与生产语义一致的正式测试环境。
+  > 227. 后续测试至少覆盖：Source 与 SourceVersion 身份分离；同 Source 新内容创建新 SourceVersion；同字节可以复用 ContentObject；物理去重不合并 Provenance；Raw Content 不可变；DerivedArtifact 升级不覆盖旧版本；Raw Hash 与 Normalized Hash 分离；ETag 不作为权威 Content Hash；Fragment 固定到 SourceVersion；Offset Unit 可解释；EvidenceLink 不指向 Source Current Pointer；EvidenceLink 不只引用 Vector ID；Evidence 与 Business Version 同事务；Commit 失败无生效 EvidenceLink；Upload 成功、DB 失败只产生 Orphan；DB 不引用未验证 Object；Missing/Corrupt Object 不静默替换；Retrieval Index 重建不改变 Evidence；Rechunk/Re-embedding 不破坏历史 EvidenceLink；跨 Security Domain 去重在未授权时被阻止；Reconciler 不删除仍有引用的 Object；无部分 Business Current Truth 写入。
+  > 228. 测试分类与 CI 策略继续由 DQ-16 决定。
 
 ---
 
@@ -2037,7 +2390,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~11 ACCEPTED；DQ-12~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~12 ACCEPTED；DQ-13~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -2051,7 +2404,7 @@ RFC-002-DQ-08  Idempotency Model                     = ACCEPTED (Primary Directi
 RFC-002-DQ-09  Transactional Outbox / Dispatch       = ACCEPTED (Candidate B, Formal Pattern: PostgreSQL-backed Transactional Durable Work Intent, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-10  Event & Audit Persistence             = ACCEPTED (Candidate A, Six Independent Event/Record Semantics, Append-only Audit in Same Atomic Commit, Transactional Integration Event Outbox, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-11  Snapshot vs History                   = ACCEPTED (Candidate A, Formal Model: Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/State Transition History + Optional Derived Query Projections, Full Event Sourcing / Current-state-only Overwrite / Delta-only Authoritative History Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
-RFC-002-DQ-12  Source & Evidence Persistence         = PROPOSED — User Decision: PENDING
+RFC-002-DQ-12  Source & Evidence Persistence         = ACCEPTED (Candidate A, Formal Model: PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index, Universal All-in-PostgreSQL / Universal All-in-Object-Storage Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-13  Workflow Checkpoint Separation        = PROPOSED — User Decision: PENDING
 RFC-002-DQ-14  Schema Evolution & Migrations         = PROPOSED — User Decision: PENDING
 RFC-002-DQ-15  Data Retention & Deletion Boundary    = PROPOSED — User Decision: PENDING
