@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~12 ACCEPTED；DQ-13~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~13 ACCEPTED；DQ-14~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation）；DQ-14~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-12 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-13~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
+> - DQ-01~DQ-13 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-14~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -28,7 +28,7 @@
 | DQ-10 | Event & Audit Persistence | **已决定（2026-08-02 ACCEPTED）**：Domain Event / Audit Record / State Transition Record / Application Event / Integration Event / Observability Event 六类记录语义独立，拒绝 Universal Event / Audit Table（Candidate B）与全项目 Event-driven 架构（Candidate C）；Audit Record 为 append-only 权威问责证据、与对应 Business Current Truth 修改同一 DEC-035 原子提交（写入失败整体回滚，不得异步补写/覆盖/删除；更正仅追加 Correction/Superseding/Reversal Record）；State Transition Record 为显式类型 Audit Record（可物理共用 Audit Ledger，不代表语义合并，不得充当 Integration Event 或 Current Truth）；Domain Event 为模块内部过去式业务事实、默认不自动持久化，需同事务执行的 Handler 在最外层 UoW 内 Commit 前执行、不嵌套 UoW/不独立 Commit/不调用外部 Provider；Application Event 仅 Commit 后本地 best-effort 通知（LOCAL/BEST-EFFORT/NON-DURABLE，不承担必须执行工作）；必须执行工作用 DQ-09 Durable Work Intent，可靠跨边界事实用独立 Transactional Integration Event Outbox（与业务状态/Audit 同 PostgreSQL 事务写入，Delivery = at-least-once，不承诺 exactly-once；Consumer 依 Event Identity + Consumer Scope 去重，Dedup Marker 与消费业务更新同事务；Outbox 与 Work Intent 不共用 Identity/状态机/Payload/Retry/Retention）；CloudEvents-compatible Envelope 仅可选互操作方向，不替代 Outbox/原子提交/Dedup/Delivery Guarantee；Observability Event 归 RFC-007 非权威 Telemetry（失败不回滚业务、不替代 Audit）；六类分类 / Audit Capability / State Transition 共用 Audit Ledger / Application Event best-effort / Outbox 结构 / Classification Table 均为项目 Accepted Decision（非第三方官方强制架构）；Audit Ledger / State Transition / Outbox 不构成 Business Current Truth，不引入 Event Sourcing（Current Truth 留 DQ-11）；Event & Record Classification Table 为持久化实现前置 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED；不新增独立 Matrix 或 Technical Spike，DQ-07 真实 PostgreSQL 多 Worker Spike 继续有效并覆盖 Integration Event 重复投递 / Consumer Dedup / Relay Crash / stale Publish / 无部分业务写入；Event Relay/Broker/Polling/发布状态机/Dead-letter 留 RFC-003，Retention 留 DQ-15，测试留 DQ-16，Security 留 DQ-17；原分歧 审计 vs 事件分离与持久化 | Fowler Audit Log≠Domain Event（权威模式）；项目用户决定 |
 | DQ-11 | Snapshot vs History | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/State Transition History + Optional Derived Query Projections**；Candidate B 完整 Event Sourcing 拒绝（违反 DEC-013）、Candidate C 仅当前状态覆盖拒绝（违反 DEC-024）、Delta-only Version History 不作权威历史模型；正式 Business Version 逻辑完整、不可变、独立可读，不依赖事件/Delta 链重放，不经后来变化的 Current Truth Pointer 解释历史；只有成功 Atomic Business Commit 产生正式版本（DB/Work/Provider Retry、Lease、Checkpoint、回滚事务、未提交 LLM 临时结果不得创建）；Current Truth 由带独立 `revision` 的显式 Current Truth Pointer 经 CAS 选择（`MAX(version_number)` 禁止；latest created/approved 与 current effective 语义分离）；Invalidation 不删除版本且不得静默回退（显式 No Current Truth/Promote/Replacement/Restore）；Restore 为新前向 Business Command（新 `domain_version_id`/`version_number`/`command_id`/Audit + `restored_from_version_id`，非数据库 Rollback）；Query Projection 为派生非权威读取模型；通用 Bitemporal Model / SQL AS-OF 不纳入 MVP；五种 Snapshot 术语语义分离；Aggregate / Invariant Matrix 扩展为 REQUIRED 但 NOT AUTHORIZED，不新增独立 Matrix/Spike（现有 DQ-07 Spike 覆盖版本分配/Pointer CAS/Invalidation/Restore 竞争，仍未授权）；原分歧 版本化历史 vs 完整 ES vs 仅当前状态 | DEC-013 排除 ES；DEC-024 不删除历史 |
 | DQ-12 | Source & Evidence Persistence | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index**；Candidate B（全部内容无条件存 PostgreSQL 通用策略）与 Candidate C（全部内容无条件存对象存储仅 DB 引用通用策略）均拒绝；Source/SourceVersion/ContentObject/Acquisition/DerivedArtifact/Fragment/EvidenceLink/Retrieval Index Entry 身份分离（不得通用 `document_id` 合并）；物理 ContentObject 可按 Content Hash 去重但不得合并不同 Source/SourceVersion/Acquisition/Provenance/权限/Evidence Link；PostgreSQL 保存全部权威身份/状态/Provenance/Hash/Fragment/Evidence Link 与对象引用（唯一权威）；中小原始文本/规范化文本/结构化元数据可依显式 Storage Classification Policy 存 PostgreSQL，大型/二进制/流式/对备份影响显著的原始内容用不可变对象存储；TOAST 仅透明物理机制不作业务大小边界，PostgreSQL Large Object 不作 MVP 默认路径；Raw/Normalized/Parsed/Canonical Fragment/Retrieval Chunk 分离——Raw 不可变，Parser/Normalizer/OCR/Chunking 变化创建新 DerivedArtifact/FragmentSet 不覆盖旧结果；每 ContentObject 记录 Hash Algorithm + Content Hash + Byte Length + Media Type（Raw/Normalized Hash 分别计算，对象存储 ETag 不作项目权威 Content Hash）；外部 Blob 优先内容寻址 + 条件创建 + 不可覆盖 Key；不假设 PostgreSQL 与对象存储分布式事务——Prepare Content → Upload Immutable Object → Verify Checksum/Presence → Finalize Metadata in Short PostgreSQL Transaction（数据库不得提交指向未验证对象的正式 SourceVersion；上传成功而 DB Commit 失败只产生待 Reconciliation 的未引用 Orphan，不产生 Business Current Truth；正式引用后对象缺失/损坏 = Integrity Incident，不得静默切换 URL 最新内容或其他 SourceVersion）；EvidenceLink 显式指向不可变 SourceVersion 及适用 Canonical Fragment/Typed Selector（不得指向 Source Current Pointer/URL 最新内容/Pending SourceVersion/未验证对象/仅 Vector ID）；Evidence Links 与 Business Version/Current Truth Pointer 等适用参与者同一 DEC-035 Atomic Business Commit；Retrieval Index 属 RFC-005 派生/可重建/非权威（Embedding/Vector ID/Ranking Score/Search Result 不等于 Evidence；正式提交前回链验证 PostgreSQL SourceVersion/Fragment/Hash/Availability/业务不变量；Index 延迟/损坏/重建不改变 Current Truth 或既有 Evidence Link）；跨 Tenant/Security Domain Content Hash 去重在 DQ-17 决定前不得启用；Retention/Orphan Grace Period/Legal Hold/物理删除留 DQ-15，Encryption/Redaction/PII/对象 Key 安全/跨安全域去重留 DQ-17；**Source & Evidence Storage Classification Table 为 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED**；**External Object Consistency Technical Spike（条件写/Checksum/Multipart/Crash Window/Orphan Reconciliation/Missing/Corrupt Object/真实 Provider 一致性）为外部对象存储实现前置——REQUIRED BEFORE EXTERNAL STORAGE IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 原始内容存 DB vs 引用 + 大内容边界 | DEC-025 Source/Evidence 语义；DEC-012 原始与解析分离；DEC-024 Retrieval Index 独立存储；PG TOAST/Large Object 官方能力 |
-| DQ-13 | Workflow Checkpoint Separation | 同库/分库、生命周期、对账权威 | DEC-023/024；官方无同库建议 |
+| DQ-13 | Workflow Checkpoint Separation | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation**；Candidate B 独立 PostgreSQL 服务/独立基础设施不作 MVP（Fallback = 同一 PostgreSQL Service 内独立 Checkpoint Database，不等于 Candidate B）；Candidate C 同表混存拒绝；优先物理形态 = 同 Database + Dedicated Checkpoint Schema（但必须用钉定的 Python PostgresSaver + 实际 Psycopg Pool + 部署 Pooler 证明 Setup 与全部运行时 SQL 落预期 Schema，不得仅凭文档推测；无法稳定保证则用 Dedicated Checkpoint Database Fallback）；Business Persistence / Application-owned Workflow Execution Registry / Vendor Checkpoint Tables 三平面分离（不得通用 Workflow 表/State JSON/ORM Model 合并）；独立 Business Pool 与 Checkpoint Pool、Checkpoint Role 最小权限、Checkpoint Connection 不进 Business UoW；Workflow Execution Registry 显式映射 workflow_run_id/thread_id/command_id/stage_run_id/目标业务对象/Base Domain Version/Expected Revision/Input Fingerprint/Runtime Lifecycle/Reconciliation Status/Graph Definition Version/Checkpoint Schema Version；workflow_run_id/thread_id/checkpoint_id/command_id/stage_run_id/attempt_id/dispatch_id/domain_version_id/Idempotency Key 身份分离（thread_id 不得作业务身份/Idempotency Key/执行锁）；Checkpoint = Runtime Recovery State only，≠Business Current Truth/Business Version/Audit/Idempotency/Work Intent/执行锁；Business Commit 与 Checkpoint Write 不构成同一 Atomic Transaction（Checkpoint 成功不表业务成功、Checkpoint 缺失不表业务未发生）；Resume/Retry/Human Interrupt 恢复/Time Travel Fork 前必须 Load Registry+Checkpoint+Current Truth 并验证身份版本后分类；Reconciliation 至少区分 RESUMABLE/ALREADY_COMMITTED/STALE/SUPERSEDED/INVALIDATED/ORPHANED/INCOMPATIBLE/CORRUPT（只有 RESUMABLE 可继续原 Thread、Stale Checkpoint 不覆盖新 Current Truth）；Checkpoint 不承担并发控制（执行所有权 = DQ-07 Lease+Attempt ID+Fencing Token，最终 Business Commit 重新验证 Fencing Token）；Graph Time Travel/Fork ≠ DQ-11 Business Restore（Fork 入正式状态须转 Intentional Rerun 创建新身份 + 新 DEC-035 Atomic Business Commit）；Checkpoint Payload 仅保存最小 Runtime State + 严格 Serializer Allowlist（不存 Session/UoW/Repository/ORM Entity/Connection/Coroutine/未脱敏 Secret/长期 Token/完整 PII）；Durability Mode 逐节点策略留 RFC-003（exit 禁用于 Human-in-the-loop/需故障恢复生产流程，sync 为 Interrupt/Human Review/Provider 结果落地/正式业务提交边界默认安全方向）；PostgresSaver Setup 经受控部署/Migration Job、不得所有 Worker 启动并发执行、Vendor Migration 与 Business Alembic 分离、Package 必须钉定；Checkpoint 可清理但仅 Terminal/无 Lease/无 Pending Resume/无 Interrupt/无 Incident-Legal Hold 的 Thread 可删（默认 Whole-thread Lifecycle Deletion，未验证 Package Version/Checkpoint Chain/DeltaChannel 完整性禁止 Partial Pruning，删除不改业务数据）；Encryption/Redaction/PII 留 DQ-17、Retention 留 DQ-15、测试留 DQ-16、Serializer 安全细节留 DQ-17/RFC-003；**Workflow Checkpoint Boundary & Reconciliation Table 为持久化实现前置——REQUIRED 但 NOT AUTHORIZED**；**Workflow Checkpoint Isolation & Reconciliation Technical Spike（钉定 PostgresSaver/Schema-Database Isolation/Role/Pool/Setup/Crash Window/并发 Resume/Stale Reconciliation/Serializer/Cleanup）为 Checkpoint 实现前置——REQUIRED BEFORE CHECKPOINT IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 同库/分库、生命周期、对账权威 | DEC-023/024 Checkpoint 仅恢复≠Current Truth；DEC-033 Reconciliation；PostgresSaver 官方无同库建议 |
 | DQ-14 | Schema Evolution & Migrations | forward-only、autogenerate 纪律 | Alembic 官方立场 |
 | DQ-15 | Data Retention & Deletion Boundary | 各类数据保留策略归属 | checkpoint 无内建 TTL |
 | DQ-16 | Persistence Testing Strategy | 真实 DB vs SQLite fake | 并发语义不可移植 |
@@ -2308,9 +2308,328 @@
 - **Trade-offs：** A 满足「逻辑分离恒定」且运维简单（DEC 允许同实例保持逻辑边界）；B 隔离强但超 MVP 需求；C 违规。
 - **Failure modes：** 混存→checkpoint 被误作业务真值；无清理策略→checkpoint 无限膨胀；对账权威倒置→旧 checkpoint 覆盖新业务版本。
 - **Impact on later RFCs：** RFC-003（生产 Checkpointer 选型、durability、serde、并发防护——**本 DQ 不决定**）。
-- **Recommendation：** **[架构推断] 倾向 A**——同实例独立 schema/表、逻辑分离；checkpoint 保留/清理由应用层实现（cron），对账以 Business Current Truth 为权威、checkpoint 让步。**置信度：高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation：** **[架构推断] 倾向 A**——同实例独立 schema/表、逻辑分离；checkpoint 保留/清理由应用层实现（cron），对账以 Business Current Truth 为权威、checkpoint 让步。**置信度：高**。（**历史提案；Superseded by the Accepted Major Revision below。**）
+- **Candidate 处置（2026-08-02 用户正式决定）：** Candidate A = **ACCEPTED WITH MAJOR REVISION**（Formal Model = Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation）；Candidate B = **NOT SELECTED AS AN INDEPENDENT POSTGRESQL SERVICE OR SEPARATE INFRASTRUCTURE FOR MVP**（同一 PostgreSQL Service 内独立 Checkpoint Database 是 Candidate A 的安全 Fallback，不等于 Candidate B）；Candidate C = **REJECTED**（Business 与 Checkpoint Record 不得同表混存）。
+- **User Decision：** ACCEPTED WITH MAJOR REVISION
+- **Accepted Candidate：** CANDIDATE A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+
+  > **3.1 正式模式**
+  >
+  > 1. MVP 采用：
+  >
+  >    ```text
+  >    SHARED POSTGRESQL SERVICE
+  >    + ISOLATED CHECKPOINT PERSISTENCE PLANE
+  >    + DEDICATED ROLE / CONNECTION POOL / STORAGE NAMESPACE
+  >    + APPLICATION-OWNED WORKFLOW EXECUTION REGISTRY
+  >    + BUSINESS-CURRENT-TRUTH-FIRST RECONCILIATION
+  >    ```
+  >
+  > 2. Candidate A 被接受并进行重大修订。
+  > 3. Candidate B 不作为 MVP 默认方向。
+  > 4. Candidate B 被拒绝的是：Independent PostgreSQL Service or Separate Checkpoint Infrastructure。
+  > 5. 同一 PostgreSQL Service 内使用独立 Checkpoint Database，是 Candidate A 的安全 Fallback，不等于 Candidate B。
+  > 6. Candidate C 同表混存被拒绝。
+  > 7. Business Record 与 Vendor Checkpoint Record 不得存入同一业务表。
+  > 8. Checkpoint 不得作为 Business Current Truth。
+  >
+  > **3.2 三个持久化平面**
+  >
+  > 9. 必须区分：Business Persistence Plane；Application-owned Workflow Execution Registry；Vendor Checkpoint Persistence Plane。
+  > 10. 三个平面不得通过一个通用 Workflow 表、通用 State JSON 或 ORM Model 合并。
+  > 11. Business Persistence Plane 保存正式业务权威状态。
+  > 12. Business Persistence Plane 包括所有适用的：Business Current Truth；Immutable Business Version；Current Truth Pointer；Audit；State Transition；Evidence；Idempotency；Durable Work Intent；Integration Event Outbox；其他 DEC-035 参与者。
+  > 13. Workflow Execution Registry 是项目自有 Runtime/Application 记录。
+  > 14. Workflow Execution Registry 不等于 Business Current Truth。
+  > 15. Workflow Execution Registry 是项目层面对 Workflow Run 与 Framework Thread 映射的权威来源。
+  > 16. Vendor Checkpoint Persistence Plane 由 LangGraph Checkpointer 管理。
+  > 17. Vendor Checkpoint Tables 只保存 Graph 恢复所需的状态、Blob、Pending Writes 与 Vendor Migration Metadata。
+  > 18. Business Module 不得直接查询或修改 Vendor Checkpoint Tables。
+  > 19. Vendor Checkpoint Tables 不得被 Business Repository 当作业务查询来源。
+  >
+  > **3.3 物理放置**
+  >
+  > 20. PostgreSQL Service 与 Business Persistence 共享。
+  > 21. Checkpoint Persistence Plane 必须具有独立 Storage Namespace。
+  > 22. 优先物理形态为：
+  >
+  >    ```text
+  >    Same PostgreSQL Service
+  >    + Same PostgreSQL Database
+  >    + Dedicated Checkpoint Schema
+  >    ```
+  >
+  > 23. 该优先形态只有在实际钉定的 Python PostgresSaver、Psycopg Pool 和部署 Pooler 被证明能够稳定解析到专用 Schema 时才能采用。
+  > 24. 不得仅凭文档推测或开发环境偶然成功，声称 Schema Isolation 已成立。
+  > 25. 必须证明：Setup DDL 落入预期 Schema；Runtime Put 落入预期 Schema；Runtime Get 落入预期 Schema；Runtime List 落入预期 Schema；Runtime Delete 落入预期 Schema；Pool Connection Reuse 后 `search_path` 不漂移；Worker 并发下 Namespace 不漂移；Pooler Transaction/Session Mode 不破坏 Schema Resolution。
+  > 26. 如果无法稳定保证 Schema Resolution，则使用：
+  >
+  >    ```text
+  >    Same PostgreSQL Service
+  >    + Dedicated Checkpoint Database
+  >    ```
+  >
+  > 27. Fallback Database 必须与 Business Database 保持独立 Credentials、Pool 和 Migration Lifecycle。
+  > 28. DQ-13 不选择具体 Pooler。
+  > 29. DQ-13 不授权创建 Database 或 Schema。
+  >
+  > **3.4 Role 和 Connection Pool**
+  >
+  > 30. 必须使用独立的 Business Connection Pool 与 Checkpoint Connection Pool。
+  > 31. Business Pool 不得被 PostgresSaver 使用。
+  > 32. Checkpoint Pool 不得被 Business Repository 使用。
+  > 33. Checkpoint Connection 不得进入 Application UnitOfWork。
+  > 34. Checkpoint Pool 必须只连接被授权的 Checkpoint Database 或 Schema。
+  > 35. Checkpoint Pool 必须使用独立 Role。
+  > 36. Checkpoint Role 采用最小权限。
+  > 37. Checkpoint Role 不应拥有：Business Schema DDL；Business Table UPDATE；Business Table DELETE；Business Migration Owner；Audit Ledger 修改；Source/Evidence 业务表写入；Current Truth 修改。
+  > 38. Business Role 不应直接修改 Vendor Checkpoint Tables。
+  > 39. Migration Role 与 Runtime Checkpoint Role 可以分离。
+  > 40. Checkpoint Pool 必须拥有独立：Pool Size；Connection Timeout；Health Check；Retry Policy；Observability；Credential Rotation。
+  > 41. Worker 长时间执行期间不得持有 Business Session 或 Business UoW。
+  > 42. Checkpointer 自身的短数据库操作不得被包装进业务 UoW。
+  >
+  > **3.5 Workflow Execution Registry**
+  >
+  > 43. 项目必须拥有 Workflow Execution Registry 的明确 Application Contract。
+  > 44. Workflow Execution Registry 至少应表达：`workflow_run_id`；`thread_id`；`checkpoint_namespace`；`command_id`；`stage_run_id`；Target Business Type；Target Business Identity；Base Domain Version；Expected Revision；Input Fingerprint；Runtime Lifecycle；Reconciliation Status；Graph Definition Version；Checkpoint Schema Version；Serializer Version；Stale/Superseded Reason；Created/Updated Time；Retention Eligibility；Related Dispatch ID，如适用；Current Attempt ID，如适用。
+  > 45. `workflow_run_id` 是项目自有的一次逻辑 Workflow Execution Identity。
+  > 46. `thread_id` 是 Framework Checkpoint Identity。
+  > 47. 一个 Workflow Run 必须显式映射到其 Thread。
+  > 48. 该映射不得通过解析 `thread_id` 字符串推断。
+  > 49. Registry 不得保存 SQLAlchemy Session、Repository 或 Vendor Connection。
+  > 50. Registry 的精确表结构留待实现设计。
+  >
+  > **3.6 身份分离**
+  >
+  > 51. 以下身份必须保持分离：`workflow_run_id`；`thread_id`；`checkpoint_id`；`checkpoint_namespace`；`command_id`；`stage_run_id`；`attempt_id`；`dispatch_id`；`domain_version_id`；Idempotency Key；Provider Call Identity。
+  > 52. `thread_id` 不得作为 Command ID。
+  > 53. `thread_id` 不得作为 Stage Run ID。
+  > 54. `thread_id` 不得作为 Idempotency Key。
+  > 55. `thread_id` 不得作为 Lease Identity。
+  > 56. `checkpoint_id` 不得作为 Domain Version ID。
+  > 57. `checkpoint_id` 不得作为业务成功证明。
+  > 58. Checkpoint 存在不表示 Business Commit 成功。
+  > 59. Checkpoint 缺失不表示 Business Commit 未发生。
+  > 60. Attempt Identity 不得替代 Workflow Run Identity。
+  > 61. Intentional Rerun 必须创建新的 Workflow Run Identity 和 Thread Identity。
+  >
+  > **3.7 Checkpoint 权威边界**
+  >
+  > 62. Checkpoint 是 Runtime Recovery State。
+  > 63. Checkpoint 不是：Business Current Truth；Business Version；Audit Record；State Transition Record；Idempotency Record；Durable Work Intent；Integration Event；EvidenceLink；Review Decision；Provider Call Ledger；执行所有权锁。
+  > 64. Checkpoint 中复制的业务字段仅为恢复上下文。
+  > 65. Checkpoint 中的业务字段不得覆盖 PostgreSQL Business Current Truth。
+  > 66. Checkpoint 不得回答以下权威业务问题：当前正式版本；当前 Review Decision；当前 Evidence 状态；当前 Work Intent 状态；当前 Provider Side-effect 状态；当前 Idempotency Result；Current Truth Pointer；正式业务结果。
+  > 67. Business Current Truth 发生变化时，Checkpoint 必须让步。
+  >
+  > **3.8 Payload 边界**
+  >
+  > 68. Checkpoint Payload 只保存恢复 Graph Execution 所需的最小 Runtime State。
+  > 69. 允许保存的内容包括：Workflow Run Identity；Command Reference；Stage Run Reference；Base Domain Version；Expected Revision；Input Fingerprint；Node Cursor；Interrupt Payload；Tool/Node Result Reference；Pending Runtime Writes；Graph Definition Version；Checkpoint Schema Version；Reconciliation Metadata；Runtime-only Channel Values。
+  > 70. Checkpoint Payload 不得保存：SQLAlchemy Session；UnitOfWork；Repository；ORM Entity；Database Connection；Coroutine；Generator；未脱敏 Secret；长期 Provider Token；长期 Presigned URL；不必要的完整 PII；数据库整行无选择复制；不受控制的任意 Python Object。
+  > 71. Provider 响应如需恢复，应保存受控 Result Snapshot 或不可变 Result Reference。
+  > 72. 大型内容应通过稳定 Reference 引用，不得无界复制进入 Checkpoint。
+  > 73. Checkpoint State 不得替代 DQ-12 Source/Evidence 持久化。
+  >
+  > **3.9 Serializer 与安全**
+  >
+  > 74. Checkpoint Serializer 必须使用明确 Allowlist。
+  > 75. 不得允许任意 Python Class 反序列化。
+  > 76. Checkpoint 被视为不完全可信的持久化输入。
+  > 77. Resume 前必须验证：Serializer Version；Payload Schema；Graph Definition Compatibility；必要 Integrity Metadata。
+  > 78. 不兼容 Payload 必须分类为 INCOMPATIBLE，而不是尝试不安全恢复。
+  > 79. 无法安全反序列化的 Payload 必须分类为 CORRUPT 或 INCOMPATIBLE。
+  > 80. Encryption、Redaction、Secret、PII 与访问控制由 DQ-17 决定。
+  > 81. 在 DQ-17 决定前，不得假设所有 Checkpoint Payload 可以明文长期保存。
+  > 82. Runtime Log 不得输出完整 Checkpoint Payload、Secret 或长期访问 URL。
+  >
+  > **3.10 Business Commit 与 Checkpoint Write**
+  >
+  > 83. Business Commit 与 Checkpoint Write 不构成同一 Atomic Transaction。
+  > 84. 即使位于同一 PostgreSQL Service，也不得声称两者属于同一个 Application UoW。
+  > 85. Vendor Checkpoint Connection 不属于 DEC-035 Atomic Business Commit。
+  > 86. 必须处理以下 Crash Window：
+  >    - **A. Checkpoint 成功、Business Commit 未发生：**
+  >
+  > 87. Checkpoint 只表示 Graph 到达某个 Runtime 位置。
+  > 88. Resume 时必须重新验证 Business Current Truth。
+  > 89. 不得根据 Checkpoint 推断业务已提交。
+  >
+  >    - **B. Checkpoint 成功、Business Commit 回滚：**
+  >
+  > 90. Checkpoint 不得解释为成功 Business Result。
+  > 91. Runtime 必须通过 Reconciliation 识别业务未提交。
+  >
+  >    - **C. Business Commit 成功、Checkpoint Write 失败：**
+  >
+  > 92. Business Commit 仍然有效。
+  > 93. 后续 Resume 必须通过 DQ-08 Idempotency 和 Business Current Truth 识别已完成操作。
+  > 94. 不得重新调用已经成功的 Provider 或重复业务副作用。
+  >
+  >    - **D. 两者都成功：**
+  >
+  > 95. 后续 Resume 仍必须执行 Reconciliation。
+  > 96. 不得永久假设 Checkpoint 与 Current Truth 始终一致。
+  > 97. Checkpoint Durability 与 Business Consistency 是互补机制，不是同一事务。
+  >
+  > **3.11 Resume Reconciliation**
+  >
+  > 98. 每次 Resume、Retry、Human Interrupt 恢复或 Time Travel Fork 前必须执行：
+  >
+  >    ```text
+  >    Load Workflow Execution Registry
+  >    → Load Checkpoint
+  >    → Load Business Current Truth
+  >    → Validate Identity and Version
+  >    → Classify Reconciliation Result
+  >    → Resume or Refuse
+  >    ```
+  >
+  > 99. 至少验证：Workflow Run ID；Thread ID；Command ID；Stage Run ID；Input Fingerprint；Base Domain Version；Current Domain Version；Expected Revision；Current Stage State；Idempotency Result；Lease Holder；Attempt ID；Fencing Token；Graph Definition Version；Checkpoint Schema Version；Serializer Version；Workflow Runtime Status。
+  > 100. Reconciliation 至少区分：
+  >
+  >    ```text
+  >    RESUMABLE
+  >    ALREADY_COMMITTED
+  >    STALE
+  >    SUPERSEDED
+  >    INVALIDATED
+  >    ORPHANED
+  >    INCOMPATIBLE
+  >    CORRUPT
+  >    ```
+  >
+  > 101. 只有 RESUMABLE 可以继续原 Thread。
+  > 102. ALREADY_COMMITTED 表示对应 Business Command 已成功完成。
+  > 103. ALREADY_COMMITTED 不得再次执行业务副作用。
+  > 104. ALREADY_COMMITTED 应重放业务结果或推进 Runtime Completion。
+  > 105. STALE 表示 Business Current Truth 已前进，Checkpoint 基于旧状态。
+  > 106. STALE Checkpoint 不得覆盖新 Current Truth。
+  > 107. SUPERSEDED 表示 Workflow Run 已被 Intentional Rerun、Replacement 或其他正式操作取代。
+  > 108. INVALIDATED 表示其引用的 Business Version、Source、Evidence、Review Decision 或其他依赖失效。
+  > 109. ORPHANED 表示存在 Checkpoint，但 Registry、业务对象或合法 Workflow Run 不存在。
+  > 110. INCOMPATIBLE 表示 Graph Definition、Serializer、Checkpoint Schema 或 Package Version 无法安全恢复。
+  > 111. CORRUPT 表示数据损坏、完整性失败或无法可信读取。
+  > 112. 非 RESUMABLE 结果必须停止原 Thread Resume。
+  >
+  > **3.12 Stale 和 Superseded**
+  >
+  > 113. STALE 或 SUPERSEDED Checkpoint 不得修改较新的 Business Current Truth。
+  > 114. 不得静默修改 Checkpoint 的 Base Domain Version。
+  > 115. 不得把 Retry 伪装成 Resume。
+  > 116. 不得复用旧 Command Identity 创建新的逻辑业务操作。
+  > 117. 允许的处理包括：将 Workflow Run 标记为 STALE；将 Workflow Run 标记为 SUPERSEDED；终止当前 Resume Attempt；保存诊断 Metadata；根据 DQ-15 决定保留或删除 Checkpoint；启动 Intentional Rerun。
+  > 118. Intentional Rerun 必须创建新的：Command ID；Stage Run ID；Workflow Run ID；Thread ID；Attempt ID；Dispatch ID，如适用；Provider Call Identity，如适用。
+  > 119. Intentional Rerun 必须保留父级和因果关系。
+  >
+  > **3.13 并发控制**
+  >
+  > 120. Checkpoint 不承担执行并发控制。
+  > 121. 以下内容均不是执行锁：Thread ID；Checkpoint ID；Checkpoint Record；Checkpoint Write Success；Graph State 中的布尔 Flag。
+  > 122. 执行所有权继续由 DQ-07 提供：Durable Lease；Lease Holder；Attempt ID；Monotonic Fencing Token。
+  > 123. 同一 Workflow Run 或 Thread 的并发 Resume 必须：拒绝第二个执行；或通过 Durable Lease 串行化。
+  > 124. 不得依赖 Checkpointer 自动阻止并发 Resume。
+  > 125. 最终 Business Commit 必须重新验证 Fencing Token。
+  > 126. Lease 过期或 Fencing Token 失效后，旧 Worker 不得提交 Business Result。
+  > 127. Checkpoint 写入成功不得恢复旧 Worker 的执行权。
+  >
+  > **3.14 Durability Mode**
+  >
+  > 128. Durability Mode 的精确逐节点策略归 RFC-003。
+  > 129. `exit` 不得用于：Human-in-the-loop；Awaiting Review；长时间等待；需要故障恢复的生产流程；跨多个节点的正式生产工作流。
+  > 130. `async` 只有在以下条件同时满足时才允许：可容忍最近一个恢复点丢失；所有外部副作用受 DQ-08 幂等保护；必须执行的工作由 DQ-09 Durable Work Intent 持久化；Business Commit 可以独立对账；重算成本可接受。
+  > 131. `sync` 是以下边界的默认安全方向：Interrupt 前；Human Review 等待前；不可廉价重算步骤后；Provider Side-effect Result 记录后；正式 Business Commit 相关边界；Runtime 释放 Lease 前。
+  > 132. `sync` 不等于 Business Commit 与 Checkpoint Atomic。
+  > 133. RFC-003 可以在不违反上述最低约束的前提下定义更细粒度策略。
+  >
+  > **3.15 Time Travel 与 Fork**
+  >
+  > 134. Graph Time Travel 不等于 Business Restore。
+  > 135. 从旧 Checkpoint Fork 不得自动覆盖 Current Truth。
+  > 136. Fork 不得自动复用旧业务 Command Identity。
+  > 137. Debug Fork 不是正式业务结果。
+  > 138. 要将 Fork 结果写入 Business Current Truth，必须转换为 Intentional Rerun。
+  > 139. Intentional Rerun 必须创建新业务身份并通过新的 DEC-035 Atomic Business Commit。
+  > 140. DQ-11 Business Restore 继续创建新的 Domain Version。
+  > 141. Checkpoint Fork 不得替代 Restore Command。
+  >
+  > **3.16 Setup 与 Vendor Migration**
+  >
+  > 142. PostgresSaver Setup 属于 Vendor Checkpoint Schema 初始化和迁移。
+  > 143. 生产 Worker 启动时不得无条件并发执行 Setup DDL。
+  > 144. Setup 应通过：受控部署步骤；Migration Job；或其他单一受控初始化机制。
+  > 145. `langgraph-checkpoint-postgres` 版本必须钉定。
+  > 146. Vendor Checkpoint Migration 与 Business Alembic Migration 必须分离。
+  > 147. Business Alembic 不得管理 Vendor Checkpoint Tables。
+  > 148. Runtime Module 不得自行修改 Vendor Table Schema。
+  > 149. Package 升级前必须验证：Schema Migration；Existing Checkpoint Compatibility；Resume Compatibility；Serializer Compatibility；Rollout/Rollback Boundary；Setup Idempotency；Pool/Search Path Compatibility。
+  > 150. Setup 与 Runtime 必须使用一致的 Storage Namespace、Role 和 Schema Resolution。
+  > 151. DQ-14 管理总体 Migration Discipline，但不得把 Vendor Table 纳入普通业务 Migration Ownership。
+  >
+  > **3.17 Retention 与删除**
+  >
+  > 152. Checkpoint 是可清理 Runtime Artifact。
+  > 153. 可清理不等于任意时间可以删除。
+  > 154. Thread 只有在以下条件满足时才可进入删除：Workflow Terminal；无有效 Lease；无 Pending Resume；无 Awaiting Human Input；无 Retry Window；无 Incident Hold；无 Debug Hold；无 Legal Hold；Registry 标记可清理。
+  > 155. 不得删除以下状态对应的 Thread：ACTIVE；IN_PROGRESS；INTERRUPTED；AWAITING_REVIEW；FAILED_RETRYABLE；RECONCILING；INCIDENT_INVESTIGATION。
+  > 156. 删除 Checkpoint 不得删除或改变：Business Current Truth；Audit；State Transition；Domain Version；Evidence；Work Intent；Integration Event；Idempotency Result；Provider Call Ledger。
+  > 157. 默认采用 Whole-thread Lifecycle Deletion。
+  > 158. 在没有验证 Package Version、Checkpoint Chain 和 DeltaChannel 完整性的情况下，不得执行部分历史 Pruning。
+  > 159. 不得假设任意 PostgresSaver 版本都支持安全 Partial Pruning。
+  > 160. Retention Period、Grace Period、Legal Hold 和 Physical Cleanup 由 DQ-15 决定。
+  > 161. 删除操作必须可审计。
+  >
+  > **3.18 所有权边界**
+  >
+  > 162. Workflow Runtime Capability 拥有：Workflow Execution Registry；Reconciliation Application Contract；Checkpoint Adapter；Runtime Lifecycle；Checkpoint Cleanup Coordination。
+  > 163. Vendor Checkpoint Tables 由 Checkpointer Package 的存储协议管理。
+  > 164. Business Module 不拥有 Vendor Table。
+  > 165. Business Module 不得直接使用 PostgresSaver Repository 或 SQL。
+  > 166. Runtime Module 不得直接修改业务 Current Truth，除非通过正式 Business Application Contract。
+  > 167. Reconciliation 读取 Business Current Truth 时必须使用业务模块公开的 Query/Application Contract。
+  > 168. Cross-module Direct SQL 继续被 DQ-02 禁止。
+  > 169. Checkpoint Storage Adapter 属于 Infrastructure。
+  > 170. Workflow Identity、Reconciliation Policy 和 Runtime Lifecycle 属于 Application/Runtime 语义。
+  >
+  > **3.19 Readiness Artifact**
+  >
+  > 171. 在 Checkpoint 持久化实现授权前，Architecture Readiness Package 必须包含：
+  >
+  >    ```text
+  >    Workflow Checkpoint Boundary & Reconciliation Table
+  >    ```
+  >
+  > 172. 该表至少包含：Workflow Type；Workflow Run Identity；Thread ID Source；Checkpoint Namespace；Business Target；Base Domain Version；Expected Revision；Input Fingerprint；Interrupt Use；Durability Mode；Resume Preconditions；Stale Detection；Reconciliation Outcome；Lease/Fencing Requirement；Serializer Policy；Sensitive Payload Classification；Retention State；Delete Eligibility；Graph Definition Version；Checkpoint Schema Version；Related DQ/DEC/RFC。
+  > 173. DQ-13 接受不授权创建该表。
+  > 174. Workflow Checkpoint Boundary & Reconciliation Table Creation = NOT AUTHORIZED。
+  > 175. DQ-13 不新增独立 Matrix。
+  > 176. 现有 Matrix 与 Classification Artifacts 继续保持原授权状态。
+  >
+  > **3.20 Technical Spike**
+  >
+  > 177. DQ-13 决策归档前不要求执行 Technical Spike。
+  > 178. 在启用正式 Checkpoint 实现前，必须完成单独授权的：
+  >
+  >    ```text
+  >    Workflow Checkpoint Isolation & Reconciliation Technical Spike
+  >    ```
+  >
+  > 179. Spike 必须针对项目实际钉定的 Python PostgresSaver 版本执行。
+  > 180. Spike 必须使用实际 Psycopg Pool 与计划部署的 Pooler/Connection Mode。
+  > 181. Spike 最低验证：Setup 落入预期 Schema 或 Database；Put/Get/List/Delete 不访问业务 Schema；Dedicated Role 最小权限；Dedicated Pool 的 Schema Resolution 不漂移；Pool Reuse；Pooler Session/Transaction Mode；多 Worker 并发 Setup；Setup Idempotency；同一 Thread 并发 Resume；Lease/Fencing 阻止旧 Worker；Checkpoint 成功、Business Commit 失败；Business Commit 成功、Checkpoint 失败；STALE 不覆盖 Current Truth；ALREADY_COMMITTED 不重复副作用；INCOMPATIBLE Graph Version；Strict Serializer；Corrupt Payload；Whole-thread Cleanup；无 Business Partial Write。
+  > 182. 如果 Dedicated Schema 方案验证失败，Spike 必须验证同 Service Dedicated Database Fallback。
+  > 183. Spike 可以与 PostgreSQL Concurrency Spike 共享基础设施，但验收目标和报告必须独立。
+  > 184. 本次接受不授权创建 Spike Issue、Branch、PR、代码、测试、Role、Database、Schema、Pool 或基础设施。
+  > 185. Workflow Checkpoint Isolation & Reconciliation Technical Spike = REQUIRED / NOT AUTHORIZED。
+  >
+  > **3.21 测试前置语义**
+  >
+  > 186. 正式 Checkpoint 数据库语义测试必须使用真实 PostgreSQL。
+  > 187. 后续测试至少覆盖：Business、Registry 和 Vendor Checkpoint 三平面分离；Business Pool 与 Checkpoint Pool 分离；Business Role 不能写 Vendor Table；Checkpoint Role 不能写 Business Table；Thread ID 不作为业务身份；Checkpoint 成功、Business Commit 失败；Business Commit 成功、Checkpoint 失败；ALREADY_COMMITTED 不重复副作用；STALE 不覆盖新 Current Truth；SUPERSEDED 不继续旧 Thread；INVALIDATED 停止 Resume；ORPHANED 不自动恢复；INCOMPATIBLE 不进行不安全反序列化；CORRUPT 不被当作业务成功；并发 Resume 被 Lease/Fencing 阻止；Time Travel Fork 不等于 Business Restore；Intentional Rerun 创建新身份；Setup 不由所有 Worker 并发执行；Vendor Migration 与 Business Migration 分离；Whole-thread Delete 不影响 Business Data；Partial Pruning 在未验证时被禁止；无部分 Business Write。
+  > 188. 详细测试分类与 CI 策略继续由 DQ-16 决定。
 
 ---
 
@@ -2390,7 +2709,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~12 ACCEPTED；DQ-13~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~13 ACCEPTED；DQ-14~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -2405,7 +2724,7 @@ RFC-002-DQ-09  Transactional Outbox / Dispatch       = ACCEPTED (Candidate B, Fo
 RFC-002-DQ-10  Event & Audit Persistence             = ACCEPTED (Candidate A, Six Independent Event/Record Semantics, Append-only Audit in Same Atomic Commit, Transactional Integration Event Outbox, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-11  Snapshot vs History                   = ACCEPTED (Candidate A, Formal Model: Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/State Transition History + Optional Derived Query Projections, Full Event Sourcing / Current-state-only Overwrite / Delta-only Authoritative History Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-12  Source & Evidence Persistence         = ACCEPTED (Candidate A, Formal Model: PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index, Universal All-in-PostgreSQL / Universal All-in-Object-Storage Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
-RFC-002-DQ-13  Workflow Checkpoint Separation        = PROPOSED — User Decision: PENDING
+RFC-002-DQ-13  Workflow Checkpoint Separation        = ACCEPTED (Candidate A, Formal Model: Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation, Dedicated Schema Must Be Proven / Dedicated Database Fallback, Independent PostgreSQL Service Not Selected / Shared-Table Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-14  Schema Evolution & Migrations         = PROPOSED — User Decision: PENDING
 RFC-002-DQ-15  Data Retention & Deletion Boundary    = PROPOSED — User Decision: PENDING
 RFC-002-DQ-16  Persistence Testing Strategy          = PROPOSED — User Decision: PENDING
