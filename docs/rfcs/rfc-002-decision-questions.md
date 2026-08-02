@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~14 ACCEPTED；DQ-15~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~15 ACCEPTED；DQ-16~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation）；DQ-14 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles）；DQ-15~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation）；DQ-14 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles）；DQ-15 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles）；DQ-16~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-14 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13/DQ-14 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-15~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13/14 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
+> - DQ-01~DQ-15 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13/DQ-14/DQ-15 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-16~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13/14/15 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -30,7 +30,7 @@
 | DQ-12 | Source & Evidence Persistence | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index**；Candidate B（全部内容无条件存 PostgreSQL 通用策略）与 Candidate C（全部内容无条件存对象存储仅 DB 引用通用策略）均拒绝；Source/SourceVersion/ContentObject/Acquisition/DerivedArtifact/Fragment/EvidenceLink/Retrieval Index Entry 身份分离（不得通用 `document_id` 合并）；物理 ContentObject 可按 Content Hash 去重但不得合并不同 Source/SourceVersion/Acquisition/Provenance/权限/Evidence Link；PostgreSQL 保存全部权威身份/状态/Provenance/Hash/Fragment/Evidence Link 与对象引用（唯一权威）；中小原始文本/规范化文本/结构化元数据可依显式 Storage Classification Policy 存 PostgreSQL，大型/二进制/流式/对备份影响显著的原始内容用不可变对象存储；TOAST 仅透明物理机制不作业务大小边界，PostgreSQL Large Object 不作 MVP 默认路径；Raw/Normalized/Parsed/Canonical Fragment/Retrieval Chunk 分离——Raw 不可变，Parser/Normalizer/OCR/Chunking 变化创建新 DerivedArtifact/FragmentSet 不覆盖旧结果；每 ContentObject 记录 Hash Algorithm + Content Hash + Byte Length + Media Type（Raw/Normalized Hash 分别计算，对象存储 ETag 不作项目权威 Content Hash）；外部 Blob 优先内容寻址 + 条件创建 + 不可覆盖 Key；不假设 PostgreSQL 与对象存储分布式事务——Prepare Content → Upload Immutable Object → Verify Checksum/Presence → Finalize Metadata in Short PostgreSQL Transaction（数据库不得提交指向未验证对象的正式 SourceVersion；上传成功而 DB Commit 失败只产生待 Reconciliation 的未引用 Orphan，不产生 Business Current Truth；正式引用后对象缺失/损坏 = Integrity Incident，不得静默切换 URL 最新内容或其他 SourceVersion）；EvidenceLink 显式指向不可变 SourceVersion 及适用 Canonical Fragment/Typed Selector（不得指向 Source Current Pointer/URL 最新内容/Pending SourceVersion/未验证对象/仅 Vector ID）；Evidence Links 与 Business Version/Current Truth Pointer 等适用参与者同一 DEC-035 Atomic Business Commit；Retrieval Index 属 RFC-005 派生/可重建/非权威（Embedding/Vector ID/Ranking Score/Search Result 不等于 Evidence；正式提交前回链验证 PostgreSQL SourceVersion/Fragment/Hash/Availability/业务不变量；Index 延迟/损坏/重建不改变 Current Truth 或既有 Evidence Link）；跨 Tenant/Security Domain Content Hash 去重在 DQ-17 决定前不得启用；Retention/Orphan Grace Period/Legal Hold/物理删除留 DQ-15，Encryption/Redaction/PII/对象 Key 安全/跨安全域去重留 DQ-17；**Source & Evidence Storage Classification Table 为 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED**；**External Object Consistency Technical Spike（条件写/Checksum/Multipart/Crash Window/Orphan Reconciliation/Missing/Corrupt Object/真实 Provider 一致性）为外部对象存储实现前置——REQUIRED BEFORE EXTERNAL STORAGE IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 原始内容存 DB vs 引用 + 大内容边界 | DEC-025 Source/Evidence 语义；DEC-012 原始与解析分离；DEC-024 Retrieval Index 独立存储；PG TOAST/Large Object 官方能力 |
 | DQ-13 | Workflow Checkpoint Separation | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation**；Candidate B 独立 PostgreSQL 服务/独立基础设施不作 MVP（Fallback = 同一 PostgreSQL Service 内独立 Checkpoint Database，不等于 Candidate B）；Candidate C 同表混存拒绝；优先物理形态 = 同 Database + Dedicated Checkpoint Schema（但必须用钉定的 Python PostgresSaver + 实际 Psycopg Pool + 部署 Pooler 证明 Setup 与全部运行时 SQL 落预期 Schema，不得仅凭文档推测；无法稳定保证则用 Dedicated Checkpoint Database Fallback）；Business Persistence / Application-owned Workflow Execution Registry / Vendor Checkpoint Tables 三平面分离（不得通用 Workflow 表/State JSON/ORM Model 合并）；独立 Business Pool 与 Checkpoint Pool、Checkpoint Role 最小权限、Checkpoint Connection 不进 Business UoW；Workflow Execution Registry 显式映射 workflow_run_id/thread_id/command_id/stage_run_id/目标业务对象/Base Domain Version/Expected Revision/Input Fingerprint/Runtime Lifecycle/Reconciliation Status/Graph Definition Version/Checkpoint Schema Version；workflow_run_id/thread_id/checkpoint_id/command_id/stage_run_id/attempt_id/dispatch_id/domain_version_id/Idempotency Key 身份分离（thread_id 不得作业务身份/Idempotency Key/执行锁）；Checkpoint = Runtime Recovery State only，≠Business Current Truth/Business Version/Audit/Idempotency/Work Intent/执行锁；Business Commit 与 Checkpoint Write 不构成同一 Atomic Transaction（Checkpoint 成功不表业务成功、Checkpoint 缺失不表业务未发生）；Resume/Retry/Human Interrupt 恢复/Time Travel Fork 前必须 Load Registry+Checkpoint+Current Truth 并验证身份版本后分类；Reconciliation 至少区分 RESUMABLE/ALREADY_COMMITTED/STALE/SUPERSEDED/INVALIDATED/ORPHANED/INCOMPATIBLE/CORRUPT（只有 RESUMABLE 可继续原 Thread、Stale Checkpoint 不覆盖新 Current Truth）；Checkpoint 不承担并发控制（执行所有权 = DQ-07 Lease+Attempt ID+Fencing Token，最终 Business Commit 重新验证 Fencing Token）；Graph Time Travel/Fork ≠ DQ-11 Business Restore（Fork 入正式状态须转 Intentional Rerun 创建新身份 + 新 DEC-035 Atomic Business Commit）；Checkpoint Payload 仅保存最小 Runtime State + 严格 Serializer Allowlist（不存 Session/UoW/Repository/ORM Entity/Connection/Coroutine/未脱敏 Secret/长期 Token/完整 PII）；Durability Mode 逐节点策略留 RFC-003（exit 禁用于 Human-in-the-loop/需故障恢复生产流程，sync 为 Interrupt/Human Review/Provider 结果落地/正式业务提交边界默认安全方向）；PostgresSaver Setup 经受控部署/Migration Job、不得所有 Worker 启动并发执行、Vendor Migration 与 Business Alembic 分离、Package 必须钉定；Checkpoint 可清理但仅 Terminal/无 Lease/无 Pending Resume/无 Interrupt/无 Incident-Legal Hold 的 Thread 可删（默认 Whole-thread Lifecycle Deletion，未验证 Package Version/Checkpoint Chain/DeltaChannel 完整性禁止 Partial Pruning，删除不改业务数据）；Encryption/Redaction/PII 留 DQ-17、Retention 留 DQ-15、测试留 DQ-16、Serializer 安全细节留 DQ-17/RFC-003；**Workflow Checkpoint Boundary & Reconciliation Table 为持久化实现前置——REQUIRED 但 NOT AUTHORIZED**；**Workflow Checkpoint Isolation & Reconciliation Technical Spike（钉定 PostgresSaver/Schema-Database Isolation/Role/Pool/Setup/Crash Window/并发 Resume/Stale Reconciliation/Serializer/Cleanup）为 Checkpoint 实现前置——REQUIRED BEFORE CHECKPOINT IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 同库/分库、生命周期、对账权威 | DEC-023/024 Checkpoint 仅恢复≠Current Truth；DEC-033 Reconciliation；PostgresSaver 官方无同库建议 |
 | DQ-14 | Schema Evolution & Migrations | **已决定（2026-08-03 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles**；Candidate B 不作通用生产恢复保证（"所有 Migration 应支持安全 Downgrade" 方向拒绝；明确可逆、无数据损失且经真实 PostgreSQL 测试的 Migration 可选择性提供安全 Downgrade）；Candidate C 作为唯一 Migration System 拒绝（受治理 Alembic Revision 内允许人工编写 PostgreSQL SQL，不绕过 Revision Graph/Review/Deployment Gate/Migration History）；Migration Ownership（唯一 Migration Capability/Deployment Pipeline/受控 Migration Job 执行；Web/Background/Workflow Worker 不启动自动 upgrade head；Migration Role 与 Runtime Role 分离）；Single Business Migration Lineage（Merge/Release Gate 单一 Alembic Head；Multiple Heads 经 Rebase/重新生成 Revision/显式 Merge Revision 解决，不修改已发布历史 Revision；PostgresSaver Vendor Migration 不伪装成 Business Alembic Head）；Migration History Immutability（已执行 Revision 不可变发布记录，修复创建新 Forward Repair Revision；Migration History Immutability ≠ Business Version Immutability）；Autogenerate Discipline（仅作 Candidate Generator 必经人工审查；Rename/Type/Default/Nullable/Constraint/Index/FK/Enum/Schema/Partition/Data Migration/Drop 显式检查；drop_table/drop_column/drop_constraint 未过 Destructive Gate 不入生产；Autogenerate 排除 Vendor Checkpoint Tables）；Schema Drift Gate（alembic check 检测可识别 Metadata Drift，非 Migration 安全证明）；Forward-recovery-first（生产恢复不依赖通用 Schema Downgrade，默认 Rollback Compatible Application + Keep Expanded Schema + Forward Repair Migration）；Rollback 术语分离（Application Rollback/Schema Downgrade/Forward Repair/Database Restore/PITR/DQ-11 Business Restore 独立语义）；Reversibility Classification（REVERSIBLE_SCHEMA/FORWARD_FIX_ONLY/DATA_IRREVERSIBLE/NON_TRANSACTIONAL_DDL/DESTRUCTIVE_CONTRACT/VENDOR_MANAGED）；Expand-Migrate-Contract（Expand 与 Contract 不同一次发布；Contract 前证明旧 Application 退出+Backfill 完成+验证通过+兼容窗口关闭）；Resumable Backfill（大型 Backfill 不入长 Alembic Transaction；独立 backfill_run_id/批次游标/Lease/Attempt/Fencing/进度/验证，分批提交/暂停/恢复/幂等重试；遵循 DQ-07 Lease+Fencing 与 DQ-08 Idempotency；Technical Backfill ≠ Business Semantic Change，后者经正式 Business Application Contract+Audit+版本化规则）；PostgreSQL 低锁策略（大型表 Add Nullable Column；NOT VALID→修复→VALIDATE；CREATE INDEX CONCURRENTLY 独立 Non-transactional Boundary+Invalid Index Recovery；Type Change 默认 Shadow Column+Dual Write+Backfill+Cutover+Contract；Lock/Statement Timeout+资源预算）；Destructive Gate 与 Non-transactional DDL Gate（Drop Table/Column/Constraint/Type Narrowing/不可逆转换/Enum 删除/强制 Constraint/Partition Drop/大规模重写经显式 Gate；Non-transactional DDL 独立 Revision/Step，失败不自动回滚须验证实际状态）；Vendor Migration Separation（Business Alembic ≠ PostgresSaver Vendor Migration ≠ Retrieval Index Rebuild ≠ Object Storage Lifecycle）；Schema Version Identity Separation（alembic_revision ≠ domain_version_id/version_number/revision/checkpoint_schema_version/event_schema_version/payload_schema_version；Alembic Head ≠ Backfill/Validation/Contract 完成）；Deployment Protocol（Preflight→Expand→Compatible Application→Backfill→Verify→Switch Read→End Compatibility Window→Contract；Web/Worker 不自动执行 Migration；Offline SQL 对应正式 Revision 与 Target 版本）；CI 最低 Gate（单一 Business Head/alembic check/fresh+baseline upgrade/revision graph/offline SQL reviewable/destructive gated/vendor schema excluded）；**Schema Migration Compatibility & Risk Table 与 Schema Migration Rollout & Recovery Technical Spike 为实现前置条件——均 REQUIRED 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 forward-only vs downgrade、autogenerate 纪律 | DEC-024 版本化语义；Alembic autogenerate 必须人工 review；PG 快速加列/CREATE INDEX CONCURRENTLY/NOT VALID+VALIDATE 两段式 |
-| DQ-15 | Data Retention & Deletion Boundary | 各类数据保留策略归属 | checkpoint 无内建 TTL |
+| DQ-15 | Data Retention & Deletion Boundary | **已决定（2026-08-03 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles**；Candidate B Universal TTL 拒绝（违反数据语义与历史要求）；Candidate C Universal Permanent Retention 拒绝（不可持续且可能与 Retention-limitation 义务冲突）；每类数据独立 Retention Policy（Purpose/Owner/Trigger/Clock/Required Horizon/Permitted Horizon/Blockers/Hold/Disposition/Verification/Storage-plane Treatment），不设置或虚构具体保留周期（`PERIOD NOT DECIDED`）；Invalidation/Supersession/Archive/Access Restriction/Redaction/Pseudonymization/Anonymization/Tombstone/Logical Deletion/Physical Purge/Backup Expiry 语义独立（业务删除、Source Invalidation、Evidence Retraction、Workflow Terminal 不自动等同物理删除）；Business Current Truth/Immutable Business Version/Audit/State Transition 正常生命周期不物理删除或覆盖（但不得解释为无视法律/隐私/安全要求永久保留全部个人数据；受治理 Exceptional Erasure/Redaction Path 必需，精确 PII 分离/Redaction/Anonymization/Encryption/法律例外留 DQ-17）；Retention Clock 数据类专属（不统一 created_at；Checkpoint/Idempotency/Work Intent/Outbox/Consumer Dedup/Source/Evidence/Provider Payload/Logs/Orphan Blob/Backup 各依 Terminal/Superseded/Last-required/Delivery-completed/Replay-window-closed/Legal-basis-expired/Unreferenced 事件）；删除 Reference-aware（仍被 Business Version/EvidenceLink/Audit Requirement/Legal Hold/Security Incident/Review 引用不得物理删除；Content-addressed Object 须无有效引用/无 Hold/Grace Period 完成/Reconciliation 通过；物理去重不造成跨 Tenant/跨主体/跨安全域误删；未经审查的跨业务图广泛 ON DELETE CASCADE 禁止）；Checkpoint 继续 DQ-13 Whole-thread Lifecycle Deletion（仅 Workflow Terminal/无 Lease/无 Pending Resume/无 Human Interrupt/无 Retry Window/无 Incident-Legal Hold 可删，不删 Workflow 最小终态/Business Result/Audit/Idempotency/Work Intent/Provider Call Ledger/Domain Version）；Durable Work Intent/Integration Event Outbox/Consumer Dedup/Idempotency Record 承担 Retry/Replay/Delivery/Duplicate Prevention/Incident Investigation 责任期间不删；Raw Model Prompt/Response、Provider Payload、Tool Payload、Debug Trace 不默认永久保存（Business Result/Provider Call Ledger/Raw Payload 分离）；Central Retention Governance + Decentralized Data Ownership（各业务模块为自身数据唯一所有者；中央 Purge Orchestrator 不跨模块直接 SQL 删除，经目标模块类型化 Application Contract 获取 Eligibility/执行处置/验证结果；DQ-02 唯一表所有权继续有效）；每项 Retention/Deletion 决定记录 Policy ID/Version/Data Class/Trigger/Eligible Time/Disposition/Purpose/Legal Basis/Hold/Decision Reason/Verification Result（Policy Version 可审计，修改不静默改写历史删除依据）；Legal/Security Incident/Regulatory/Dispute/Review Hold 须有 Scope/Authority/Reason/Review/Release Trail 且存在时阻止 Physical Purge（不被普通 Retention Job 自动解除）；删除请求先形成受治理 Deletion/Erasure Case（请求者权限验证→适用规则判定→数据范围发现→Reference/Hold 检查→Deletion Plan→分存储平面执行→最终验证，不映射为单次 SQL DELETE，不自动包含其他主体/Tenant 数据）；Purge Worker 遵循 DQ-07 Lease/Fencing 与 DQ-08 Idempotency，分批短事务 + Crash Recovery，状态至少区分 Requested/Assessing/Blocked/Held/Eligible/Purge In Progress/Primary Purged/Derived-Object Purged/Backup Expiry Pending/Completed/Failed（重复执行不扩大删除范围或删除新合法引用）；Application Inaccessibility/Logical Database Deletion/Physical Storage Reclamation/Backup Expiry 分离（SQL DELETE Commit 不表底层字节立即消失；Primary 删除完成不表 Backup/PITR 到期；旧 Backup 恢复须隔离环境并重放已完成 Deletion Ledger 防止已删除数据重新进入生产服务）；删除后仅保留不含原敏感载荷的最小 Tombstone/Deletion Proof（Archive/Cold Storage/Encryption/Soft Delete/Access Restriction 均不得声称为 Physical Purge）；**Data Retention, Hold & Deletion Policy Table 为 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED**（不授权创建该表或填写具体期限）；**Retention & Deletion Safety Technical Spike（Reference/Hold、Checkpoint 删除、多引用 Content Object、跨存储 Crash Window、Backup Restore Deletion Replay、幂等重试、跨主体误删防护）为首个生产 Purge 实现前置——REQUIRED BEFORE PRODUCTION PURGE IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 分类定责 vs 统一 TTL vs 全部保留 | DEC-013/025 保留周期未确认；DEC-024 历史不删除；checkpoint 无内建 TTL |
 | DQ-16 | Persistence Testing Strategy | 真实 DB vs SQLite fake | 并发语义不可移植 |
 | DQ-17 | Security & Sensitive Data Boundary | Secret/PII 不落 checkpoint | Secret 明文序列化风险 |
 
@@ -3108,9 +3108,666 @@
 - **Trade-offs：** A 符合 DEC 且给 checkpoint 回收空间；B 违规；C 不可持续。
 - **Failure modes：** 误删业务历史→违反 DEC-024；无 checkpoint 清理→膨胀；原始来源无合规策略→合规风险。
 - **Impact on later RFCs：** RFC-003（checkpoint 保留）、RFC-007（日志保留）。
-- **Recommendation：** **[架构推断] 倾向 A**——分类定责，业务真值/审计 append-only 不删，checkpoint/运行记录由应用层可回收，原始来源保留策略留合规决定（**具体周期数值由用户定，不虚构**）。**置信度：中**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation：** **[架构推断] 倾向 A**——分类定责，业务真值/审计 append-only 不删，checkpoint/运行记录由应用层可回收，原始来源保留策略留合规决定（**具体周期数值由用户定，不虚构**）。**置信度：中**。（**历史提案；Superseded by the Accepted Major Revision below。**）
+- **Candidate 处置（2026-08-03 用户正式决定）：** Candidate A = **ACCEPTED WITH MAJOR REVISION**（Formal Model = Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles）；Candidate B = **REJECTED**（Universal TTL violates data semantics and history requirements）；Candidate C = **REJECTED**（Universal Permanent Retention is unsustainable and may conflict with retention-limitation obligations）。
+- **User Decision：** ACCEPTED WITH MAJOR REVISION
+- **Accepted Candidate：** CANDIDATE A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-03 用户正式决定）：**
+
+  > **3.1 正式模型**
+  >
+  > 1. MVP 采用：
+  >
+  >    ```text
+  >    CLASSIFIED RETENTION & DISPOSITION POLICIES
+  >    + PURPOSE / LEGAL-BASIS-DRIVEN RETENTION CLOCKS
+  >    + REFERENCE-AWARE DELETION ELIGIBILITY
+  >    + LEGAL / SECURITY / INCIDENT HOLD OVERRIDES
+  >    + NORMAL-LIFECYCLE IMMUTABILITY FOR BUSINESS HISTORY
+  >    + GOVERNED EXCEPTIONAL ERASURE / REDACTION PATHS
+  >    + IDEMPOTENT AUDITABLE PURGE ORCHESTRATION
+  >    + SEPARATE PRIMARY / OBJECT / INDEX / CHECKPOINT / BACKUP LIFECYCLES
+  >    ```
+  >
+  > 2. Candidate A 被接受并进行重大修订。
+  > 3. Candidate B Universal TTL 被拒绝。
+  > 4. Candidate C Universal Permanent Retention 被拒绝。
+  > 5. 不得为整个项目设置一个通用 TTL。
+  > 6. 不得假设所有数据都应永久保留。
+  > 7. 本决定不设置任何具体保留天数、月数或年数。
+  > 8. 具体期限必须由未来明确的业务、合规、合同、安全和运营决定提供。
+  >
+  > **3.2 数据生命周期术语分离**
+  >
+  > 9. 必须区分：
+  >    - Invalidation；
+  >    - Supersession；
+  >    - Archive；
+  >    - Cold Storage；
+  >    - Access Restriction；
+  >    - Redaction；
+  >    - Pseudonymization；
+  >    - Anonymization；
+  >    - Tombstone；
+  >    - Logical Deletion；
+  >    - Physical Purge；
+  >    - Backup Expiry。
+  > 10. Invalidation 表示记录不再有效，不表示物理删除。
+  > 11. Supersession 表示新记录取代旧记录，不表示旧记录被删除。
+  > 12. Archive 表示访问频率或存储层级发生变化，不表示删除。
+  > 13. Access Restriction 表示限制读取权限，不表示删除。
+  > 14. Encryption 不表示删除。
+  > 15. Soft Delete 不表示 Physical Purge。
+  > 16. Redaction 表示受控删除或替换部分字段。
+  > 17. Pseudonymization 不得被自动描述为不可逆匿名化。
+  > 18. Anonymization 必须以无法合理重新识别为目标，但精确法律标准留给 DQ-17。
+  > 19. Tombstone 是删除后允许保留的最小存在和处置证明。
+  > 20. Physical Purge 表示从适用权威与派生存储中执行实际删除。
+  > 21. 上述术语不得在数据库字段、API、运营手册或审核报告中混用。
+  >
+  > **3.3 Retention Policy 分类**
+  >
+  > 22. 每类数据必须拥有独立 Retention Policy。
+  > 23. 每项 Policy 至少定义：
+  >    - Data Class；
+  >    - Owning Module；
+  >    - Authoritative/Derived；
+  >    - Business Purpose；
+  >    - Legal/Contractual Basis；
+  >    - Retention Trigger；
+  >    - Retention Clock；
+  >    - Minimum Required Horizon；
+  >    - Maximum Permitted Horizon；
+  >    - Deletion Blockers；
+  >    - Hold Types；
+  >    - Normal Disposition；
+  >    - Exceptional Erasure Action；
+  >    - Storage-plane Treatment；
+  >    - Verification Owner。
+  > 24. Retention Policy 不得只包含一个 TTL 数字。
+  > 25. Retention Policy 必须区分最短必须保留时间和最长允许保留时间。
+  > 26. 如果当前没有获得合法的具体期限，必须明确标记：
+  >
+  >    ```text
+  >    PERIOD NOT DECIDED
+  >    ```
+  >
+  > 27. 不得由实现人员自行虚构期限。
+  >
+  > **3.4 Retention Clock**
+  >
+  > 28. Retention Clock 不得统一使用 `created_at`。
+  > 29. 可能的 Trigger 包括：
+  >    - Workflow Terminal；
+  >    - Business Relationship End；
+  >    - Superseded；
+  >    - Invalidated；
+  >    - Delivery Completed；
+  >    - Replay Window Closed；
+  >    - Deduplication Window Closed；
+  >    - Last Required；
+  >    - Legal Basis Expired；
+  >    - Incident Closed；
+  >    - Object Became Unreferenced；
+  >    - Contract Ended；
+  >    - Review Completed。
+  > 30. 每个 Data Class 必须使用与其语义一致的 Trigger。
+  > 31. Checkpoint Retention 不得从 Checkpoint Created Time直接计算。
+  > 32. Idempotency Retention 必须覆盖合法 Retry 与 Replay 风险。
+  > 33. Consumer Dedup Retention 必须覆盖消息可能重复投递的窗口。
+  > 34. Orphan Blob Retention 必须从确认没有正式引用且 Grace Period 开始后计算。
+  > 35. Business Version 是否可删除不得仅由年龄判断。
+  >
+  > **3.5 Business Current Truth**
+  >
+  > 36. 正常业务生命周期中，Business Current Truth 不得被普通 Purge Worker 直接物理删除。
+  > 37. 业务上的删除应首先通过明确业务状态表达，例如：
+  >
+  >    ```text
+  >    INACTIVE
+  >    INVALIDATED
+  >    WITHDRAWN
+  >    NO_CURRENT_TRUTH
+  >    ```
+  >
+  > 38. 普通 Business Command 不得绕过业务不变量执行物理级联删除。
+  > 39. 法律、隐私或安全要求需要处置 Personal Data 时，必须进入受治理的 Exceptional Erasure/Redaction Path。
+  > 40. Exceptional Erasure 不得被普通 Soft Delete 代替。
+  >
+  > **3.6 Immutable Business Versions**
+  >
+  > 41. 正常生命周期中，Immutable Business Version 继续遵守：
+  >
+  >    ```text
+  >    NO UPDATE
+  >    NO OVERWRITE
+  >    NO ROUTINE PHYSICAL DELETE
+  >    ```
+  >
+  > 42. Invalidation、Rejection、Supersession 和 Restore 不得删除历史版本。
+  > 43. 历史不可变不得被解释为无论法律要求如何都永久保留完整 PII。
+  > 44. 如果历史版本包含受删除要求影响的数据，必须通过 DQ-17 后续决定的受治理机制处理。
+  > 45. 允许考虑的机制包括：
+  >    - Identity 与 Business Fact 分离；
+  >    - 删除独立 Identity Mapping；
+  >    - 受治理 Redaction；
+  >    - 不可逆 Anonymization；
+  >    - 最小 Tombstone；
+  >    - 受影响引用状态。
+  > 46. DQ-15 不决定具体 Redaction 或 Anonymization 算法。
+  >
+  > **3.7 Audit 与 State Transition**
+  >
+  > 47. Audit 与 State Transition 在正常生命周期内保持 Append-only。
+  > 48. 不得对 Audit 实施普通统一 TTL。
+  > 49. Audit 不得通过 UPDATE 覆盖。
+  > 50. Audit 更正继续通过 Correction、Superseding 或 Reversal Record 表达。
+  > 51. Audit Payload 必须最小化敏感数据。
+  > 52. 不得因为 Audit Append-only 而永久复制：
+  >    - Secret；
+  >    - Access Token；
+  >    - 完整 Provider Payload；
+  >    - 不必要 PII；
+  >    - 完整 Source Content。
+  > 53. Audit 的 Exceptional Redaction 与 Legal Hold 冲突由 DQ-17 和适用法律决定。
+  >
+  > **3.8 Source、Evidence 与 ContentObject**
+  >
+  > 54. 不得删除仍被以下对象引用的 Source/Evidence 数据：
+  >    - Current Business Version；
+  >    - 必须保留的 Historical Business Version；
+  >    - EvidenceLink；
+  >    - Audit Requirement；
+  >    - Legal Hold；
+  >    - Security Incident；
+  >    - Dispute；
+  >    - Active Review；
+  >    - Regulatory Hold。
+  > 55. Raw Content、Normalized Artifact、Parsed Artifact、Fragment、EvidenceLink 与 Retrieval Index 必须拥有独立生命周期。
+  > 56. Source Invalidation 不等于 Source Blob 物理删除。
+  > 57. Evidence Retraction 不等于删除 EvidenceLink 历史。
+  > 58. EvidenceLink 不得在底层 Source 删除后静默改绑至另一个 SourceVersion。
+  > 59. 删除 Source Content 时，应根据策略保留允许保留的最小 Provenance、Hash、Tombstone 或 Deletion Proof。
+  > 60. 如果底层 Evidence 被删除或无法使用，上层 Business Version 必须进入明确 Review、Invalidation 或 Evidence-unavailable 状态，而不是静默改变历史。
+  >
+  > **3.9 Content-addressed Object**
+  >
+  > 61. ContentObject 只有在以下条件全部满足时才可以进入 Physical Purge：
+  >
+  >    ```text
+  >    active_reference_count = 0
+  >    no legal hold
+  >    no security hold
+  >    no incident hold
+  >    no regulatory hold
+  >    no pending transaction
+  >    grace period completed
+  >    reconciliation passed
+  >    ```
+  >
+  > 62. Hash Deduplication 不得合并业务所有权、权限、Tenant 或 Retention Policy。
+  > 63. 一个 Blob 被多个合法引用共享时，单一主体或 Tenant 的删除请求不得删除其他仍合法需要的引用。
+  > 64. 跨 Tenant 或跨 Security Domain 的误删必须被阻止。
+  > 65. Object Purge 前必须重新核验正式数据库引用。
+  > 66. 不得只依赖缓存中的 Reference Count。
+  > 67. 删除对象后必须记录 Object Store 结果，但不得在证明中复制被删除内容。
+  >
+  > **3.10 DerivedArtifact、Fragment 与 Retrieval Index**
+  >
+  > 68. DerivedArtifact 和 Fragment 是否可删除必须考虑 EvidenceLink 与 Historical Business Version 引用。
+  > 69. Retrieval Index 是派生、可重建、非权威存储。
+  > 70. Retrieval Index 通常可以比 SourceVersion 更早清理。
+  > 71. 删除 Retrieval Index 不得删除权威 Source、Fragment 或 EvidenceLink。
+  > 72. 删除 Source 后不得通过 Index Rebuild 恢复依法已删除内容。
+  > 73. Vector、Embedding Metadata、Search Cache 和 Index Snapshot 必须进入删除范围。
+  > 74. EvidenceLink 不得依赖只有 Retrieval Index 才能解析的身份。
+  >
+  > **3.11 Workflow Checkpoint**
+  >
+  > 75. Checkpoint 继续采用 DQ-13 Whole-thread Lifecycle Deletion。
+  > 76. Thread 只有在以下条件全部满足时才可删除：
+  >    - Workflow Terminal；
+  >    - 无有效 Lease；
+  >    - 无 Pending Resume；
+  >    - 无 Human Interrupt；
+  >    - 无 Retry Window；
+  >    - 无 Incident Hold；
+  >    - 无 Legal Hold；
+  >    - 无 Security Hold；
+  >    - Registry 已标记可清理。
+  > 77. ACTIVE、IN_PROGRESS、INTERRUPTED、AWAITING_REVIEW、FAILED_RETRYABLE 和 RECONCILING Thread 不得删除。
+  > 78. Checkpoint 删除不得删除：
+  >    - Workflow 最小终态；
+  >    - Business Result；
+  >    - Audit；
+  >    - Idempotency；
+  >    - Durable Work Intent；
+  >    - Provider Call Ledger；
+  >    - Domain Version；
+  >    - Evidence；
+  >    - Integration Event。
+  > 79. 默认 Whole-thread Delete，不采用未经验证的 Partial Pruning。
+  > 80. Workflow Execution Registry 可以保留最小 Terminal Summary。
+  > 81. 精确终态字段留待实现设计。
+  >
+  > **3.12 Durable Work Intent**
+  >
+  > 82. Durable Work Intent 在以下状态不得删除：
+  >    - Pending；
+  >    - Claimed；
+  >    - Running；
+  >    - Retryable；
+  >    - Lease Active；
+  >    - Awaiting Manual Review。
+  > 83. 只有满足以下条件后才可进入归档或清理：
+  >    - Terminal；
+  >    - 不可 Retry；
+  >    - 无有效 Lease；
+  >    - 无 Pending Claim；
+  >    - 无 Dead-letter Review；
+  >    - Business Result 已确认；
+  >    - 所需 Audit 已保存；
+  >    - Retention Horizon 已关闭。
+  > 84. Work Intent 删除不得删除对应业务结果。
+  >
+  > **3.13 Integration Event Outbox**
+  >
+  > 85. Outbox Record 只有在以下条件满足后才可清理：
+  >    - 所有规定 Destination 已完成；
+  >    - Delivery 状态已确认；
+  >    - Replay Window 已关闭；
+  >    - Incident Hold 已解除；
+  >    - Consumer/Destination Policy 允许。
+  > 86. 不得只因单次 Publish 成功立即删除 Outbox。
+  > 87. Relay Crash、Destination Retry 和 Late Replay 风险必须纳入 Retention。
+  > 88. Dead-letter 或 Manual Review 状态不得删除。
+  >
+  > **3.14 Consumer Dedup 与 Idempotency**
+  >
+  > 89. Consumer Dedup 与 Idempotency Record 承担正确性责任。
+  > 90. 其保留必须覆盖：
+  >    - Maximum Legitimate Retry Window；
+  >    - Maximum Replay Window；
+  >    - Provider Ambiguity Window；
+  >    - Late Duplicate Delivery；
+  >    - Incident Investigation Window。
+  > 91. 在重复消息或 Command 仍可能合法到达时不得提前删除。
+  > 92. 删除 Dedup/Idempotency Record 不得重新开放重复业务效果风险。
+  > 93. 具体时间长度留待未来 Policy Table 决定。
+  >
+  > **3.15 Provider Payload 与 Model Output**
+  >
+  > 94. 必须区分：
+  >    - Business Result；
+  >    - Provider Call Ledger；
+  >    - Raw Provider Request；
+  >    - Raw Provider Response；
+  >    - Model Prompt；
+  >    - Model Response；
+  >    - Tool Payload；
+  >    - Debug Trace。
+  > 95. Business Result 按业务策略保留。
+  > 96. Provider Call Ledger 按幂等、争议与诊断要求保留。
+  > 97. Raw Prompt、Raw Response、Tool Payload 和 Debug Trace 不得默认永久保存。
+  > 98. 保存完整 Raw Payload 必须有明确目的和安全分类。
+  > 99. 不得以“以后可能有用”为理由无限期保留敏感原始载荷。
+  > 100. Raw Payload 删除不得破坏正式 Business Result 或必要的 Provider Identity。
+  >
+  > **3.16 Logs、Metrics 与 Traces**
+  >
+  > 101. Logs、Metrics 和 Traces 属于 RFC-007 非权威 Observability。
+  > 102. Observability 数据可以：
+  >    - Sampling；
+  >    - Aggregation；
+  >    - Redaction；
+  >    - Lower Precision；
+  >    - Archive；
+  >    - Purge。
+  > 103. Observability Retention 不得替代 Audit Retention。
+  > 104. Audit 删除不得依赖仍存在日志副本。
+  > 105. 日志中不得保存本应由 Retention Policy 删除的完整敏感 Payload。
+  >
+  > **3.17 Migration 与 Backfill Records**
+  >
+  > 106. Alembic Migration Revision History 正常保留。
+  > 107. Migration Outcome、Verification Result、Forward Repair Evidence 与 Destructive Gate Approval 不得作为普通运行日志随意删除。
+  > 108. 临时 Backfill Batch、Lock Diagnostic 和低价值 Runtime Logs 可以按策略清理。
+  > 109. 清理 Backfill Runtime Data 不得破坏 Migration 可验证性或 Incident Investigation。
+  >
+  > **3.18 Orphan Blob**
+  >
+  > 110. Upload 成功但 Database Commit 失败的 Blob 是 Orphan Candidate。
+  > 111. Orphan Candidate 删除前必须：
+  >    - 等待 Grace Period；
+  >    - 再次检查正式引用；
+  >    - 排除 Crash Recovery；
+  >    - 排除 Eventual Visibility 风险；
+  >    - 排除 Hold；
+  >    - 记录 Reconciliation Result。
+  > 112. 不得在上传后立即删除未找到引用的对象。
+  > 113. Orphan Cleanup 必须幂等。
+  >
+  > **3.19 Policy Ownership**
+  >
+  > 114. 采用：
+  >
+  >    ```text
+  >    CENTRAL RETENTION GOVERNANCE
+  >    + DECENTRALIZED DATA OWNERSHIP
+  >    ```
+  >
+  > 115. Retention Governance 负责：
+  >    - Policy Schema；
+  >    - Policy Version；
+  >    - Hold Priority；
+  >    - Deletion Case；
+  >    - Execution Protocol；
+  >    - Reporting；
+  >    - Compliance Mapping。
+  > 116. 各模块仍是自身数据的唯一所有者。
+  > 117. 数据所有模块负责：
+  >    - 判断 Eligibility；
+  >    - 提供 Reference/Dependency Check；
+  >    - 执行本模块处置；
+  >    - 验证处置结果；
+  >    - 返回最小 Deletion Proof。
+  > 118. 中央 Purge Orchestrator 不得直接跨模块执行任意 SQL DELETE。
+  > 119. 中央 Orchestrator 必须通过类型化 Application Contract 调用各所有模块。
+  > 120. DQ-02 的唯一表所有权继续有效。
+  >
+  > **3.20 Policy Versioning**
+  >
+  > 121. 每项 Retention/Deletion 决定必须记录：
+  >    - `retention_policy_id`；
+  >    - `retention_policy_version`；
+  >    - Data Class；
+  >    - Policy Owner；
+  >    - Retention Trigger；
+  >    - Trigger Time；
+  >    - Computed Eligible Time；
+  >    - Disposition；
+  >    - Business Purpose；
+  >    - Legal/Contractual Basis；
+  >    - Hold Status；
+  >    - Decision Reason；
+  >    - Verification Result。
+  > 122. Policy 修改不得静默改写历史删除决定的依据。
+  > 123. Policy Version 必须可审计。
+  > 124. Policy 更新后对存量数据执行批量 Purge 前必须重新进行影响分析和授权。
+  > 125. 新 Policy 不得自动扩大旧 Deletion Case 的 Scope。
+  >
+  > **3.21 Hold**
+  >
+  > 126. 至少支持：
+  >
+  >    ```text
+  >    LEGAL_HOLD
+  >    SECURITY_INCIDENT_HOLD
+  >    REGULATORY_HOLD
+  >    DISPUTE_OR_CLAIM_HOLD
+  >    BUSINESS_REVIEW_HOLD
+  >    ```
+  >
+  > 127. Hold 必须记录：
+  >    - Scope；
+  >    - Reason；
+  >    - Authority；
+  >    - Created Time；
+  >    - Review Time；
+  >    - Release Authority；
+  >    - Status；
+  >    - Audit Trail。
+  > 128. Hold 存在时可以继续计算 Retention Clock。
+  > 129. Hold 存在时必须阻止 Physical Purge。
+  > 130. Hold 不得被普通 Retention Job 自动解除。
+  > 131. 不得创建没有 Owner、Reason、Review 或 Release 机制的永久 Hold。
+  > 132. Hold Release 必须可审计。
+  >
+  > **3.22 Deletion / Erasure Case**
+  >
+  > 133. 删除请求不得直接映射为单次 SQL DELETE。
+  > 134. 每个请求必须形成受治理的：
+  >
+  >    ```text
+  >    DELETION / ERASURE CASE
+  >    ```
+  >
+  > 135. 流程至少包括：
+  >
+  >    ```text
+  >    Receive Request
+  >    → Verify Requester / Authority
+  >    → Determine Applicable Policy
+  >    → Discover Data Scope
+  >    → Check References and Holds
+  >    → Build Deletion Plan
+  >    → Execute by Owning Modules
+  >    → Verify All Storage Planes
+  >    → Record Completion or Residual State
+  >    ```
+  >
+  > 136. 必须记录为何执行删除、为何阻止、为何暂缓或为何继续保留。
+  > 137. 删除请求身份与权限必须验证。
+  > 138. Deletion Case 不得自动包含其他主体或 Tenant 的数据。
+  > 139. Scope 扩展必须重新授权。
+  >
+  > **3.23 Reference-aware Eligibility**
+  >
+  > 140. 删除资格必须考虑完整依赖关系。
+  > 141. 示例：
+  >
+  >    ```text
+  >    ContentObject
+  >    ← SourceVersion
+  >    ← Fragment
+  >    ← EvidenceLink
+  >    ← BusinessVersion
+  >    ```
+  >
+  > 142. 仍承担正式业务含义的下游引用必须阻止底层对象直接删除。
+  > 143. 可能的处置包括：
+  >    - Block Purge；
+  >    - Redact Allowed Fields；
+  >    - Retain Tombstone；
+  >    - Apply Governed Anonymization；
+  >    - Mark Evidence Unavailable；
+  >    - Trigger Business Review；
+  >    - Trigger Invalidation。
+  > 144. 不得使用未经审查的广泛跨模块 `ON DELETE CASCADE`。
+  > 145. Cascade 只允许用于同一所有模块内、生命周期完全一致、非权威或明确从属的 Child Record。
+  > 146. Cascade 行为必须在未来 Data Retention Policy Table 中明确。
+  >
+  > **3.24 Deletion State Machine**
+  >
+  > 147. Deletion Case 至少区分：
+  >
+  >    ```text
+  >    REQUESTED
+  >    ASSESSING
+  >    BLOCKED_BY_REFERENCE
+  >    HELD
+  >    ELIGIBLE
+  >    PURGE_IN_PROGRESS
+  >    PRIMARY_PURGED
+  >    DERIVED_PURGED
+  >    OBJECT_PURGED
+  >    BACKUP_EXPIRY_PENDING
+  >    COMPLETED
+  >    FAILED_RETRYABLE
+  >    FAILED_MANUAL_REVIEW
+  >    ```
+  >
+  > 148. `COMPLETED` 不得在只删除一张表后立即设置。
+  > 149. `PRIMARY_PURGED` 不表示 Object、Index、Cache 或 Backup 已完成处置。
+  > 150. `BACKUP_EXPIRY_PENDING` 必须是合法的中间状态。
+  > 151. Failed 状态必须保留可恢复信息。
+  >
+  > **3.25 Purge Orchestration**
+  >
+  > 152. Purge Worker 必须遵循 DQ-07 Lease、Attempt 与 Fencing Token。
+  > 153. Purge Worker 必须遵循 DQ-08 Idempotency。
+  > 154. Purge 使用分批短事务。
+  > 155. Purge 必须支持：
+  >    - Crash Recovery；
+  >    - Resume；
+  >    - Safe Retry；
+  >    - Storage-plane-specific Progress；
+  >    - Manual Review；
+  >    - Partial Failure Classification。
+  > 156. 重复执行同一 Deletion Case 不得：
+  >    - 扩大删除范围；
+  >    - 删除新创建的合法引用；
+  >    - 删除其他 Tenant 或主体数据；
+  >    - 生成互相矛盾的 Tombstone；
+  >    - 重复触发不可逆外部副作用。
+  > 157. 每个 Storage Plane 的执行必须拥有独立状态和验证结果。
+  > 158. Final Completion 必须在全部要求的 Storage Plane 完成或被明确记录为 Backup Expiry Pending 后确定。
+  >
+  > **3.26 PostgreSQL 删除边界**
+  >
+  > 159. 必须区分：
+  >    - Application Inaccessibility；
+  >    - Logical Database Deletion；
+  >    - Physical Storage Reclamation；
+  >    - Backup Expiry。
+  > 160. SQL `DELETE` Commit 表示数据库事务中的逻辑删除完成。
+  > 161. SQL `DELETE` Commit 不得被描述为底层所有字节立即消失。
+  > 162. VACUUM、存储重用和物理空间回收属于数据库存储生命周期。
+  > 163. Physical Reclamation 不等于 Backup Expiry。
+  > 164. 不得为证明删除完成而执行未经风险评估的 `VACUUM FULL` 或其他高风险操作。
+  >
+  > **3.27 Backup 与 PITR**
+  >
+  > 165. Primary Store 删除后，数据可能仍存在于受控 Backup/PITR Window。
+  > 166. 删除状态必须能够表达：
+  >
+  >    ```text
+  >    PRIMARY_PURGED
+  >    BACKUP_EXPIRY_PENDING
+  >    BACKUP_RETENTION_COMPLETED
+  >    ```
+  >
+  > 167. 从旧 Backup 恢复时必须：
+  >    - 隔离恢复环境；
+  >    - 重放已完成 Deletion Ledger；
+  >    - 重新应用 Hold/Erasure 状态；
+  >    - 验证已删除数据没有重新进入服务；
+  >    - 完成验证后再开放流量。
+  > 168. Database Restore 不得使已完成删除的数据静默复活。
+  > 169. Backup/PITR 的具体周期与基础设施方案本次不决定。
+  > 170. Backup Cleanup 不得由普通业务 Purge Worker直接操作。
+  >
+  > **3.28 Tombstone 与 Deletion Proof**
+  >
+  > 171. 删除后可以保留最小 Tombstone/Deletion Proof。
+  > 172. 最小证明可以包含：
+  >    - Deletion Case ID；
+  >    - Subject Scope Hash；
+  >    - Data Class；
+  >    - Policy Version；
+  >    - Disposition；
+  >    - Completed Time；
+  >    - Storage Planes Completed；
+  >    - Hold/Exception Reference；
+  >    - Executor Identity。
+  > 173. Deletion Proof 不得包含：
+  >    - 完整原始 Payload；
+  >    - 被要求删除的完整 PII；
+  >    - Secret；
+  >    - 完整 Provider Response；
+  >    - 完整 Source Content。
+  > 174. Deletion Proof 必须足以证明执行范围和结果，但不得重新构成被删除数据的副本。
+  >
+  > **3.29 Readiness Artifact**
+  >
+  > 175. 在任何正式 Retention 或 Physical Purge 实现授权前，Architecture Readiness Package 必须包含：
+  >
+  >    ```text
+  >    Data Retention, Hold & Deletion Policy Table
+  >    ```
+  >
+  > 176. 该表至少包含：
+  >    - Data Class；
+  >    - Owning Module；
+  >    - Authoritative/Derived；
+  >    - Contains PII/Secret；
+  >    - Business Purpose；
+  >    - Legal/Contractual Basis；
+  >    - Retention Trigger；
+  >    - Retention Clock；
+  >    - Minimum Required Horizon；
+  >    - Maximum Permitted Horizon；
+  >    - Normal Disposition；
+  >    - Exceptional Erasure Action；
+  >    - Reference Blockers；
+  >    - Hold Types；
+  >    - Archive Target；
+  >    - Primary Store Deletion；
+  >    - Object Store Deletion；
+  >    - Index/Cache Deletion；
+  >    - Checkpoint Deletion；
+  >    - Backup/PITR Treatment；
+  >    - Tombstone/Deletion Proof；
+  >    - Verification Owner；
+  >    - Related DQ/DEC/RFC。
+  > 177. DQ-15 接受不授权创建该表。
+  > 178. DQ-15 接受不授权填写任何具体保留期限。
+  > 179. DQ-15 不新增独立 Matrix。
+  >
+  > **3.30 Technical Spike**
+  >
+  > 180. DQ-15 决策归档前不要求执行 Technical Spike。
+  > 181. 首个生产 Purge 实现前必须完成单独授权的：
+  >
+  >    ```text
+  >    Retention & Deletion Safety Technical Spike
+  >    ```
+  >
+  > 182. Spike 最低验证：
+  >    - Reference-aware Eligibility；
+  >    - Legal Hold 阻止删除；
+  >    - Security/Incident Hold 阻止删除；
+  >    - Idempotent Purge Retry；
+  >    - Purge Worker Lease/Fencing；
+  >    - Checkpoint Whole-thread Delete；
+  >    - Pending Workflow 不被删除；
+  >    - 多引用 ContentObject 保护；
+  >    - Orphan Blob Grace Period；
+  >    - Retrieval Index/Cache Cleanup；
+  >    - Provider Payload Cleanup；
+  >    - SQL Delete 与 Physical Reclamation 边界；
+  >    - Backup Restore 后重放 Deletion Ledger；
+  >    - Primary/Object/Index 删除步骤之间的 Crash；
+  >    - Deletion Proof 不包含原敏感载荷；
+  >    - 不发生跨 Tenant、跨主体或跨安全域误删。
+  > 183. Spike 必须使用项目实际选定的 PostgreSQL、Object Storage、Checkpoint 和 Backup 测试环境。
+  > 184. Spike 可以共享测试基础设施，但必须拥有独立验收报告。
+  > 185. 本次接受不授权创建 Spike Issue、Branch、PR、代码、测试或基础设施。
+  > 186. Retention & Deletion Safety Technical Spike = REQUIRED / NOT AUTHORIZED。
+  >
+  > **3.31 授权边界**
+  >
+  > 187. DQ-15 只授权决策归档与文档同步。
+  > 188. DQ-15 不授权创建：
+  >    - Retention Policy Registry；
+  >    - Data Retention Policy Table；
+  >    - Deletion/Erasure Case；
+  >    - Hold Registry；
+  >    - Purge Worker；
+  >    - Deletion Ledger；
+  >    - Tombstone；
+  >    - Retention Job；
+  >    - Object Lifecycle Rule；
+  >    - Checkpoint Cleanup Job；
+  >    - Backup Cleanup；
+  >    - Database DDL；
+  >    - Migration；
+  >    - Tests；
+  >    - Infrastructure。
+  > 189. DQ-15 不授权设置具体保留期限。
+  > 190. DQ-15 不授权执行任何数据删除。
+  > 191. DQ-15 不授权接受 DQ-16 或 DQ-17。
 
 ---
 
@@ -3152,7 +3809,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~14 ACCEPTED；DQ-15~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~15 ACCEPTED；DQ-16~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -3169,7 +3826,7 @@ RFC-002-DQ-11  Snapshot vs History                   = ACCEPTED (Candidate A, Fo
 RFC-002-DQ-12  Source & Evidence Persistence         = ACCEPTED (Candidate A, Formal Model: PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index, Universal All-in-PostgreSQL / Universal All-in-Object-Storage Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-13  Workflow Checkpoint Separation        = ACCEPTED (Candidate A, Formal Model: Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation, Dedicated Schema Must Be Proven / Dedicated Database Fallback, Independent PostgreSQL Service Not Selected / Shared-Table Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-14  Schema Evolution & Migrations         = ACCEPTED (Candidate A, Formal Model: Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles, Universal Safe Downgrade Rejected / Sole Hand-written SQL Rejected, Accepted with Major Revision, 2026-08-03) — User Decision: ACCEPTED WITH MAJOR REVISION
-RFC-002-DQ-15  Data Retention & Deletion Boundary    = PROPOSED — User Decision: PENDING
+RFC-002-DQ-15  Data Retention & Deletion Boundary    = ACCEPTED (Candidate A, Formal Model: Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles, Universal TTL / Universal Permanent Retention Rejected, Specific Retention Periods Not Decided, Accepted with Major Revision, 2026-08-03) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-16  Persistence Testing Strategy          = PROPOSED — User Decision: PENDING
 RFC-002-DQ-17  Security & Sensitive Data Boundary    = PROPOSED — User Decision: PENDING
 
