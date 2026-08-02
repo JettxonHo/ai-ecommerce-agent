@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~15 ACCEPTED；DQ-16~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~16 ACCEPTED；DQ-17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation）；DQ-14 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles）；DQ-15 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles）；DQ-16~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation）；DQ-14 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles）；DQ-15 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles）；DQ-16 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Accepted Principle = Layered Test Strategy，Formal Model = Pure Domain/Application Unit Tests + Port Contract Parity Tests + Real PostgreSQL Persistence Acceptance Tests + Deterministic Multi-connection Concurrency Tests + Real Migration/Upgrade/Recovery Tests + Crash-window/Fault-injection Tests + Production-topology-specific Qualification，SQLite = Optional Non-authoritative Test Double）；DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-15 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13/DQ-14/DQ-15 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-16~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13/14/15 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
+> - DQ-01~DQ-16 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13/DQ-14/DQ-15/DQ-16 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -31,7 +31,7 @@
 | DQ-13 | Workflow Checkpoint Separation | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation**；Candidate B 独立 PostgreSQL 服务/独立基础设施不作 MVP（Fallback = 同一 PostgreSQL Service 内独立 Checkpoint Database，不等于 Candidate B）；Candidate C 同表混存拒绝；优先物理形态 = 同 Database + Dedicated Checkpoint Schema（但必须用钉定的 Python PostgresSaver + 实际 Psycopg Pool + 部署 Pooler 证明 Setup 与全部运行时 SQL 落预期 Schema，不得仅凭文档推测；无法稳定保证则用 Dedicated Checkpoint Database Fallback）；Business Persistence / Application-owned Workflow Execution Registry / Vendor Checkpoint Tables 三平面分离（不得通用 Workflow 表/State JSON/ORM Model 合并）；独立 Business Pool 与 Checkpoint Pool、Checkpoint Role 最小权限、Checkpoint Connection 不进 Business UoW；Workflow Execution Registry 显式映射 workflow_run_id/thread_id/command_id/stage_run_id/目标业务对象/Base Domain Version/Expected Revision/Input Fingerprint/Runtime Lifecycle/Reconciliation Status/Graph Definition Version/Checkpoint Schema Version；workflow_run_id/thread_id/checkpoint_id/command_id/stage_run_id/attempt_id/dispatch_id/domain_version_id/Idempotency Key 身份分离（thread_id 不得作业务身份/Idempotency Key/执行锁）；Checkpoint = Runtime Recovery State only，≠Business Current Truth/Business Version/Audit/Idempotency/Work Intent/执行锁；Business Commit 与 Checkpoint Write 不构成同一 Atomic Transaction（Checkpoint 成功不表业务成功、Checkpoint 缺失不表业务未发生）；Resume/Retry/Human Interrupt 恢复/Time Travel Fork 前必须 Load Registry+Checkpoint+Current Truth 并验证身份版本后分类；Reconciliation 至少区分 RESUMABLE/ALREADY_COMMITTED/STALE/SUPERSEDED/INVALIDATED/ORPHANED/INCOMPATIBLE/CORRUPT（只有 RESUMABLE 可继续原 Thread、Stale Checkpoint 不覆盖新 Current Truth）；Checkpoint 不承担并发控制（执行所有权 = DQ-07 Lease+Attempt ID+Fencing Token，最终 Business Commit 重新验证 Fencing Token）；Graph Time Travel/Fork ≠ DQ-11 Business Restore（Fork 入正式状态须转 Intentional Rerun 创建新身份 + 新 DEC-035 Atomic Business Commit）；Checkpoint Payload 仅保存最小 Runtime State + 严格 Serializer Allowlist（不存 Session/UoW/Repository/ORM Entity/Connection/Coroutine/未脱敏 Secret/长期 Token/完整 PII）；Durability Mode 逐节点策略留 RFC-003（exit 禁用于 Human-in-the-loop/需故障恢复生产流程，sync 为 Interrupt/Human Review/Provider 结果落地/正式业务提交边界默认安全方向）；PostgresSaver Setup 经受控部署/Migration Job、不得所有 Worker 启动并发执行、Vendor Migration 与 Business Alembic 分离、Package 必须钉定；Checkpoint 可清理但仅 Terminal/无 Lease/无 Pending Resume/无 Interrupt/无 Incident-Legal Hold 的 Thread 可删（默认 Whole-thread Lifecycle Deletion，未验证 Package Version/Checkpoint Chain/DeltaChannel 完整性禁止 Partial Pruning，删除不改业务数据）；Encryption/Redaction/PII 留 DQ-17、Retention 留 DQ-15、测试留 DQ-16、Serializer 安全细节留 DQ-17/RFC-003；**Workflow Checkpoint Boundary & Reconciliation Table 为持久化实现前置——REQUIRED 但 NOT AUTHORIZED**；**Workflow Checkpoint Isolation & Reconciliation Technical Spike（钉定 PostgresSaver/Schema-Database Isolation/Role/Pool/Setup/Crash Window/并发 Resume/Stale Reconciliation/Serializer/Cleanup）为 Checkpoint 实现前置——REQUIRED BEFORE CHECKPOINT IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 同库/分库、生命周期、对账权威 | DEC-023/024 Checkpoint 仅恢复≠Current Truth；DEC-033 Reconciliation；PostgresSaver 官方无同库建议 |
 | DQ-14 | Schema Evolution & Migrations | **已决定（2026-08-03 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles**；Candidate B 不作通用生产恢复保证（"所有 Migration 应支持安全 Downgrade" 方向拒绝；明确可逆、无数据损失且经真实 PostgreSQL 测试的 Migration 可选择性提供安全 Downgrade）；Candidate C 作为唯一 Migration System 拒绝（受治理 Alembic Revision 内允许人工编写 PostgreSQL SQL，不绕过 Revision Graph/Review/Deployment Gate/Migration History）；Migration Ownership（唯一 Migration Capability/Deployment Pipeline/受控 Migration Job 执行；Web/Background/Workflow Worker 不启动自动 upgrade head；Migration Role 与 Runtime Role 分离）；Single Business Migration Lineage（Merge/Release Gate 单一 Alembic Head；Multiple Heads 经 Rebase/重新生成 Revision/显式 Merge Revision 解决，不修改已发布历史 Revision；PostgresSaver Vendor Migration 不伪装成 Business Alembic Head）；Migration History Immutability（已执行 Revision 不可变发布记录，修复创建新 Forward Repair Revision；Migration History Immutability ≠ Business Version Immutability）；Autogenerate Discipline（仅作 Candidate Generator 必经人工审查；Rename/Type/Default/Nullable/Constraint/Index/FK/Enum/Schema/Partition/Data Migration/Drop 显式检查；drop_table/drop_column/drop_constraint 未过 Destructive Gate 不入生产；Autogenerate 排除 Vendor Checkpoint Tables）；Schema Drift Gate（alembic check 检测可识别 Metadata Drift，非 Migration 安全证明）；Forward-recovery-first（生产恢复不依赖通用 Schema Downgrade，默认 Rollback Compatible Application + Keep Expanded Schema + Forward Repair Migration）；Rollback 术语分离（Application Rollback/Schema Downgrade/Forward Repair/Database Restore/PITR/DQ-11 Business Restore 独立语义）；Reversibility Classification（REVERSIBLE_SCHEMA/FORWARD_FIX_ONLY/DATA_IRREVERSIBLE/NON_TRANSACTIONAL_DDL/DESTRUCTIVE_CONTRACT/VENDOR_MANAGED）；Expand-Migrate-Contract（Expand 与 Contract 不同一次发布；Contract 前证明旧 Application 退出+Backfill 完成+验证通过+兼容窗口关闭）；Resumable Backfill（大型 Backfill 不入长 Alembic Transaction；独立 backfill_run_id/批次游标/Lease/Attempt/Fencing/进度/验证，分批提交/暂停/恢复/幂等重试；遵循 DQ-07 Lease+Fencing 与 DQ-08 Idempotency；Technical Backfill ≠ Business Semantic Change，后者经正式 Business Application Contract+Audit+版本化规则）；PostgreSQL 低锁策略（大型表 Add Nullable Column；NOT VALID→修复→VALIDATE；CREATE INDEX CONCURRENTLY 独立 Non-transactional Boundary+Invalid Index Recovery；Type Change 默认 Shadow Column+Dual Write+Backfill+Cutover+Contract；Lock/Statement Timeout+资源预算）；Destructive Gate 与 Non-transactional DDL Gate（Drop Table/Column/Constraint/Type Narrowing/不可逆转换/Enum 删除/强制 Constraint/Partition Drop/大规模重写经显式 Gate；Non-transactional DDL 独立 Revision/Step，失败不自动回滚须验证实际状态）；Vendor Migration Separation（Business Alembic ≠ PostgresSaver Vendor Migration ≠ Retrieval Index Rebuild ≠ Object Storage Lifecycle）；Schema Version Identity Separation（alembic_revision ≠ domain_version_id/version_number/revision/checkpoint_schema_version/event_schema_version/payload_schema_version；Alembic Head ≠ Backfill/Validation/Contract 完成）；Deployment Protocol（Preflight→Expand→Compatible Application→Backfill→Verify→Switch Read→End Compatibility Window→Contract；Web/Worker 不自动执行 Migration；Offline SQL 对应正式 Revision 与 Target 版本）；CI 最低 Gate（单一 Business Head/alembic check/fresh+baseline upgrade/revision graph/offline SQL reviewable/destructive gated/vendor schema excluded）；**Schema Migration Compatibility & Risk Table 与 Schema Migration Rollout & Recovery Technical Spike 为实现前置条件——均 REQUIRED 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 forward-only vs downgrade、autogenerate 纪律 | DEC-024 版本化语义；Alembic autogenerate 必须人工 review；PG 快速加列/CREATE INDEX CONCURRENTLY/NOT VALID+VALIDATE 两段式 |
 | DQ-15 | Data Retention & Deletion Boundary | **已决定（2026-08-03 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles**；Candidate B Universal TTL 拒绝（违反数据语义与历史要求）；Candidate C Universal Permanent Retention 拒绝（不可持续且可能与 Retention-limitation 义务冲突）；每类数据独立 Retention Policy（Purpose/Owner/Trigger/Clock/Required Horizon/Permitted Horizon/Blockers/Hold/Disposition/Verification/Storage-plane Treatment），不设置或虚构具体保留周期（`PERIOD NOT DECIDED`）；Invalidation/Supersession/Archive/Access Restriction/Redaction/Pseudonymization/Anonymization/Tombstone/Logical Deletion/Physical Purge/Backup Expiry 语义独立（业务删除、Source Invalidation、Evidence Retraction、Workflow Terminal 不自动等同物理删除）；Business Current Truth/Immutable Business Version/Audit/State Transition 正常生命周期不物理删除或覆盖（但不得解释为无视法律/隐私/安全要求永久保留全部个人数据；受治理 Exceptional Erasure/Redaction Path 必需，精确 PII 分离/Redaction/Anonymization/Encryption/法律例外留 DQ-17）；Retention Clock 数据类专属（不统一 created_at；Checkpoint/Idempotency/Work Intent/Outbox/Consumer Dedup/Source/Evidence/Provider Payload/Logs/Orphan Blob/Backup 各依 Terminal/Superseded/Last-required/Delivery-completed/Replay-window-closed/Legal-basis-expired/Unreferenced 事件）；删除 Reference-aware（仍被 Business Version/EvidenceLink/Audit Requirement/Legal Hold/Security Incident/Review 引用不得物理删除；Content-addressed Object 须无有效引用/无 Hold/Grace Period 完成/Reconciliation 通过；物理去重不造成跨 Tenant/跨主体/跨安全域误删；未经审查的跨业务图广泛 ON DELETE CASCADE 禁止）；Checkpoint 继续 DQ-13 Whole-thread Lifecycle Deletion（仅 Workflow Terminal/无 Lease/无 Pending Resume/无 Human Interrupt/无 Retry Window/无 Incident-Legal Hold 可删，不删 Workflow 最小终态/Business Result/Audit/Idempotency/Work Intent/Provider Call Ledger/Domain Version）；Durable Work Intent/Integration Event Outbox/Consumer Dedup/Idempotency Record 承担 Retry/Replay/Delivery/Duplicate Prevention/Incident Investigation 责任期间不删；Raw Model Prompt/Response、Provider Payload、Tool Payload、Debug Trace 不默认永久保存（Business Result/Provider Call Ledger/Raw Payload 分离）；Central Retention Governance + Decentralized Data Ownership（各业务模块为自身数据唯一所有者；中央 Purge Orchestrator 不跨模块直接 SQL 删除，经目标模块类型化 Application Contract 获取 Eligibility/执行处置/验证结果；DQ-02 唯一表所有权继续有效）；每项 Retention/Deletion 决定记录 Policy ID/Version/Data Class/Trigger/Eligible Time/Disposition/Purpose/Legal Basis/Hold/Decision Reason/Verification Result（Policy Version 可审计，修改不静默改写历史删除依据）；Legal/Security Incident/Regulatory/Dispute/Review Hold 须有 Scope/Authority/Reason/Review/Release Trail 且存在时阻止 Physical Purge（不被普通 Retention Job 自动解除）；删除请求先形成受治理 Deletion/Erasure Case（请求者权限验证→适用规则判定→数据范围发现→Reference/Hold 检查→Deletion Plan→分存储平面执行→最终验证，不映射为单次 SQL DELETE，不自动包含其他主体/Tenant 数据）；Purge Worker 遵循 DQ-07 Lease/Fencing 与 DQ-08 Idempotency，分批短事务 + Crash Recovery，状态至少区分 Requested/Assessing/Blocked/Held/Eligible/Purge In Progress/Primary Purged/Derived-Object Purged/Backup Expiry Pending/Completed/Failed（重复执行不扩大删除范围或删除新合法引用）；Application Inaccessibility/Logical Database Deletion/Physical Storage Reclamation/Backup Expiry 分离（SQL DELETE Commit 不表底层字节立即消失；Primary 删除完成不表 Backup/PITR 到期；旧 Backup 恢复须隔离环境并重放已完成 Deletion Ledger 防止已删除数据重新进入生产服务）；删除后仅保留不含原敏感载荷的最小 Tombstone/Deletion Proof（Archive/Cold Storage/Encryption/Soft Delete/Access Restriction 均不得声称为 Physical Purge）；**Data Retention, Hold & Deletion Policy Table 为 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED**（不授权创建该表或填写具体期限）；**Retention & Deletion Safety Technical Spike（Reference/Hold、Checkpoint 删除、多引用 Content Object、跨存储 Crash Window、Backup Restore Deletion Replay、幂等重试、跨主体误删防护）为首个生产 Purge 实现前置——REQUIRED BEFORE PRODUCTION PURGE IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 分类定责 vs 统一 TTL vs 全部保留 | DEC-013/025 保留周期未确认；DEC-024 历史不删除；checkpoint 无内建 TTL |
-| DQ-16 | Persistence Testing Strategy | 真实 DB vs SQLite fake | 并发语义不可移植 |
+| DQ-16 | Persistence Testing Strategy | **已决定（2026-08-03 ACCEPTED）**：Candidate A（Accepted with Major Revision；Accepted Principle = Layered Test Strategy）——Formal Model = **Pure Domain/Application Unit Tests + Port Contract Parity Tests + Real PostgreSQL Persistence Acceptance Tests + Deterministic Multi-connection Concurrency Tests + Real Migration/Upgrade/Recovery Tests + Crash-window/Fault-injection Tests + Production-topology-specific Qualification**；Candidate B 全部真实 PostgreSQL 通用策略拒绝（REJECTED AS A UNIVERSAL ALL-TESTS-USE-POSTGRESQL POLICY）；Candidate C 全部 SQLite fake 拒绝（All-SQLite testing cannot prove PostgreSQL semantics）；Pure Domain Unit Test 不使用数据库；Application Test Double（In-memory Fake/Stub/Spy/Deterministic Clock/ID Generator）仅证明 Application Contract（不证明 SQL Constraint/Transaction Atomicity/Commit Visibility/Lock/MVCC/CAS/Migration/Idempotency/Crash Recovery）；**SQLite 仅为可选非权威开发 Test Double，不得作为 Persistence Acceptance Engine/Concurrency-Transaction-Migration-Idempotency Proof/Release Readiness Evidence**；Repository/UoW/ORM Mapping/PostgreSQL Types/Constraint/Transaction/Concurrency/CAS/Migration/Idempotency/Lease-Fencing/Work Intent/Outbox/Audit/Domain Version/Current Truth Pointer/Retention Referential Safety 正式测试必须真实 PostgreSQL（SQLite 通过不得描述为 PostgreSQL 语义通过）；可复用 Port Contract Suite（Fake Pass ≠ PostgreSQL Adapter Pass）；Test Double 必须声明 9 项差异；MVP 只测 SQLAlchemy 2.x sync + Psycopg 3 sync（Async Stack 不属 MVP 验收范围）；钉定版本 + 独立 Test Role + 隔离 Database/Schema + 不连共享开发库/生产库 + 正式 Alembic Migration + 正式默认 Isolation Level；测试证据记录 10 项元数据；单连接 SAVEPOINT Rollback Fixture 仅限不验证 Commit Visibility 的 Adapter Test（多连接/Commit Visibility/Outbox/Consumer/Pool/Deadlock/Serialization Retry/Worker Crash/Migration/Multi-worker Claim/Checkpoint/跨存储 Crash Window 必须真实 Commit；多连接测试不被永不提交外层事务包裹；并行 CI Worker 独立隔离）；并发 Actor 独立 Connection/Session/Transaction（不共享 Session）；确定性协调（Barrier/Latch/Event/Blocking Point，不主要依赖 sleep）；真实覆盖 19 类并发场景（expected_revision 竞争/CAS/Version Number 分配/唯一约束/40001/40P01/三次事务尝试/SKIP LOCKED/Lease Expiry-Takeover/Stale Fencing/Idempotency Key±Fingerprint/Duplicate Delivery/Promotion-Invalidation/Restore-New Write/Purge-New Reference）；DEC-035 Atomic Commit 经 Fault Injection 验证全有或全无（10 个注入位置；Commit Outcome Unknown 不只靠 Mock commit 抛异常）；9 类 Crash Window 覆盖；Idempotent Use Case 9 类覆盖 + 8 项验证；Migration Test 真实 PostgreSQL + 17 项覆盖（`metadata.create_all()` 不作 Migration Acceptance 唯一 Schema 来源）；Required PR Checks 含 correctness-critical PostgreSQL Transaction/Constraint/Concurrency/Idempotency/Migration（Scheduled/Manual Tier 仅限高强度 Contention/长 Recovery/Live Provider/Backup Restore/Performance/Soak；correctness-critical Invariant 不只 Nightly）；**禁止自动 Retry-to-green**（Application Retry Under Test ≠ CI Test Retry；Flaky Required Check 视为测试或架构缺陷；并发失败报告含 Seed/Timeline/SQLSTATE/Retry Count/Final Rows 等）；合成测试数据（无生产 PII/真实 Credential/真实 Provider Token/真实 Checkpoint/Prompt Payload；受控 Secret Injection；失败日志 Redaction；精确 Fixture 规则留 DQ-17）；**Persistence Test Coverage & Fidelity Table 为 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED**（18 项字段）；**不新增独立通用 Technical Spike**（已有 5 项专项 Spike 继续有效并共享合格真实 PostgreSQL Test Harness 原则）；**Common Persistence Test Harness Qualification 必须作为第一个获授权 Persistence Spike 的组成部分——NOT AUTHORIZED**；不授权创建 Harness/Container/CI Job/Fixture/Contract Suite/测试代码/基础设施；原分歧 真实 DB vs SQLite fake、测试分层 | 架构基线 §14.9 测试基线；DEC-022 并发需真实验证；R-1 GAP；SQLite 全库单写者 vs PG 行级 MVCC |
 | DQ-17 | Security & Sensitive Data Boundary | Secret/PII 不落 checkpoint | Secret 明文序列化风险 |
 
 ---
@@ -3784,9 +3784,413 @@
 - **Trade-offs：** A 平衡速度与真实性；B 最可信但 CI 重；C 掩盖并发缺陷。
 - **Failure modes：** 全 SQLite→并发缺陷流入生产；迁移测试缺→schema 演进回归。
 - **Impact on later RFCs：** 全部（测试基建）。
-- **Recommendation：** **[架构推断] 倾向 A**——快速 fake 跑单元/契约，真实目标引擎跑并发/事务/迁移/幂等语义（填 R-1 GAP）。**置信度：中-高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation：** **[架构推断] 倾向 A**——快速 fake 跑单元/契约，真实目标引擎跑并发/事务/迁移/幂等语义（填 R-1 GAP）。**置信度：中-高**。（**历史提案；Superseded by the Accepted Major Revision below。**）
+- **Candidate 处置（2026-08-03 用户正式决定）：** Candidate A = **ACCEPTED WITH MAJOR REVISION**（Accepted Principle = Layered Test Strategy；Formal Model = Pure Domain/Application Unit Tests + Port Contract Parity Tests + Real PostgreSQL Persistence Acceptance Tests + Deterministic Multi-connection Concurrency Tests + Real Migration/Upgrade/Recovery Tests + Crash-window/Fault-injection Tests + Production-topology-specific Qualification；SQLite = OPTIONAL NON-AUTHORITATIVE TEST DOUBLE；SQLite as Persistence Acceptance Engine = PROHIBITED）；Candidate B = **REJECTED AS A UNIVERSAL ALL-TESTS-USE-POSTGRESQL POLICY**；Candidate C = **REJECTED**（All-SQLite testing cannot prove PostgreSQL semantics）。
+- **User Decision：** ACCEPTED WITH MAJOR REVISION
+- **Accepted Candidate：** CANDIDATE A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-03 用户正式决定）：**
+
+  > **3.1 正式模型**
+  >
+  > 1. MVP 采用以下分层测试模型：
+  >
+  >    ```text
+  >    PURE DOMAIN / APPLICATION UNIT TESTS
+  >    + PORT CONTRACT PARITY TESTS
+  >    + REAL POSTGRESQL PERSISTENCE ACCEPTANCE TESTS
+  >    + DETERMINISTIC MULTI-CONNECTION CONCURRENCY TESTS
+  >    + REAL MIGRATION / UPGRADE / RECOVERY TESTS
+  >    + CRASH-WINDOW / FAULT-INJECTION TESTS
+  >    + PRODUCTION-TOPOLOGY-SPECIFIC QUALIFICATION
+  >    ```
+  >
+  > **3.2 Pure Domain 与 Application 测试边界**
+  >
+  > 2. Pure Domain Unit Test 不使用数据库。
+  > 3. Application Use-case Test 可以使用：
+  >    - In-memory Fake；
+  >    - Stub；
+  >    - Spy；
+  >    - Deterministic Clock；
+  >    - Deterministic ID Generator。
+  > 4. Application Test Double 只能证明 Application Contract，不得证明：
+  >    - SQL Constraint；
+  >    - Transaction Atomicity；
+  >    - Commit Visibility；
+  >    - PostgreSQL Lock；
+  >    - MVCC；
+  >    - CAS；
+  >    - Migration；
+  >    - Idempotency；
+  >    - Crash Recovery。
+  >
+  > **3.3 SQLite 边界**
+  >
+  > 5. SQLite 仅为可选、非权威开发 Test Double。
+  > 6. SQLite 不得作为：
+  >    - Persistence Contract；
+  >    - Persistence Acceptance Engine；
+  >    - Concurrency Proof；
+  >    - Transaction Proof；
+  >    - Migration Proof；
+  >    - Idempotency Proof；
+  >    - Release Readiness Evidence。
+  >
+  > **3.4 真实 PostgreSQL 验收范围**
+  >
+  > 7. 以下正式持久化测试必须使用真实 PostgreSQL：
+  >    - Repository；
+  >    - UnitOfWork；
+  >    - ORM Mapping；
+  >    - PostgreSQL Types；
+  >    - Constraint；
+  >    - Transaction；
+  >    - Commit/Rollback；
+  >    - Concurrency；
+  >    - CAS；
+  >    - Migration；
+  >    - Idempotency；
+  >    - Lease/Fencing；
+  >    - Durable Work Intent；
+  >    - Outbox；
+  >    - Audit；
+  >    - Domain Version；
+  >    - Current Truth Pointer；
+  >    - Retention Referential Safety。
+  > 8. SQLite Test 通过不得被描述为 PostgreSQL 语义通过。
+  >
+  > **3.5 Port Contract Parity**
+  >
+  > 9. 每个 Persistence Port 应具有可复用 Contract Suite。
+  > 10. 同一 Contract Suite 可以运行于 In-memory Test Double 和 PostgreSQL Adapter，但：
+  >
+  >    ```text
+  >    Fake Pass =
+  >    Test Double 符合 Application 可观察契约
+  >
+  >    PostgreSQL Adapter Pass =
+  >    正式 Persistence Adapter 符合持久化契约
+  >    ```
+  >
+  > 11. Fake 通过不得替代 PostgreSQL Adapter 通过。
+  > 12. 每个 Test Double 必须明确声明：
+  >    - Supported Contract；
+  >    - Unsupported Semantics；
+  >    - Transaction Model；
+  >    - Concurrency Model；
+  >    - Error Model；
+  >    - Time Model；
+  >    - ID Model；
+  >    - Cleanup Strategy；
+  >    - 与 PostgreSQL 的差异。
+  >
+  > **3.6 MVP Persistence Stack**
+  >
+  > 13. MVP 只测试已接受的正式持久化 Stack：
+  >
+  >    ```text
+  >    SQLAlchemy 2.x Synchronous API
+  >    + Psycopg 3 Synchronous Driver
+  >    ```
+  >
+  > 14. Async SQLAlchemy、Async Psycopg 或 Asyncpg 不属于 MVP Persistence Acceptance Scope。
+  > 15. 未来引入 Async Stack 必须作为新的架构和兼容性决定处理。
+  >
+  > **3.7 测试环境与证据元数据**
+  >
+  > 16. 正式测试环境必须使用项目钉定版本的：
+  >    - PostgreSQL；
+  >    - SQLAlchemy；
+  >    - Psycopg；
+  >    - Alembic。
+  > 17. 正式测试环境必须：
+  >    - 使用独立 Test Role；
+  >    - 使用隔离 Database 或 Schema；
+  >    - 不连接 Shared Development Database；
+  >    - 不连接 Production Database；
+  >    - 不使用生产数据；
+  >    - 不使用真实 Secret；
+  >    - 应用正式 Alembic Migration；
+  >    - 使用正式默认 Isolation Level。
+  > 18. 测试证据必须记录：
+  >    - PostgreSQL Version；
+  >    - SQLAlchemy Version；
+  >    - Psycopg Version；
+  >    - Alembic Head；
+  >    - Application Commit SHA；
+  >    - Isolation Level；
+  >    - Worker Count；
+  >    - Connection Count；
+  >    - Pool/Pooler Mode；
+  >    - Test Seed。
+  >
+  > **3.8 事务 Fixture 边界**
+  >
+  > 19. 单连接且不验证真实 Commit Visibility 的 Adapter Test，可以使用：
+  >
+  >    ```text
+  >    External Transaction
+  >    + SAVEPOINT
+  >    + Test-end Rollback
+  >    ```
+  >
+  > 20. 以下测试必须执行真实 Commit：
+  >    - Multi-connection；
+  >    - Commit Visibility；
+  >    - Outbox；
+  >    - Consumer；
+  >    - Connection Pool；
+  >    - Deadlock；
+  >    - Serialization Retry；
+  >    - Worker Crash；
+  >    - Migration；
+  >    - Multi-worker Claim；
+  >    - Checkpoint；
+  >    - 跨存储 Crash Window。
+  > 21. 多连接测试不得被一个永不提交的外层事务包裹。
+  > 22. 并行 CI Worker 必须拥有独立 Database、Schema、Namespace 或等价隔离。
+  >
+  > **3.9 确定性并发测试**
+  >
+  > 23. 并发 Actor 必须使用独立：
+  >    - Connection；
+  >    - Session；
+  >    - Transaction。
+  > 24. 不得在多个 Actor 间共享同一 SQLAlchemy Session。
+  > 25. 并发测试必须使用：
+  >    - Barrier；
+  >    - Latch；
+  >    - Event；
+  >    - 明确 Blocking Point；
+  >    - 可观测 Transaction State；
+  >    - 受控 Worker Coordination。
+  > 26. 并发测试不得主要依赖 `sleep`。
+  > 27. 并发测试必须验证：
+  >    - 成功 Actor；
+  >    - 冲突 Actor；
+  >    - 项目错误；
+  >    - 真实 SQLSTATE；
+  >    - Retry Count；
+  >    - Final Business Current Truth；
+  >    - 无部分写入；
+  >    - 无孤立 Domain Version；
+  >    - 无重复 Work Intent；
+  >    - 无重复业务效果。
+  > 28. Deadlock Test 不得固定断言特定 Worker 必须被终止；应验证一个事务被中止且最终业务不变量成立。
+  > 29. 必须真实覆盖：
+  >    - 相同 `expected_revision` 竞争；
+  >    - CAS 一个成功、一个冲突；
+  >    - Version Number 并发分配；
+  >    - 命名唯一约束竞争；
+  >    - SQLSTATE `40001`；
+  >    - SQLSTATE `40P01`；
+  >    - 最多三次 Transaction 总尝试；
+  >    - Retry 复用同一 Command Identity；
+  >    - Retry 不产生额外 Domain Version；
+  >    - Work Intent 并发 Claim；
+  >    - `SKIP LOCKED` 不重复 Claim；
+  >    - Lease Expiry 与 Takeover；
+  >    - Stale Fencing Token 无法提交；
+  >    - 相同 Idempotency Key + 相同 Fingerprint；
+  >    - 相同 Key + 不同 Fingerprint；
+  >    - Outbox/Consumer Duplicate Delivery；
+  >    - Promotion/Invalidation 竞争；
+  >    - Restore/New Write 竞争；
+  >    - Purge/New Reference 竞争。
+  >
+  > **3.10 Atomic Commit Fault Injection**
+  >
+  > 30. 每个 DEC-035 Atomic Business Commit 必须通过 Fault Injection 验证全有或全无。
+  > 31. 至少在以下位置注入失败：
+  >    - First Write 前；
+  >    - Domain Version Insert 后；
+  >    - Current Truth Pointer Update 后；
+  >    - Evidence Link 后；
+  >    - Audit 后；
+  >    - Idempotency Result 后；
+  >    - Integration Event Outbox 后；
+  >    - Durable Work Intent 后；
+  >    - Commit 前；
+  >    - Commit/Connection Outcome 不确定时。
+  > 32. 必须验证不存在：
+  >    - 业务成功但 Audit 缺失；
+  >    - 业务失败但 Work Intent 可领取；
+  >    - 事务失败但 Outbox 可发布；
+  >    - CAS 冲突后部分记录保留；
+  >    - Retry 产生重复正式版本。
+  > 33. Commit Outcome Unknown 不得只通过 Mock `session.commit()` 抛异常验证。
+  > 34. Crash/Failure Test 应覆盖真实或语义等价的：
+  >    - Connection Termination；
+  >    - Process Kill；
+  >    - Timeout；
+  >    - Deadlock；
+  >    - Serialization Failure；
+  >    - Partial External Success。
+  >
+  > **3.11 Crash Window 覆盖**
+  >
+  > 35. 必须覆盖以下 Crash Window：
+  >    - Business Commit 成功、Checkpoint 写入失败；
+  >    - Checkpoint 成功、Business Commit 失败；
+  >    - Blob Upload 成功、Database Finalization 失败；
+  >    - Database 引用未验证 Blob；
+  >    - Provider Side Effect 成功、本地记录失败；
+  >    - Work Intent Claim 后 Worker Crash；
+  >    - Outbox Publish 后状态更新前 Crash；
+  >    - Primary Purge 成功、Object/Index 删除前 Crash；
+  >    - Backup Restore 后 Deletion Ledger 未重放。
+  >
+  > **3.12 幂等覆盖**
+  >
+  > 36. 每个 Idempotent Use Case 至少覆盖：
+  >    - First Execution；
+  >    - Exact Replay；
+  >    - Concurrent Exact Replay；
+  >    - Same Key Different Fingerprint；
+  >    - Transient Failure Retry；
+  >    - Permanent Failure；
+  >    - Commit Outcome Unknown；
+  >    - Intentional Rerun；
+  >    - Retention Window Closed。
+  > 37. 必须验证：
+  >    - Replay 返回同一正式结果；
+  >    - Provider 不被重复调用；
+  >    - 不产生第二个 Business Version；
+  >    - 不重复写 Audit；
+  >    - 不重复创建 Work Intent；
+  >    - Fingerprint Conflict 明确失败；
+  >    - Intentional Rerun 使用新身份；
+  >    - Retry 与 Rerun 保持不同语义。
+  >
+  > **3.13 迁移覆盖**
+  >
+  > 38. Migration Test 必须使用真实 PostgreSQL。
+  > 39. Migration Test 至少覆盖：
+  >    - Fresh Database → Head；
+  >    - Supported Release Baseline → Head；
+  >    - Single Head；
+  >    - Multiple Head Detection；
+  >    - Drift Detection；
+  >    - Vendor Schema Exclusion；
+  >    - Old Application + Expanded Schema；
+  >    - New Application + Expanded Schema；
+  >    - Application Rollback + Expanded Schema；
+  >    - Backfill Pause/Resume；
+  >    - Backfill Idempotency；
+  >    - `NOT VALID` / `VALIDATE`；
+  >    - Concurrent Index Failure；
+  >    - Invalid Index Cleanup；
+  >    - Forward Repair；
+  >    - Destructive Gate；
+  >    - Contract 在旧实例存在时被阻止。
+  > 40. `metadata.create_all()` 不得作为 Migration Acceptance 的唯一 Schema 来源。
+  >
+  > **3.14 PR Required 与 Scheduled Tier**
+  >
+  > 41. Required PR Checks 必须包含 correctness-critical 的：
+  >    - PostgreSQL Transaction；
+  >    - Constraint；
+  >    - Concurrency；
+  >    - Idempotency；
+  >    - Migration。
+  > 42. 以下测试可以进入 Scheduled/Manual Tier：
+  >    - 高强度 Contention；
+  >    - 长时间 Recovery；
+  >    - Live Provider；
+  >    - Backup Restore；
+  >    - Performance；
+  >    - 长周期 Soak Test。
+  > 43. Correctness-critical Invariant 不得只在 Scheduled/Nightly Test 中验证。
+  >
+  > **3.15 Flaky Test 政策**
+  >
+  > 44. 禁止通过自动重跑将 Flaky Persistence Test 变绿。
+  > 45. 必须区分：
+  >
+  >    ```text
+  >    Application Retry Under Test
+  >    ≠
+  >    CI Test Retry
+  >    ```
+  >
+  > 46. 基础设施启动失败可以有限重试，但：
+  >    - 业务断言失败；
+  >    - 并发结果不稳定；
+  >    - Timeout；
+  >    - SQLSTATE 异常；
+  >    - 最终行状态错误；
+  >    不得被自动 Retry 掩盖。
+  > 47. Flaky Required Check 应视为测试或架构缺陷。
+  > 48. 并发失败报告必须包含：
+  >    - Seed；
+  >    - Actor Timeline；
+  >    - Transaction Identity；
+  >    - SQLSTATE；
+  >    - Retry Count；
+  >    - Final Rows；
+  >    - Lock/Timeout Diagnostic。
+  >
+  > **3.16 合成/敏感测试数据**
+  >
+  > 49. 测试数据必须：
+  >    - 使用合成数据；
+  >    - 不含生产 PII；
+  >    - 不含真实 Credential；
+  >    - 不含真实 Provider Token；
+  >    - 不复制真实 Checkpoint；
+  >    - 不复制真实 Prompt/Provider Payload；
+  >    - 使用受控 Secret Injection；
+  >    - 失败日志执行 Redaction。
+  > 50. 精确 Sensitive Test Fixture 规则继续由 DQ-17 决定。
+  >
+  > **3.17 Readiness Artifact**
+  >
+  > 51. Architecture Readiness Package 必须包含：
+  >
+  >    ```text
+  >    Persistence Test Coverage & Fidelity Table
+  >    ```
+  >
+  > 52. 该表至少包括：
+  >    - Requirement/Invariant；
+  >    - Owning DQ/DEC/RFC；
+  >    - Test Layer；
+  >    - Test Subject；
+  >    - Real PostgreSQL Required；
+  >    - Connection Count；
+  >    - Process/Worker Count；
+  >    - Isolation Level；
+  >    - Fixture Strategy；
+  >    - Commit Visibility Required；
+  >    - Expected SQLSTATE；
+  >    - Fault Injection；
+  >    - External Dependency；
+  >    - Cleanup Strategy；
+  >    - CI Tier；
+  >    - Required/Optional；
+  >    - Evidence Produced；
+  >    - Owner。
+  > 53. DQ-16 接受不授权创建该表。
+  >
+  > **3.18 Technical Spike 与 Common Harness**
+  >
+  > 54. DQ-16 不新增独立通用 Technical Spike。
+  > 55. 已有专项 Spike 继续有效：
+  >    - PostgreSQL Concurrency；
+  >    - External Object Consistency；
+  >    - Workflow Checkpoint Isolation；
+  >    - Schema Migration Rollout；
+  >    - Retention & Deletion Safety。
+  > 56. 上述 Spike 必须共享合格的真实 PostgreSQL Test Harness 原则：
+  >    - 真实 PostgreSQL；
+  >    - 钉定版本；
+  >    - 确定性协调；
+  >    - 环境记录；
+  >    - 可复核证据；
+  >    - 不使用 SQLite 作为验收引擎。
+  > 57. Common Persistence Test Harness Qualification 必须作为第一个获授权 Persistence Spike 的组成部分。
+  > 58. 本次接受不授权创建 Harness、Container、CI Job、Fixture、Contract Suite、测试代码或基础设施。
 
 ---
 
@@ -3809,7 +4213,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~15 ACCEPTED；DQ-16~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~16 ACCEPTED；DQ-17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -3827,7 +4231,7 @@ RFC-002-DQ-12  Source & Evidence Persistence         = ACCEPTED (Candidate A, Fo
 RFC-002-DQ-13  Workflow Checkpoint Separation        = ACCEPTED (Candidate A, Formal Model: Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation, Dedicated Schema Must Be Proven / Dedicated Database Fallback, Independent PostgreSQL Service Not Selected / Shared-Table Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-14  Schema Evolution & Migrations         = ACCEPTED (Candidate A, Formal Model: Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles, Universal Safe Downgrade Rejected / Sole Hand-written SQL Rejected, Accepted with Major Revision, 2026-08-03) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-15  Data Retention & Deletion Boundary    = ACCEPTED (Candidate A, Formal Model: Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles, Universal TTL / Universal Permanent Retention Rejected, Specific Retention Periods Not Decided, Accepted with Major Revision, 2026-08-03) — User Decision: ACCEPTED WITH MAJOR REVISION
-RFC-002-DQ-16  Persistence Testing Strategy          = PROPOSED — User Decision: PENDING
+RFC-002-DQ-16  Persistence Testing Strategy           = ACCEPTED (Candidate A, Accepted Principle: Layered Test Strategy, Formal Model: Pure Domain/Application Unit Tests + Port Contract Parity Tests + Real PostgreSQL Persistence Acceptance Tests + Deterministic Multi-connection Concurrency Tests + Real Migration/Upgrade/Recovery Tests + Crash-window/Fault-injection Tests + Production-topology-specific Qualification, Universal All-Tests-Use-PostgreSQL / All-SQLite Testing Rejected, SQLite = Optional Non-authoritative Test Double Only, Accepted with Major Revision, 2026-08-03) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-17  Security & Sensitive Data Boundary    = PROPOSED — User Decision: PENDING
 
 RFC-002 Acceptance = USER DECISION REQUIRED
