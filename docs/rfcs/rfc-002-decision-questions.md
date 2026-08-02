@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~10 ACCEPTED；DQ-11~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~11 ACCEPTED；DQ-12~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-10 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-11~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
+> - DQ-01~DQ-11 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-12~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -26,7 +26,7 @@
 | DQ-08 | Idempotency Model | **已决定（2026-08-02 ACCEPTED）**：Candidate B 为主（各幂等层由 Owning Module 分层存储）+ Candidate C 为强制设计原则（天然幂等 set/ensure/replace 语义，不替代显式记录与唯一约束）+ 统一语义契约（非统一物理表）；Candidate A 作为跨模块万能 Idempotency Table 被拒绝；Retry 复用 Command ID/Idempotency Key/Stage Run ID/Input Fingerprint 并创建新 Attempt ID，Intentional Rerun 创建新逻辑身份（保留 rerun_of）；同 Scope+Key+Fingerprint 重放原 Application Result、不同 Fingerprint 返回 Idempotency Key Conflict；幂等成功记录与 Business Current Truth 同一 DEC-035 原子提交；Consumer Dedup Marker 与消费业务更新同事务；IN_PROGRESS 执行所有权与 DQ-07 Durable Lease/Holder/Attempt ID/fencing_token 协同（旧 Worker 不得完成记录）；瞬时失败不永久固化、确定性终局语义结果可稳定重放；数据库事务重试不得重新调用外部 Provider（复用同一 Provider Call Identity）；Checkpoint/thread_id 不是业务幂等记录；**Idempotency Identity Matrix 为实现前置条件——REQUIRED 但 NOT AUTHORIZED**；物理表/Retention/Security 留 DQ-13/15/17；原分歧 统一幂等表 vs 分层存储 vs 天然幂等语义 | Idempotent Consumer 权威 |
 | DQ-09 | Transactional Outbox / Durable Dispatch | **已决定（2026-08-02 ACCEPTED）**：Candidate B（PostgreSQL-backed Transactional Durable Work Intent）作为 MVP 内部可靠工作调度模型 + Candidate A 不作 MVP 内部任务模型（保留为未来 Integration Event Outbox 方向）+ Candidate C 独立 Broker 不在 MVP 引入（未来仅作 Delivery Backend，不替代事务内 Durable Intent）；业务状态更新与 Durable Work Intent 同一 PostgreSQL Atomic Business Commit（Intent 写入失败整体回滚、回滚不留可领取 Intent）；API 仅在 Intent 持久化提交后返回 accepted（accepted 仅表示工作已可靠记录，不表示 Worker 或业务执行完成）；禁止 asyncio.create_task/内存 Queue/临时 Background Task/单独 Broker Publish/仅 LISTEN-NOTIFY 作为唯一可靠调度；Dispatch ID Retry 稳定、Delivery Attempt 每次新建、Intentional Rerun 新 Dispatch ID（保留 rerun_of）；短事务 SELECT FOR UPDATE SKIP LOCKED Claim + Lease Holder + 单调 fencing_token + Attempt Identity，长执行不持行锁/Session/UoW/连接，最终提交重新验证 Dispatch ID/Lease Holder/fencing_token/Attempt/Fingerprint/expected_revision（旧 Worker 或过期 Lease 不得完成 Intent）；Delivery = at-least-once（不承诺 exactly-once；唯一业务效果由 DQ-08 幂等 + Consumer Dedup + 命名唯一约束 + DQ-07 Lease/Fencing + revision + Atomic Commit 组合保证）；数据库事务 Retry 与 Work Execution Retry 分离（DQ-07 三次事务尝试不直接套用长任务次数；Work Retry/Backoff/Dead-letter/人工恢复/告警留 RFC-003/RFC-007）；LISTEN/NOTIFY 仅非权威唤醒优化、周期性 Polling 为权威恢复路径；不新增独立 Matrix，现有 Idempotency Identity Matrix 与 Concurrency Scenario Matrix 须补充 Dispatch 场景——REQUIRED 但 NOT AUTHORIZED；DQ-07 真实 PostgreSQL 多 Worker Spike 继续有效并覆盖 Durable Dispatch 并发与恢复语义；relay/Worker backend/部署拓扑留 RFC-003，Event 分类留 DQ-10，HTTP/Polling API 协议留 RFC-004，Retention 留 DQ-15，测试留 DQ-16，Security 留 DQ-17；原分歧 是否首版引入 Outbox | 双写问题权威；RFC-001 移交 |
 | DQ-10 | Event & Audit Persistence | **已决定（2026-08-02 ACCEPTED）**：Domain Event / Audit Record / State Transition Record / Application Event / Integration Event / Observability Event 六类记录语义独立，拒绝 Universal Event / Audit Table（Candidate B）与全项目 Event-driven 架构（Candidate C）；Audit Record 为 append-only 权威问责证据、与对应 Business Current Truth 修改同一 DEC-035 原子提交（写入失败整体回滚，不得异步补写/覆盖/删除；更正仅追加 Correction/Superseding/Reversal Record）；State Transition Record 为显式类型 Audit Record（可物理共用 Audit Ledger，不代表语义合并，不得充当 Integration Event 或 Current Truth）；Domain Event 为模块内部过去式业务事实、默认不自动持久化，需同事务执行的 Handler 在最外层 UoW 内 Commit 前执行、不嵌套 UoW/不独立 Commit/不调用外部 Provider；Application Event 仅 Commit 后本地 best-effort 通知（LOCAL/BEST-EFFORT/NON-DURABLE，不承担必须执行工作）；必须执行工作用 DQ-09 Durable Work Intent，可靠跨边界事实用独立 Transactional Integration Event Outbox（与业务状态/Audit 同 PostgreSQL 事务写入，Delivery = at-least-once，不承诺 exactly-once；Consumer 依 Event Identity + Consumer Scope 去重，Dedup Marker 与消费业务更新同事务；Outbox 与 Work Intent 不共用 Identity/状态机/Payload/Retry/Retention）；CloudEvents-compatible Envelope 仅可选互操作方向，不替代 Outbox/原子提交/Dedup/Delivery Guarantee；Observability Event 归 RFC-007 非权威 Telemetry（失败不回滚业务、不替代 Audit）；六类分类 / Audit Capability / State Transition 共用 Audit Ledger / Application Event best-effort / Outbox 结构 / Classification Table 均为项目 Accepted Decision（非第三方官方强制架构）；Audit Ledger / State Transition / Outbox 不构成 Business Current Truth，不引入 Event Sourcing（Current Truth 留 DQ-11）；Event & Record Classification Table 为持久化实现前置 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED；不新增独立 Matrix 或 Technical Spike，DQ-07 真实 PostgreSQL 多 Worker Spike 继续有效并覆盖 Integration Event 重复投递 / Consumer Dedup / Relay Crash / stale Publish / 无部分业务写入；Event Relay/Broker/Polling/发布状态机/Dead-letter 留 RFC-003，Retention 留 DQ-15，测试留 DQ-16，Security 留 DQ-17；原分歧 审计 vs 事件分离与持久化 | Fowler Audit Log≠Domain Event（权威模式）；项目用户决定 |
-| DQ-11 | Snapshot vs History | 版本化历史 + 审计，不上完整 ES | DEC-013 排除 ES |
+| DQ-11 | Snapshot vs History | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/State Transition History + Optional Derived Query Projections**；Candidate B 完整 Event Sourcing 拒绝（违反 DEC-013）、Candidate C 仅当前状态覆盖拒绝（违反 DEC-024）、Delta-only Version History 不作权威历史模型；正式 Business Version 逻辑完整、不可变、独立可读，不依赖事件/Delta 链重放，不经后来变化的 Current Truth Pointer 解释历史；只有成功 Atomic Business Commit 产生正式版本（DB/Work/Provider Retry、Lease、Checkpoint、回滚事务、未提交 LLM 临时结果不得创建）；Current Truth 由带独立 `revision` 的显式 Current Truth Pointer 经 CAS 选择（`MAX(version_number)` 禁止；latest created/approved 与 current effective 语义分离）；Invalidation 不删除版本且不得静默回退（显式 No Current Truth/Promote/Replacement/Restore）；Restore 为新前向 Business Command（新 `domain_version_id`/`version_number`/`command_id`/Audit + `restored_from_version_id`，非数据库 Rollback）；Query Projection 为派生非权威读取模型；通用 Bitemporal Model / SQL AS-OF 不纳入 MVP；五种 Snapshot 术语语义分离；Aggregate / Invariant Matrix 扩展为 REQUIRED 但 NOT AUTHORIZED，不新增独立 Matrix/Spike（现有 DQ-07 Spike 覆盖版本分配/Pointer CAS/Invalidation/Restore 竞争，仍未授权）；原分歧 版本化历史 vs 完整 ES vs 仅当前状态 | DEC-013 排除 ES；DEC-024 不删除历史 |
 | DQ-12 | Source & Evidence Persistence | 原始内容存 DB vs 引用 + 大内容边界 | PG TOAST/bytea/外部存储 |
 | DQ-13 | Workflow Checkpoint Separation | 同库/分库、生命周期、对账权威 | DEC-023/024；官方无同库建议 |
 | DQ-14 | Schema Evolution & Migrations | forward-only、autogenerate 纪律 | Alembic 官方立场 |
@@ -1479,9 +1479,446 @@
 - **Trade-offs：** A 满足 DEC 全部需求且无 ES 复杂度；B 提供「事件流重建状态」但 DEC 已排除且代价高；C 违规。
 - **Failure modes：** 误上 ES→LLM 外部交互重放/bi-temporal 复杂度；历史与 Current Truth 混淆→旧结果被当有效。
 - **Impact on later RFCs：** RFC-003（恢复证据）、RFC-007（回放观测）。
-- **Recommendation：** **[架构推断] 倾向 A**——current truth + 版本化历史 + append-only 审计；**显式立场：不采用完整 Event Sourcing**（与 DEC-013 一致）。**置信度：高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation（历史提案；Superseded by the Accepted Major Revision below）：** **[架构推断] 倾向 A**——current truth + 版本化历史 + append-only 审计；**显式立场：不采用完整 Event Sourcing**（与 DEC-013 一致）。**置信度：高**。候选关系：**Candidate A = ACCEPTED WITH MAJOR REVISION**（Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/State Transition History + Optional Derived Query Projections）；**Candidate B = REJECTED**（FULL EVENT SOURCING CONFLICTS WITH DEC-013）；**Candidate C = REJECTED**（CURRENT-STATE-ONLY OVERWRITE CONFLICTS WITH DEC-024）；**Delta-only Version History = REJECTED AS AUTHORITATIVE MVP HISTORY MODEL**。
+- **User Decision：** ACCEPTED WITH MAJOR REVISION
+- **Accepted Candidate：** CANDIDATE A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-02 用户正式决定）：**
+  > **3.1 总体持久化模型**
+  > 1. MVP 采用以下组合模型：
+  >    ```text
+  >    AUTHORITATIVE CURRENT TRUTH
+  >    + IMMUTABLE BUSINESS VERSION SNAPSHOTS
+  >    + APPEND-ONLY AUDIT / STATE TRANSITION HISTORY
+  >    + OPTIONAL DERIVED QUERY PROJECTIONS
+  >    ```
+  > 2. PostgreSQL Business Current Truth 继续是唯一业务权威来源。
+  > 3. Current Truth 由以下组合表达：
+  >    ```text
+  >    Logical Business Object
+  >    + Explicit Current Truth Pointer
+  >    + Selected Immutable Business Version
+  >    ```
+  > 4. Audit Record、State Transition Record、Domain Event、Integration Event、Workflow Checkpoint、Observability Event 和 Query Projection 均不构成 Business Current Truth。
+  > 5. 项目不采用完整 Event Sourcing。
+  > 6. 系统不得通过重放以下记录重建权威 Business Current Truth：
+  >    - Audit Record；
+  >    - State Transition Record；
+  >    - Domain Event；
+  >    - Application Event；
+  >    - Integration Event；
+  >    - Observability Event；
+  >    - Durable Work Intent；
+  >    - Workflow Checkpoint。
+  > 7. Candidate A 被接受并进行重大修订。
+  > 8. Candidate B 完整 Event Sourcing 被拒绝。
+  > 9. Candidate C 仅覆盖 Current State、丢失版本历史的模型被拒绝。
+  > 10. Delta-only Version History 不作为 MVP 权威业务历史模型。
+  >
+  > **3.2 Version Boundary**
+  > 11. 每个需要历史、比较、审查、恢复或可追溯性的业务对象，必须具有明确的 Version Boundary。
+  > 12. Version Boundary 必须遵守 DQ-03 的 Aggregate Boundary 与 DQ-02 的唯一模块所有权。
+  > 13. 不得创建跨所有模块的 Task Mega Snapshot。
+  > 14. 一个 Business Version 默认属于一个明确的 Logical Business Object。
+  > 15. 跨 Aggregate Composite Commit 如有明确业务不变量，可以在同一事务中创建多个彼此独立的 Business Version。
+  > 16. 多 Aggregate Commit 中，每个 Aggregate 必须保留自己的：
+  >    - logical object identity；
+  >    - domain version identity；
+  >    - version number；
+  >    - Current Truth Pointer；
+  >    - Aggregate invariants。
+  > 17. 多个版本可以通过：
+  >    - Command ID；
+  >    - Correlation ID；
+  >    - Causation ID；
+  >    - Commit Identity；
+  >    建立因果关系，但不得因此合并成一个跨模块 Mega Snapshot。
+  >
+  > **3.3 Immutable Business Version Snapshot**
+  > 18. 每个正式 Business Version 使用 DQ-04 已接受的：
+  >    ```text
+  >    logical_object_id
+  >    domain_version_id
+  >    version_number
+  >    ```
+  > 19. `domain_version_id` 不可变、不得复用。
+  > 20. `version_number` 在同一 Logical Business Object 内单调递增。
+  > 21. 已提交的 Version Number 不得因 Invalidation、Rejection、Supersession、Restore、Archive 或 Retention 而重新使用。
+  > 22. 一个 Business Version 一经正式提交，其业务语义必须不可变。
+  > 23. 普通 Application Command 不得 UPDATE 已提交版本的业务内容。
+  > 24. 普通 Application Command 不得 DELETE 已提交历史版本。
+  > 25. 修正业务内容必须创建新的正式 Business Version。
+  > 26. Invalidation 必须保留原版本。
+  > 27. Rejection 必须保留被拒绝版本。
+  > 28. Supersession 必须保留被取代版本。
+  > 29. Restore 不得修改被恢复来源版本。
+  > 30. 每个正式版本至少必须包含或等价表达：
+  >    - Snapshot Schema Version；
+  >    - Logical Object Identity；
+  >    - Domain Version Identity；
+  >    - Version Number；
+  >    - Creation Command Identity；
+  >    - Creation Actor；
+  >    - Created Time；
+  >    - Recorded Time；
+  >    - Business Content；
+  >    - Immutable Dependency References；
+  >    - Status 或 Validity；
+  >    - Provenance；
+  >    - Causation / Parent / Derived-from relationship。
+  > 31. 精确表名、字段名、索引和物理模型留待实现设计。
+  >
+  > **3.4 逻辑完整 Snapshot**
+  > 32. 正式 Business Version 必须具有逻辑完整快照语义。
+  > 33. “逻辑完整”表示：读取某个历史版本时，无需从第一个版本开始重放全部 Event 或 Delta，即可恢复该版本的业务含义。
+  > 34. Delta-only Chain 不作为权威历史读取路径。
+  > 35. 不得要求使用：
+  >    ```text
+  >    V1 full
+  >    + V2 delta
+  >    + V3 delta
+  >    + V4 delta
+  >    ```
+  >    才能理解 V4 的完整业务语义。
+  > 36. 逻辑完整 Snapshot 可以物理分布在：
+  >    - Version Root；
+  >    - Version-owned Child Rows；
+  >    - Immutable Value Objects；
+  >    - Immutable Source/Evidence References；
+  >    - Immutable External Object References；
+  >    - Version-owned Association Rows。
+  > 37. “逻辑完整”不意味着所有数据必须复制到一个 JSONB 字段。
+  > 38. 物理规范化不能破坏版本语义独立性。
+  > 39. 读取历史版本时，不得依赖后来变化的 Current Truth Pointer。
+  > 40. 读取历史版本时，不得通过可变的 `current_source_version`、`current_dependency` 或其他 Current Pointer 解析当时业务含义。
+  > 41. 影响历史版本业务语义的依赖必须固定到：
+  >    - Source Version Identity；
+  >    - Evidence Version Identity；
+  >    - Dependency Version Identity；
+  >    - Content Hash；
+  >    - Prompt / Model / Configuration Version Reference；
+  >    - 其他不可变引用。
+  > 42. Source、Evidence、大对象和外部对象的持久化边界继续由 DQ-12 决定。
+  > 43. Snapshot Schema Evolution、Upcasting、Compatibility Read 和数据迁移由 DQ-14 决定。
+  > 44. Business Immutability 表示普通业务操作不能改写已提交版本的业务语义。
+  > 45. Business Immutability 不排除以后经过明确治理的确定性 Schema Migration。
+  > 46. Schema Migration 不得伪装成普通 Business Command。
+  >
+  > **3.5 Version Creation Boundary**
+  > 47. 只有成功完成正式 Atomic Business Commit 的操作才能产生正式 Domain Version。
+  > 48. 以下情况不得产生新的正式 Domain Version：
+  >    - Database Transaction Retry；
+  >    - SQLSTATE 40001 Retry；
+  >    - SQLSTATE 40P01 Retry；
+  >    - Work Execution Retry；
+  >    - Provider Retry；
+  >    - Worker Crash Recovery；
+  >    - Lease Renewal；
+  >    - Heartbeat；
+  >    - Checkpoint Save；
+  >    - Workflow Resume 本身；
+  >    - Observability Update；
+  >    - Telemetry Export；
+  >    - 最终回滚的事务；
+  >    - 未提交的 LLM 临时输出；
+  >    - 草稿计算中间结果；
+  >    - 仅状态探测或健康检查。
+  > 49. Intentional Rerun 成功后可以产生新的 Domain Version。
+  > 50. 正式改变业务内容或有效业务含义的操作应创建新版本。
+  > 51. 仅改变以下运行状态不得创建 Domain Version：
+  >    - Lease Holder；
+  >    - Attempt ID；
+  >    - Retry Counter；
+  >    - Heartbeat；
+  >    - Worker Runtime State；
+  >    - Checkpoint Position；
+  >    - Telemetry Metadata。
+  > 52. Audit Record 的产生不必然意味着创建新的 Domain Version。
+  > 53. Domain Version Creation Policy 必须由 Application 层显式决定。
+  > 54. 不得仅依赖 ORM Dirty Tracking 或 SQLAlchemy Flush 检测决定是否创建正式版本。
+  >
+  > **3.6 Current Truth Pointer**
+  > 55. Current Truth Pointer 是可变的权威当前版本选择器。
+  > 56. Current Truth Pointer 必须拥有独立、非空的 `revision`。
+  > 57. 修改 Current Truth Pointer 必须携带 `expected_revision`。
+  > 58. Pointer 更新必须使用 DQ-04 的 Compare-and-Swap 条件更新。
+  > 59. CAS 影响零行时必须返回并发冲突，并回滚完整 Atomic Business Commit。
+  > 60. 一个明确 Business Scope 内最多只能有一个 Current Effective Version。
+  > 61. 某些业务对象可以显式处于：
+  >    ```text
+  >    NO_CURRENT_TRUTH
+  >    ```
+  > 62. Current Truth Pointer 不得指向：
+  >    - Invalid Version；
+  >    - Rejected Version；
+  >    - Physically Unavailable Version；
+  >    - 不属于同一 Logical Business Object 的版本；
+  >    - 未完成正式 Commit 的版本；
+  >    - 已被安全策略禁止使用的版本。
+  > 63. `MAX(version_number)` 不得被用作 Current Truth Selector。
+  > 64. `ORDER BY version_number DESC LIMIT 1` 不得隐式等同于 Current Truth 查询。
+  > 65. 以下概念必须具有独立命名与查询语义：
+  >    ```text
+  >    latest_created_version
+  >    latest_approved_version
+  >    current_effective_version
+  >    ```
+  > 66. Query、Repository、API 和 Application Contract 不得隐式混用上述选择器。
+  > 67. Current Truth 查询必须通过 Current Truth Pointer 或等价的显式权威选择规则。
+  > 68. Current Truth Pointer 不是历史记录本身，而是对不可变版本的权威当前选择。
+  >
+  > **3.7 Promotion**
+  > 69. 一个已正式创建、但尚未成为 Current Truth 的不可变 Candidate Version，可以通过显式 Promotion Command 成为 Current Truth。
+  > 70. Promotion 必须重新验证：
+  >    - Candidate 状态；
+  >    - Business Invariants；
+  >    - expected revision；
+  >    - Evidence Validity；
+  >    - Source Validity；
+  >    - Review Decision；
+  >    - Security Constraints；
+  >    - Current Concurrency Ownership；
+  >    - Candidate 与 Logical Object 的所属关系。
+  > 71. Promotion 必须与以下适用参与者在同一 PostgreSQL Atomic Business Commit 中提交：
+  >    - Current Truth Pointer；
+  >    - Stage State；
+  >    - Audit Record；
+  >    - State Transition Record；
+  >    - Idempotency Result；
+  >    - Integration Event Outbox；
+  >    - Durable Work Intent；
+  >    - 其他 DEC-035 必须参与者。
+  > 72. Promotion 不得修改被 Promote 的不可变 Version Content。
+  >
+  > **3.8 Invalidation**
+  > 73. Current Version 被 Invalidate 后不得继续作为 Current Truth。
+  > 74. Invalidation 不得删除原版本。
+  > 75. Invalidation 不得自动执行：
+  >    ```text
+  >    select previous maximum valid version
+  >    ```
+  > 76. Invalidation 不得静默回退至：
+  >    - 前一个 Version Number；
+  >    - 最近 Approved Version；
+  >    - 任意仍标记 Valid 的历史版本；
+  >    - 任何未经当前规则重新验证的版本。
+  > 77. Invalidation 后必须显式选择：
+  >    - 创建 Replacement Version；
+  >    - Promote 一个已审查 Candidate Version；
+  >    - 执行 Restore；
+  >    - 进入 `NO_CURRENT_TRUTH`；
+  >    - 或其他由明确业务不变量允许的状态。
+  > 78. Invalidation 必须追加 Audit 与 State Transition Evidence。
+  > 79. Invalidation 与 Current Truth Pointer 修改必须使用 CAS。
+  >
+  > **3.9 Restore**
+  > 80. 将历史内容重新恢复为当前业务状态时，必须执行显式 Restore Command。
+  > 81. Restore 是新的前向 Business Operation。
+  > 82. Restore 不是 Database Transaction Rollback。
+  > 83. Restore 必须创建新的：
+  >    ```text
+  >    domain_version_id
+  >    version_number
+  >    command_id
+  >    audit record
+  >    ```
+  > 84. Restore 后的新版本必须记录：
+  >    - `restored_from_version_id`；
+  >    - restore reason；
+  >    - restored by；
+  >    - restore command identity；
+  >    - restore time；
+  >    - 当前验证通过的 Source/Evidence references。
+  > 85. Restore 不得原地修改被引用的历史版本。
+  > 86. Restore 不得简单把 Current Truth Pointer 直接重新指向一个曾被 Supersede、Invalidate 或失效的旧版本。
+  > 87. Restore 必须重新验证：
+  >    - 当前 Business Rules；
+  >    - Current Source/Evidence Validity；
+  >    - Security and Permission；
+  >    - Review Requirements；
+  >    - Current Schema Compatibility；
+  >    - expected revision；
+  >    - 并发状态；
+  >    - 当前依赖有效性。
+  > 88. Restore 必须作为新的 Atomic Business Commit。
+  > 89. Restore 成功后产生的新版本可以在内容上等价于历史版本，但必须具有新的 Version Identity 和新的业务因果记录。
+  > 90. Database Rollback 与 Business Restore 必须使用不同术语、不同 Port、不同 Application Contract 与不同测试。
+  >
+  > **3.10 Mutable Query Projection**
+  > 91. Mutable Query Projection 可以用于提升读取、列表、搜索和聚合查询性能。
+  > 92. Query Projection 默认是派生数据。
+  > 93. Query Projection 不是 Business Current Truth。
+  > 94. Query Projection 可以位于同一 PostgreSQL 服务中，不要求独立数据库。
+  > 95. DQ-11 不强制采用 CQRS。
+  > 96. DQ-11 不强制采用独立 Read Store。
+  > 97. Projection 可以从 Current Truth Pointer 和 Version Tables 构建。
+  > 98. Projection 不要求通过 Event Stream 重放构建。
+  > 99. Projection 延迟、损坏、丢失或重建不得改变 Business Current Truth。
+  > 100. State-changing Command 不得只依赖可能过期的 Projection 决定最终 Commit。
+  > 101. 如果 Command 使用 Projection 进行候选筛选，最终 Commit 前必须重新读取并验证权威 Current Truth。
+  > 102. Projection 必须具有明确：
+  >    - Owning Module；
+  >    - Source of Truth；
+  >    - Rebuild Strategy；
+  >    - Consistency Level；
+  >    - Allowed Query Use；
+  >    - Failure Handling；
+  >    - Freshness Expectation。
+  > 103. Projection 是事务内同步、异步维护或按需重建，留待具体 Query Model 设计。
+  > 104. Projection Rebuild 不得创建新的 Domain Version。
+  >
+  > **3.11 历史读取语义**
+  > 105. 系统至少必须支持以下逻辑读取能力：
+  >    ```text
+  >    Read Current Truth
+  >    Read Version by domain_version_id
+  >    Read Version by version_number
+  >    List Version History
+  >    Compare Two Versions
+  >    Read Audit Timeline
+  >    Read State Transition Timeline
+  >    Request Explicit Restore
+  >    ```
+  > 106. 历史版本读取必须返回当时正式提交的业务语义。
+  > 107. 后续 Current Truth、Source Current Pointer、Dependency Current Pointer 或 Projection 的变化，不得改变已提交历史版本的展示结果。
+  > 108. Version History 使用 `version_number` 表达同一 Logical Object 内的业务版本顺序。
+  > 109. Timestamp 不得作为唯一 Version Identity 或唯一版本排序依据。
+  > 110. Audit Timeline 使用 DQ-10 的：
+  >    - `occurred_at`；
+  >    - `recorded_at`；
+  >    - stable Audit Identity；
+  >    表达审计顺序。
+  > 111. Audit Timeline 可以解释状态如何变化，但不得作为重建 Business Current Truth 的权威输入。
+  > 112. Version Compare 必须比较两个不可变 Business Version Snapshot。
+  > 113. Version Compare 不得比较两个时间点的可变 Projection 并将其称为历史版本比较。
+  > 114. API 路径、分页、Diff Response、Restore Endpoint、Authorization 与用户可见性继续由 RFC-004 决定。
+  >
+  > **3.12 Temporal / Bitemporal Boundary**
+  > 115. DQ-11 不在 MVP 中引入通用 Bitemporal Database Model。
+  > 116. Application Time 与 System / Recorded Time 是不同概念。
+  > 117. 只有存在明确业务需求时，才为具体业务对象建模 Application Time。
+  > 118. 不要求每张业务表具有：
+  >    ```text
+  >    valid_from
+  >    valid_to
+  >    system_from
+  >    system_to
+  >    ```
+  > 119. 不要求实现全项目通用 SQL `AS OF` 查询层。
+  > 120. 不要求通过数据库系统版本时间自动生成业务历史。
+  > 121. 具有未来生效、追溯生效、法规时间或合同有效期需求的对象，应通过后续独立业务决定扩展。
+  > 122. 普通 `created_at` 不得被当作完整 Application Time、Effective Time 或 Bitemporal Model。
+  >
+  > **3.13 Atomic Commit 与并发**
+  > 123. 新 Domain Version 创建必须与所有适用参与者处于同一个 DEC-035 Atomic Business Commit。
+  > 124. 适用参与者包括：
+  >    - Evidence Links；
+  >    - Current Truth Pointer；
+  >    - Stage State；
+  >    - Audit Record；
+  >    - State Transition Record；
+  >    - Idempotency Result；
+  >    - Integration Event Outbox；
+  >    - Durable Work Intent；
+  >    - Result Reference；
+  >    - 其他被业务不变量要求的记录。
+  > 125. Version Number 分配与 Version Insert 必须处于同一事务。
+  > 126. Version Insert 与 Current Truth Pointer CAS 必须处于同一事务。
+  > 127. Current Truth Pointer CAS 失败时，整个事务必须回滚。
+  > 128. 冲突或失败事务不得留下：
+  >    - 孤立 Domain Version；
+  >    - 已更新 Current Truth Pointer；
+  >    - 已完成 Stage State；
+  >    - 成功 Audit Record；
+  >    - 成功 State Transition Record；
+  >    - 成功 Idempotency Result；
+  >    - 可发布 Integration Event；
+  >    - 可领取 Durable Work Intent；
+  >    - 部分 Evidence Links。
+  > 129. 数据库事务 Retry 必须复用同一 Logical Command Identity。
+  > 130. 数据库事务 Retry 不得创建额外正式版本。
+  > 131. 并发 Version Creation 必须通过唯一约束与 CAS 防止：
+  >    - 重复 Version Number；
+  >    - 重复 Domain Version Identity；
+  >    - 静默覆盖 Current Truth；
+  >    - 孤立 Version。
+  > 132. 跨 Aggregate Composite Commit 如确有明确同步不变量，可以创建多个独立版本，但不得创建跨所有模块的 Mega Snapshot。
+  >
+  > **3.14 Retention 与删除**
+  > 133. 正常业务流程不得物理删除历史 Business Version。
+  > 134. Invalidation、Rejection、Supersession、Promotion 和 Restore 均不得删除旧版本。
+  > 135. Archive、Cold Storage、Physical Deletion、Legal Hold 与法规删除由 DQ-15 决定。
+  > 136. PII、Encryption、Redaction、Access Control 与删除例外由 DQ-17 决定。
+  > 137. 在 DQ-15 和 DQ-17 正式决定前，不得假设历史版本可以被短期删除。
+  > 138. Physical Storage Optimization 不得破坏历史版本的逻辑完整性和可验证性。
+  >
+  > **3.15 Snapshot 术语边界**
+  > 139. `Business Version Snapshot` 表示不可变业务版本。
+  > 140. `Workflow Checkpoint` 表示 Runtime 恢复状态。
+  > 141. `Database Backup Snapshot` 表示基础设施灾难恢复副本。
+  > 142. `Event-Sourcing Snapshot` 表示 Event Stream 重放优化。
+  > 143. `Query Projection` 表示派生读取模型。
+  > 144. 上述五种概念必须保持独立语义。
+  > 145. Business Version Snapshot 不得被 LangGraph Checkpoint 替代。
+  > 146. Workflow Checkpoint 不得作为 Business Version History。
+  > 147. Database Backup 不得作为用户可查询的业务历史。
+  > 148. Query Projection 不得作为不可变历史证据。
+  > 149. 本项目不使用 Event-Sourcing Snapshot，因为 Event Stream 不是 Business Current Truth。
+  >
+  > **3.16 实现前置条件**
+  > 150. DQ-11 不新增独立 Matrix。
+  > 151. 已要求的 Aggregate / Invariant Matrix 必须在未来获得授权时扩展：
+  >    - Current Truth Owner；
+  >    - Versioned Object；
+  >    - Version Boundary；
+  >    - Version Creation Trigger；
+  >    - Snapshot Granularity；
+  >    - Logical Completeness Rule；
+  >    - Current Truth Selector；
+  >    - Promotion Rule；
+  >    - Invalidation Rule；
+  >    - Restore Rule；
+  >    - Historical Dependency References；
+  >    - Projection Source of Truth；
+  >    - Retention Owner；
+  >    - Related DQ/DEC/RFC。
+  > 152. DQ-11 接受不授权创建或修改 Aggregate / Invariant Matrix。
+  > 153. DQ-11 不要求新的独立 Technical Spike。
+  > 154. 已要求的真实 PostgreSQL Concurrency Technical Spike 在未来获得授权后必须覆盖：
+  >    - Concurrent Version Number Allocation；
+  >    - Current Truth Pointer CAS；
+  >    - Current Version Invalidation；
+  >    - Promotion-versus-Invalidation；
+  >    - Restore-versus-New Write；
+  >    - Concurrent Restore；
+  >    - No Orphan Version；
+  >    - No Partial Atomic Commit。
+  > 155. 本次归档不得创建 Spike Issue、Branch、PR、代码、测试或基础设施。
+  >
+  > **3.17 测试前置语义**
+  > 156. 所有正式 Snapshot / History 事务语义测试必须使用真实 PostgreSQL。
+  > 157. 后续测试至少覆盖：
+  >    - 正式 Commit 创建一个不可变 Business Version；
+  >    - Database Retry 不创建额外正式版本；
+  >    - Work Retry 不创建额外正式版本；
+  >    - 事务回滚不留下 Version；
+  >    - 普通业务 Command 不能修改历史版本；
+  >    - `MAX(version_number)` 与 Current Truth 不同时仍返回正确 Current Truth；
+  >    - Latest Created、Latest Approved 与 Current Effective 保持独立；
+  >    - Invalidation 不删除历史版本；
+  >    - Invalidation 不静默回退；
+  >    - Promotion 重新验证业务条件；
+  >    - Restore 创建新 Version 并保留 `restored_from_version_id`；
+  >    - Restore 不修改来源版本；
+  >    - Historical Read 不受后续 Current Truth 变化影响；
+  >    - Historical Dependency 固定到不可变版本；
+  >    - Projection 损坏不改变 Current Truth；
+  >    - Audit/Event Replay 不是 Current Truth 恢复路径；
+  >    - Concurrent Version Creation 不产生重复 Version Number；
+  >    - CAS 冲突不产生部分写入；
+  >    - 多 Aggregate Commit 不创建 Mega Snapshot；
+  >    - Snapshot Schema Migration 与普通 Business Mutation 被正确区分。
+  > 158. 详细测试分类与 CI 策略继续由 DQ-16 决定。
 
 ---
 
@@ -1600,7 +2037,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~10 ACCEPTED；DQ-11~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~11 ACCEPTED；DQ-12~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -1613,7 +2050,7 @@ RFC-002-DQ-07  Concurrency Control                   = ACCEPTED (Accepted Direct
 RFC-002-DQ-08  Idempotency Model                     = ACCEPTED (Primary Direction: Candidate B, Supporting Principle: Candidate C, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-09  Transactional Outbox / Dispatch       = ACCEPTED (Candidate B, Formal Pattern: PostgreSQL-backed Transactional Durable Work Intent, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-10  Event & Audit Persistence             = ACCEPTED (Candidate A, Six Independent Event/Record Semantics, Append-only Audit in Same Atomic Commit, Transactional Integration Event Outbox, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
-RFC-002-DQ-11  Snapshot vs History                   = PROPOSED — User Decision: PENDING
+RFC-002-DQ-11  Snapshot vs History                   = ACCEPTED (Candidate A, Formal Model: Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/State Transition History + Optional Derived Query Projections, Full Event Sourcing / Current-state-only Overwrite / Delta-only Authoritative History Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-12  Source & Evidence Persistence         = PROPOSED — User Decision: PENDING
 RFC-002-DQ-13  Workflow Checkpoint Separation        = PROPOSED — User Decision: PENDING
 RFC-002-DQ-14  Schema Evolution & Migrations         = PROPOSED — User Decision: PENDING
