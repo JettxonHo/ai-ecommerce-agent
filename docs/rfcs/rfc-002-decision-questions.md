@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~13 ACCEPTED；DQ-14~17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~14 ACCEPTED；DQ-15~17 PROPOSED）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation）；DQ-14~DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation）；DQ-14 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles）；DQ-15~DQ-17 = PROPOSED（**无一 Accepted**）
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-13 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-14~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
+> - DQ-01~DQ-14 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13/DQ-14 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-15~DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13/14 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -29,7 +29,7 @@
 | DQ-11 | Snapshot vs History | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/State Transition History + Optional Derived Query Projections**；Candidate B 完整 Event Sourcing 拒绝（违反 DEC-013）、Candidate C 仅当前状态覆盖拒绝（违反 DEC-024）、Delta-only Version History 不作权威历史模型；正式 Business Version 逻辑完整、不可变、独立可读，不依赖事件/Delta 链重放，不经后来变化的 Current Truth Pointer 解释历史；只有成功 Atomic Business Commit 产生正式版本（DB/Work/Provider Retry、Lease、Checkpoint、回滚事务、未提交 LLM 临时结果不得创建）；Current Truth 由带独立 `revision` 的显式 Current Truth Pointer 经 CAS 选择（`MAX(version_number)` 禁止；latest created/approved 与 current effective 语义分离）；Invalidation 不删除版本且不得静默回退（显式 No Current Truth/Promote/Replacement/Restore）；Restore 为新前向 Business Command（新 `domain_version_id`/`version_number`/`command_id`/Audit + `restored_from_version_id`，非数据库 Rollback）；Query Projection 为派生非权威读取模型；通用 Bitemporal Model / SQL AS-OF 不纳入 MVP；五种 Snapshot 术语语义分离；Aggregate / Invariant Matrix 扩展为 REQUIRED 但 NOT AUTHORIZED，不新增独立 Matrix/Spike（现有 DQ-07 Spike 覆盖版本分配/Pointer CAS/Invalidation/Restore 竞争，仍未授权）；原分歧 版本化历史 vs 完整 ES vs 仅当前状态 | DEC-013 排除 ES；DEC-024 不删除历史 |
 | DQ-12 | Source & Evidence Persistence | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index**；Candidate B（全部内容无条件存 PostgreSQL 通用策略）与 Candidate C（全部内容无条件存对象存储仅 DB 引用通用策略）均拒绝；Source/SourceVersion/ContentObject/Acquisition/DerivedArtifact/Fragment/EvidenceLink/Retrieval Index Entry 身份分离（不得通用 `document_id` 合并）；物理 ContentObject 可按 Content Hash 去重但不得合并不同 Source/SourceVersion/Acquisition/Provenance/权限/Evidence Link；PostgreSQL 保存全部权威身份/状态/Provenance/Hash/Fragment/Evidence Link 与对象引用（唯一权威）；中小原始文本/规范化文本/结构化元数据可依显式 Storage Classification Policy 存 PostgreSQL，大型/二进制/流式/对备份影响显著的原始内容用不可变对象存储；TOAST 仅透明物理机制不作业务大小边界，PostgreSQL Large Object 不作 MVP 默认路径；Raw/Normalized/Parsed/Canonical Fragment/Retrieval Chunk 分离——Raw 不可变，Parser/Normalizer/OCR/Chunking 变化创建新 DerivedArtifact/FragmentSet 不覆盖旧结果；每 ContentObject 记录 Hash Algorithm + Content Hash + Byte Length + Media Type（Raw/Normalized Hash 分别计算，对象存储 ETag 不作项目权威 Content Hash）；外部 Blob 优先内容寻址 + 条件创建 + 不可覆盖 Key；不假设 PostgreSQL 与对象存储分布式事务——Prepare Content → Upload Immutable Object → Verify Checksum/Presence → Finalize Metadata in Short PostgreSQL Transaction（数据库不得提交指向未验证对象的正式 SourceVersion；上传成功而 DB Commit 失败只产生待 Reconciliation 的未引用 Orphan，不产生 Business Current Truth；正式引用后对象缺失/损坏 = Integrity Incident，不得静默切换 URL 最新内容或其他 SourceVersion）；EvidenceLink 显式指向不可变 SourceVersion 及适用 Canonical Fragment/Typed Selector（不得指向 Source Current Pointer/URL 最新内容/Pending SourceVersion/未验证对象/仅 Vector ID）；Evidence Links 与 Business Version/Current Truth Pointer 等适用参与者同一 DEC-035 Atomic Business Commit；Retrieval Index 属 RFC-005 派生/可重建/非权威（Embedding/Vector ID/Ranking Score/Search Result 不等于 Evidence；正式提交前回链验证 PostgreSQL SourceVersion/Fragment/Hash/Availability/业务不变量；Index 延迟/损坏/重建不改变 Current Truth 或既有 Evidence Link）；跨 Tenant/Security Domain Content Hash 去重在 DQ-17 决定前不得启用；Retention/Orphan Grace Period/Legal Hold/物理删除留 DQ-15，Encryption/Redaction/PII/对象 Key 安全/跨安全域去重留 DQ-17；**Source & Evidence Storage Classification Table 为 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED**；**External Object Consistency Technical Spike（条件写/Checksum/Multipart/Crash Window/Orphan Reconciliation/Missing/Corrupt Object/真实 Provider 一致性）为外部对象存储实现前置——REQUIRED BEFORE EXTERNAL STORAGE IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 原始内容存 DB vs 引用 + 大内容边界 | DEC-025 Source/Evidence 语义；DEC-012 原始与解析分离；DEC-024 Retrieval Index 独立存储；PG TOAST/Large Object 官方能力 |
 | DQ-13 | Workflow Checkpoint Separation | **已决定（2026-08-02 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation**；Candidate B 独立 PostgreSQL 服务/独立基础设施不作 MVP（Fallback = 同一 PostgreSQL Service 内独立 Checkpoint Database，不等于 Candidate B）；Candidate C 同表混存拒绝；优先物理形态 = 同 Database + Dedicated Checkpoint Schema（但必须用钉定的 Python PostgresSaver + 实际 Psycopg Pool + 部署 Pooler 证明 Setup 与全部运行时 SQL 落预期 Schema，不得仅凭文档推测；无法稳定保证则用 Dedicated Checkpoint Database Fallback）；Business Persistence / Application-owned Workflow Execution Registry / Vendor Checkpoint Tables 三平面分离（不得通用 Workflow 表/State JSON/ORM Model 合并）；独立 Business Pool 与 Checkpoint Pool、Checkpoint Role 最小权限、Checkpoint Connection 不进 Business UoW；Workflow Execution Registry 显式映射 workflow_run_id/thread_id/command_id/stage_run_id/目标业务对象/Base Domain Version/Expected Revision/Input Fingerprint/Runtime Lifecycle/Reconciliation Status/Graph Definition Version/Checkpoint Schema Version；workflow_run_id/thread_id/checkpoint_id/command_id/stage_run_id/attempt_id/dispatch_id/domain_version_id/Idempotency Key 身份分离（thread_id 不得作业务身份/Idempotency Key/执行锁）；Checkpoint = Runtime Recovery State only，≠Business Current Truth/Business Version/Audit/Idempotency/Work Intent/执行锁；Business Commit 与 Checkpoint Write 不构成同一 Atomic Transaction（Checkpoint 成功不表业务成功、Checkpoint 缺失不表业务未发生）；Resume/Retry/Human Interrupt 恢复/Time Travel Fork 前必须 Load Registry+Checkpoint+Current Truth 并验证身份版本后分类；Reconciliation 至少区分 RESUMABLE/ALREADY_COMMITTED/STALE/SUPERSEDED/INVALIDATED/ORPHANED/INCOMPATIBLE/CORRUPT（只有 RESUMABLE 可继续原 Thread、Stale Checkpoint 不覆盖新 Current Truth）；Checkpoint 不承担并发控制（执行所有权 = DQ-07 Lease+Attempt ID+Fencing Token，最终 Business Commit 重新验证 Fencing Token）；Graph Time Travel/Fork ≠ DQ-11 Business Restore（Fork 入正式状态须转 Intentional Rerun 创建新身份 + 新 DEC-035 Atomic Business Commit）；Checkpoint Payload 仅保存最小 Runtime State + 严格 Serializer Allowlist（不存 Session/UoW/Repository/ORM Entity/Connection/Coroutine/未脱敏 Secret/长期 Token/完整 PII）；Durability Mode 逐节点策略留 RFC-003（exit 禁用于 Human-in-the-loop/需故障恢复生产流程，sync 为 Interrupt/Human Review/Provider 结果落地/正式业务提交边界默认安全方向）；PostgresSaver Setup 经受控部署/Migration Job、不得所有 Worker 启动并发执行、Vendor Migration 与 Business Alembic 分离、Package 必须钉定；Checkpoint 可清理但仅 Terminal/无 Lease/无 Pending Resume/无 Interrupt/无 Incident-Legal Hold 的 Thread 可删（默认 Whole-thread Lifecycle Deletion，未验证 Package Version/Checkpoint Chain/DeltaChannel 完整性禁止 Partial Pruning，删除不改业务数据）；Encryption/Redaction/PII 留 DQ-17、Retention 留 DQ-15、测试留 DQ-16、Serializer 安全细节留 DQ-17/RFC-003；**Workflow Checkpoint Boundary & Reconciliation Table 为持久化实现前置——REQUIRED 但 NOT AUTHORIZED**；**Workflow Checkpoint Isolation & Reconciliation Technical Spike（钉定 PostgresSaver/Schema-Database Isolation/Role/Pool/Setup/Crash Window/并发 Resume/Stale Reconciliation/Serializer/Cleanup）为 Checkpoint 实现前置——REQUIRED BEFORE CHECKPOINT IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 同库/分库、生命周期、对账权威 | DEC-023/024 Checkpoint 仅恢复≠Current Truth；DEC-033 Reconciliation；PostgresSaver 官方无同库建议 |
-| DQ-14 | Schema Evolution & Migrations | forward-only、autogenerate 纪律 | Alembic 官方立场 |
+| DQ-14 | Schema Evolution & Migrations | **已决定（2026-08-03 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles**；Candidate B 不作通用生产恢复保证（"所有 Migration 应支持安全 Downgrade" 方向拒绝；明确可逆、无数据损失且经真实 PostgreSQL 测试的 Migration 可选择性提供安全 Downgrade）；Candidate C 作为唯一 Migration System 拒绝（受治理 Alembic Revision 内允许人工编写 PostgreSQL SQL，不绕过 Revision Graph/Review/Deployment Gate/Migration History）；Migration Ownership（唯一 Migration Capability/Deployment Pipeline/受控 Migration Job 执行；Web/Background/Workflow Worker 不启动自动 upgrade head；Migration Role 与 Runtime Role 分离）；Single Business Migration Lineage（Merge/Release Gate 单一 Alembic Head；Multiple Heads 经 Rebase/重新生成 Revision/显式 Merge Revision 解决，不修改已发布历史 Revision；PostgresSaver Vendor Migration 不伪装成 Business Alembic Head）；Migration History Immutability（已执行 Revision 不可变发布记录，修复创建新 Forward Repair Revision；Migration History Immutability ≠ Business Version Immutability）；Autogenerate Discipline（仅作 Candidate Generator 必经人工审查；Rename/Type/Default/Nullable/Constraint/Index/FK/Enum/Schema/Partition/Data Migration/Drop 显式检查；drop_table/drop_column/drop_constraint 未过 Destructive Gate 不入生产；Autogenerate 排除 Vendor Checkpoint Tables）；Schema Drift Gate（alembic check 检测可识别 Metadata Drift，非 Migration 安全证明）；Forward-recovery-first（生产恢复不依赖通用 Schema Downgrade，默认 Rollback Compatible Application + Keep Expanded Schema + Forward Repair Migration）；Rollback 术语分离（Application Rollback/Schema Downgrade/Forward Repair/Database Restore/PITR/DQ-11 Business Restore 独立语义）；Reversibility Classification（REVERSIBLE_SCHEMA/FORWARD_FIX_ONLY/DATA_IRREVERSIBLE/NON_TRANSACTIONAL_DDL/DESTRUCTIVE_CONTRACT/VENDOR_MANAGED）；Expand-Migrate-Contract（Expand 与 Contract 不同一次发布；Contract 前证明旧 Application 退出+Backfill 完成+验证通过+兼容窗口关闭）；Resumable Backfill（大型 Backfill 不入长 Alembic Transaction；独立 backfill_run_id/批次游标/Lease/Attempt/Fencing/进度/验证，分批提交/暂停/恢复/幂等重试；遵循 DQ-07 Lease+Fencing 与 DQ-08 Idempotency；Technical Backfill ≠ Business Semantic Change，后者经正式 Business Application Contract+Audit+版本化规则）；PostgreSQL 低锁策略（大型表 Add Nullable Column；NOT VALID→修复→VALIDATE；CREATE INDEX CONCURRENTLY 独立 Non-transactional Boundary+Invalid Index Recovery；Type Change 默认 Shadow Column+Dual Write+Backfill+Cutover+Contract；Lock/Statement Timeout+资源预算）；Destructive Gate 与 Non-transactional DDL Gate（Drop Table/Column/Constraint/Type Narrowing/不可逆转换/Enum 删除/强制 Constraint/Partition Drop/大规模重写经显式 Gate；Non-transactional DDL 独立 Revision/Step，失败不自动回滚须验证实际状态）；Vendor Migration Separation（Business Alembic ≠ PostgresSaver Vendor Migration ≠ Retrieval Index Rebuild ≠ Object Storage Lifecycle）；Schema Version Identity Separation（alembic_revision ≠ domain_version_id/version_number/revision/checkpoint_schema_version/event_schema_version/payload_schema_version；Alembic Head ≠ Backfill/Validation/Contract 完成）；Deployment Protocol（Preflight→Expand→Compatible Application→Backfill→Verify→Switch Read→End Compatibility Window→Contract；Web/Worker 不自动执行 Migration；Offline SQL 对应正式 Revision 与 Target 版本）；CI 最低 Gate（单一 Business Head/alembic check/fresh+baseline upgrade/revision graph/offline SQL reviewable/destructive gated/vendor schema excluded）；**Schema Migration Compatibility & Risk Table 与 Schema Migration Rollout & Recovery Technical Spike 为实现前置条件——均 REQUIRED 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 forward-only vs downgrade、autogenerate 纪律 | DEC-024 版本化语义；Alembic autogenerate 必须人工 review；PG 快速加列/CREATE INDEX CONCURRENTLY/NOT VALID+VALIDATE 两段式 |
 | DQ-15 | Data Retention & Deletion Boundary | 各类数据保留策略归属 | checkpoint 无内建 TTL |
 | DQ-16 | Persistence Testing Strategy | 真实 DB vs SQLite fake | 并发语义不可移植 |
 | DQ-17 | Security & Sensitive Data Boundary | Secret/PII 不落 checkpoint | Secret 明文序列化风险 |
@@ -2646,9 +2646,452 @@
 - **Trade-offs：** A 安全且契合滚动升级；B 灵活但 downgrade 不可靠；C 最可控但维护重。
 - **Failure modes：** autogenerate 未人工 review→改名误判；破坏性变更无 gate→数据丢失；在线低锁操作（CONCURRENTLY）混入事务→失去原子性。
 - **Impact on later RFCs：** 全部（schema 是所有模块基础）。
-- **Recommendation：** **[架构推断] 倾向 A**——forward-only、autogenerate 必经人工 review、破坏性变更显式 gate、滚动升级用 expand-contract、大 backfill 拆独立步骤。**置信度：中-高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation：** **[架构推断] 倾向 A**——forward-only、autogenerate 必经人工 review、破坏性变更显式 gate、滚动升级用 expand-contract、大 backfill 拆独立步骤。**置信度：中-高**。（**历史提案；Superseded by the Accepted Major Revision below。**）
+- **Candidate 处置（2026-08-03 用户正式决定）：** Candidate A = **ACCEPTED WITH MAJOR REVISION**（Formal Model = Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles）；Candidate B = **NOT SELECTED AS A UNIVERSAL PRODUCTION RECOVERY GUARANTEE**（"所有 Migration 都应支持安全 Downgrade" 方向拒绝；Safe Tested Downgrade = 对明确可逆、无数据损失且经真实 PostgreSQL 测试的 Migration 可选择性提供）；Candidate C = **REJECTED AS THE SOLE MIGRATION SYSTEM**（Hand-written PostgreSQL SQL = 当 Alembic Operations 不足时允许在受治理 Alembic Revision 内使用）。
+- **User Decision：** ACCEPTED WITH MAJOR REVISION
+- **Accepted Candidate：** CANDIDATE A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-03 用户正式决定）：**
+
+  > **3.1 正式迁移模型**
+  >
+  > 1. Business Schema 使用受治理的 Alembic Migration Environment。
+  > 2. MVP 采用：
+  >
+  >    ```text
+  >    ALEMBIC-MANAGED BUSINESS SCHEMA MIGRATIONS
+  >    + SINGLE BUSINESS MIGRATION LINEAGE
+  >    + FORWARD-RECOVERY-FIRST PRODUCTION POLICY
+  >    + EXPAND-MIGRATE-CONTRACT ROLLING COMPATIBILITY
+  >    + RESUMABLE APPLICATION-OWNED DATA BACKFILLS
+  >    + EXPLICIT DESTRUCTIVE / NON-TRANSACTIONAL DDL GATES
+  >    + SEPARATE VENDOR MIGRATION LIFECYCLES
+  >    ```
+  >
+  > 3. Candidate A 被接受并进行重大修订。
+  > 4. Candidate B 不作为通用生产恢复保证。
+  > 5. Candidate B 中「所有 Migration 都应支持安全 Downgrade」的方向被拒绝。
+  > 6. 对明确可逆、无数据损失并经过真实 PostgreSQL 测试的 Migration，可以选择性提供安全 Downgrade。
+  > 7. Candidate C 作为唯一 Migration System 被拒绝。
+  > 8. 当 Alembic Operations 无法准确表达 PostgreSQL 能力时，允许在受治理的 Alembic Revision 内使用人工编写的 PostgreSQL SQL。
+  > 9. 手写 SQL 不得绕过 Revision Graph、Review、Deployment Gate 或 Migration History。
+  >
+  > **3.2 Migration Ownership**
+  >
+  > 10. Business Schema 使用一个明确、受治理的 Business Alembic Migration Environment。
+  > 11. 每张 Business Table 的唯一数据所有模块继续遵循 DQ-02。
+  > 12. 表的所有模块负责提出和审查该表的 Schema Change。
+  > 13. Migration 执行编排由唯一 Migration Capability、Deployment Pipeline 或受控 Migration Job 负责。
+  > 14. Business Application Replica、Web Worker、Background Worker 和 Workflow Worker 不得在启动时自动运行：
+  >
+  >    ```text
+  >    alembic upgrade head
+  >    ```
+  >
+  > 15. 生产环境一次只能存在一个受控 Business Migration Executor。
+  > 16. Migration Executor 必须具有独立身份、权限、日志与审计轨迹。
+  > 17. Runtime Application Role 不应拥有生产 Schema DDL 权限。
+  > 18. Migration Role 与 Runtime Role 应分离。
+  > 19. 跨模块 Migration 必须明确：Owner；Affected Modules；Affected Tables；Compatibility Window；Backfill Owner；Verification Owner；Contract Approval；Reviewer。
+  > 20. 一个 Migration Revision 可以影响多个模块，但不得因此改变每张表的唯一所有权。
+  > 21. 跨模块 Revision 必须说明为什么不能拆为多个独立 Revision。
+  >
+  > **3.3 Single Business Migration Lineage**
+  >
+  > 22. MVP 的 Business Alembic Migration 在 Merge Gate 与 Release Gate 必须保持一个明确最终 Head。
+  > 23. Local Feature Branch 可以短暂产生多个 Migration Heads。
+  > 24. Multiple Heads 不得进入受保护主分支或生产 Release。
+  > 25. CI 必须验证：
+  >
+  >    ```text
+  >    alembic heads
+  >    → exactly one Business Head
+  >    ```
+  >
+  > 26. 发现 Multiple Heads 时必须采用以下一种显式方式解决：Rebase 后重新生成尚未发布的 Revision；调整尚未发布 Revision 的依赖关系；创建明确的 Alembic Merge Revision。
+  > 27. 不得通过删除已发布 Revision 解决 Multiple Heads。
+  > 28. 不得通过修改已在共享环境运行过的 `revision` 或 `down_revision` 伪造单一历史。
+  > 29. Alembic Merge Revision 必须保留两个或多个 Parent Head 的完整因果关系。
+  > 30. Migration Head 的单一性只适用于 Business Alembic Lineage。
+  > 31. PostgresSaver Vendor Migration、其他 Vendor Migration 和外部存储版本不得被伪装成 Business Alembic Head。
+  >
+  > **3.4 Migration History Immutability**
+  >
+  > 32. Revision 一旦在任一共享环境执行，即视为已发布 Migration Record。
+  > 33. 共享环境包括：Shared Development；Integration；CI Persistent Environment；Staging；Pre-production；Production；任何其他团队成员依赖的数据库。
+  > 34. 已发布 Revision 不得修改：Revision ID；`down_revision`；Upgrade 语义；Downgrade 语义；数据转换逻辑；DDL；Migration Classification。
+  > 35. 已发布 Revision 不得删除或重命名。
+  > 36. 已发布 Migration 出错时必须创建新的 Forward Repair Revision。
+  > 37. 尚未离开个人 Feature Branch、未在任何共享环境执行、没有外部消费者的 Revision，可以在 Merge 前重建。
+  > 38. 重建未发布 Revision 前必须证明没有共享环境或其他 Branch 引用。
+  > 39. Migration History Immutability 不等于 Business Version Immutability；两者是不同语义。
+  >
+  > **3.5 Autogenerate Discipline**
+  >
+  > 40. Alembic Autogenerate 只作为 Candidate Migration Generator。
+  > 41. Autogenerate Output 不等于 Approved Migration。
+  > 42. 所有 Autogenerate Revision 必须人工 Review。
+  > 43. 人工 Review 至少检查：Table Rename；Column Rename；Type Change；Server Default；Python-side Default；Nullable；Foreign Key；Unique Constraint；Check Constraint；Index；Enum；Schema；Generated Column；Identity；Partition；Sequence；Data Migration；Lock Risk；Rewrite Risk；Destructive Operation。
+  > 44. Table Rename 或 Column Rename 被识别成 Drop/Add 时必须人工修正为显式 Rename 或安全 Expand/Contract。
+  > 45. 不得允许 Rename 误判导致数据丢失。
+  > 46. Autogenerate 产生的以下操作必须默认阻塞：
+  >
+  >    ```text
+  >    drop_table
+  >    drop_column
+  >    drop_constraint
+  >    ```
+  >
+  > 47. 只有通过 Destructive Migration Gate 后，阻塞操作才可以进入正式生产 Migration。
+  > 48. Business Autogenerate 必须排除：Vendor Checkpoint Tables；Vendor Migration Tables；非 Business-owned Schema；临时测试表；外部系统管理的对象；不受 Business Alembic 所有的数据库对象。
+  > 49. `include_name`、`include_object`、Target Metadata 范围或等价过滤机制必须显式配置。
+  > 50. 不得因为对象未出现在 Business Metadata 中，就自动判断该对象应该被删除。
+  > 51. Autogenerate 不得替代 DBA、Migration Owner 或 Schema Reviewer 的风险审查。
+  >
+  > **3.6 Schema Drift Gate**
+  >
+  > 52. CI 应执行：
+  >
+  >    ```text
+  >    alembic check
+  >    ```
+  >
+  > 53. `alembic check` 用于识别当前 Autogenerate 能检测出的 ORM Metadata Drift。
+  > 54. `alembic check PASS` 仅表示未检测到当前比较器能够发现的差异。
+  > 55. `alembic check PASS` 不表示：Migration 安全；Migration 在线；Migration 可逆；Migration 无数据损失；Migration 无锁风险；Migration 已完成 Backfill；Migration 已通过 Compatibility 验证。
+  > 56. CI 还必须验证：Revision Graph 有效；Business Head 单一；Revision ID 唯一；`down_revision` 可解析；Vendor Schema 未进入 Business Metadata；未授权 Destructive Operation 不存在。
+  > 57. Schema Drift Gate 不得直接修改数据库。
+  >
+  > **3.7 Forward-recovery-first Production Policy**
+  >
+  > 58. Forward-only 的正式含义是：
+  >
+  >    ```text
+  >    Production Recovery Does Not Depend on Universal Schema Downgrade
+  >    ```
+  >
+  > 59. Forward-only 不表示所有 `downgrade()` 必须为空。
+  > 60. Production Release Failure 的默认恢复顺序为：
+  >
+  >    ```text
+  >    Rollback Compatible Application
+  >    → Keep Expanded Schema
+  >    → Apply Forward Repair Migration if Required
+  >    ```
+  >
+  > 61. 已执行不可逆 Migration 后不得假装能够无损 Downgrade。
+  > 62. Forward Repair 必须使用新的 Alembic Revision 或受治理恢复流程。
+  > 63. Forward Repair 不得修改历史 Revision。
+  > 64. 对仍处于 Expand 状态的 Schema，旧 Application 必须在 Compatibility Window 内继续可运行。
+  > 65. 生产部署前必须证明 Application Rollback 不依赖危险的 Schema Downgrade。
+  >
+  > **3.8 Rollback 术语分离**
+  >
+  > 66. 必须区分：Application Rollback；Schema Downgrade；Forward Repair Migration；Database Restore；Point-in-time Recovery；DQ-11 Business Restore。
+  > 67. Application Rollback 表示回滚到与当前 Expanded Schema 兼容的 Application 版本。
+  > 68. Schema Downgrade 表示执行 Alembic Downgrade Revision。
+  > 69. Forward Repair 表示创建新的 Migration 或数据修复流程。
+  > 70. Database Restore/PITR 表示基础设施灾难恢复。
+  > 71. DQ-11 Business Restore 表示创建新的前向 Business Version。
+  > 72. 上述操作不得共享术语、Application Contract 或成功标准。
+  > 73. Database Restore/PITR 不得被描述成普通 Alembic Downgrade。
+  > 74. Alembic Downgrade 不得被描述成 Business Restore。
+  >
+  > **3.9 Migration Reversibility Classification**
+  >
+  > 75. 每个 Revision 必须明确分类为以下一种或多种受控类型：
+  >
+  >    ```text
+  >    REVERSIBLE_SCHEMA
+  >    FORWARD_FIX_ONLY
+  >    DATA_IRREVERSIBLE
+  >    NON_TRANSACTIONAL_DDL
+  >    DESTRUCTIVE_CONTRACT
+  >    VENDOR_MANAGED
+  >    ```
+  >
+  > 76. `REVERSIBLE_SCHEMA` 表示 Upgrade 与 Downgrade 均无数据损失，并经过真实 PostgreSQL 验证。
+  > 77. `FORWARD_FIX_ONLY` 表示生产恢复依赖新的 Forward Revision。
+  > 78. `DATA_IRREVERSIBLE` 表示转换会丢失、合并或不可逆改变数据。
+  > 79. `NON_TRANSACTIONAL_DDL` 表示包含不能安全放入普通事务的 DDL。
+  > 80. `DESTRUCTIVE_CONTRACT` 表示移除旧结构或不可逆收紧契约。
+  > 81. `VENDOR_MANAGED` 表示不属于 Business Alembic 生命周期。
+  > 82. 每个 Revision 至少声明：Owner；Affected Tables；Revision Classification；Upgrade Strategy；Downgrade Classification；Compatibility Window；Data-loss Risk；Lock Risk；Rewrite Risk；Backfill Requirement；Verification Query；Recovery Strategy；Required Application Version；Related DQ/DEC/RFC。
+  > 83. `FORWARD_FIX_ONLY`、`DATA_IRREVERSIBLE` 和 `DESTRUCTIVE_CONTRACT` 不得提供一个看似成功、实际丢失数据的虚假 Downgrade。
+  > 84. 不支持安全 Downgrade 时应明确失败或标记为不支持，而不是伪造成功。
+  >
+  > **3.10 Expand–Migrate–Contract**
+  >
+  > 85. 所有不兼容 Schema Change 默认使用：
+  >
+  >    ```text
+  >    EXPAND
+  >    → COMPATIBLE APPLICATION
+  >    → MIGRATE / BACKFILL
+  >    → VERIFY / CUTOVER
+  >    → CONTRACT
+  >    ```
+  >
+  > 86. **Expand：** Expand 只增加旧 Application 可以忽略的新结构。
+  > 87. Expand 可以包括：Nullable Column；New Table；New Optional Relationship；New Index；Shadow Column；新旧字段并存；`NOT VALID` Constraint；Compatibility View 或受控兼容结构。
+  > 88. Expand 不得立即删除旧字段或旧表。
+  > 89. Expand 不得在旧 Application 仍运行时改变旧字段的业务语义。
+  > 90. **Compatible Application：** Compatibility Window 内必须支持必要组合：Old Code + Old Schema；Old Code + Expanded Schema；New Code + Expanded Schema；Application Rollback + Expanded Schema。
+  > 91. 如果需要 Dual Write，必须明确唯一实现所有者。
+  > 92. Dual Write 不得同时由 Application、ORM Hook、Database Trigger 和 Worker 隐式重复实现。
+  > 93. Read Fallback 与 Cutover 条件必须明确。
+  > 94. **Migrate / Backfill：** 历史数据转换通过独立、可恢复 Backfill 完成。
+  > 95. Backfill 不得被视为 Alembic Head 到达即自动完成。
+  > 96. **Verify / Cutover：** Cutover 前必须验证：Backfill 完成；新旧数据一致；Constraint Violation 为零；新读取路径稳定；业务校验通过；监控无阻塞异常；旧 Application 已进入退出流程。
+  > 97. **Contract：** Contract 只能在 Compatibility Window 关闭后执行。
+  > 98. Contract 可以包括：Drop Old Column；Drop Old Table；Remove Dual Write；Remove Compatibility Trigger；Remove Compatibility View；Enforce Final Constraint；Remove Old Index；Remove Old Read Path。
+  > 99. Expand 与 Contract 不得在同一次发布完成。
+  > 100. Contract Migration 必须经过 Destructive Gate。
+  > 101. Contract 前必须证明所有旧 Application Replica 已退出。
+  > 102. Contract 前必须证明 Rollback Target 不再依赖旧结构。
+  >
+  > **3.11 Resumable Application-owned Backfill**
+  >
+  > 103. 大型 Backfill 不得放入单个长时间 Alembic Transaction。
+  > 104. 禁止在普通 `upgrade()` 中对大型表执行无界全表更新。
+  > 105. 小型、确定性、低风险数据修正可以保留在 Migration 内，但必须声明规模和事务风险。
+  > 106. 大型 Backfill 必须由项目拥有的 Backfill Runtime 或受控 Job 执行。
+  > 107. Backfill 至少应表达：`backfill_run_id`；Migration Revision；Backfill Type；Owner；Batch Cursor；Batch Size；Status；Lease Holder；Attempt ID；Fencing Token；Started Time；Updated Time；Completed Time；Verification Status；Failure Classification。
+  > 108. Backfill 必须支持：分批提交；暂停；恢复；安全重试；幂等执行；进度观测；失败诊断；完成验证。
+  > 109. Backfill 必须遵循 DQ-07 Durable Lease 与 Fencing。
+  > 110. Backfill 必须遵循 DQ-08 Idempotency。
+  > 111. Backfill 不得持有长时间 SQLAlchemy Session 或 Application UoW。
+  > 112. Backfill 不得在一次事务中处理完整大型数据集。
+  > 113. Backfill Retry 不得重置已验证完成的批次。
+  > 114. 多 Worker Backfill 必须防止重复业务效果和旧 Worker 提交。
+  >
+  > **3.12 Technical Backfill 与 Business Semantic Change**
+  >
+  > 115. 必须区分：
+  >
+  >    ```text
+  >    TECHNICAL REPRESENTATION BACKFILL
+  >    ≠
+  >    BUSINESS SEMANTIC CHANGE
+  >    ```
+  >
+  > 116. Technical Backfill 可以包括：复制等价字段；计算物理派生列；规范化等价存储表示；填充搜索辅助字段；建立新索引所需数据；不改变业务含义的编码转换。
+  > 117. 如果 Backfill 会改变以下任一内容，则不能只作为 Technical Migration：Business Current Truth；Domain Version；Review Decision；Evidence；Business Validity；User-visible Business Meaning；Audit Semantics。
+  > 118. Business Semantic Change 必须通过正式 Business Application Contract。
+  > 119. Business Semantic Change 必须遵守：DQ-04 Versioning；DQ-08 Idempotency；DQ-10 Audit；DQ-11 Immutable Business Version；DEC-035 Atomic Business Commit。
+  > 120. Migration Role 不得绕过业务不变量直接制造新的 Business Current Truth。
+  >
+  > **3.13 PostgreSQL Add Column**
+  >
+  > 121. 大型表默认优先增加 Nullable Column。
+  > 122. 不得假设所有 `ADD COLUMN DEFAULT` 都是 Metadata-only 或无锁操作。
+  > 123. 迁移策略必须基于项目实际钉定 PostgreSQL 版本验证。
+  > 124. 以下情况必须特别评估 Rewrite 与 Lock 风险：Volatile Default；Stored Generated Column；Identity；Domain Constraint；Type Conversion；Existing Row Validation。
+  > 125. 新 Non-null Column 默认采用：
+  >
+  >    ```text
+  >    Add Nullable
+  >    → Backfill
+  >    → Verify
+  >    → Add/Validate Constraint
+  >    → Enforce Final Nullability
+  >    ```
+  >
+  > 126. 不得在未分析大型表风险时直接加入强制 Non-null Default。
+  >
+  > **3.14 Constraint Migration**
+  >
+  > 127. 大型表 Constraint 应优先评估：
+  >
+  >    ```text
+  >    ADD CONSTRAINT ... NOT VALID
+  >    → REPAIR / BACKFILL
+  >    → VALIDATE CONSTRAINT
+  >    ```
+  >
+  > 128. `NOT VALID` 不表示新写入可以违反 Constraint。
+  > 129. Validation 必须作为明确 Deployment Step。
+  > 130. Validation Failure 不得被忽略。
+  > 131. Constraint Migration 必须声明：Constraint Name；Existing Violation Query；Repair Strategy；Validation Step；Lock Risk；Recovery Strategy。
+  > 132. Unique Constraint、Exclusion Constraint 和不同类型 Not-null Enforcement 必须依据实际 PostgreSQL 能力单独评估，不得笼统套用相同方案。
+  >
+  > **3.15 Concurrent Index**
+  >
+  > 133. 大型生产表新建索引优先评估：
+  >
+  >    ```text
+  >    CREATE INDEX CONCURRENTLY
+  >    ```
+  >
+  > 134. Concurrent Index 不能在普通 Transaction Block 中运行。
+  > 135. Concurrent Index 必须置于独立、明确的 Non-transactional Migration Boundary。
+  > 136. 不得将 Concurrent Index 与必须原子提交的其他 DDL 混入同一个普通事务。
+  > 137. 使用 Alembic Autocommit Boundary 时必须承认此前事务可能被提交。
+  > 138. Non-transactional Revision 必须明确 Crash Window。
+  > 139. Concurrent Index 失败可能留下 Invalid Index。
+  > 140. Migration 必须提供：Invalid Index Detection；Cleanup Strategy；Retry Strategy；Lock/Resource Budget；Verification Query。
+  > 141. 不得盲目重试未知状态的 Concurrent Index Migration。
+  > 142. 同一表并发 Index Build 的限制必须在计划中明确。
+  >
+  > **3.16 Type Change**
+  >
+  > 143. 可能触发表重写或长锁的 Type Change 默认采用：
+  >
+  >    ```text
+  >    Add Shadow Column
+  >    → Compatible Dual Write
+  >    → Resumable Backfill
+  >    → Verify
+  >    → Switch Read Path
+  >    → Contract Old Column
+  >    ```
+  >
+  > 144. 不得默认在大型表直接执行高风险 `ALTER COLUMN TYPE`。
+  > 145. 直接 Type Change 只有在完成数据量、Rewrite、Lock 和 Compatibility 证明后才可采用。
+  > 146. Type Narrowing 属于 Destructive Migration。
+  > 147. Type Conversion 必须处理无法转换的数据和失败恢复。
+  >
+  > **3.17 Lock 与资源预算**
+  >
+  > 148. 每个生产 Migration 必须声明：`lock_timeout`；`statement_timeout`；Expected Table Scan；Expected Table Rewrite；Expected Extra Disk；Expected WAL/Replication Impact；Maintenance Window；Estimated Runtime；Retry Safety。
+  > 149. 获取危险 Lock 超时后应失败，而不是无限等待。
+  > 150. Migration 不得在高流量期间意外长期持有 `ACCESS EXCLUSIVE` Lock。
+  > 151. Table Rewrite、Index Build 和 Backfill 必须评估额外磁盘空间。
+  > 152. 必须评估 WAL、Replica Lag、Vacuum 和 Backup 影响。
+  > 153. Migration Failure 必须保留足够信息判断是否可安全重试。
+  > 154. 不得盲目重试 Non-transactional DDL。
+  > 155. Timeout 设置不得被全局无限放宽。
+  >
+  > **3.18 Destructive Migration Gate**
+  >
+  > 156. 以下操作必须通过显式 Destructive Migration Gate：Drop Table；Drop Column；Drop Constraint；Type Narrowing；不可逆数据转换；Enum Value 删除或重建；强制 Unique Constraint；强制 Non-null Constraint；Partition Drop/Detach；Retention 物理删除；大规模数据重写；无法安全 Downgrade 的 Contract 变更。
+  > 157. Gate 至少要求：Owner Approval；Schema Reviewer Approval；Impact Analysis；Application Compatibility 证明；旧 Application 已退出证明；Backfill Verification；Data-loss Risk；Backup/Recovery Plan；DQ-15 Retention Compliance；DQ-17 Security/PII Review；Recovery Runbook；Deployment Window。
+  > 158. Autogenerate 产生 Destructive Operation 不构成 Gate Approval。
+  > 159. Merge Approval 不自动构成 Production Destructive Gate。
+  > 160. DQ-14 接受不授权执行任何 Destructive Migration。
+  >
+  > **3.19 Non-transactional DDL Gate**
+  >
+  > 161. 以下操作必须明确标记为 Non-transactional 或部分提交风险：`CREATE INDEX CONCURRENTLY`；`DROP INDEX CONCURRENTLY`；其他实际 PostgreSQL 版本不允许在 Transaction Block 内运行的 DDL；使用 Alembic Autocommit Block 的操作。
+  > 162. Non-transactional DDL 必须使用独立 Revision 或独立 Deployment Step。
+  > 163. Non-transactional DDL 不得与必须同事务的 DDL 混合。
+  > 164. Gate 必须记录：Precondition；Partial Commit Boundary；Failure State；Detection Query；Cleanup；Retry；Recovery。
+  > 165. Non-transactional Migration 执行失败不意味着数据库自动恢复到执行前状态。
+  > 166. 必须验证失败后的实际数据库对象状态。
+  >
+  > **3.20 Vendor Migration Separation**
+  >
+  > 167. 必须保持：
+  >
+  >    ```text
+  >    BUSINESS ALEMBIC MIGRATION
+  >    ≠
+  >    POSTGRESSAVER VENDOR MIGRATION
+  >    ≠
+  >    RETRIEVAL INDEX REBUILD
+  >    ≠
+  >    OBJECT STORAGE LIFECYCLE
+  >    ```
+  >
+  > 168. DQ-13 PostgresSaver Setup/Vendor Migration 不属于 Business Alembic Lineage。
+  > 169. Business Alembic 不得：接管 Vendor Checkpoint Tables；修改 Vendor Migration Metadata；伪造 Vendor Setup；将 Vendor Schema 纳入 Autogenerate Drop；假设 Vendor Version 与 Business Head 相同。
+  > 170. Retrieval Index Rebuild 不得被记录为 Business Alembic Revision。
+  > 171. Object Storage Lifecycle Change 不得被记录为 Business Schema Migration。
+  > 172. Vendor Upgrade 必须遵循其独立 Compatibility 与 Recovery 规则。
+  >
+  > **3.21 Schema Version Identity Separation**
+  >
+  > 173. 以下身份必须保持独立：`alembic_revision`；`domain_version_id`；Business `version_number`；Concurrency `revision`；`checkpoint_schema_version`；`graph_definition_version`；`event_schema_version`；`payload_schema_version`；`source_artifact_schema_version`。
+  > 174. `alembic_revision` 只表示数据库物理 Schema Migration 位置。
+  > 175. `alembic_revision` 不表示：Business Current Truth；Domain Version；API Version；Event Version；Checkpoint Compatibility；Payload Compatibility；Backfill Completion；Validation Completion；Contract Authorization。
+  > 176. 数据库到达 Alembic Head 后，仍可能处于：
+  >
+  >    ```text
+  >    BACKFILL_PENDING
+  >    VALIDATION_PENDING
+  >    CUTOVER_PENDING
+  >    CONTRACT_NOT_AUTHORIZED
+  >    ```
+  >
+  > 177. Application 必须根据显式 Compatibility/Feature State 判断能否使用新结构，而不是只检查 Alembic Head。
+  >
+  > **3.22 Migration Deployment Protocol**
+  >
+  > 178. 推荐生产顺序：
+  >
+  >    ```text
+  >    1. PREFLIGHT
+  >    2. EXPAND MIGRATION
+  >    3. DEPLOY COMPATIBLE APPLICATION
+  >    4. RUN RESUMABLE BACKFILL
+  >    5. VERIFY DATA AND TRAFFIC
+  >    6. SWITCH READ PATH
+  >    7. END COMPATIBILITY WINDOW
+  >    8. CONTRACT MIGRATION
+  >    ```
+  >
+  > 179. Preflight 至少检查：Current Alembic Revision；Expected Parent Revision；Single Head；Lock/Statement Timeout；Disk Capacity；Replica Health；Pending Backfill；Old Application Version；Migration Executor Ownership；Destructive/Non-transactional Gate。
+  > 180. Migration 必须由受控 Deployment Job 或 Migration Executor 执行。
+  > 181. Web/Worker Replica 不得自动执行 Migration。
+  > 182. 需要 DBA 审查或受限 DDL 权限时，可以使用 Alembic Offline SQL。
+  > 183. Offline SQL 必须与正式 Revision 和 Target PostgreSQL 版本对应。
+  > 184. 手工执行 Offline SQL 后必须正确记录 Migration Version，且不得绕过验证。
+  > 185. Migration 执行成功不等于整个 Feature Rollout 完成。
+  >
+  > **3.23 CI 与测试最低要求**
+  >
+  > 186. DQ-16 负责最终测试分类，但 DQ-14 规定以下最低 Gate：
+  >
+  >    ```text
+  >    alembic heads → exactly one Business Head
+  >    alembic check → no detectable drift
+  >    fresh PostgreSQL → upgrade to head
+  >    supported baseline → upgrade to head
+  >    revision graph → valid
+  >    generated offline SQL → reviewable
+  >    destructive operation → gated
+  >    vendor schema → excluded
+  >    ```
+  >
+  > 187. 后续测试至少覆盖：Fresh Database Upgrade；Current Supported Baseline Upgrade；单一 Business Head；Multiple Head Detection；Merge Revision；Autogenerate Rename 修正；Vendor Schema Exclusion；Reversible Migration Downgrade/Upgrade Round-trip；Expand 后 Old Application 运行；Expand 后 New Application 运行；Application Rollback + Expanded Schema；Resumable Backfill；Backfill Crash Recovery；Backfill Idempotency；Constraint Validation；Lock Timeout；Concurrent Index Success；Concurrent Index Failure；Invalid Index Cleanup；Non-transactional Crash Boundary；Contract 在旧 Application 存活时被阻止；Destructive Gate；Forward Repair；无 Business Partial Write。
+  > 188. 标记为 Reversible 的 Migration 必须在真实 PostgreSQL 中测试 Downgrade/Upgrade Round-trip。
+  > 189. 不可逆 Migration 不得通过虚假 Downgrade 测试获得绿色状态。
+  >
+  > **3.24 Readiness Artifact**
+  >
+  > 190. 在首个正式 Business Schema Migration 实现授权前，Architecture Readiness Package 必须包含：
+  >
+  >    ```text
+  >    Schema Migration Compatibility & Risk Table
+  >    ```
+  >
+  > 191. 该表至少包含：Migration/Feature；Owner Module；Affected Tables；Current Revision；Target Revision；Expand Step；Compatibility Code；Backfill Step；Verification Step；Cutover Step；Contract Step；Oldest Compatible Application；Destructive Operation；Non-transactional Operation；Lock Level/Risk；Table Rewrite Risk；Downgrade Classification；Recovery Strategy；Data-loss Risk；Retention/Security Impact；Deployment Gate；Related DQ/DEC/RFC。
+  > 192. DQ-14 接受不授权创建该表。
+  > 193. Schema Migration Compatibility & Risk Table Creation = NOT AUTHORIZED。
+  > 194. DQ-14 不新增独立 Matrix。
+  >
+  > **3.25 Technical Spike**
+  >
+  > 195. DQ-14 决策归档前不要求执行 Technical Spike。
+  > 196. 在首个生产 Migration Pipeline 实现前，必须完成单独授权的：
+  >
+  >    ```text
+  >    Schema Migration Rollout & Recovery Technical Spike
+  >    ```
+  >
+  > 197. Spike 最低验证：Single Head Gate；Revision Graph；Alembic Autogenerate 人工修正；Rename 不产生 Drop/Add；Vendor Schema Exclusion；Expand 后 Old/New Application Compatibility；Application Rollback 不依赖 Schema Downgrade；Resumable Backfill；Backfill Crash Recovery；Lock Timeout；`NOT VALID` / `VALIDATE`；`CREATE INDEX CONCURRENTLY`；Alembic Autocommit Partial Commit Boundary；Invalid Index Recovery；Multiple Head Merge Revision；Fresh Database Upgrade；Existing Database Upgrade；Destructive Gate；Forward Repair；无 Business Partial Write。
+  > 198. Spike 必须使用项目实际钉定的 PostgreSQL、Alembic、SQLAlchemy 与 Psycopg 版本。
+  > 199. Spike 可以共享 PostgreSQL 测试基础设施，但验收报告必须独立。
+  > 200. 本次接受不授权创建 Spike Issue、Branch、PR、代码、测试、Alembic Environment、Revision、Database 或基础设施。
+  > 201. Schema Migration Rollout & Recovery Technical Spike = REQUIRED / NOT AUTHORIZED。
+  >
+  > **3.26 授权边界**
+  >
+  > 202. DQ-14 只授权决策归档与文档同步。
+  > 203. DQ-14 不授权创建：Alembic Environment；Alembic Config；Migration Revision；Migration Script；Migration Job；Migration Executor；Backfill Registry；Backfill Worker；DDL；Constraint；Index；Trigger；Readiness Table；Technical Spike；测试；部署配置。
+  > 204. DQ-14 不授权修改 Production Database。
+  > 205. DQ-14 不授权修改 Vendor Checkpoint Tables。
+  > 206. DQ-14 不授权接受 DQ-15 或后续 DQ。
 
 ---
 
@@ -2709,7 +3152,7 @@
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~13 ACCEPTED；DQ-14~17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~14 ACCEPTED；DQ-15~17 PENDING）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -2725,7 +3168,7 @@ RFC-002-DQ-10  Event & Audit Persistence             = ACCEPTED (Candidate A, Si
 RFC-002-DQ-11  Snapshot vs History                   = ACCEPTED (Candidate A, Formal Model: Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/State Transition History + Optional Derived Query Projections, Full Event Sourcing / Current-state-only Overwrite / Delta-only Authoritative History Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-12  Source & Evidence Persistence         = ACCEPTED (Candidate A, Formal Model: PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index, Universal All-in-PostgreSQL / Universal All-in-Object-Storage Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-13  Workflow Checkpoint Separation        = ACCEPTED (Candidate A, Formal Model: Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation, Dedicated Schema Must Be Proven / Dedicated Database Fallback, Independent PostgreSQL Service Not Selected / Shared-Table Rejected, Accepted with Major Revision, 2026-08-02) — User Decision: ACCEPTED WITH MAJOR REVISION
-RFC-002-DQ-14  Schema Evolution & Migrations         = PROPOSED — User Decision: PENDING
+RFC-002-DQ-14  Schema Evolution & Migrations         = ACCEPTED (Candidate A, Formal Model: Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles, Universal Safe Downgrade Rejected / Sole Hand-written SQL Rejected, Accepted with Major Revision, 2026-08-03) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-15  Data Retention & Deletion Boundary    = PROPOSED — User Decision: PENDING
 RFC-002-DQ-16  Persistence Testing Strategy          = PROPOSED — User Decision: PENDING
 RFC-002-DQ-17  Security & Sensitive Data Boundary    = PROPOSED — User Decision: PENDING
