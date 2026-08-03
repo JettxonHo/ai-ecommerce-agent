@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **当前阶段：** DEC-038 已接受，**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation 仍未授权。**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30，Decision Conflict = NONE）均已完成**——当前 Candidate 状态（以 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)「授权边界（恒定成立）」为基准）：**FND-001 = COMPLETED（PR #7 已合并，Merge Commit 5b75bcf，归档 PR #8）；FND-002 = IN REVIEW（Issue #9 已创建，实施完成并提交 PR #10，Merge = USER DECISION REQUIRED）；FND-003 = READY, BLOCKED BY FND-002**，Issue Creation / Implementation 均未授权。下一正式 Gate：**FND-002 Pull Request Review and Merge Gate**（由用户审查 FND-002 PR #10 并决定 Merge；Coding Agent 不得自行 Merge，用户 Merge 前 FND-002 Status 不标记 COMPLETED；FND-002 的授权不包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue / Branch / PR，不开始 FND-003 实施）。
+> **当前阶段：** DEC-038 已接受，**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过。**RFC-002 已于 2026-08-04 被用户正式接受（`ACCEPTED`）**：RFC-002-DQ-01~DQ-17 全部 ACCEPTED（Pending Decision Questions = 0）；最终一致性审查未发现跨 DQ 实质架构冲突，Documentation-only Final Consistency Remediation 已消除文档状态冲突（详见 `rfc-002-persistence-and-transaction-architecture.md` §33 Decision Log 2026-08-04 Final Decision 记录）。RFC-002 的接受**不授权任何实现**：Implementation、Architecture Readiness Package、Technical Spikes、测试与基础设施均 NOT AUTHORIZED；PR #24 Merge = USER DECISION REQUIRED / NOT AUTHORIZED；后续 RFC、Architecture Readiness Package、Technical Spike 与 Persistence Implementation 不得违反或静默绕过 RFC-002。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation 仍未授权。**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30，Decision Conflict = NONE）均已完成**——当前 Candidate 状态（以 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)「授权边界（恒定成立）」为基准）：**FND-001 = COMPLETED（PR #7 已合并，Merge Commit 5b75bcf，归档 PR #8）；FND-002 = IN REVIEW（Issue #9 已创建，实施完成并提交 PR #10，Merge = USER DECISION REQUIRED）；FND-003 = READY, BLOCKED BY FND-002**，Issue Creation / Implementation 均未授权。下一正式 Gate：**FND-002 Pull Request Review and Merge Gate**（由用户审查 FND-002 PR #10 并决定 Merge；Coding Agent 不得自行 Merge，用户 Merge 前 FND-002 Status 不标记 COMPLETED；FND-002 的授权不包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue / Branch / PR，不开始 FND-003 实施）。
 
 ---
 
@@ -13,7 +13,7 @@
 
 - 优先级 `P0` = 阻塞对应生产模块开始（开始该模块生产实现**前**必须接受）。
 - 优先级 `P1` = 建议在相关生产实现早期接受。
-- 所有 RFC 当前状态均为 **`PROPOSED（未创建正文）`**；正文与接受与否待用户在后续 Decision Gate 决定。
+- **RFC-001 与 RFC-002 已 `ACCEPTED`**（用户正式决定）；其余 RFC 当前状态为 **`PROPOSED`**；各 RFC 的正文与接受与否由用户在相应 Decision Gate 决定。
 - 在对应 RFC 被**接受**前，任何生产实现**不得**临场选择相关技术。
 
 ## Required RFC 清单
@@ -21,7 +21,7 @@
 | # | RFC 主题 | Wave | 优先级 | 当前状态 | 阻塞的生产模块 | 关联 DEC / Spec | 关联 Spike 未验证项 |
 |---|---|---|---|---|---|---|---|
 | RFC-001 | **Repository and Application Architecture**（生产代码仓与应用结构、模块边界、部署单元） | Wave 1 | P0 | `ACCEPTED` | 所有生产模块 | DEC-011/021/023 · architecture/system-architecture | R-1 |
-| RFC-002 | **Persistence and Transaction Architecture**（生产数据库、ORM、原子提交与幂等的生产实现） | Wave 1 | P0 | `PROPOSED` | Business Repository / Current Truth | DEC-024/029/033 · architecture/data-architecture | R-1, R-4 |
+| RFC-002 | **Persistence and Transaction Architecture**（生产数据库、ORM、原子提交与幂等的生产实现） | Wave 1 | P0 | `ACCEPTED`（2026-08-04 用户正式决定；DQ-01~17 全部 ACCEPTED） | Business Repository / Current Truth | DEC-024/029/033 · architecture/data-architecture | R-1, R-4 |
 | RFC-003 | **LangGraph Runtime and Checkpoint Architecture**（生产 Checkpointer 选型、Safe Resume、序列化兼容） | Wave 2 | P0 | `PROPOSED` | Workflow Runtime / Resume | DEC-013/023/024/033 · runtime/failure-recovery spec | R-3 |
 | RFC-004 | **API and Human Review Protocol**（生产 API 边界、Human Review 提交/暂停协议、权限） | Wave 3 | P0 | `PROPOSED` | Review / Orchestration 接口层 | DEC-007/029 · workflow/human-review spec | R-1 |
 | RFC-005 | **Source Processing and Retrieval Architecture**（生产检索：词法/向量/融合、权限与版本过滤、证据装配） | Wave 3 | P0 | `PROPOSED` | Retrieval & Evidence Runtime | DEC-014/025/032 · runtime/hybrid-retrieval spec | R-2 |
