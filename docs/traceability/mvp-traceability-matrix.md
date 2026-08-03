@@ -158,7 +158,28 @@ Foundation Implementation Status = COMPLETED（FND-001 / FND-002 / FND-003 全�
 Foundation Archive Status = COMPLETED（PR #8 / PR #13 / 本归档 PR；本归档 PR 合并后正式生效）
 Foundation Program Status = COMPLETED（本归档 PR 合并后正式生效）
 Business / Production Implementation = NOT AUTHORIZED（Foundation 完成不授权任何业务或生产实现）
-RFC-002 Authorization = NOT AUTHORIZED
+RFC-002 Status = ACCEPTED（2026-08-04 用户正式决定；Acceptance ≠ Authorization）
+RFC-002 Merge = COMPLETED（PR #24；Merge Commit a71e2b3201f2e67f0173cd9691a04011b1b65b09；RFC-002 Issue #23 = CLOSED / COMPLETED）
+RFC-002-DQ-01 through DQ-17 = ACCEPTED
+Pending Decision Questions = 0
+RFC-002 Implementation = NOT AUTHORIZED（Acceptance ≠ Authorization）
 
-Next Topic: RFC-002 Authorization Gate（RFC-002 — Persistence and Transaction Architecture；状态 = PENDING USER DECISION；RFC-002 Drafting / Issue Creation / Implementation 均 NOT AUTHORIZED；Coding Agent 不得起草或开始；业务实现仍未授权）
+Architecture Readiness Package Planning = COMPLETED
+Architecture Readiness Package Planning Report = ACCEPTED（2026-08-04 用户正式决定）
+Accepted Planning Model = DEPENDENCY WAVES + FIRST-SPIKE MINIMUM SLICE（ACCEPTED PLANNING MODEL）
+QL-02 Model = CROSS-CUTTING SECURITY QUALIFICATION CATALOG WITH PER-SPIKE APPLICABLE SLICES
+Planning Model Acceptance = NOT Artifact Content Acceptance
+Planning Model Acceptance = NOT Technical Spike Authorization
+Planning Model Acceptance = NOT Production Implementation Authorization
+
+Architecture Readiness Artifact Creation = NOT AUTHORIZED
+Technical Spike Planning = NOT AUTHORIZED
+Technical Spike Execution = NOT AUTHORIZED
+Persistence Implementation = NOT AUTHORIZED
+Production Implementation = NOT AUTHORIZED
+
+ARP-01～ARP-10 definitions exist in RFC-002; the Artifact files have not been created.
+Planning Acceptance ≠ Artifact Creation Authorization.
+
+Next Topic: READINESS ARTIFACT CREATION AUTHORIZATION（状态 = PENDING USER DECISION；Planning Acceptance ≠ Artifact Creation Authorization；Artifact Creation / Spike Planning / Spike Execution / Implementation 均 NOT AUTHORIZED；Coding Agent 不得创建任何 Readiness Artifact 或开始 Spike）
 ```
