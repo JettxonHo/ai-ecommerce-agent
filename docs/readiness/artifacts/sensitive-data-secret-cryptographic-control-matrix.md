@@ -61,7 +61,7 @@ NOT AUTHORIZED
 | RFC-002-DQ-12 Accepted Decision | Source/Evidence 存储分类、Content Hash ≠ 匿名化、跨安全域去重边界 | rfc-002-decision-questions.md §DQ-12 |
 | RFC-002-DQ-13 Accepted Decision | Checkpoint Payload 最小化、Serializer Allowlist、Role/Pool 隔离 | rfc-002-decision-questions.md §DQ-13 |
 | RFC-002-DQ-15 Accepted Decision | Retention / Hold / Deletion / Backup Expiry / Deletion Proof 不含敏感载荷 | rfc-002-decision-questions.md §DQ-15 |
-| RFC-002-DQ-16 Accepted Decision | 合成测试数据、失败日志 Redaction、Fixture 规则留 DQ-17 | rfc-002-decision-questions.md §DQ-16 |
+| RFC-002-DQ-16 Accepted Decision | 合成测试数据、失败日志 Redaction、Fixture 规则由已接受 DQ-17 治理 | rfc-002-decision-questions.md §DQ-16 |
 | RFC-001-DQ-06 | Secret Boundary（Configuration / Bootstrap） | rfc-001-repository-and-application-architecture.md |
 
 ---
@@ -126,7 +126,7 @@ PUBLIC / INTERNAL DATA
 | 类别 | 定义（源自 DQ-17） | 持久化总则 |
 |---|---|---|
 | SECRET | 能力凭证（API Key / Token / 密码 / 私钥等）。独立禁止持久化特殊类别。 | Secret Value 禁止进入任何持久化或派生存储；仅允许无明文能力引用（`credential_ref` / `secret_reference_id`）。 |
-| PII | 可识别个人身份的数据。Handling Tag = `PII`。 | 受分类传播与 Redaction / 选择性加密约束；精确 PII 分离留 DQ-17/DQ-15 治理路径。 |
+| PII | 可识别个人身份的数据。Handling Tag = `PII`。 | 受分类传播与 Redaction / 选择性加密约束；PII protection principles are governed by accepted DQ-17（Retention/Deletion 由 DQ-15 拥有）；per-data-element PII classification remains PENDING OWNER DECISION。 |
 | SENSITIVE BUSINESS DATA | 敏感业务数据（如 Provider Payload / Model Content / User Content）。 | 数据最小化多平面传播；按 Protection Profile 决定选择性加密。 |
 | PUBLIC / INTERNAL DATA | 公开或内部非敏感数据。 | 常规持久化，仍受访问控制与传输/静态加密基线。 |
 
@@ -164,6 +164,29 @@ AUTH_CREDENTIAL
 
 > Source / Traceability：RFC-002-DQ-17（分类规则传播至全部 17 类持久化平面，不得只分类 PostgreSQL Column）；RFC-002-DQ-12/13（Source/Evidence、Checkpoint 平面）。Decision Status = ACCEPTED DECISION（平面集合）；各平面属性见第 8 节。
 
+### 6.5 Two Classification Axes（Review Remediation：不得混用两轴）
+
+本 Matrix 使用两条独立分类轴，不得把一条轴的值当作另一条轴使用：
+
+```text
+Security Classification Axis =
+SECRET / PII / SENSITIVE BUSINESS DATA / PUBLIC-INTERNAL
+
+Data Nature Axis used by “Secret or Business Data” column =
+SECRET REFERENCE
+SECRET VALUE
+BUSINESS DATA
+RUNTIME DATA
+DERIVED DATA
+OBSERVABILITY DATA
+BACKUP COPY
+SYNTHETIC TEST DATA
+```
+
+- `Security Classification Axis`（第 6.1 节四类）表达数据的敏感类别，由 Confidentiality Level + Handling Tags 细化。
+- `Data Nature Axis` 是正式列 `Secret or Business Data` 的取值轴，表达数据平面 / 记录类的性质（引用 / 明文值 / 业务数据 / 运行时 / 派生 / 观测 / 备份 / 合成测试数据），**不是**敏感类别。
+- Table A 的 `Secret or Business Data` 列单元格统一规范化为 Data Nature Axis 受控值；原 `Runtime State` / `Derived` / `Observability` / `Synthetic` / `Backup` 等性质归入本轴，不再与四类安全语义混用、不再声称只有四类却在正式列中使用未定义类别。
+
 ---
 
 ## 7. Column Index（26 正式列 + Source/Traceability + Decision Status 映射）
@@ -187,25 +210,25 @@ AUTH_CREDENTIAL
 
 ### Table A — Identity & Classification
 
-| Row ID | Data Element | Owning Module | Confidentiality Level | Handling Tags | Purpose | Secret or Business Data |
+| Row ID | Data Element | Owning Module | Confidentiality Level | Handling Tags | Purpose | Secret or Business Data（Data Nature Axis） |
 |---|---|---|---|---|---|---|
-| SEC-001 | Secret Reference（`credential_ref` / `secret_reference_id`） | Security Governance / 相应 Adapter 能力注册 | RESTRICTED | AUTH_CREDENTIAL | 以无明文引用指向 Secret 能力，替代 Secret Value 持久化 | Secret（仅引用，非明文值） |
-| SEC-002 | Resolved Secret in Adapter Memory | 相应 Provider/Platform Adapter | RESTRICTED | AUTH_CREDENTIAL | 运行时 ephemeral 解析 Secret 供 Adapter 调用；adapter-scoped | Secret（临时解析值，禁止持久化） |
-| SEC-003 | Business Current Truth | 相应业务模块（Facts / Insights / Positioning / Strategy / Brief / Review 等） | PENDING OWNER DECISION | 按数据类（可含 USER_CONTENT / MODEL_CONTENT） | 权威当前业务状态 | Business Data |
-| SEC-004 | Immutable Business Version | 相应业务模块 | PENDING OWNER DECISION | 按数据类 | 不可变正式业务版本快照 | Business Data |
-| SEC-005 | Audit Record | Audit Capability（唯一） | PENDING OWNER DECISION | 按行为元数据 | 权威问责证据（append-only） | Business Data（问责元数据） |
-| SEC-006 | State Transition Record | Audit Capability（显式类型 Audit） | PENDING OWNER DECISION | 按行为元数据 | 业务状态机迁移审计 | Business Data |
-| SEC-007 | Durable Work Intent | Integration/Dispatch Capability（RFC-003 前为 DQ-09 语义） | PENDING OWNER DECISION | 可含 PROVIDER_PAYLOAD | 可靠工作调度意图（同业务原子提交） | Business Data |
-| SEC-008 | Integration Event Outbox | Integration Event Capability（唯一） | PENDING OWNER DECISION | 可含 PROVIDER_PAYLOAD | 跨边界事实可靠发布（at-least-once） | Business Data |
-| SEC-009 | Provider Call Ledger | 相应 Provider/Integration 模块 | PENDING OWNER DECISION | PROVIDER_PAYLOAD | Provider 调用身份/结果/对账记录（无 Secret Value） | Business Data |
-| SEC-010 | Workflow Checkpoint | Workflow Runtime（RFC-003 平面） | PENDING OWNER DECISION | MODEL_CONTENT（最小化） | Runtime Recovery State（≠ Current Truth） | Runtime State（非业务 Secret/Business Data） |
-| SEC-011 | Source Blob（Source Version / Content Object） | Source/Evidence 模块（DEC-025） | PENDING OWNER DECISION | USER_CONTENT / PROVIDER_PAYLOAD | 不可变内容寻址原始来源 | Business Data（原始内容） |
-| SEC-012 | Derived Artifact（Fragment / FragmentSet） | Source/Evidence 模块 | PENDING OWNER DECISION | USER_CONTENT | 解析/规范化/切分派生产物 | Business Data |
-| SEC-013 | Evidence Fragment / Evidence Link | Source/Evidence 模块 | PENDING OWNER DECISION | USER_CONTENT | Fragment 与业务结论的已验证关系 | Business Data（关系对象） |
-| SEC-014 | Retrieval Index Entry | Retrieval/Index（RFC-005） | PENDING OWNER DECISION | USER_CONTENT | 可重建非权威检索索引条目 | Derived（非权威） |
-| SEC-015 | Application Log / Trace | Observability（RFC-007） | PENDING OWNER DECISION | 可含 PII / PROVIDER_PAYLOAD | 非权威运行观测 | Observability（非业务权威） |
-| SEC-016 | Backup / PITR Data | Infrastructure | 继承源数据 | 继承源数据 | 主数据备份 / 时点恢复 | 继承源数据 |
-| SEC-017 | Synthetic Test Fixture | Test Harness（QL-01） | INTERNAL | 无真实 PII / AUTH_CREDENTIAL | 合成测试数据（禁止真实凭证/PII） | Synthetic（非生产数据） |
+| SEC-001 | Secret Reference（`credential_ref` / `secret_reference_id`） | Security Governance / 相应 Adapter 能力注册 | RESTRICTED | AUTH_CREDENTIAL | 以无明文引用指向 Secret 能力，替代 Secret Value 持久化 | SECRET REFERENCE（无明文能力引用） |
+| SEC-002 | Resolved Secret in Adapter Memory | 相应 Provider/Platform Adapter | RESTRICTED | AUTH_CREDENTIAL | 运行时 ephemeral 解析 Secret 供 Adapter 调用；adapter-scoped | SECRET VALUE（ephemeral，禁止持久化） |
+| SEC-003 | Business Current Truth | 相应业务模块（Facts / Insights / Positioning / Strategy / Brief / Review 等） | PENDING OWNER DECISION | 按数据类（可含 USER_CONTENT / MODEL_CONTENT） | 权威当前业务状态 | BUSINESS DATA |
+| SEC-004 | Immutable Business Version | 相应业务模块 | PENDING OWNER DECISION | 按数据类 | 不可变正式业务版本快照 | BUSINESS DATA |
+| SEC-005 | Audit Record | Audit Capability（唯一） | PENDING OWNER DECISION | 按行为元数据 | 权威问责证据（append-only） | BUSINESS DATA（问责元数据） |
+| SEC-006 | State Transition Record | Audit Capability（显式类型 Audit） | PENDING OWNER DECISION | 按行为元数据 | 业务状态机迁移审计 | BUSINESS DATA |
+| SEC-007 | Durable Work Intent | Integration/Dispatch Capability（RFC-003 前为 DQ-09 语义） | PENDING OWNER DECISION | 可含 PROVIDER_PAYLOAD | 可靠工作调度意图（同业务原子提交） | BUSINESS DATA |
+| SEC-008 | Integration Event Outbox | Integration Event Capability（唯一） | PENDING OWNER DECISION | 可含 PROVIDER_PAYLOAD | 跨边界事实可靠发布（at-least-once） | BUSINESS DATA |
+| SEC-009 | Provider Call Ledger | 相应 Provider/Integration 模块 | PENDING OWNER DECISION | PROVIDER_PAYLOAD | Provider 调用身份/结果/对账记录（无 Secret Value） | BUSINESS DATA |
+| SEC-010 | Workflow Checkpoint | Workflow Runtime（RFC-003 平面） | PENDING OWNER DECISION | MODEL_CONTENT（最小化） | Runtime Recovery State（≠ Current Truth） | RUNTIME DATA（非业务 Secret/Business Data） |
+| SEC-011 | Source Blob（Source Version / Content Object） | Source/Evidence 模块（DEC-025） | PENDING OWNER DECISION | USER_CONTENT / PROVIDER_PAYLOAD | 不可变内容寻址原始来源 | BUSINESS DATA（原始内容） |
+| SEC-012 | Derived Artifact（Fragment / FragmentSet） | Source/Evidence 模块 | PENDING OWNER DECISION | USER_CONTENT | 解析/规范化/切分派生产物 | DERIVED DATA（Source/Evidence 派生产物） |
+| SEC-013 | Evidence Fragment / Evidence Link | Source/Evidence 模块 | PENDING OWNER DECISION | USER_CONTENT | Fragment 与业务结论的已验证关系 | BUSINESS DATA（关系对象） |
+| SEC-014 | Retrieval Index Entry | Retrieval/Index（RFC-005） | PENDING OWNER DECISION | USER_CONTENT | 可重建非权威检索索引条目 | DERIVED DATA（非权威） |
+| SEC-015 | Application Log / Trace | Observability（RFC-007） | PENDING OWNER DECISION | 可含 PII / PROVIDER_PAYLOAD | 非权威运行观测 | OBSERVABILITY DATA（非业务权威） |
+| SEC-016 | Backup / PITR Data | Infrastructure | 继承源数据 | 继承源数据 | 主数据备份 / 时点恢复 | BACKUP COPY（继承源数据 Data Nature） |
+| SEC-017 | Synthetic Test Fixture | Test Harness（QL-01） | INTERNAL | 无真实 PII / AUTH_CREDENTIAL | 合成测试数据（禁止真实凭证/PII） | SYNTHETIC TEST DATA（非生产数据） |
 
 ### Table B — Persistence-plane Permissions
 
@@ -271,7 +294,7 @@ AUTH_CREDENTIAL
 | SEC-010 | Whole-thread Lifecycle Deletion（DQ-13/DQ-15） | 禁止生产 Checkpoint 入测试 | Malicious Checkpoint → INCOMPATIBLE/CORRUPT/SECURITY_REJECTED | DQ-13 · DQ-15 · RFC-003 | RFC-002-DQ-13 | ACCEPTED DECISION（原则） |
 | SEC-011 | Reference-aware；Orphan Grace 留 DQ-15 | 合成来源 | Integrity Incident（对象缺失/损坏） | DQ-12 · DQ-15 · DQ-17 | RFC-002-DQ-12/15 | ACCEPTED DECISION（原则） |
 | SEC-012 | 同 SEC-011 | 合成数据 | 同 SEC-011 | DQ-12 · DQ-15 | RFC-002-DQ-12/15 | ACCEPTED DECISION（原则） |
-| SEC-013 | Reference-aware（Evidence Link 引用保护） | 合成数据 | 同 SEC-011 | DQ-12 · DQ-15 · DQ-25(DEC-025) | RFC-002-DQ-12/15 · DEC-025 | ACCEPTED DECISION（原则） |
+| SEC-013 | Reference-aware（Evidence Link 引用保护） | 合成数据 | 同 SEC-011 | DQ-12 · DQ-15 · DEC-025 | RFC-002-DQ-12/15 · DEC-025 | ACCEPTED DECISION（原则） |
 | SEC-014 | 可重建；索引重建不改 Current Truth | 合成数据 | Index 损坏 → 重建 | DQ-12 · RFC-005 | RFC-002-DQ-12 · RFC-005 Boundary | ACCEPTED DECISION（原则）；RFC-005 = DEFERRED TO RFC-005 |
 | SEC-015 | 可按运维策略采样/删除（非权威） | 合成日志 | Secret 不入 Log | DQ-16 · DQ-17 · RFC-007 | RFC-002-DQ-17 · RFC-007 Boundary | ACCEPTED DECISION（原则）；日志 Redaction = DEFERRED TO RFC-007 |
 | SEC-016 | Backup Expiry；Restore 重放 Deletion Ledger | 禁止生产 Dump 入测试 | 恢复 Key Version 与 Deletion Ledger | DQ-15 · DQ-17 | RFC-002-DQ-15/17 | ACCEPTED DECISION（原则）；期限 = PERIOD NOT DECIDED |

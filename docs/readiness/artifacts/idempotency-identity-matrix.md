@@ -220,10 +220,22 @@ NOT AUTHORIZED
 
 | 本 Artifact 元素 | 引用目标 | 关系 |
 |---|---|---|
-| IDEM-001~IDEM-007 Operation/Boundary | ARP-01 INV-xxx | 业务命令 Aggregate 边界。 |
-| IDEM-008~IDEM-012 | ARP-04 REC-009 / REC-010 / REC-012 | Work Intent / Provider Call / Integration Event 记录类。 |
-| IDEM-002/003/004/005/006 | ARP-02 CONC-011 / CONC-012 / CONC-008 / CONC-010 / CONC-015 | 幂等并发场景。 |
-| IDEM-001~IDEM-014 | ARP-09 TEST-xxx | 幂等测试覆盖行。 |
+| IDEM-001~IDEM-007 Operation/Boundary | ARP-01 INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008 / INV-009 | **通用幂等身份契约**（适用于全部版本化业务对象：Facts/Insights/Positioning/Strategy/Brief/ExecutionBrief/Source），非特定单一 Aggregate。 |
+| IDEM-008 Durable Work Intent | ARP-04 REC-009（Durable Work Intent Row） | Work Intent 身份（dispatch_id Retry 稳定）。 |
+| IDEM-009 Work Intent Claim | ARP-04 REC-009（Durable Work Intent Row） | Claim 身份（dispatch_id + holder/lease）。 |
+| IDEM-010 Delivery Attempt | ARP-04 REC-009（Durable Dispatch / Work Intent Delivery Row） | delivery_attempt_id 属 DQ-09 Work Intent 投递语义（若指 Integration Event 投递则引用 REC-013）。 |
+| IDEM-011 Consumer Dedup | ARP-04 REC-013（Integration Event / Outbox Row）· ARP-02 CONC-013 | Consumer 依 Event Identity + Consumer Scope 去重。 |
+| IDEM-012 Integration Event Identity | ARP-04 REC-013（Integration Event / Outbox Row） | source + event_id 唯一识别逻辑事件；**不指向 Observability Event 记录类**。 |
+| IDEM-013 Provider Call Identity | ARP-04 REC-010（Provider Call Ledger Row） | 稳定 Provider Call Identity（TS-01 不调用真实 Provider）。 |
+| IDEM-002 Exact Replay | ARP-02 CONC-011 · ARP-09 TEST-008 | 幂等重放并发场景与测试。 |
+| IDEM-003 Concurrent Exact Replay | ARP-02 CONC-011 · ARP-09 TEST-008 | 并发精确重放仅一次业务效果。 |
+| IDEM-004 Same Key / Different Fingerprint | ARP-02 CONC-012 · ARP-09 TEST-009 | 幂等冲突。 |
+| IDEM-005 Transient Failure Retry | ARP-02 CONC-010 · ARP-09 TEST-007 | 事务重试身份保持。 |
+| IDEM-006 Commit Outcome Unknown Retry | ARP-02 CONC-015 | 提交结果未知重试（TS-01 Slice 无独立 TEST 行，随 CONC-015 覆盖）。 |
+| IDEM-007 Intentional Rerun | ARP-01 INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008（Rerun 成功后可产生新业务版本） | 通用 Rerun 身份契约。 |
+| IDEM-008~IDEM-010 | ARP-02 CONC-004 / CONC-005 / CONC-019 · ARP-09 TEST-010 | Work Intent Claim / No Duplicate 并发场景与测试。 |
+| IDEM-011 / IDEM-012 | ARP-04 REC-013 · ARP-02 CONC-013 | TS-01 Slice 无独立 Consumer Dedup TEST 行，属完整 ARP-09 范围。 |
+| IDEM-014 Retry 与 Rerun 身份分离 | 通用身份契约（跨 IDEM-005 / IDEM-007） | 对照行，不指向特定 Aggregate。 |
 
 ---
 

@@ -123,32 +123,34 @@ NOT AUTHORIZED
 
 ### Table A — Scenario Identity & Scope
 
+> Protected Business Invariant 列：每行至少一个精确 `INV-xxx`（ARP-01）。若场景同时涉及 Record / Identity，另列 `Supporting Record / Identity: REC-xxx / IDEM-xxx`。业务对象缩写：Task=INV-001 · Facts=INV-002 · Insights=INV-003 · Positioning=INV-004 · Strategy=INV-005 · ReviewPkg=INV-006 · Brief=INV-007 · ExecBrief=INV-008 · Source=INV-009 · EvLink=INV-010 · Audit=INV-011。
+
 | Row ID | Scenario | Concurrency Scope | Protected Business Invariant（→ ARP-01） |
 |---|---|---|---|
-| CONC-001 | `expected_revision` compare-and-swap 并发（普通业务写） | 单业务对象 Current Truth 更新 | 冲突回滚零部分写入（INV-002~INV-008） |
-| CONC-002 | Current Truth Pointer Promotion Race | Task 级 Pointer CAS | 仅一个正式版本被提升为 Current Truth（INV-001） |
-| CONC-003 | Named Unique Constraint Race（重复业务事实） | 命名唯一约束范围 | 重复业务事实最终防线（INV-002~INV-008） |
-| CONC-004 | Concurrent Work Intent Claim | Durable Work Intent 队列式 Claim | 一个 Intent 仅被一个 Worker 有效领取（REC-009） |
-| CONC-005 | `SKIP LOCKED` No-double-claim | 短事务队列式 Claim | 不双重领取同一队列项（REC-009） |
-| CONC-006 | Lease Expiry and Takeover | 执行所有权（Lease + fencing） | 接管产生更高 fencing_token（REC-009） |
-| CONC-007 | Stale `fencing_token` Commit Rejection | 最终提交重验 | 旧 Worker 不得完成提交（REC-009） |
-| CONC-008 | SQLSTATE `40001` serialization_failure | 数据库事务失败分类 | 事务重试身份保持（INV-001~INV-011） |
-| CONC-009 | SQLSTATE `40P01` deadlock_detected | 数据库事务失败分类 | 事务重试身份保持（INV-001~INV-011） |
-| CONC-010 | Transaction Retry Identity Preservation | 重试复用 Command ID 等身份 | Retry 不创建新 Domain Version（IDEM 边界） |
-| CONC-011 | Same Idempotency Key + Same Fingerprint | 幂等重放 | 重放原 Application Result，不重复副作用 |
-| CONC-012 | Same Idempotency Key + Different Fingerprint | 幂等冲突 | 返回 Idempotency Key Conflict，不覆盖不执行 |
-| CONC-013 | Duplicate Delivery / Consumer Dedup | Integration Event Consumer | 重复投递仅一次业务效果（REC-009/REC-010） |
-| CONC-014 | Worker Crash after Claim | Work Intent 领取后崩溃 | 崩溃后可重新领取，不丢失不重复 |
-| CONC-015 | Commit Outcome Unknown | 提交结果未知重试 | 重试不重复外部 Provider 调用 |
-| CONC-016 | Atomic Business Commit Fault Windows | DEC-035 原子提交故障窗口 | 全有或全无，无部分写入 |
-| CONC-017 | No Partial Business Commit | 冲突回滚 | 零部分 Current Truth 写入 |
-| CONC-018 | No Orphan Domain Version | 并发版本分配 | Domain Version 与 Evidence Link 同生共死（INV-010） |
-| CONC-019 | No Duplicate Work Intent | Intent 唯一性 | 同一 Intent 不重复创建（REC-009） |
-| CONC-020 | Restore-versus-new-write（限 RFC-002 已由 TS-01 验证的语义） | Business Restore 与新写并发 | Restore 为新前向 Command，不覆盖较新写 |
-| CONC-021 | Concurrent Version Number Allocation | 并发 version_number 分配 | 不产生重复 Domain Version |
-| CONC-022 | Current Version Invalidation Race | Invalidation 与读/写并发 | Invalidation 不删版本、不静默回退 |
-| CONC-023 | Promotion-versus-Invalidation | 提升与失效并发 | 显式语义，不产生冲突 Current Truth |
-| CONC-024 | Cancel-versus-complete（Dispatch） | 取消与完成并发 | 协作式取消不产生部分写（REC-009） |
+| CONC-001 | `expected_revision` compare-and-swap 并发（普通业务写） | 单业务对象 Current Truth 更新 | Protected Invariant: INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008 / INV-009（Facts/Insights/Positioning/Strategy/Brief/ExecutionBrief/Source 的版本化 Current Truth CAS；冲突回滚零部分写入） |
+| CONC-002 | Current Truth Pointer Promotion Race | Task 级 Pointer CAS | Protected Invariant: INV-001（Task 级 Current Truth Pointer CAS；仅一个正式版本被提升为 Current Truth） |
+| CONC-003 | Named Unique Constraint Race（重复业务事实） | 命名唯一约束范围 | Protected Invariant: INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008（各版本化业务对象的重复业务事实最终防线） |
+| CONC-004 | Concurrent Work Intent Claim | Durable Work Intent 队列式 Claim | Protected Invariant: INV-001（task 级业务操作单次执行所有权）；Supporting Record / Identity: REC-009（ARP-04 Durable Work Intent）/ IDEM-008（ARP-03） |
+| CONC-005 | `SKIP LOCKED` No-double-claim | 短事务队列式 Claim | Protected Invariant: INV-001（不双重领取同一工作项，保障业务操作单次执行）；Supporting Record / Identity: REC-009（ARP-04） |
+| CONC-006 | Lease Expiry and Takeover | 执行所有权（Lease + fencing） | Protected Invariant: INV-001（接管产生更高 fencing_token，保障业务操作执行所有权唯一）；Supporting Record / Identity: REC-009（ARP-04） |
+| CONC-007 | Stale `fencing_token` Commit Rejection | 最终提交重验 | Protected Invariant: INV-001（旧 Worker 不得完成业务提交）；Supporting Record / Identity: REC-009（ARP-04） |
+| CONC-008 | SQLSTATE `40001` serialization_failure | 数据库事务失败分类 | Protected Invariant: INV-001（Task 事务）+ INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008 / INV-009 / INV-010 / INV-011（各业务 Atomic Commit 事务重试身份保持） |
+| CONC-009 | SQLSTATE `40P01` deadlock_detected | 数据库事务失败分类 | Protected Invariant: INV-001（Task 事务）+ INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008 / INV-009 / INV-010 / INV-011（各业务 Atomic Commit 事务重试身份保持） |
+| CONC-010 | Transaction Retry Identity Preservation | 重试复用 Command ID 等身份 | Protected Invariant: INV-001（Task 事务）+ INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008（Retry 不创建新 Domain Version）；Supporting Record / Identity: IDEM-005（ARP-03 Transient Failure Retry） |
+| CONC-011 | Same Idempotency Key + Same Fingerprint | 幂等重放 | Protected Invariant: INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008（重放原 Application Result，业务对象不重复副作用）；Supporting Record / Identity: IDEM-002（ARP-03 Exact Replay） |
+| CONC-012 | Same Idempotency Key + Different Fingerprint | 幂等冲突 | Protected Invariant: INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008（返回 Idempotency Key Conflict，不覆盖不执行）；Supporting Record / Identity: IDEM-004（ARP-03 Same Key/Diff Fingerprint） |
+| CONC-013 | Duplicate Delivery / Consumer Dedup | Integration Event Consumer | Protected Invariant: INV-001（消费产生的业务状态更新目标，重复投递仅一次业务效果）；Supporting Record / Identity: REC-013（ARP-04 Integration Event / Outbox Row）/ IDEM-011（ARP-03 Consumer Dedup）/ IDEM-012（ARP-03 Integration Event Identity） |
+| CONC-014 | Worker Crash after Claim | Work Intent 领取后崩溃 | Protected Invariant: INV-001（崩溃后可重新领取，业务操作不丢失不重复）；Supporting Record / Identity: REC-009（ARP-04） |
+| CONC-015 | Commit Outcome Unknown | 提交结果未知重试 | Protected Invariant: INV-001（Task 事务）+ INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008（重试不重复外部 Provider 调用）；Supporting Record / Identity: IDEM-006（ARP-03）/ REC-010（ARP-04 Provider Call Ledger） |
+| CONC-016 | Atomic Business Commit Fault Windows | DEC-035 原子提交故障窗口 | Protected Invariant: INV-001（Task）+ INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008 + INV-010（Evidence Link 同生共死）+ INV-011（Audit 同事务）：全有或全无，无部分写入 |
+| CONC-017 | No Partial Business Commit | 冲突回滚 | Protected Invariant: INV-001（Task）+ INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008（零部分 Current Truth 写入） |
+| CONC-018 | No Orphan Domain Version | 并发版本分配 | Protected Invariant: INV-010（Evidence Link 与 Domain Version 同生共死）+ INV-002（Facts Version 代表性版本化对象） |
+| CONC-019 | No Duplicate Work Intent | Intent 唯一性 | Protected Invariant: INV-001（同一业务操作不重复创建 Intent）；Supporting Record / Identity: REC-009（ARP-04）/ IDEM-008（ARP-03） |
+| CONC-020 | Restore-versus-new-write（限 RFC-002 已由 TS-01 验证的语义） | Business Restore 与新写并发 | Protected Invariant: INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008（Restore 为新前向 Command，不覆盖较新写） |
+| CONC-021 | Concurrent Version Number Allocation | 并发 version_number 分配 | Protected Invariant: INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008 / INV-009（不产生重复 Domain Version） |
+| CONC-022 | Current Version Invalidation Race | Invalidation 与读/写并发 | Protected Invariant: INV-002 / INV-003 / INV-004 / INV-007 / INV-009（Invalidation 不删版本、不静默回退） |
+| CONC-023 | Promotion-versus-Invalidation | 提升与失效并发 | Protected Invariant: INV-001（Pointer）+ INV-002 / INV-003 / INV-004 / INV-007（显式语义，不产生冲突 Current Truth） |
+| CONC-024 | Cancel-versus-complete（Dispatch） | 取消与完成并发 | Protected Invariant: INV-001（协作式取消不产生部分写）；Supporting Record / Identity: REC-009（ARP-04 Durable Work Intent） |
 
 ### Table B — Control Mechanisms
 
@@ -245,10 +247,12 @@ NOT AUTHORIZED
 
 | 本 Artifact 元素 | 引用目标 | 关系 |
 |---|---|---|
-| CONC-xxx Protected Business Invariant | ARP-01 INV-xxx | 受保护不变量指向 ARP-01。 |
-| CONC-004/005/006/007/013/014/019/024 | ARP-04 REC-009 / REC-010 | Work Intent / Provider Call 记录类。 |
-| CONC-010/011/012/015 | ARP-03 IDEM-xxx | 幂等身份边界。 |
-| CONC-008/009/016/017 | ARP-09 TEST-xxx | 对应测试覆盖行。 |
+| CONC-001~CONC-024 Protected Business Invariant | ARP-01 INV-xxx | 每行至少一个精确 INV 引用（见 Table A；业务对象缩写表见 Table A 前言）。 |
+| CONC-004 / CONC-005 / CONC-006 / CONC-007 / CONC-014 / CONC-019 / CONC-024 | ARP-04 REC-009（Durable Work Intent） | Work Intent Supporting Record（受保护不变量仍指向 INV-001）。 |
+| CONC-013 | ARP-04 REC-013（Integration Event / Outbox Row）+ ARP-03 IDEM-011（Consumer Dedup）/ IDEM-012（Integration Event Identity） | Duplicate Delivery / Consumer Dedup 的正确引用目标（不再指向 Durable Work Intent / Provider Call Ledger 记录类）。 |
+| CONC-015 | ARP-04 REC-010（Provider Call Ledger）+ ARP-03 IDEM-006 | Commit Outcome Unknown 的 Provider Supporting Record。 |
+| CONC-010 / CONC-011 / CONC-012 | ARP-03 IDEM-005 / IDEM-002 / IDEM-004 | 幂等身份边界 Supporting Identity。 |
+| CONC-008 / CONC-009 / CONC-016 / CONC-017 | ARP-09 TEST-xxx | 对应测试覆盖行。 |
 
 ---
 

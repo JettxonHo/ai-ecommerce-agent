@@ -142,6 +142,10 @@ Production-topology Qualification
 
 > 行 ID 规则：`TEST-001`…（Artifact Traceability ID，非数据库主键 / 生产 ID）。
 > 未知实测值 = `REQUIRES TS-01 EVIDENCE`；`Evidence Produced` 统一 = `NOT YET AVAILABLE`。
+>
+> **并发 Actor 纪律（Review Remediation）**：需要并发冲突的场景（Concurrent Exact Replay / 40001 / 40P01 / Worker Claim / Lease-Fencing / Commit Outcome Unknown 并发路径）必须至少两个独立 Actor；涉及数据库并发时必须使用独立 Connection / Session / Transaction，不使用模糊 `≥1（并发 ≥2）`。
+>
+> **Consumer Dedup 说明**：Consumer Dedup 并发场景由 ARP-02 CONC-013 追踪（指向修订后的 ARP-04 REC-013 Integration Event / Outbox Row + ARP-03 IDEM-011/IDEM-012）；TS-01 Minimum Slice 暂无独立 Consumer Dedup TEST 行，属完整 ARP-09 范围。
 
 ### Table A — Requirement, Layer & Subject
 
@@ -169,16 +173,16 @@ Production-topology Qualification
 |---|---|---|---|---|---|---|
 | TEST-001 | 多独立连接（≥2）；精确 = REQUIRES TS-01 EVIDENCE | ≥2 Workers/进程；精确 = REQUIRES TS-01 EVIDENCE | 正式默认 Isolation Level；精确 = REQUIRES TS-01 EVIDENCE | 合成测试数据（无真实 PII/凭证） | YES | 无（stale revision 语义冲突） |
 | TEST-002 | ≥2；精确 = REQUIRES TS-01 EVIDENCE | ≥2 | 正式默认 | 合成测试数据 | YES | unique_violation（分类 = REQUIRES TS-01 EVIDENCE） |
-| TEST-003 | 多独立连接 | ≥2 Workers | 正式默认 | 合成测试数据 | YES | 无（Lease/fencing 语义） |
-| TEST-004 | 多独立连接（并发 Claim） | ≥2 Workers | 正式默认 | 合成测试数据 | YES（真实 Commit，非永不提交外层事务） | 无 |
-| TEST-005 | 多独立连接（高争用） | ≥2 Workers | 正式默认（触发 serialization） | 合成测试数据 + 确定性协调 | YES | 40001 |
-| TEST-006 | 多独立连接 | ≥2 Workers | 正式默认（触发 deadlock） | 合成测试数据 + 确定性锁顺序 | YES | 40P01 |
+| TEST-003 | ≥2 独立 Connection/Session/Transaction；精确 = REQUIRES TS-01 EVIDENCE | ≥2 独立 Actors/Workers | 正式默认 Isolation Level；精确 = REQUIRES TS-01 EVIDENCE | 合成测试数据 | YES | 无（Lease/fencing 语义） |
+| TEST-004 | ≥2 独立 Connection/Session/Transaction（并发 Claim）；精确 = REQUIRES TS-01 EVIDENCE | ≥2 独立 Actors/Workers | 正式默认 Isolation Level；精确 = REQUIRES TS-01 EVIDENCE | 合成测试数据 | YES（真实 Commit，非永不提交外层事务） | 无 |
+| TEST-005 | ≥2 独立 Connection/Session/Transaction（高争用）；精确 = REQUIRES TS-01 EVIDENCE | ≥2 独立 Actors/Workers | Scenario-specific isolation capable of deterministically producing 40001；Exact isolation choice = TS-01 SPIKE PLANNING DECISION（项目默认 READ COMMITTED 本身不保证产生 40001 场景；本 Artifact 阶段不选择最终生产隔离策略） | 合成测试数据 + 确定性协调 | YES | 40001 |
+| TEST-006 | ≥2 独立 Connection/Session/Transaction；精确 = REQUIRES TS-01 EVIDENCE | ≥2 独立 Actors（intentionally opposing lock acquisition order） | 正式默认 Isolation Level（deadlock 触发与隔离级别无强绑定）；精确 = REQUIRES TS-01 EVIDENCE | 合成测试数据 + Deterministic actor coordination + intentionally opposing lock acquisition order（test-only fault construction；生产代码应在适用处使用一致全局锁顺序） | YES | 40P01 |
 | TEST-007 | ≥1；重试经新 UoW/Session | ≥1 | 正式默认 | 合成测试数据 | YES | 40001/40P01（触发重试路径） |
-| TEST-008 | ≥1（并发重放 ≥2） | ≥1（并发 ≥2） | 正式默认 | 合成测试数据 | YES | 无（重放语义） |
+| TEST-008 | ≥2 独立 Connection/Session/Transaction（并发重放）；精确 = REQUIRES TS-01 EVIDENCE | ≥2 独立 Actors/Workers | 正式默认 Isolation Level；精确 = REQUIRES TS-01 EVIDENCE | 合成测试数据 | YES | 无（重放语义） |
 | TEST-009 | ≥1 | ≥1 | 正式默认 | 合成测试数据 | YES | 无（Idempotency Key Conflict 语义） |
-| TEST-010 | 多独立连接（并发 Claim） | ≥2 Workers | 正式默认 | 合成测试数据 | YES | 无 |
+| TEST-010 | ≥2 独立 Connection/Session/Transaction（并发 Claim）；精确 = REQUIRES TS-01 EVIDENCE | ≥2 独立 Actors/Workers | 正式默认 Isolation Level；精确 = REQUIRES TS-01 EVIDENCE | 合成测试数据 | YES | 无 |
 | TEST-011 | 多独立连接 | ≥2 Workers（模拟 Crash） | 正式默认 | 合成测试数据 + 确定性故障注入 | YES | 无（Crash 恢复） |
-| TEST-012 | 多独立连接 | ≥1（Fault Injection 10 注入位置） | 正式默认 | 合成测试数据 + Fault Injection | YES（Commit Outcome Unknown 不只 Mock commit 抛异常） | 无（全有或全无） |
+| TEST-012 | ≥2 独立 Connection/Session/Transaction（含 Commit Outcome Unknown 并发路径）；精确 = REQUIRES TS-01 EVIDENCE | ≥2 独立 Actors（Fault Injection + 并发验证） | 正式默认 Isolation Level；精确 = REQUIRES TS-01 EVIDENCE | 合成测试数据 + Fault Injection | YES（Commit Outcome Unknown 不只 Mock commit 抛异常） | 无（全有或全无） |
 | TEST-013 | 多独立连接 | ≥2 Workers | 正式默认 | 合成测试数据 + Fault Injection | YES | 无 |
 | TEST-014 | 钉定版本真实 PG；隔离 Database/Schema + 独立 Test Role | 按测试 | 正式默认 Isolation Level | 合成测试数据；单连接 SAVEPOINT 仅限非 Commit Visibility Adapter Test | 按测试类型 | 按测试 |
 | TEST-015 | ≥1 | ≥1 | 正式默认 | 合成测试数据 + 受控 Secret Injection | YES | 无（安全断言） |
@@ -197,7 +201,7 @@ Production-topology Qualification
 | TEST-008 | Commit 成功响应丢失场景 | 无 | 隔离 Schema | Required PR Check | Required |
 | TEST-009 | 无 | 无 | 隔离 Schema | Required PR Check | Required |
 | TEST-010 | 并发 Claim 时序 | 无 | 隔离 Schema | Required PR Check | Required |
-| TEST-011 | Worker Crash 注入 | 无 | 隔离 Schema | Scheduled/Manual（Crash Recovery 高强度，DQ-16） | Required |
+| TEST-011 | Worker Crash 注入（bounded deterministic crash/reclaim） | 无 | 隔离 Schema | Bounded deterministic crash/reclaim correctness scenario = REQUIRED PR CHECK；Heavy recovery / soak / prolonged contention = SCHEDULED OR MANUAL（DQ-16） | Required |
 | TEST-012 | Fault Injection（DEC-035 10 注入位置） | 无 | 隔离 Schema | Required PR Check（correctness-critical）+ Scheduled/Manual 高强度 | Required |
 | TEST-013 | Fault Injection | 无 | 隔离 Schema | Required PR Check | Required |
 | TEST-014 | 环境记录 + 确定性协调 | 无真实 Provider/凭证 | 独立 Test Role + 隔离 Database/Schema；并行 CI Worker 独立隔离 | Harness Qualification（随首个获授权 Persistence Spike） | Required（Harness 原则） |

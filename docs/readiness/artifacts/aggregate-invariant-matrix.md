@@ -115,12 +115,16 @@ NOT AUTHORIZED
 
 > 行 ID 规则：`INV-001`…（Artifact Traceability ID，非数据库主键 / 生产 ID）。
 > 受控未决标记：`PENDING BUSINESS DEFINITION` / `PENDING USER DECISION` / `DEFERRED TO RFC-00x` / `NOT APPLICABLE` / `NOT YET EVIDENCED`。
+>
+> **状态维度分离（Review Remediation）**：每行 `Decision Status`（Table D）不再用单一 `ACCEPTED DECISION` 同时表达多个维度，而是区分六个维度：`Source Object`（业务对象是否有 Accepted 来源）· `Aggregate Classification`（本 Artifact 的聚合分类）· `Invariant`（业务不变量）· `Version/Lifecycle`（版本/生命周期）· `Owning Module`（所有模块）· `Artifact Row`（本行审查状态）。
+>
+> **Owning Module 未决项约定**：`exact module = PENDING BUSINESS DEFINITION` 意为具体 package 命名与边界未定，属 `NON-BLOCKING FOR WAVE 1 VOCABULARY REVIEW`、`BLOCKING BEFORE IMPLEMENTATION / FULL OWNERSHIP FREEZE`（除非 Accepted RFC 明确要求在本 Gate 决定）。本 Artifact 不声称 Full Foundation Acceptance 需先发明具体 package。
 
 ### Table A — Identity, Invariant & Ownership
 
 | Row ID | Aggregate / Business Object | Business Invariant | Owning Module | Commit Protocol Mapping |
 |---|---|---|---|---|
-| INV-001 | Task（task_id + Stage State + Current Truth Pointers） | task_id 为稳定业务身份，不因 Resume/重跑改变；一个 task 对应一个当前活跃 thread_id；Stage 有效性显式记录 | Task/Workflow State 业务所有者（DEC-013/024）；exact module = PENDING BUSINESS DEFINITION | DEC-035 Atomic Business Commit（Stage State + Pointer 更新参与） |
+| INV-001 | Task（task_id + Stage State + Current Truth Pointers） | task_id 为稳定业务身份，不因 Resume/重跑改变；Stage 有效性显式记录；Task-to-thread Active Cardinality = DEFERRED TO RFC-003（DEC-024 仅有 MVP 约定「一个 task_id → 一个当前活跃 thread_id」，非运行时不变量；线程生命周期归 RFC-003）；thread_id ≠ task_id、≠ business identity、≠ concurrency lock、≠ idempotency key | Task/Workflow State 业务所有者（DEC-013/024）；exact module = PENDING BUSINESS DEFINITION | DEC-035 Atomic Business Commit（Stage State + Pointer 更新参与） |
 | INV-002 | Product Facts（Facts Version） | No Fact without a valid current-product Fragment；raw_value 与 normalized_value 分离并保留 raw_value；marketing_expression 不入 Facts Current Truth | Product Intake & Fact Extraction capability（DEC-026）；exact module = PENDING BUSINESS DEFINITION | DEC-035 Atomic Business Commit |
 | INV-003 | Customer Insights（Insights Version） | 用户原声必须关联真实 Fragment；正式频率须由确定性统计产生（禁 Top-K 外推）；当前商品与竞品用户证据分离 | Customer Insight Analysis capability（DEC-027）；exact module = PENDING BUSINESS DEFINITION | DEC-035 Atomic Business Commit |
 | INV-004 | Positioning Candidates（Positioning Candidate Version） | Positioning 属 Strategic Inference 非 Explicit Fact；Proof Point → Valid Fact → Evidence Link → Fragment → Source Version | Product Positioning capability（DEC-028）；exact module = PENDING BUSINESS DEFINITION | DEC-035 Atomic Business Commit |
@@ -168,17 +172,17 @@ NOT AUTHORIZED
 
 | Row ID | Retention Owner | Related DQ / DEC / RFC | Source / Traceability | Decision Status |
 |---|---|---|---|---|
-| INV-001 | Task 业务模块（DQ-15） | DQ-11 · DEC-013 · DEC-024 · DEC-012 · RFC-001 | data-architecture.md §DEC-013/024/012 | Aggregate 存在 = ACCEPTED DECISION；成员资格细化 = PENDING BUSINESS DEFINITION |
-| INV-002 | Facts capability（DQ-15） | DQ-11 · DEC-026 · DEC-024 · DEC-025 | data-architecture.md §DEC-026 | ACCEPTED DECISION |
-| INV-003 | Insights capability（DQ-15） | DQ-11 · DEC-027 · DEC-024 · DEC-025 | data-architecture.md §DEC-027 | ACCEPTED DECISION |
-| INV-004 | Positioning capability（DQ-15） | DQ-11 · DEC-028 · DEC-024 · DEC-025 | data-architecture.md §DEC-028 | ACCEPTED DECISION |
-| INV-005 | Strategy/Review capability（DQ-15） | DQ-11 · DEC-029 · DEC-024 · DEC-028 | data-architecture.md §DEC-029 | ACCEPTED DECISION |
-| INV-006 | Review capability（DQ-15） | DQ-11 · DEC-029 | data-architecture.md §DEC-029 | ACCEPTED DECISION |
-| INV-007 | Brief capability（DQ-15） | DQ-11 · DEC-030 · DEC-024 · DEC-029 | data-architecture.md §DEC-030 | ACCEPTED DECISION |
-| INV-008 | Adapter capability（DQ-15） | DQ-11 · DEC-031 · DEC-024 · DEC-030 | data-architecture.md §DEC-031 | ACCEPTED DECISION |
-| INV-009 | Source/Evidence capability（DQ-15） | DQ-11 · DQ-12 · DEC-025 | data-architecture.md §DEC-025 · rfc-002-decision-questions.md §DQ-12 | ACCEPTED DECISION |
-| INV-010 | Source/Evidence capability（DQ-15） | DQ-12 · DEC-025 · DEC-032 | data-architecture.md §DEC-025/032 | ACCEPTED DECISION |
-| INV-011 | Audit Capability（DQ-15） | DQ-10 · DQ-11 · DEC-024 | rfc-002-decision-questions.md §DQ-10 | ACCEPTED DECISION |
+| INV-001 | Task 业务模块（DQ-15） | DQ-11 · DEC-013 · DEC-024 · DEC-012 · RFC-001 · RFC-003 | data-architecture.md §DEC-013/024/012 | Source Object = ACCEPTED DECISION（DEC-013/024/012）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW；Invariant = ACCEPTED WHERE SOURCED（thread cardinality DEFERRED TO RFC-003）；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（DQ-11）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
+| INV-002 | Facts capability（DQ-15） | DQ-11 · DEC-026 · DEC-024 · DEC-025 | data-architecture.md §DEC-026 | Source Object = ACCEPTED DECISION（DEC-026）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW；Invariant = ACCEPTED WHERE EXPLICITLY SOURCED；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（DQ-11）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
+| INV-003 | Insights capability（DQ-15） | DQ-11 · DEC-027 · DEC-024 · DEC-025 | data-architecture.md §DEC-027 | Source Object = ACCEPTED DECISION（DEC-027）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW；Invariant = ACCEPTED WHERE EXPLICITLY SOURCED；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（DQ-11）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
+| INV-004 | Positioning capability（DQ-15） | DQ-11 · DEC-028 · DEC-024 · DEC-025 | data-architecture.md §DEC-028 | Source Object = ACCEPTED DECISION（DEC-028）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW；Invariant = ACCEPTED WHERE EXPLICITLY SOURCED；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（DQ-11）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
+| INV-005 | Strategy/Review capability（DQ-15） | DQ-11 · DEC-029 · DEC-024 · DEC-028 | data-architecture.md §DEC-029 | Source Object = ACCEPTED DECISION（DEC-029）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW；Invariant = ACCEPTED WHERE EXPLICITLY SOURCED；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（DQ-11）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
+| INV-006 | Review capability（DQ-15） | DQ-11 · DEC-029 | data-architecture.md §DEC-029 | Source Object = ACCEPTED DECISION（DEC-029）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW；Invariant = ACCEPTED WHERE EXPLICITLY SOURCED；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（快照对象，DQ-11）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
+| INV-007 | Brief capability（DQ-15） | DQ-11 · DEC-030 · DEC-024 · DEC-029 | data-architecture.md §DEC-030 | Source Object = ACCEPTED DECISION（DEC-030）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW；Invariant = ACCEPTED WHERE EXPLICITLY SOURCED；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（DQ-11）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
+| INV-008 | Adapter capability（DQ-15） | DQ-11 · DEC-031 · DEC-024 · DEC-030 | data-architecture.md §DEC-031 | Source Object = ACCEPTED DECISION（DEC-031）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW；Invariant = ACCEPTED WHERE EXPLICITLY SOURCED；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（DQ-11）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
+| INV-009 | Source/Evidence capability（DQ-15） | DQ-11 · DQ-12 · DEC-025 | data-architecture.md §DEC-025 · rfc-002-decision-questions.md §DQ-12 | Source Object = ACCEPTED DECISION（DEC-025/DQ-12）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW；Invariant = ACCEPTED WHERE EXPLICITLY SOURCED；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（DQ-11/DQ-12）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
+| INV-010 | Source/Evidence capability（DQ-15） | DQ-12 · DEC-025 · DEC-032 | data-architecture.md §DEC-025/032 | Source Object = ACCEPTED DECISION（DEC-025/032）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW；Invariant = ACCEPTED WHERE EXPLICITLY SOURCED；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（关系对象）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
+| INV-011 | Audit Capability（DQ-15） | DQ-10 · DQ-11 · DEC-024 | rfc-002-decision-questions.md §DQ-10 | Source Object = ACCEPTED DECISION（DQ-10）；Aggregate Classification = PROPOSED FOR ARP-01 REVIEW（append-only 记录类，非 Current Truth）；Invariant = ACCEPTED WHERE EXPLICITLY SOURCED；Version/Lifecycle = ACCEPTED WHERE EXPLICITLY SOURCED（append-only）；Owning Module = PENDING BUSINESS DEFINITION；Artifact Row = DRAFT / USER REVIEW REQUIRED |
 
 ---
 
@@ -212,7 +216,7 @@ NOT AUTHORIZED
 
 | # | 问题 | 决定所有者 | 下一 Gate |
 |---|---|---|---|
-| OQ-1 | 各 Aggregate 的正式 Owning Module package 命名与边界 | 用户 + Persistence/Domain Owner | ARP-01 Acceptance 前（RFC-001 DQ-03 已定模块原则，具体模块实例化未授权） |
+| OQ-1 | 各 Aggregate 的正式 Owning Module package 命名与边界 | 用户 + Persistence/Domain Owner | `PENDING BUSINESS DEFINITION`：NON-BLOCKING FOR WAVE 1 VOCABULARY REVIEW；BLOCKING BEFORE IMPLEMENTATION / FULL OWNERSHIP FREEZE（RFC-001 DQ-03 已定模块原则，具体模块实例化未授权） |
 | OQ-2 | Source / Evidence 是否作为独立模块或跨模块能力 | 用户 + Source/Evidence Owner | ARP-01 Acceptance 前 |
 | OQ-3 | Audit Capability 的唯一所有者模块实例化 | 用户 + Audit Owner | ARP-01 Acceptance 前 |
 | OQ-4 | 各 Aggregate Retention Period 数值 | 用户（DQ-15 拥有） | DQ-15 Retention Policy Table Gate |
