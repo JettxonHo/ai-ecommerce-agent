@@ -5,7 +5,7 @@
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-17 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13/DQ-14/DQ-15/DQ-16/DQ-17 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；全部 17 个 DQ 已决定；**RFC-002 整体最终接受仍待用户决定**；**只有用户**能把 DQ 或 RFC-002 整体标记为 ACCEPTED。
+> - DQ-01~DQ-17 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13/DQ-14/DQ-15/DQ-16/DQ-17 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；全部 17 个 DQ 已决定；**RFC-002 已于 2026-08-04 由用户正式接受（RFC-002 = ACCEPTED；Acceptance ≠ Authorization，Implementation = NOT AUTHORIZED）**；**只有用户**能把 DQ 或 RFC-002 整体标记为 ACCEPTED。
 > - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
