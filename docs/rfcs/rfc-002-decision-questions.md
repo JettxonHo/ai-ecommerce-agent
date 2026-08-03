@@ -1,12 +1,12 @@
-# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~16 ACCEPTED；DQ-17 PROPOSED）
+# RFC-002 Decision Questions：持久化与事务架构决策问题集（DQ-01~17 ACCEPTED；全部 DQ 已决定）
 
-> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation）；DQ-14 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles）；DQ-15 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles）；DQ-16 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Accepted Principle = Layered Test Strategy，Formal Model = Pure Domain/Application Unit Tests + Port Contract Parity Tests + Real PostgreSQL Persistence Acceptance Tests + Deterministic Multi-connection Concurrency Tests + Real Migration/Upgrade/Recovery Tests + Crash-window/Fault-injection Tests + Production-topology-specific Qualification，SQLite = Optional Non-authoritative Test Double）；DQ-17 = PROPOSED（**无一 Accepted**）
+> **Status:** DQ-01 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-02 = **ACCEPTED**（2026-08-01 用户正式决定，Accepted with Revision）；DQ-03 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-04 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-05 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-06 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision）；DQ-07 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Revision，Accepted Direction = Layered Concurrency Control）；DQ-08 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Primary Direction = Candidate B，Supporting Principle = Candidate C）；DQ-09 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate B，Formal Pattern = PostgreSQL-backed Transactional Durable Work Intent）；DQ-10 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A）；DQ-11 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Authoritative Current Truth + Immutable Business Version Snapshots + Append-only Audit/Transition History + Optional Derived Query Projections）；DQ-12 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = PostgreSQL Authoritative Source/Evidence Graph + Immutable Content-addressed Source Blobs + Versioned Derived Artifacts and Fragments + Explicit Evidence-to-Claim Links + Rebuildable Non-authoritative Retrieval Index）；DQ-13 = **ACCEPTED**（2026-08-02 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Shared PostgreSQL Service + Isolated Checkpoint Persistence Plane + Dedicated Role/Connection Pool/Storage Namespace + Application-owned Workflow Execution Registry + Business-Current-Truth-first Reconciliation）；DQ-14 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles）；DQ-15 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles）；DQ-16 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Accepted Principle = Layered Test Strategy，Formal Model = Pure Domain/Application Unit Tests + Port Contract Parity Tests + Real PostgreSQL Persistence Acceptance Tests + Deterministic Multi-connection Concurrency Tests + Real Migration/Upgrade/Recovery Tests + Crash-window/Fault-injection Tests + Production-topology-specific Qualification，SQLite = Optional Non-authoritative Test Double）；DQ-17 = **ACCEPTED**（2026-08-03 用户正式决定，Accepted with Major Revision，Accepted Candidate = Candidate A，Formal Model = Classified Sensitive-data Protection + Secret-reference-only Persistence + Ephemeral Adapter-scoped Secret Resolution + Data-minimized Multi-plane Propagation + Strict Allowlisted Checkpoint Serialization + Least-privilege Role/Credential/Pool Separation + Selective Envelope Encryption by Protection Profile + Infrastructure Encryption in Transit/at Rest + Auditable Access/Redaction/Rotation/Incident Response）；**DQ-01~DQ-17 全部 ACCEPTED（无一 PENDING；RFC-002 最终接受仍待用户决定）**
 > **服务 RFC：** RFC-002 — Persistence and Transaction Architecture
 > **治理：** DEC-036（Controlled Git/GitHub Execution）· DEC-038（RFC and Issue Governance）
 > **证据底座：** `rfc-002-research-persistence-requirements.md`（需求矩阵）· `rfc-002-analysis-cross-rfc-boundary.md`（边界矩阵）· 四条一手官方研究（SQLAlchemy / LangGraph Checkpointer / PostgreSQL-SQLite-Alembic / 模式定义）
 > **纪律（恒定成立）：**
-> - DQ-01~DQ-16 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13/DQ-14/DQ-15/DQ-16 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；DQ-17 的 `User Decision = PENDING`，`Status = PROPOSED`；**只有用户**能把 DQ 标记为 ACCEPTED。
-> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
+> - DQ-01~DQ-17 已由用户正式决定（均 `Status = ACCEPTED`；DQ-01~DQ-07 的 `User Decision = ACCEPTED WITH REVISION`，DQ-08/DQ-09/DQ-10/DQ-11/DQ-12/DQ-13/DQ-14/DQ-15/DQ-16/DQ-17 的 `User Decision = ACCEPTED WITH MAJOR REVISION`）；全部 17 个 DQ 已决定；**RFC-002 整体最终接受仍待用户决定**；**只有用户**能把 DQ 或 RFC-002 整体标记为 ACCEPTED。
+> - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
 
@@ -32,7 +32,7 @@
 | DQ-14 | Schema Evolution & Migrations | **已决定（2026-08-03 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles**；Candidate B 不作通用生产恢复保证（"所有 Migration 应支持安全 Downgrade" 方向拒绝；明确可逆、无数据损失且经真实 PostgreSQL 测试的 Migration 可选择性提供安全 Downgrade）；Candidate C 作为唯一 Migration System 拒绝（受治理 Alembic Revision 内允许人工编写 PostgreSQL SQL，不绕过 Revision Graph/Review/Deployment Gate/Migration History）；Migration Ownership（唯一 Migration Capability/Deployment Pipeline/受控 Migration Job 执行；Web/Background/Workflow Worker 不启动自动 upgrade head；Migration Role 与 Runtime Role 分离）；Single Business Migration Lineage（Merge/Release Gate 单一 Alembic Head；Multiple Heads 经 Rebase/重新生成 Revision/显式 Merge Revision 解决，不修改已发布历史 Revision；PostgresSaver Vendor Migration 不伪装成 Business Alembic Head）；Migration History Immutability（已执行 Revision 不可变发布记录，修复创建新 Forward Repair Revision；Migration History Immutability ≠ Business Version Immutability）；Autogenerate Discipline（仅作 Candidate Generator 必经人工审查；Rename/Type/Default/Nullable/Constraint/Index/FK/Enum/Schema/Partition/Data Migration/Drop 显式检查；drop_table/drop_column/drop_constraint 未过 Destructive Gate 不入生产；Autogenerate 排除 Vendor Checkpoint Tables）；Schema Drift Gate（alembic check 检测可识别 Metadata Drift，非 Migration 安全证明）；Forward-recovery-first（生产恢复不依赖通用 Schema Downgrade，默认 Rollback Compatible Application + Keep Expanded Schema + Forward Repair Migration）；Rollback 术语分离（Application Rollback/Schema Downgrade/Forward Repair/Database Restore/PITR/DQ-11 Business Restore 独立语义）；Reversibility Classification（REVERSIBLE_SCHEMA/FORWARD_FIX_ONLY/DATA_IRREVERSIBLE/NON_TRANSACTIONAL_DDL/DESTRUCTIVE_CONTRACT/VENDOR_MANAGED）；Expand-Migrate-Contract（Expand 与 Contract 不同一次发布；Contract 前证明旧 Application 退出+Backfill 完成+验证通过+兼容窗口关闭）；Resumable Backfill（大型 Backfill 不入长 Alembic Transaction；独立 backfill_run_id/批次游标/Lease/Attempt/Fencing/进度/验证，分批提交/暂停/恢复/幂等重试；遵循 DQ-07 Lease+Fencing 与 DQ-08 Idempotency；Technical Backfill ≠ Business Semantic Change，后者经正式 Business Application Contract+Audit+版本化规则）；PostgreSQL 低锁策略（大型表 Add Nullable Column；NOT VALID→修复→VALIDATE；CREATE INDEX CONCURRENTLY 独立 Non-transactional Boundary+Invalid Index Recovery；Type Change 默认 Shadow Column+Dual Write+Backfill+Cutover+Contract；Lock/Statement Timeout+资源预算）；Destructive Gate 与 Non-transactional DDL Gate（Drop Table/Column/Constraint/Type Narrowing/不可逆转换/Enum 删除/强制 Constraint/Partition Drop/大规模重写经显式 Gate；Non-transactional DDL 独立 Revision/Step，失败不自动回滚须验证实际状态）；Vendor Migration Separation（Business Alembic ≠ PostgresSaver Vendor Migration ≠ Retrieval Index Rebuild ≠ Object Storage Lifecycle）；Schema Version Identity Separation（alembic_revision ≠ domain_version_id/version_number/revision/checkpoint_schema_version/event_schema_version/payload_schema_version；Alembic Head ≠ Backfill/Validation/Contract 完成）；Deployment Protocol（Preflight→Expand→Compatible Application→Backfill→Verify→Switch Read→End Compatibility Window→Contract；Web/Worker 不自动执行 Migration；Offline SQL 对应正式 Revision 与 Target 版本）；CI 最低 Gate（单一 Business Head/alembic check/fresh+baseline upgrade/revision graph/offline SQL reviewable/destructive gated/vendor schema excluded）；**Schema Migration Compatibility & Risk Table 与 Schema Migration Rollout & Recovery Technical Spike 为实现前置条件——均 REQUIRED 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 forward-only vs downgrade、autogenerate 纪律 | DEC-024 版本化语义；Alembic autogenerate 必须人工 review；PG 快速加列/CREATE INDEX CONCURRENTLY/NOT VALID+VALIDATE 两段式 |
 | DQ-15 | Data Retention & Deletion Boundary | **已决定（2026-08-03 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles**；Candidate B Universal TTL 拒绝（违反数据语义与历史要求）；Candidate C Universal Permanent Retention 拒绝（不可持续且可能与 Retention-limitation 义务冲突）；每类数据独立 Retention Policy（Purpose/Owner/Trigger/Clock/Required Horizon/Permitted Horizon/Blockers/Hold/Disposition/Verification/Storage-plane Treatment），不设置或虚构具体保留周期（`PERIOD NOT DECIDED`）；Invalidation/Supersession/Archive/Access Restriction/Redaction/Pseudonymization/Anonymization/Tombstone/Logical Deletion/Physical Purge/Backup Expiry 语义独立（业务删除、Source Invalidation、Evidence Retraction、Workflow Terminal 不自动等同物理删除）；Business Current Truth/Immutable Business Version/Audit/State Transition 正常生命周期不物理删除或覆盖（但不得解释为无视法律/隐私/安全要求永久保留全部个人数据；受治理 Exceptional Erasure/Redaction Path 必需，精确 PII 分离/Redaction/Anonymization/Encryption/法律例外留 DQ-17）；Retention Clock 数据类专属（不统一 created_at；Checkpoint/Idempotency/Work Intent/Outbox/Consumer Dedup/Source/Evidence/Provider Payload/Logs/Orphan Blob/Backup 各依 Terminal/Superseded/Last-required/Delivery-completed/Replay-window-closed/Legal-basis-expired/Unreferenced 事件）；删除 Reference-aware（仍被 Business Version/EvidenceLink/Audit Requirement/Legal Hold/Security Incident/Review 引用不得物理删除；Content-addressed Object 须无有效引用/无 Hold/Grace Period 完成/Reconciliation 通过；物理去重不造成跨 Tenant/跨主体/跨安全域误删；未经审查的跨业务图广泛 ON DELETE CASCADE 禁止）；Checkpoint 继续 DQ-13 Whole-thread Lifecycle Deletion（仅 Workflow Terminal/无 Lease/无 Pending Resume/无 Human Interrupt/无 Retry Window/无 Incident-Legal Hold 可删，不删 Workflow 最小终态/Business Result/Audit/Idempotency/Work Intent/Provider Call Ledger/Domain Version）；Durable Work Intent/Integration Event Outbox/Consumer Dedup/Idempotency Record 承担 Retry/Replay/Delivery/Duplicate Prevention/Incident Investigation 责任期间不删；Raw Model Prompt/Response、Provider Payload、Tool Payload、Debug Trace 不默认永久保存（Business Result/Provider Call Ledger/Raw Payload 分离）；Central Retention Governance + Decentralized Data Ownership（各业务模块为自身数据唯一所有者；中央 Purge Orchestrator 不跨模块直接 SQL 删除，经目标模块类型化 Application Contract 获取 Eligibility/执行处置/验证结果；DQ-02 唯一表所有权继续有效）；每项 Retention/Deletion 决定记录 Policy ID/Version/Data Class/Trigger/Eligible Time/Disposition/Purpose/Legal Basis/Hold/Decision Reason/Verification Result（Policy Version 可审计，修改不静默改写历史删除依据）；Legal/Security Incident/Regulatory/Dispute/Review Hold 须有 Scope/Authority/Reason/Review/Release Trail 且存在时阻止 Physical Purge（不被普通 Retention Job 自动解除）；删除请求先形成受治理 Deletion/Erasure Case（请求者权限验证→适用规则判定→数据范围发现→Reference/Hold 检查→Deletion Plan→分存储平面执行→最终验证，不映射为单次 SQL DELETE，不自动包含其他主体/Tenant 数据）；Purge Worker 遵循 DQ-07 Lease/Fencing 与 DQ-08 Idempotency，分批短事务 + Crash Recovery，状态至少区分 Requested/Assessing/Blocked/Held/Eligible/Purge In Progress/Primary Purged/Derived-Object Purged/Backup Expiry Pending/Completed/Failed（重复执行不扩大删除范围或删除新合法引用）；Application Inaccessibility/Logical Database Deletion/Physical Storage Reclamation/Backup Expiry 分离（SQL DELETE Commit 不表底层字节立即消失；Primary 删除完成不表 Backup/PITR 到期；旧 Backup 恢复须隔离环境并重放已完成 Deletion Ledger 防止已删除数据重新进入生产服务）；删除后仅保留不含原敏感载荷的最小 Tombstone/Deletion Proof（Archive/Cold Storage/Encryption/Soft Delete/Access Restriction 均不得声称为 Physical Purge）；**Data Retention, Hold & Deletion Policy Table 为 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED**（不授权创建该表或填写具体期限）；**Retention & Deletion Safety Technical Spike（Reference/Hold、Checkpoint 删除、多引用 Content Object、跨存储 Crash Window、Backup Restore Deletion Replay、幂等重试、跨主体误删防护）为首个生产 Purge 实现前置——REQUIRED BEFORE PRODUCTION PURGE IMPLEMENTATION 但 NOT AUTHORIZED**；不新增独立 Matrix；原分歧 分类定责 vs 统一 TTL vs 全部保留 | DEC-013/025 保留周期未确认；DEC-024 历史不删除；checkpoint 无内建 TTL |
 | DQ-16 | Persistence Testing Strategy | **已决定（2026-08-03 ACCEPTED）**：Candidate A（Accepted with Major Revision；Accepted Principle = Layered Test Strategy）——Formal Model = **Pure Domain/Application Unit Tests + Port Contract Parity Tests + Real PostgreSQL Persistence Acceptance Tests + Deterministic Multi-connection Concurrency Tests + Real Migration/Upgrade/Recovery Tests + Crash-window/Fault-injection Tests + Production-topology-specific Qualification**；Candidate B 全部真实 PostgreSQL 通用策略拒绝（REJECTED AS A UNIVERSAL ALL-TESTS-USE-POSTGRESQL POLICY）；Candidate C 全部 SQLite fake 拒绝（All-SQLite testing cannot prove PostgreSQL semantics）；Pure Domain Unit Test 不使用数据库；Application Test Double（In-memory Fake/Stub/Spy/Deterministic Clock/ID Generator）仅证明 Application Contract（不证明 SQL Constraint/Transaction Atomicity/Commit Visibility/Lock/MVCC/CAS/Migration/Idempotency/Crash Recovery）；**SQLite 仅为可选非权威开发 Test Double，不得作为 Persistence Acceptance Engine/Concurrency-Transaction-Migration-Idempotency Proof/Release Readiness Evidence**；Repository/UoW/ORM Mapping/PostgreSQL Types/Constraint/Transaction/Concurrency/CAS/Migration/Idempotency/Lease-Fencing/Work Intent/Outbox/Audit/Domain Version/Current Truth Pointer/Retention Referential Safety 正式测试必须真实 PostgreSQL（SQLite 通过不得描述为 PostgreSQL 语义通过）；可复用 Port Contract Suite（Fake Pass ≠ PostgreSQL Adapter Pass）；Test Double 必须声明 9 项差异；MVP 只测 SQLAlchemy 2.x sync + Psycopg 3 sync（Async Stack 不属 MVP 验收范围）；钉定版本 + 独立 Test Role + 隔离 Database/Schema + 不连共享开发库/生产库 + 正式 Alembic Migration + 正式默认 Isolation Level；测试证据记录 10 项元数据；单连接 SAVEPOINT Rollback Fixture 仅限不验证 Commit Visibility 的 Adapter Test（多连接/Commit Visibility/Outbox/Consumer/Pool/Deadlock/Serialization Retry/Worker Crash/Migration/Multi-worker Claim/Checkpoint/跨存储 Crash Window 必须真实 Commit；多连接测试不被永不提交外层事务包裹；并行 CI Worker 独立隔离）；并发 Actor 独立 Connection/Session/Transaction（不共享 Session）；确定性协调（Barrier/Latch/Event/Blocking Point，不主要依赖 sleep）；真实覆盖 19 类并发场景（expected_revision 竞争/CAS/Version Number 分配/唯一约束/40001/40P01/三次事务尝试/SKIP LOCKED/Lease Expiry-Takeover/Stale Fencing/Idempotency Key±Fingerprint/Duplicate Delivery/Promotion-Invalidation/Restore-New Write/Purge-New Reference）；DEC-035 Atomic Commit 经 Fault Injection 验证全有或全无（10 个注入位置；Commit Outcome Unknown 不只靠 Mock commit 抛异常）；9 类 Crash Window 覆盖；Idempotent Use Case 9 类覆盖 + 8 项验证；Migration Test 真实 PostgreSQL + 17 项覆盖（`metadata.create_all()` 不作 Migration Acceptance 唯一 Schema 来源）；Required PR Checks 含 correctness-critical PostgreSQL Transaction/Constraint/Concurrency/Idempotency/Migration（Scheduled/Manual Tier 仅限高强度 Contention/长 Recovery/Live Provider/Backup Restore/Performance/Soak；correctness-critical Invariant 不只 Nightly）；**禁止自动 Retry-to-green**（Application Retry Under Test ≠ CI Test Retry；Flaky Required Check 视为测试或架构缺陷；并发失败报告含 Seed/Timeline/SQLSTATE/Retry Count/Final Rows 等）；合成测试数据（无生产 PII/真实 Credential/真实 Provider Token/真实 Checkpoint/Prompt Payload；受控 Secret Injection；失败日志 Redaction；精确 Fixture 规则留 DQ-17）；**Persistence Test Coverage & Fidelity Table 为 Architecture Readiness Package 必备——REQUIRED 但 NOT AUTHORIZED**（18 项字段）；**不新增独立通用 Technical Spike**（已有 5 项专项 Spike 继续有效并共享合格真实 PostgreSQL Test Harness 原则）；**Common Persistence Test Harness Qualification 必须作为第一个获授权 Persistence Spike 的组成部分——NOT AUTHORIZED**；不授权创建 Harness/Container/CI Job/Fixture/Contract Suite/测试代码/基础设施；原分歧 真实 DB vs SQLite fake、测试分层 | 架构基线 §14.9 测试基线；DEC-022 并发需真实验证；R-1 GAP；SQLite 全库单写者 vs PG 行级 MVCC |
-| DQ-17 | Security & Sensitive Data Boundary | Secret/PII 不落 checkpoint | Secret 明文序列化风险 |
+| DQ-17 | Security & Sensitive Data Boundary | **已决定（2026-08-03 ACCEPTED）**：Candidate A（Accepted with Major Revision）——Formal Model = **Classified Sensitive-data Protection + Secret-reference-only Persistence + Ephemeral Adapter-scoped Secret Resolution + Data-minimized Multi-plane Propagation + Strict Allowlisted Checkpoint Serialization + Least-privilege Role/Credential/Pool Separation + Selective Envelope Encryption by Protection Profile + Infrastructure Encryption in Transit/at Rest + Auditable Access/Redaction/Rotation/Incident Response**；Candidate B = NOT SELECTED AS UNIVERSAL FIELD ENCRYPTION（Selective Authenticated Envelope Encryption = CONDITIONAL ON DATA PROTECTION PROFILE）；Candidate C = REJECTED AS SOLE SECURITY CONTROL（Infrastructure At-rest Encryption 保留为 REQUIRED INFRASTRUCTURE DEFENSE IN DEPTH，不替代应用控制）；SECRET ≠ PII ≠ SENSITIVE BUSINESS DATA ≠ PUBLIC/INTERNAL 语义独立；Secret Value 禁止进入 Domain/Command/Current Truth/Business Version/Graph State/Checkpoint/Registry/Audit/State Transition/Event/Outbox/Work Intent/Idempotency/Fingerprint/Source/Evidence/Index/Cache/Log/Trace/Metric/Error/Test Snapshot/Object Key 等任何持久化或派生存储；仅允许无明文能力引用（credential_ref/secret_reference_id 等）；Secret 解析 = ephemeral/adapter-scoped（Application 仅知 Credential Profile，不得获取 Secret Value）；数据分类 = Confidentiality Level（PUBLIC/INTERNAL/CONFIDENTIAL/RESTRICTED）+ Handling Tags（PII/PROVIDER_PAYLOAD/MODEL_CONTENT/USER_CONTENT/LEGAL_HOLD/SECURITY_INCIDENT/EXPORT_RESTRICTED/AUTH_CREDENTIAL），SECRET 为独立禁止持久化特殊类别；分类规则传播至全部 17 类持久化平面（不得只分类 PostgreSQL Column）；SecretStr/Masked repr ≠ Non-persistence Guarantee（由类型边界/架构测试/Serializer Allowlist/Sink Redaction/禁止路径共同强制）；LANGGRAPH_STRICT_MSGPACK = REQUIRED、Pickle Fallback = PROHIBITED、恶意/损坏 Checkpoint 进入 INCOMPATIBLE/CORRUPT/SECURITY_REJECTED；Encrypted Checkpoint ≠ 允许存储 Secret（实际加密范围须基于钉定版本验证）；三层加密责任（Transport REQUIRED / Infrastructure At-rest REQUIRED BASELINE 但不替代应用控制 / Selective Envelope Encryption 条件启用；UNIVERSAL FIELD-LEVEL ENCRYPTION = REJECTED）；Key 与 Ciphertext 分离（数据库不存明文 DEK/KEK/Master Key；生命周期 CREATE/ACTIVATE/ROTATE/RETIRE/REVOKE/DESTROY/COMPROMISE RESPONSE）；禁止未经治理加密（pgcrypto raw/custom AES/home-grown crypto/key 与 ciphertext 同库）；PostgreSQL Least Privilege（8 类 Role/Pool 分离；Runtime Role 非 Superuser/Table Owner/BYPASSRLS/CREATEROLE/CREATEDB；Migration Credential 不进运行时；受控 search_path + public Schema 保护）；RLS = OPTIONAL DEFENSE IN DEPTH（不替代 DQ-02/Application Authorization，本次不创建 Policy）；BUSINESS/CHECKPOINT/MIGRATION/PURGE/TEST 连接与 Credential 分离；Redaction 顺序 CLASSIFY→MINIMIZE→REDACT→SERIALIZE/EMIT/PERSIST（不得先持久化再异步清理；15 类 Sink 前 Redact；优先结构化字段与分类，不只全局 Regex）；安全 Audit 元数据（14 类行为；Audit 不记录 Secret Value/明文 Key/完整敏感 Payload/Prompt/Provider Response/Source Content）；Provider/Prompt/Model Output = 不可信敏感输入（MODEL-GENERATED ≠ SAFE TO PERSIST）；Object Key 不含 PII/Token/Secret；Content Hash ≠ 匿名化证明（低熵 Hash 存在性/Dictionary Oracle 风险须限制访问）；CROSS-TENANT/CROSS-SECURITY-DOMAIN CONTENT DEDUPLICATION = PROHIBITED FOR MVP（正式关闭 DQ-12 暂缓边界；同域去重须满足分类/访问域/Retention/Legal Hold/存在性不暴露/引用完整/DQ-12/DQ-15 兼容）；测试仅合成数据（禁止 Production Dump/真实 PII/真实凭证/Production Checkpoint/Prompt/Key/Presigned URL；Test Credential 最小 Scope/Sandbox/可撤销/不进 Fixture/Fork PR 不暴露）；Secret Detection Failure = Merge Blocker（泄漏后 REVOKE→ROTATE→INVESTIGATE→REMOVE ONLY WHEN AUTHORIZED）；DQ-15 继续拥有 Retention/Deletion Case/Hold/Purge/Backup Expiry，DQ-17 决定 Secret 不长期持久化/Encrypted Data 仍受保护/Key Destruction ≠ 未验证完整删除/Redacted Data 重识别重评估/Backup Restore 恢复 Key Version 与 Deletion Ledger/Legal Hold 不要求保留 Secret Value/Deletion Proof 不存敏感 Payload；Security Governance/业务模块/Infrastructure 三层所有权；后续边界 RFC-003（Checkpoint Runtime 配置）/RFC-004（API 认证授权传输）/RFC-006（LLM Secret 注入）/RFC-007（日志 Redaction/安全监控）/DQ-15（Retention）；**Sensitive Data, Secret & Cryptographic Control Matrix = REQUIRED / NOT AUTHORIZED**（26 项字段，不授权创建）；**New Independent DQ-17 Technical Spike = NOT REQUIRED**；**Cross-cutting Persistence Security Qualification = REQUIRED IN FIRST AUTHORIZED PERSISTENCE SPIKES / NOT AUTHORIZED**（17 项最低安全验证加入首批获授权 Spike 与 Common Harness Qualification）；**Selective Field Encryption & Key Rotation Spike = CONDITIONALLY REQUIRED / NOT AUTHORIZED**；不选择 KMS/Vault/HSM/算法/Rotation Period/Key Hierarchy；不授权创建 Encryption Adapter/Encrypted Column/Key Registry/Rotation Job/Role-Grant/RLS/Checkpoint Encryption/Redaction Middleware/Security Audit/Secret Scanner/测试/DDL/Migration/Infrastructure | RFC-001-DQ-06 Secret 边界；DEC-033 Sensitive Data Boundary；LangGraph 宽松反序列化 RCE 风险、Secret 明文序列化进 checkpoint |
 
 ---
 
@@ -4207,13 +4207,857 @@
 - **Trade-offs：** A 满足 DEC 边界且不引入密钥管理；B 强但超 MVP；C 是部署层补充而非应用设计。
 - **Failure modes：** Secret 入 Graph State→明文落 checkpoint；PII 未分类→redaction 缺失；test fixture 含真实凭证→泄漏。
 - **Impact on later RFCs：** RFC-006（LLM Secret 注入）、RFC-007（日志 redaction）。
-- **Recommendation：** **[架构推断] 倾向 A**——Secret 不落持久化真值/checkpoint/审计，业务敏感列分类 + least privilege，checkpoint 反序列化白名单（与 DEC-035 一致），加密/密钥管理移交后续、本 RFC 不实现。**置信度：高**。
-- **User Decision：** PENDING
-- **Status：** PROPOSED
+- **Recommendation：** **[架构推断] 倾向 A**——Secret 不落持久化真值/checkpoint/审计，业务敏感列分类 + least privilege，checkpoint 反序列化白名单（与 DEC-035 一致），加密/密钥管理移交后续、本 RFC 不实现。**置信度：高**。（**历史提案；Superseded by the Accepted Major Revision below。**）
+- **Candidate 处置（2026-08-03 用户正式决定）：** Candidate A = **ACCEPTED WITH MAJOR REVISION**（Formal Model = Classified Sensitive-data Protection + Secret-reference-only Persistence + Ephemeral Adapter-scoped Secret Resolution + Data-minimized Multi-plane Propagation + Strict Allowlisted Checkpoint Serialization + Least-privilege Role/Credential/Pool Separation + Selective Envelope Encryption by Protection Profile + Infrastructure Encryption in Transit/at Rest + Auditable Access/Redaction/Rotation/Incident Response）；Candidate B = **NOT SELECTED AS UNIVERSAL FIELD ENCRYPTION**（应用层字段级加密不作所有字段通用策略；SELECTIVE AUTHENTICATED ENVELOPE ENCRYPTION = CONDITIONAL ON DATA PROTECTION PROFILE）；Candidate C = **REJECTED AS SOLE SECURITY CONTROL**（Infrastructure At-rest Encryption 保留为 REQUIRED INFRASTRUCTURE DEFENSE IN DEPTH，但不替代 Application Authorization/Data Minimization/Redaction/Least Privilege/Retention/Field-level Protection）。
+- **User Decision：** ACCEPTED WITH MAJOR REVISION
+- **Accepted Candidate：** CANDIDATE A
+- **Status：** ACCEPTED
+- **Accepted Decision（2026-08-03 用户正式决定）：**
+
+  > **3.1 正式安全模型**
+  >
+  > MVP 采用以下正式安全模型：
+  >
+  > ```text
+  > CLASSIFIED SENSITIVE-DATA PROTECTION
+  > + SECRET-REFERENCE-ONLY PERSISTENCE
+  > + EPHEMERAL ADAPTER-SCOPED SECRET RESOLUTION
+  > + DATA-MINIMIZED MULTI-PLANE PROPAGATION
+  > + STRICT ALLOWLISTED CHECKPOINT SERIALIZATION
+  > + LEAST-PRIVILEGE ROLE / CREDENTIAL / POOL SEPARATION
+  > + SELECTIVE ENVELOPE ENCRYPTION BY PROTECTION PROFILE
+  > + INFRASTRUCTURE ENCRYPTION IN TRANSIT / AT REST
+  > + AUDITABLE ACCESS / REDACTION / ROTATION / INCIDENT RESPONSE
+  > ```
+  >
+  > **3.2 Secret 与业务数据分类**
+  >
+  > 必须保持以下语义独立：
+  >
+  > ```text
+  > SECRET
+  > ≠
+  > PII
+  > ≠
+  > SENSITIVE BUSINESS DATA
+  > ≠
+  > PUBLIC / INTERNAL BUSINESS DATA
+  > ```
+  >
+  > 以下 Credential Value 属于 Secret，而不是可持久化业务数据：
+  >    - API Key；
+  >    - Access Token；
+  >    - Refresh Token；
+  >    - Database Password；
+  >    - Private Key；
+  >    - Webhook Signing Secret；
+  >    - Encryption Key；
+  >    - Provider Credential；
+  >    - 其他能够授予系统访问能力的认证或加密材料。
+  >
+  > Secret Value 不得进入：
+  >    - Domain；
+  >    - Application Command；
+  >    - Business Current Truth；
+  >    - Business Version；
+  >    - Graph State；
+  >    - Checkpoint；
+  >    - Workflow Execution Registry；
+  >    - Audit；
+  >    - State Transition；
+  >    - Domain Event；
+  >    - Application Event；
+  >    - Integration Event；
+  >    - Outbox；
+  >    - Durable Work Intent；
+  >    - Idempotency Record；
+  >    - Idempotency Fingerprint；
+  >    - Source；
+  >    - SourceVersion；
+  >    - Evidence；
+  >    - Retrieval Index；
+  >    - Cache；
+  >    - Log；
+  >    - Trace；
+  >    - Metric；
+  >    - Error；
+  >    - Test Snapshot；
+  >    - Object Key；
+  >    - 其他持久化或派生存储。
+  >
+  > **3.3 Secret Reference 与解析边界**
+  >
+  > 允许持久化的只能是无明文能力的引用，例如：
+  >
+  > ```text
+  > credential_ref
+  > secret_reference_id
+  > provider_account_id
+  > secret_version_reference
+  > credential_profile_id
+  > ```
+  >
+  > 正式执行流程：
+  >
+  > ```text
+  > Application selects Credential Reference
+  > → Infrastructure Adapter resolves Secret ephemerally
+  > → Adapter performs one authorized external interaction
+  > → Adapter returns sanitized business result
+  > → Secret Value is not returned to Application / Workflow / Domain
+  > ```
+  >
+  > Application、Domain 和 Workflow 可以知道使用哪个 Credential Profile，但不得获取 Secret Value。具体 Secret Manager、KMS、Vault、HSM 或部署注入产品不由 RFC-002 决定。
+  >
+  > **3.4 数据分类模型**
+  >
+  > 敏感业务数据采用：
+  >
+  > ```text
+  > CONFIDENTIALITY LEVEL
+  > +
+  > HANDLING TAGS
+  > ```
+  >
+  > Confidentiality Level 至少包括：
+  >
+  > ```text
+  > PUBLIC
+  > INTERNAL
+  > CONFIDENTIAL
+  > RESTRICTED
+  > ```
+  >
+  > Handling Tags 可以包括：
+  >
+  > ```text
+  > PII
+  > PROVIDER_PAYLOAD
+  > MODEL_CONTENT
+  > USER_CONTENT
+  > LEGAL_HOLD
+  > SECURITY_INCIDENT
+  > EXPORT_RESTRICTED
+  > AUTH_CREDENTIAL
+  > ```
+  >
+  > `SECRET` 是具有独立禁止持久化规则的特殊类别，不能只当作普通 `RESTRICTED` 字段处理。每个字段或 Payload 必须明确：
+  >    - Purpose；
+  >    - Data Owner；
+  >    - Confidentiality Level；
+  >    - Handling Tags；
+  >    - Authoritative Store；
+  >    - Derived Stores；
+  >    - Plaintext Allowed Path；
+  >    - Authorized Roles；
+  >    - Redaction；
+  >    - Transport Encryption；
+  >    - At-rest Encryption；
+  >    - Field-level Encryption Requirement；
+  >    - Retention；
+  >    - Erasure；
+  >    - Test Fixture Rule；
+  >    - Incident Response。
+  >
+  > **3.5 多持久化平面传播**
+  >
+  > 数据分类和处理规则必须传播到所有适用的：
+  >    - PostgreSQL；
+  >    - Object Storage；
+  >    - Checkpoint；
+  >    - Workflow Registry；
+  >    - Audit；
+  >    - State Transition；
+  >    - Durable Work Intent；
+  >    - Integration Event Outbox；
+  >    - Retrieval Index；
+  >    - Cache；
+  >    - Logs；
+  >    - Traces；
+  >    - Metrics；
+  >    - Backup/PITR；
+  >    - Test Fixture；
+  >    - CI Artifact；
+  >    - Dead-letter Record。
+  >
+  > 不得只对 PostgreSQL Column 做分类，却让完整敏感 Payload 无限制进入派生存储。
+  >
+  > **3.6 Secret Wrapper 边界**
+  >
+  > `SecretStr`、Masked String、隐藏 `repr()` 或类似 Wrapper 只能降低偶然显示风险。必须明确：
+  >
+  > ```text
+  > MASKED REPRESENTATION
+  > ≠
+  > NON-PERSISTENCE GUARANTEE
+  > ```
+  >
+  > 不得依赖 Wrapper 阻止 Secret 被：
+  >    - 调用 `get_secret_value()`；
+  >    - 转换成普通字符串；
+  >    - 放入 Dictionary；
+  >    - 放入 Graph State；
+  >    - 被 Serializer 序列化；
+  >    - 写入错误上下文；
+  >    - 写入日志；
+  >    - 写入 Checkpoint。
+  >
+  > Secret Non-persistence 必须由类型边界、架构测试、Serializer Allowlist、Sink Redaction 与禁止路径共同强制。
+  >
+  > **3.7 Checkpoint 严格序列化**
+  >
+  > LangGraph Checkpoint 必须采用严格反序列化策略：
+  >
+  > ```text
+  > LANGGRAPH_STRICT_MSGPACK =
+  > REQUIRED
+  >
+  > Explicit allowed_msgpack_modules Allowlist =
+  > REQUIRED OR PREFERRED ACCORDING TO PINNED VERSION
+  >
+  > Pickle Fallback =
+  > PROHIBITED
+  > ```
+  >
+  > 不得允许：
+  >    - 任意 Python Module；
+  >    - 任意未登记 Class；
+  >    - 任意 Pydantic Model；
+  >    - 任意 Dataclass；
+  >    - Pickle Fallback；
+  >    - 未审查自定义对象；
+  >    - 来自不可信 Checkpoint Storage 的任意类型反序列化。
+  >
+  > Graph State 优先使用：
+  >    - String；
+  >    - Integer；
+  >    - Boolean；
+  >    - List；
+  >    - Dict；
+  >    - Opaque ID；
+  >    - Versioned Typed Primitive Payload。
+  >
+  > 恶意或损坏的 Checkpoint 必须进入：
+  >    - INCOMPATIBLE；
+  >    - CORRUPT；
+  >    - SECURITY_REJECTED；
+  >    - 或等价受控失败分类。
+  >
+  > 不得尝试不安全降级反序列化。
+  >
+  > **3.8 Checkpoint 加密边界**
+  >
+  > Secret Value 无论是否启用 Checkpoint Encryption，都不得进入 Graph State 或 Checkpoint。对于经分类允许持久化的敏感 Runtime State，可以采用经过验证的：
+  >    - EncryptedSerializer；
+  >    - 或等价加密序列化机制。
+  >
+  > 必须明确：
+  >
+  > ```text
+  > ENCRYPTED CHECKPOINT
+  > ≠
+  > PERMISSION TO STORE SECRETS
+  > ```
+  >
+  > 不得假设以下内容全部自动加密：
+  >    - Thread ID；
+  >    - Checkpoint ID；
+  >    - Namespace；
+  >    - Metadata；
+  >    - 调度字段；
+  >    - 查询索引；
+  >    - Vendor Migration Metadata；
+  >    - Connection Metadata。
+  >
+  > 实际加密范围必须基于：
+  >    - 项目钉定的 LangGraph/PostgresSaver 版本；
+  >    - 实际 Serializer；
+  >    - 实际 PostgreSQL Schema；
+  >    - 实际部署 Pool/Pooler；
+  >    - 实际查询路径；
+  >    进行验证。
+  >
+  > Encrypted Checkpoint 仍必须遵守：
+  >    - 最小化；
+  >    - Least Privilege；
+  >    - Retention；
+  >    - Whole-thread Deletion；
+  >    - Incident Response；
+  >    - Access Audit。
+  >
+  > **3.9 三层加密责任**
+  >
+  > **Transport Encryption：** PostgreSQL、Object Storage、Secret Provider、KMS、外部 Provider 和其他网络连接必须使用经过验证的加密传输。具体 TLS、CA、证书和部署配置由后续 Infrastructure/Deployment 决策负责。
+  >
+  > **Infrastructure At-rest Encryption：** 以下存储必须具备基础设施级静态加密：
+  >    - PostgreSQL Volume；
+  >    - Database Backup/PITR；
+  >    - Object Storage；
+  >    - Checkpoint Storage；
+  >    - Log/Trace Storage；
+  >    - 可能包含敏感数据的 CI Artifact；
+  >    - 其他持久化平面。
+  >
+  > 正式语义：
+  >
+  > ```text
+  > INFRASTRUCTURE ENCRYPTION AT REST =
+  > REQUIRED BASELINE
+  >
+  > INFRASTRUCTURE ENCRYPTION AT REST =
+  > NOT SUFFICIENT AS SOLE APPLICATION CONTROL
+  > ```
+  >
+  > 它不能替代：
+  >    - Application Authorization；
+  >    - Data Minimization；
+  >    - Redaction；
+  >    - Least Privilege；
+  >    - Retention；
+  >    - Field-level Protection。
+  >
+  > **Selective Application-level Envelope Encryption：** Candidate B 不作为所有字段的通用策略。正式语义：
+  >
+  > ```text
+  > UNIVERSAL FIELD-LEVEL ENCRYPTION =
+  > REJECTED
+  >
+  > SELECTIVE AUTHENTICATED ENVELOPE ENCRYPTION =
+  > CONDITIONAL ON DATA PROTECTION PROFILE
+  > ```
+  >
+  > 以下威胁模型可能要求选择性应用层加密：
+  >    - Database Read-only Credential 泄漏；
+  >    - Backup 泄漏；
+  >    - 运维人员不应读取明文；
+  >    - Tenant/Security Domain 需要独立 Key；
+  >    - 独立撤销；
+  >    - Crypto-shredding；
+  >    - 法律、合同或业务保护要求。
+  >
+  > **3.10 Ciphertext 与 Key 分离**
+  >
+  > 采用 Envelope Encryption 时，数据库可以保存：
+  >    - Ciphertext；
+  >    - Algorithm ID；
+  >    - Key Reference；
+  >    - Key Version；
+  >    - Nonce/IV；
+  >    - Authentication Tag；
+  >    - Encrypted DEK，如适用。
+  >
+  > 数据库不得保存：
+  >    - 明文 DEK；
+  >    - 明文 KEK；
+  >    - Master Encryption Key；
+  >    - Secret Manager Root Credential。
+  >
+  > 密钥生命周期至少必须能够表达：
+  >
+  > ```text
+  > CREATE
+  > ACTIVATE
+  > ROTATE
+  > RETIRE
+  > REVOKE
+  > DESTROY
+  > COMPROMISE RESPONSE
+  > ```
+  >
+  > 必须区分：
+  >    - 新写入使用新 Key；
+  >    - 旧数据仍可读取；
+  >    - 渐进式 Re-encryption；
+  >    - 紧急 Compromise Rotation；
+  >    - Backup 中旧 Key 的恢复需求；
+  >    - Key Destruction 对历史数据可恢复性的影响。
+  >
+  > 本次不选择：
+  >    - KMS；
+  >    - Vault；
+  >    - HSM；
+  >    - 算法；
+  >    - Rotation Period；
+  >    - Key Hierarchy 实现。
+  >
+  > **3.11 禁止未经治理的加密实现**
+  >
+  > 不得使用未经治理的：
+  >
+  > ```text
+  > pgcrypto raw encrypt/decrypt
+  > custom AES helper
+  > home-grown crypto
+  > key and ciphertext in the same database
+  > ```
+  >
+  > 字段级加密如获授权，必须采用：
+  >
+  > ```text
+  > AUTHENTICATED ENCRYPTION
+  > + EXTERNAL KEY MANAGEMENT
+  > + ALGORITHM / KEY VERSION METADATA
+  > + ROTATION AND RE-ENCRYPTION PLAN
+  > ```
+  >
+  > 本次不授权创建任何 Encryption Adapter、Encrypted Column、Key Registry 或 Re-encryption Job。
+  >
+  > **3.12 PostgreSQL Least Privilege**
+  >
+  > 必须区分独立 Role/Pool：
+  >
+  > ```text
+  > Migration Owner Role
+  > Business Runtime Write Role
+  > Business Read-only Role
+  > Checkpoint Runtime Role
+  > Dispatch / Worker Role
+  > Purge Role
+  > Test Role
+  > Observability Role
+  > ```
+  >
+  > Runtime Role 不得：
+  >    - 是 Superuser；
+  >    - 拥有 `BYPASSRLS`；
+  >    - 拥有 `CREATEROLE`；
+  >    - 拥有 `CREATEDB`；
+  >    - 是 Business Table Owner；
+  >    - 拥有任意 Business Schema DDL；
+  >    - 修改 Alembic Version；
+  >    - 修改其他 Persistence Plane；
+  >    - 读取未授权敏感列；
+  >    - 访问不属于其能力范围的 Schema。
+  >
+  > Business、Checkpoint、Migration、Purge、Test 与 Observability Connection/Pool 必须保持分离。Migration Credential 不得进入：
+  >    - Web Runtime；
+  >    - Worker Runtime；
+  >    - Checkpoint Runtime；
+  >    - Test Runtime；
+  >    - Developer Local Config；
+  >    - 普通 Application Environment。
+  >
+  > 应撤销不需要的 `PUBLIC` 权限，保护 `public` Schema，并采用固定、受控的 `search_path`。具体 Role、Grant 与 Schema 本次不授权创建。
+  >
+  > **3.13 Row-level Security**
+  >
+  > RLS 可以作为 Multi-tenant 场景的纵深防御，但不替代：
+  >    - DQ-02 Module Ownership；
+  >    - Application Authorization；
+  >    - Public Application Contract；
+  >    - Business Invariant；
+  >    - Repository Boundary。
+  >
+  > 正式语义：
+  >
+  > ```text
+  > RLS =
+  > OPTIONAL DEFENSE IN DEPTH
+  >
+  > RLS =
+  > NOT REQUIRED FOR EVERY TABLE
+  > ```
+  >
+  > 如果未来启用 RLS，必须验证：
+  >    - Runtime Role 不是 Table Owner；
+  >    - Runtime Role 没有 `BYPASSRLS`；
+  >    - Tenant Context 来源明确；
+  >    - Pool 复用不泄漏 Tenant Context；
+  >    - Worker 不绕过 Policy；
+  >    - Purge、Migration、Incident Role 拥有独立策略；
+  >    - 使用真实 PostgreSQL 测试。
+  >
+  > 本次不授权创建任何 RLS Policy。
+  >
+  > **3.14 Credential 与连接池分离**
+  >
+  > 必须保持：
+  >
+  > ```text
+  > BUSINESS POOL
+  > ≠
+  > CHECKPOINT POOL
+  > ≠
+  > MIGRATION CONNECTION
+  > ≠
+  > PURGE CONNECTION
+  > ≠
+  > TEST CONNECTION
+  > ```
+  >
+  > 不同能力不得共享万能数据库账号。Secret 应尽可能具有：
+  >    - 短生命周期；
+  >    - 动态签发；
+  >    - 最小 Scope；
+  >    - 可撤销；
+  >    - 自动轮换；
+  >    - 独立审计。
+  >
+  > Purge Credential 只能用于受治理的 Deletion Case，不能成为普通 Runtime Credential。
+  >
+  > **3.15 Redaction 顺序**
+  >
+  > 不得采用：
+  >
+  > ```text
+  > Persist Full Payload
+  > → Attempt Cleanup Later
+  > ```
+  >
+  > 必须采用：
+  >
+  > ```text
+  > CLASSIFY
+  > → MINIMIZE
+  > → REDACT
+  > → SERIALIZE / EMIT / PERSIST
+  > ```
+  >
+  > Redaction 必须发生在进入以下 Sink 之前：
+  >    - Audit；
+  >    - State Transition；
+  >    - Error；
+  >    - Log；
+  >    - Trace；
+  >    - Metric Label；
+  >    - Outbox；
+  >    - Durable Work Intent；
+  >    - Checkpoint；
+  >    - Retrieval Index；
+  >    - Cache；
+  >    - Dead-letter Record；
+  >    - Test Failure Snapshot；
+  >    - Provider Diagnostic；
+  >    - CI Artifact。
+  >
+  > Redaction 必须优先基于结构化字段和 Data Classification。不得只依赖全局 Regex。
+  >
+  > **3.16 安全 Audit**
+  >
+  > 以下行为应生成安全 Audit Metadata：
+  >    - 敏感数据读取；
+  >    - 批量导出；
+  >    - Decryption；
+  >    - Secret Resolution；
+  >    - Credential Rotation；
+  >    - Key Rotation；
+  >    - 权限修改；
+  >    - Break-glass Access；
+  >    - Deletion/Erasure；
+  >    - Hold 创建与解除；
+  >    - 数据分类变更；
+  >    - 反序列化拒绝；
+  >    - Checkpoint Integrity Failure；
+  >    - Security Exception。
+  >
+  > Audit 应记录：
+  >
+  > ```text
+  > actor
+  > action
+  > target identity
+  > classification
+  > purpose
+  > result
+  > occurred_at
+  > correlation_id
+  > authorization decision
+  > ```
+  >
+  > Audit 不得记录：
+  >    - Secret Value；
+  >    - 明文 Key；
+  >    - 完整敏感 Payload；
+  >    - 完整 Decrypted Field；
+  >    - 完整 Prompt；
+  >    - 完整 Provider Response；
+  >    - 完整 Source Content。
+  >
+  > 本次不授权创建 Security Audit 表或实现。
+  >
+  > **3.17 Provider、Prompt 与 Model Output**
+  >
+  > 以下输入必须被视为不可信且可能敏感：
+  >    - Provider Response；
+  >    - User Prompt；
+  >    - Model Output；
+  >    - Tool Result；
+  >    - Source Content；
+  >    - Provider Diagnostic。
+  >
+  > 它们可能包含：
+  >    - PII；
+  >    - 被回显 Secret；
+  >    - 第三方数据；
+  >    - Prompt Injection；
+  >    - 临时访问 URL；
+  >    - Token；
+  >    - Provider Internal Metadata。
+  >
+  > 不得假设：
+  >
+  > ```text
+  > MODEL-GENERATED =
+  > SAFE TO PERSIST
+  > ```
+  >
+  > 进入以下位置前必须重新分类、最小化和 Redact：
+  >    - Business Version；
+  >    - Source/Evidence；
+  >    - Checkpoint；
+  >    - Audit；
+  >    - Retrieval Index；
+  >    - Log/Trace；
+  >    - Test Fixture。
+  >
+  > **3.18 Object Key 与 Content Hash**
+  >
+  > Object Key 不得包含：
+  >    - PII；
+  >    - Email；
+  >    - Source URL；
+  >    - Tenant Name；
+  >    - 敏感原始 Filename；
+  >    - Credential；
+  >    - Token；
+  >    - Secret；
+  >    - 可直接识别主体的信息。
+  >
+  > Content Hash 不得：
+  >    - 作为公开存在性查询接口；
+  >    - 被视为匿名化证明；
+  >    - 暴露给未授权调用方；
+  >    - 用作 Secret Value 的普通 Idempotency Fingerprint。
+  >
+  > 低熵敏感内容的 Hash 可能构成存在性或 Dictionary Oracle，因此必须限制访问。需要 Blind Index、Deterministic Encryption 或可搜索加密时，必须作为独立安全设计审查。
+  >
+  > **3.19 跨 Tenant 与跨安全域去重**
+  >
+  > DQ-12 暂缓的边界在 DQ-17 正式关闭：
+  >
+  > ```text
+  > CROSS-TENANT CONTENT DEDUPLICATION =
+  > PROHIBITED FOR MVP
+  >
+  > CROSS-SECURITY-DOMAIN CONTENT DEDUPLICATION =
+  > PROHIBITED FOR MVP
+  > ```
+  >
+  > 同一 Tenant、同一 Security Domain 内允许的物理 ContentObject 去重仍必须满足：
+  >    - 相同 Data Classification；
+  >    - 相同访问域；
+  >    - Retention 兼容；
+  >    - Legal Hold 兼容；
+  >    - 不暴露内容是否存在；
+  >    - 删除一个逻辑引用不删除其他合法引用；
+  >    - DQ-12 Reference Integrity；
+  >    - DQ-15 Reference-aware Purge。
+  >
+  > **3.20 测试数据与 Secret Detection**
+  >
+  > 测试只能使用合成数据。禁止：
+  >    - Production Database Dump；
+  >    - 真实用户 PII；
+  >    - 真实 API Key；
+  >    - 真实 Provider Token；
+  >    - Production Checkpoint；
+  >    - Production Prompt/Response；
+  >    - Production Encryption Key；
+  >    - Production Presigned URL；
+  >    - Production Credential；
+  >    - 真实敏感 Source Content。
+  >
+  > Test Credential 必须：
+  >    - 最小 Scope；
+  >    - 只访问 Sandbox；
+  >    - 不访问 Production；
+  >    - 可自动失效；
+  >    - 可立即撤销；
+  >    - 不写入 Fixture Snapshot；
+  >    - 不暴露给 Fork PR。
+  >
+  > Secret Detection Failure 必须阻止 Merge。发现 Secret 泄漏后，必须先执行：
+  >
+  > ```text
+  > REVOKE
+  > → ROTATE
+  > → INVESTIGATE HISTORY / LOG / ARTIFACT EXPOSURE
+  > → REMOVE OR REWRITE ONLY WHEN AUTHORIZED
+  > ```
+  >
+  > 不得仅从最新文件删除字符串后声称问题已经解决。
+  >
+  > **3.21 Retention 与 Erasure 边界**
+  >
+  > DQ-15 继续拥有：
+  >    - Retention Period；
+  >    - Deletion Case；
+  >    - Hold；
+  >    - Purge；
+  >    - Backup Expiry。
+  >
+  > DQ-17 决定：
+  >    - Secret Value 不得因 Retention Policy 而长期持久化；
+  >    - Encrypted Data 仍属于受保护数据；
+  >    - Key Destruction 不得未经验证地等同于完整删除；
+  >    - Redacted/Aggregated Data 是否可重识别必须重新评估；
+  >    - Backup Restore 必须恢复适用 Key Version 与 Deletion Ledger；
+  >    - Legal Hold 不要求保留 Secret Value；
+  >    - Deletion Proof 不得保存被删除的敏感 Payload。
+  >
+  > **3.22 所有权边界**
+  >
+  > Security Governance 拥有：
+  >    - Classification Vocabulary；
+  >    - Handling Rules；
+  >    - Cryptographic Policy；
+  >    - Least-privilege Baseline；
+  >    - Security Exception；
+  >    - Incident Response；
+  >    - Security Review Gate。
+  >
+  > 业务模块拥有：
+  >    - 自身字段分类；
+  >    - 处理目的；
+  >    - 最小化；
+  >    - Application Authorization；
+  >    - Redaction Contract；
+  >    - Retention Dependency；
+  >    - Sensitive Access Audit。
+  >
+  > Infrastructure 拥有：
+  >    - Secret Resolution Adapter；
+  >    - KMS/Vault Integration；
+  >    - TLS；
+  >    - Volume/Backup Encryption；
+  >    - PostgreSQL Role/Grant；
+  >    - Connection Credential；
+  >    - Encrypted Serializer Configuration；
+  >    - Credential/Key Rotation Execution。
+  >
+  > 后续边界：
+  >
+  > ```text
+  > RFC-003 =
+  > Graph State / Checkpoint Runtime Configuration
+  >
+  > RFC-004 =
+  > API Authentication / Authorization / Transport
+  >
+  > RFC-006 =
+  > LLM and Provider Secret Injection
+  >
+  > RFC-007 =
+  > Logging / Trace Redaction / Security Monitoring
+  >
+  > DQ-15 =
+  > Retention / Erasure / Backup Expiry
+  > ```
+  >
+  > **3.23 Readiness Artifact**
+  >
+  > Architecture Readiness Package 必须包含：
+  >
+  > ```text
+  > Sensitive Data, Secret & Cryptographic Control Matrix
+  > ```
+  >
+  > 该 Matrix 至少包含：
+  >    - Data Element；
+  >    - Owning Module；
+  >    - Confidentiality Level；
+  >    - Handling Tags；
+  >    - Purpose；
+  >    - Secret or Business Data；
+  >    - Authoritative Store；
+  >    - Derived Stores；
+  >    - Plaintext Allowed；
+  >    - Graph State Allowed；
+  >    - Checkpoint Allowed；
+  >    - Audit Allowed；
+  >    - Outbox/Work Intent Allowed；
+  >    - Index/Cache Allowed；
+  >    - Object Store Allowed；
+  >    - Backup Allowed；
+  >    - Required Redaction；
+  >    - Transport Encryption；
+  >    - Infrastructure At-rest Encryption；
+  >    - Field-level Encryption；
+  >    - Key Owner/Reference；
+  >    - Authorized Roles；
+  >    - Retention/Erasure；
+  >    - Test Fixture Rule；
+  >    - Incident Response；
+  >    - Related DQ/DEC/RFC。
+  >
+  > 正式状态：
+  >
+  > ```text
+  > Sensitive Data, Secret & Cryptographic Control Matrix =
+  > REQUIRED / NOT AUTHORIZED
+  > ```
+  >
+  > 本次接受不授权创建该 Matrix。
+  >
+  > **3.24 Security Qualification 与 Spike**
+  >
+  > DQ-17 不新增覆盖所有系统的独立通用 Technical Spike。
+  >
+  > ```text
+  > New Independent DQ-17 Technical Spike =
+  > NOT REQUIRED
+  > ```
+  >
+  > 必须将 Cross-cutting Persistence Security Qualification 加入首个获授权的：
+  >    - PostgreSQL Concurrency Spike；
+  >    - External Object Consistency Spike；
+  >    - Workflow Checkpoint Isolation Spike；
+  >    - Schema Migration Rollout Spike；
+  >    - Retention Safety Spike；
+  >    - Common Persistence Test Harness Qualification。
+  >
+  > 最低安全验证包括：
+  >    - Strict Msgpack Allowlist；
+  >    - Pickle Disabled；
+  >    - Malicious Checkpoint 不触发任意代码；
+  >    - Secret 不进入 Checkpoint；
+  >    - Secret 不进入 Audit；
+  >    - Secret 不进入 Log；
+  >    - Secret 不进入 Outbox/Work Intent；
+  >    - EncryptedSerializer 实际范围；
+  >    - PostgreSQL Role Denial；
+  >    - Runtime Role 非 Owner/Superuser/BYPASSRLS；
+  >    - Schema/Search Path 安全；
+  >    - Object Key 无敏感值；
+  >    - Cross-tenant/Security-domain Dedup 被拒绝；
+  >    - Redaction；
+  >    - Synthetic Fixture；
+  >    - Secret Scan；
+  >    - Backup/Key Version Recovery。
+  >
+  > 正式状态：
+  >
+  > ```text
+  > Cross-cutting Persistence Security Qualification =
+  > REQUIRED IN FIRST AUTHORIZED PERSISTENCE SPIKES
+  > NOT AUTHORIZED
+  > ```
+  >
+  > 如果未来选择 Application-level Field Encryption，则必须单独授权：
+  >
+  > ```text
+  > Selective Field Encryption & Key Rotation Spike =
+  > CONDITIONALLY REQUIRED
+  > NOT AUTHORIZED
+  > ```
+  >
+  > **3.25 候选处置**
+  >
+  > Candidate A = ACCEPTED WITH MAJOR REVISION（Formal Model = CLASSIFIED SENSITIVE-DATA PROTECTION + SECRET-REFERENCE-ONLY PERSISTENCE + EPHEMERAL ADAPTER-SCOPED SECRET RESOLUTION + DATA-MINIMIZED MULTI-PLANE PROPAGATION + STRICT ALLOWLISTED CHECKPOINT SERIALIZATION + LEAST-PRIVILEGE ROLE / CREDENTIAL / POOL SEPARATION + SELECTIVE ENVELOPE ENCRYPTION BY PROTECTION PROFILE + INFRASTRUCTURE ENCRYPTION IN TRANSIT / AT REST + AUDITABLE ACCESS / REDACTION / ROTATION / INCIDENT RESPONSE）；Candidate B = NOT SELECTED AS UNIVERSAL FIELD ENCRYPTION，CONDITIONALLY REQUIRED BY DATA PROTECTION PROFILE；Candidate C = REJECTED AS SOLE SECURITY CONTROL，RETAINED AS REQUIRED INFRASTRUCTURE DEFENSE IN DEPTH。
 
 ---
 
-## 汇总：待用户逐项决定（DQ-01~16 ACCEPTED；DQ-17 PENDING）
+## 汇总：待用户逐项决定（DQ-01~17 ACCEPTED；全部 DQ 已决定）
 
 ```text
 RFC-002-DQ-01  Primary Persistence Technology        = ACCEPTED (Candidate A, Accepted with Revision, 2026-08-01) — User Decision: ACCEPTED WITH REVISION
@@ -4232,8 +5076,10 @@ RFC-002-DQ-13  Workflow Checkpoint Separation        = ACCEPTED (Candidate A, Fo
 RFC-002-DQ-14  Schema Evolution & Migrations         = ACCEPTED (Candidate A, Formal Model: Alembic-managed Business Schema Migrations + Single Business Migration Lineage + Forward-recovery-first Production Policy + Expand-Migrate-Contract Rolling Compatibility + Resumable Application-owned Data Backfills + Explicit Destructive/Non-transactional DDL Gates + Separate Vendor Migration Lifecycles, Universal Safe Downgrade Rejected / Sole Hand-written SQL Rejected, Accepted with Major Revision, 2026-08-03) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-15  Data Retention & Deletion Boundary    = ACCEPTED (Candidate A, Formal Model: Classified Retention & Disposition Policies + Purpose/Legal-basis-driven Retention Clocks + Reference-aware Deletion Eligibility + Legal/Security/Incident Hold Overrides + Normal-lifecycle Immutability for Business History + Governed Exceptional Erasure/Redaction Paths + Idempotent Auditable Purge Orchestration + Separate Primary/Object/Index/Checkpoint/Backup Lifecycles, Universal TTL / Universal Permanent Retention Rejected, Specific Retention Periods Not Decided, Accepted with Major Revision, 2026-08-03) — User Decision: ACCEPTED WITH MAJOR REVISION
 RFC-002-DQ-16  Persistence Testing Strategy           = ACCEPTED (Candidate A, Accepted Principle: Layered Test Strategy, Formal Model: Pure Domain/Application Unit Tests + Port Contract Parity Tests + Real PostgreSQL Persistence Acceptance Tests + Deterministic Multi-connection Concurrency Tests + Real Migration/Upgrade/Recovery Tests + Crash-window/Fault-injection Tests + Production-topology-specific Qualification, Universal All-Tests-Use-PostgreSQL / All-SQLite Testing Rejected, SQLite = Optional Non-authoritative Test Double Only, Accepted with Major Revision, 2026-08-03) — User Decision: ACCEPTED WITH MAJOR REVISION
-RFC-002-DQ-17  Security & Sensitive Data Boundary    = PROPOSED — User Decision: PENDING
+RFC-002-DQ-17  Security & Sensitive Data Boundary    = ACCEPTED (Candidate A, Formal Model: Classified Sensitive-data Protection + Secret-reference-only Persistence + Ephemeral Adapter-scoped Secret Resolution + Data-minimized Multi-plane Propagation + Strict Allowlisted Checkpoint Serialization + Least-privilege Role/Credential/Pool Separation + Selective Envelope Encryption by Protection Profile + Infrastructure Encryption in Transit/at Rest + Auditable Access/Redaction/Rotation/Incident Response, Candidate B Not Selected as Universal Field Encryption (Conditional by Data Protection Profile), Candidate C Rejected as Sole Security Control (Retained as Required Infrastructure Defense in Depth), Accepted with Major Revision, 2026-08-03) — User Decision: ACCEPTED WITH MAJOR REVISION
 
-RFC-002 Acceptance = USER DECISION REQUIRED
-Implementation     = NOT AUTHORIZED
+Pending Decision Questions               = 0
+All Decision Questions Completed         = YES
+RFC-002 Final Acceptance                 = USER DECISION REQUIRED
+Implementation                           = NOT AUTHORIZED
 ```
