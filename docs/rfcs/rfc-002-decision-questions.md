@@ -9,6 +9,7 @@
 > - `Recommendation` 是**架构建议**，**绝不**写成 Accepted Decision；采纳与否由用户在 Decision Gate 决定。DQ-01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17 的历史 Recommendation 已被各自的 Accepted Decision 取代（Superseded by Accepted Revision / Major Revision）。
 > - 每条区分：**[DEC 约束]**（已 Accepted 的项目决定，RFC 不得推翻）/ **[官方能力]**（官方文档/源码明确能力）/ **[架构推断]**（由官方事实推导的建议）/ **[未决假设]**。
 > - 真正的架构分歧**写入 DQ**，不替用户私下决定。
+> - **（Historical Snapshot）**：正文归档的各 Recommendation 与 Accepted Decision 均按其决定日期记录（Status at Time of Decision）；其中 `(PROPOSED / PENDING)`、「DQ-xx 决定前」、「留待 DQ-xx」等表述反映决定时点状态，相关事项均已由对应 DQ 正式决定（DQ-01~17 全部 ACCEPTED）或属真正仍未决定的实现细节（如 KMS/Vault/HSM 选择、具体保留期限）；原文不改写。
 
 ---
 
