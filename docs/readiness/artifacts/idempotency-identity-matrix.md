@@ -132,11 +132,12 @@ NOT AUTHORIZED
 | IDEM-007 | Intentional Rerun（有意重跑） | 同 IDEM-001 Owning Module | 新 Command ID（保留 rerun_of / parent_command_id） | 新逻辑幂等身份 | 新 Idempotency Key |
 | IDEM-008 | Durable Work Intent（可靠工作意图） | Integration/Dispatch Capability（DQ-09） | 关联触发 Command ID | Dispatch Scope | dispatch_id（Retry 稳定） |
 | IDEM-009 | Work Intent Claim Attempt（意图领取尝试） | Dispatch Capability | 关联 Intent 的 Command | Dispatch Scope | dispatch_id + holder/lease |
-| IDEM-010 | Delivery Attempt（投递尝试） | Dispatch Capability | 关联 Intent Command | Dispatch Scope | delivery_attempt_id（每次新建） |
+| IDEM-010 | Durable Work Intent Delivery / Execution Attempt | Dispatch Capability | 关联 Intent Command | Dispatch Scope | delivery_attempt_id（每次 Work Intent claim/execution attempt 新建） |
 | IDEM-011 | Consumer Dedup（消费者去重） | 消费模块（DQ-08(b)） | 关联被消费事件身份 | Consumer Scope | Message ID / Dispatch ID + Consumer Scope 组合 |
 | IDEM-012 | Integration Event Identity（集成事件身份） | Integration Event Capability | 关联产生事实的 Command | source + event_id | source + event_id 唯一识别逻辑事件 |
 | IDEM-013 | Provider Call Identity（Provider 调用身份语义边界） | Provider/Integration 模块（DQ-08(d)） | 关联触发 Command | Provider Call Scope | 稳定 Provider Call Identity（绑定 Input Fingerprint） |
 | IDEM-014 | Retry 与 Rerun 身份分离（对照） | 各相应 Owning Module | 见 Retry/Rerun Identity 列 | — | — |
+| IDEM-015 | Integration Event Publish / Delivery Attempt | Integration Event Capability | 关联产生事实的 Command | Integration Event Scope | Logical Event Identity = source + event_id（稳定）；Publish Attempt Identity = 每次 relay publication 新建 |
 
 ### Table B — Retry / Rerun / Attempt Identity
 
@@ -151,11 +152,12 @@ NOT AUTHORIZED
 | IDEM-007 | NOT APPLICABLE（Rerun 非 Retry） | new Command ID + rerun_of；成功后可产生新 Domain Version | new Attempt ID | new Stage Run ID |
 | IDEM-008 | dispatch_id Retry 稳定 | Intentional Rerun 新 dispatch_id（保留 rerun_of） | 按 Attempt | NOT APPLICABLE |
 | IDEM-009 | Claim 失败不重复领取 | NOT APPLICABLE | 新 Attempt | NOT APPLICABLE |
-| IDEM-010 | Delivery Attempt 每次新建 | Intentional Rerun 新 Dispatch ID | delivery_attempt_id 每次新建 | NOT APPLICABLE |
+| IDEM-010 | Work Intent Delivery Retry 保持 dispatch_id，新 delivery_attempt_id | Intentional Rerun 新 Dispatch ID | delivery_attempt_id 每次 Work Intent claim/execution attempt 新建 | NOT APPLICABLE |
 | IDEM-011 | Consumer Dedup Marker 与业务更新同事务 | NOT APPLICABLE | NOT APPLICABLE | NOT APPLICABLE |
 | IDEM-012 | Retry/重复投递保持相同 Event Identity | Intentional Rerun 可新 Event Identity（保留 Causation/Correlation） | NOT APPLICABLE | NOT APPLICABLE |
 | IDEM-013 | 同一逻辑调用 Retry 复用相同 Provider Idempotency Key | Intentional Rerun 新 Provider Call Identity | 关联 Attempt | NOT APPLICABLE |
 | IDEM-014 | Retry = same Command ID + same Key + same Stage Run + same Fingerprint + new Attempt | Rerun = new Command ID + new 身份 + relation | Retry/Rerun 均 new Attempt | Retry same / Rerun new |
+| IDEM-015 | Retry/重复投递保持同一 Event Identity（source + event_id） | Intentional Rerun 新业务事实可新 Event Identity（保留 Causation/Correlation） | Publish Attempt Identity 每次 relay publication 新建 | NOT APPLICABLE |
 
 ### Table C — Fingerprint & State
 
@@ -175,6 +177,7 @@ NOT AUTHORIZED
 | IDEM-012 | event payload fingerprint | PENDING OWNER DECISION（event_schema_version） | Outbox 发布状态机（留 RFC-003） | source + event_id 唯一 | Outbox 与业务事实同一 Atomic Commit |
 | IDEM-013 | Input Fingerprint 绑定 Provider Key | PENDING OWNER DECISION | Provider Call Ledger 状态 | Provider Call Identity 唯一 | DB 事务 Retry 不生成新 Provider Key |
 | IDEM-014 | — | — | — | — | — |
+| IDEM-015 | event payload fingerprint（含 source + event_id） | PENDING OWNER DECISION（exact physical field = DEFERRED TO RFC-003） | Outbox 发布状态机（留 RFC-003） | source + event_id 唯一（逻辑事件） | Outbox 与业务事实同一 Atomic Commit |
 
 ### Table D — Replay, Provider & Retention
 
@@ -194,6 +197,7 @@ NOT AUTHORIZED
 | IDEM-012 | Consumer 依 Event Identity 去重 | NOT APPLICABLE | Integration Event Capability（DQ-15） |
 | IDEM-013 | Provider 结果引用（不存 Secret Value） | 稳定 Provider Call Identity；不支持原生 Key 时维护 Durable Call Ledger | Provider/Integration 模块（DQ-15） |
 | IDEM-014 | — | — | — |
+| IDEM-015 | Consumer 依 Event Identity 去重；重复投递只一次业务效果 | NOT APPLICABLE（Publish Attempt Identity ≠ dispatch_id ≠ Work Intent delivery_attempt_id） | Integration Event Capability（DQ-15） |
 
 ### Table E — Dispatch Identity & Traceability
 
@@ -208,11 +212,12 @@ NOT AUTHORIZED
 | IDEM-007 | NOT APPLICABLE | NOT APPLICABLE | NOT APPLICABLE | Intentional Rerun 新 Provider Call Identity | DQ-08 | rfc-002-decision-questions.md §DQ-08 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-008 | dispatch_id（Retry 稳定） | NOT APPLICABLE | NOT APPLICABLE | 按 IDEM-013 | DQ-09 · DQ-08 | rfc-002-decision-questions.md §DQ-09 | ACCEPTED DECISION；Relay = DEFERRED TO RFC-003 | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-009 | dispatch_id | NOT APPLICABLE | NOT APPLICABLE | NOT APPLICABLE | DQ-09 · DQ-07 | rfc-002-decision-questions.md §DQ-09 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
-| IDEM-010 | dispatch_id | delivery_attempt_id（每次新建） | NOT APPLICABLE | 按 IDEM-013 | DQ-09 | rfc-002-decision-questions.md §DQ-09 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
+| IDEM-010 | dispatch_id（stable for the logical Work Intent） | delivery_attempt_id（new for each Work Intent claim/execution attempt） | NOT APPLICABLE | NOT APPLICABLE（Work Intent Delivery，非 Integration Event Publication Attempt） | DQ-09 | rfc-002-decision-questions.md §DQ-09 | ACCEPTED DECISION（DQ-09 Work Intent） | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-011 | 关联 Dispatch ID | NOT APPLICABLE | Consumer Scope（去重范围） | NOT APPLICABLE | DQ-08(b) · DQ-10 | rfc-002-decision-questions.md §DQ-08/10 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-012 | NOT APPLICABLE | NOT APPLICABLE | Consumer Scope（消费去重） | NOT APPLICABLE | DQ-10 | rfc-002-decision-questions.md §DQ-10 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-013 | NOT APPLICABLE | NOT APPLICABLE | NOT APPLICABLE | 稳定 Provider Call Identity（绑定 Fingerprint） | DQ-08(d) · DQ-17 | rfc-002-decision-questions.md §DQ-08 | ACCEPTED DECISION；不调用真实 Provider | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-014 | 按各层 | 按各层 | 按各层 | 按各层 | DQ-08 · DQ-07 · DQ-09 | rfc-002-decision-questions.md §DQ-08 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
+| IDEM-015 | NOT APPLICABLE（Integration Event ≠ Durable Work Intent；≠ dispatch_id） | Publish Attempt Identity（new for each relay publication attempt；exact physical field = PENDING OWNER DECISION / DEFERRED TO RFC-003） | Consumer Scope（消费去重） | NOT APPLICABLE | DQ-10 · DQ-08 · RFC-003 | rfc-002-decision-questions.md §DQ-10 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 
 ---
 
@@ -223,7 +228,7 @@ NOT AUTHORIZED
 | IDEM-001~IDEM-007 Operation/Boundary | ARP-01 INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008 / INV-009 | **通用幂等身份契约**（适用于全部版本化业务对象：Facts/Insights/Positioning/Strategy/Brief/ExecutionBrief/Source），非特定单一 Aggregate。 |
 | IDEM-008 Durable Work Intent | ARP-04 REC-009（Durable Work Intent Row） | Work Intent 身份（dispatch_id Retry 稳定）。 |
 | IDEM-009 Work Intent Claim | ARP-04 REC-009（Durable Work Intent Row） | Claim 身份（dispatch_id + holder/lease）。 |
-| IDEM-010 Delivery Attempt | ARP-04 REC-009（Durable Dispatch / Work Intent Delivery Row） | delivery_attempt_id 属 DQ-09 Work Intent 投递语义（若指 Integration Event 投递则引用 REC-013）。 |
+| IDEM-010 Durable Work Intent Delivery / Execution Attempt | ARP-04 REC-009（Durable Work Intent Row） | delivery_attempt_id 属 DQ-09 Work Intent 投递/执行语义；**不用于 Integration Event Publication Attempt**。 |
 | IDEM-011 Consumer Dedup | ARP-04 REC-013（Integration Event / Outbox Row）· ARP-02 CONC-013 | Consumer 依 Event Identity + Consumer Scope 去重。 |
 | IDEM-012 Integration Event Identity | ARP-04 REC-013（Integration Event / Outbox Row） | source + event_id 唯一识别逻辑事件；**不指向 Observability Event 记录类**。 |
 | IDEM-013 Provider Call Identity | ARP-04 REC-010（Provider Call Ledger Row） | 稳定 Provider Call Identity（TS-01 不调用真实 Provider）。 |
@@ -233,15 +238,24 @@ NOT AUTHORIZED
 | IDEM-005 Transient Failure Retry | ARP-02 CONC-010 · ARP-09 TEST-007 | 事务重试身份保持。 |
 | IDEM-006 Commit Outcome Unknown Retry | ARP-02 CONC-015 | 提交结果未知重试（TS-01 Slice 无独立 TEST 行，随 CONC-015 覆盖）。 |
 | IDEM-007 Intentional Rerun | ARP-01 INV-002 / INV-003 / INV-004 / INV-005 / INV-007 / INV-008（Rerun 成功后可产生新业务版本） | 通用 Rerun 身份契约。 |
-| IDEM-008~IDEM-010 | ARP-02 CONC-004 / CONC-005 / CONC-019 · ARP-09 TEST-010 | Work Intent Claim / No Duplicate 并发场景与测试。 |
-| IDEM-011 / IDEM-012 | ARP-04 REC-013 · ARP-02 CONC-013 | TS-01 Slice 无独立 Consumer Dedup TEST 行，属完整 ARP-09 范围。 |
+| IDEM-008~IDEM-010 | ARP-02 CONC-004 / CONC-005 / CONC-019 / CONC-025 / CONC-027 · ARP-09 TEST-010 / TEST-019 / TEST-020 | Work Intent Claim / No Duplicate / Simultaneous Retry / Polling Recovery 并发场景与测试。 |
+| IDEM-011 Consumer Dedup | ARP-04 REC-013 · ARP-02 CONC-013 · ARP-09 TEST-016 | Consumer 依 Event Identity + Consumer Scope 去重（DQ-10 已分配给 DQ-07 真实 PostgreSQL Multi-worker Spike）。 |
+| IDEM-012 Integration Event Identity | ARP-04 REC-013 · ARP-02 CONC-013 / CONC-028 / CONC-029 · ARP-09 TEST-016 / TEST-017 / TEST-018 | Event Identity（source + event_id）在 Retry / 重复投递中保持稳定。 |
+| IDEM-015 Integration Event Publish / Delivery Attempt | ARP-04 REC-013（Integration Event / Outbox）· ARP-02 CONC-028（Relay Crash）/ CONC-029（Stale Publish Attempt）· ARP-09 TEST-017 / TEST-018 | Publish / Delivery Attempt Identity 每次 relay publication 新建。 |
 | IDEM-014 Retry 与 Rerun 身份分离 | 通用身份契约（跨 IDEM-005 / IDEM-007） | 对照行，不指向特定 Aggregate。 |
+
+> **身份分离（Review Remediation）**：
+> `Integration Event Publish Attempt Identity ≠ dispatch_id`；
+> `Integration Event Publish Attempt Identity ≠ Durable Work Intent delivery_attempt_id`；
+> `Integration Event Identity（source + event_id）≠ Publish Attempt Identity`。
+> IDEM-010 仅承载 Durable Work Intent Delivery / Execution Attempt（DQ-09）；Integration Event Publish / Delivery Attempt 由独立的 IDEM-015 承载（DQ-10），二者身份不得复用或混用。
 
 ---
 
 ## 9. Review Checklist（Artifact-specific）
 
-- [ ] 覆盖 TS-01 所需最小身份 Slice（Transactional Application Command / Exact Replay / Concurrent Exact Replay / Same Key-Different Fingerprint / Transient Failure Retry / Commit Outcome Unknown Retry / Intentional Rerun / Durable Work Intent / Work Intent Claim / Delivery Attempt / Consumer Dedup / Integration Event Identity / Provider Call Identity / Retry-vs-Rerun 分离）。
+- [ ] 覆盖 TS-01 所需最小身份 Slice（Transactional Application Command / Exact Replay / Concurrent Exact Replay / Same Key-Different Fingerprint / Transient Failure Retry / Commit Outcome Unknown Retry / Intentional Rerun / Durable Work Intent / Work Intent Claim / Durable Work Intent Delivery-Execution Attempt / Consumer Dedup / Integration Event Identity / Integration Event Publish-Delivery Attempt / Provider Call Identity / Retry-vs-Rerun 分离）。
+- [ ] Work Intent Attempt（IDEM-010）与 Integration Event Publish Attempt（IDEM-015）身份彻底分离；未把 `dispatch_id` / `delivery_attempt_id` 用作 Integration Event 默认 Identity。
 - [ ] 未设计统一跨模块万能幂等表（Candidate A 已拒绝）。
 - [ ] 未发明具体 HTTP Idempotency Header（留 RFC-004）。
 - [ ] 未设置具体 Retention Period（留 DQ-15）。

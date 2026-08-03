@@ -208,7 +208,7 @@ Provider Call Ledger    （Provider 调用账本，无 Secret Value）
 | REC-001~REC-013 Security Classification | ARP-10 SEC-xxx + 第 6 节词汇 | Security Classification 引用 ARP-10。 |
 | REC-009 | ARP-03 IDEM-008~IDEM-010 | Durable Work Intent 的幂等身份见 ARP-03。 |
 | REC-010 | ARP-03 IDEM-013 | Provider Call Identity 见 ARP-03。 |
-| REC-013（Integration Event / Outbox） | ARP-03 IDEM-010~IDEM-012 · ARP-02 CONC-013 | Integration Event Identity / Consumer Dedup / Duplicate Delivery 的正确引用目标。 |
+| REC-013（Integration Event / Outbox） | ARP-03 IDEM-011（Consumer Dedup）/ IDEM-012（Integration Event Identity）/ IDEM-015（Integration Event Publish / Delivery Attempt） · ARP-02 CONC-013（Duplicate Delivery / Consumer Dedup）/ CONC-028（Relay Crash Recovery）/ CONC-029（Stale Publish Attempt Rejection） | Integration Event Identity / Consumer Dedup / Duplicate Delivery 的正确引用目标；**不使用 Durable Work Intent 的 `dispatch_id` / `delivery_attempt_id` 作为 Integration Event 默认 Identity**。 |
 | REC-001~REC-013 | ARP-02 CONC-xxx | 并发场景（重复投递/Consumer Dedup）见 ARP-02 TS-01 Slice。 |
 
 ---

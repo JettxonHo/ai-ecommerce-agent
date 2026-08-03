@@ -151,6 +151,11 @@ NOT AUTHORIZED
 | CONC-022 | Current Version Invalidation Race | Invalidation 与读/写并发 | Protected Invariant: INV-002 / INV-003 / INV-004 / INV-007 / INV-009（Invalidation 不删版本、不静默回退） |
 | CONC-023 | Promotion-versus-Invalidation | 提升与失效并发 | Protected Invariant: INV-001（Pointer）+ INV-002 / INV-003 / INV-004 / INV-007（显式语义，不产生冲突 Current Truth） |
 | CONC-024 | Cancel-versus-complete（Dispatch） | 取消与完成并发 | Protected Invariant: INV-001（协作式取消不产生部分写）；Supporting Record / Identity: REC-009（ARP-04 Durable Work Intent） |
+| CONC-025 | Simultaneous Work Retry（同一 Work Intent 并发重试） | Work Intent 重试并发 | Protected Invariant: INV-001（同一业务工作不因并发重试产生重复业务效果）；Supporting Record / Identity: REC-009（ARP-04 Durable Work Intent）/ IDEM-008（ARP-03） |
+| CONC-026 | Ordering Conflict（工作/投递顺序冲突） | Dispatch 顺序语义 | Protected Invariant: INV-001（仅验证 RFC-002 已接受的顺序语义边界，不选择最终调度算法）；Supporting Record / Identity: REC-009（ARP-04 Durable Work Intent） |
+| CONC-027 | Authoritative Polling Recovery after Lost Wake-up | Wake-up（非权威）与 PostgreSQL Polling（权威） | Protected Invariant: INV-001（wake-up 可能丢失；PostgreSQL polling 保持权威；已提交 available Intent 最终被重新发现；wake-up 不授予所有权，数据库 Claim 授予所有权）；Supporting Record / Identity: REC-009（ARP-04 Durable Work Intent） |
+| CONC-028 | Integration Event Relay Crash Recovery | Relay 崩溃与恢复 | Protected Invariant: INV-001（已提交业务事实不因 Relay Crash 丢失；Event 最终可恢复投递；Retry 保持同一 Event Identity，新 publish attempt 使用新 Attempt Identity）；Supporting Record / Identity: REC-013（ARP-04 Integration Event / Outbox）/ IDEM-015（ARP-03 Publish Attempt） |
+| CONC-029 | Stale Integration Event Publish Attempt Rejection | 过期 Publish Attempt 与当前发布状态 | Protected Invariant: INV-001（stale publish attempt 不改变已完成或更新后的发布状态；Event Identity 不变、Attempt Identity 不同；无重复业务事实）；Supporting Record / Identity: REC-013（ARP-04 Integration Event / Outbox）/ IDEM-015 / IDEM-012（ARP-03） |
 
 ### Table B — Control Mechanisms
 
@@ -159,7 +164,7 @@ NOT AUTHORIZED
 | CONC-001 | DEFAULT（expected_revision CAS） | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED |
 | CONC-002 | DEFAULT（Pointer 独立 revision CAS） | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED |
 | CONC-003 | NOT REQUIRED | REQUIRED（命名唯一约束） | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED |
-| CONC-004 | NOT REQUIRED | REQUIRED（Intent 领取唯一性） | REQUIRED | REQUIRED | RESTRICTED（SKIP LOCKED 短事务） |
+| CONC-004 | NOT REQUIRED | NOT REQUIRED FOR CLAIM EXCLUSIVITY（Claim Exclusivity = SKIP LOCKED 短事务 + Durable Lease + fencing_token；Intent 重复创建防线由 CONC-019 承载） | REQUIRED | REQUIRED | RESTRICTED（SKIP LOCKED 短事务） |
 | CONC-005 | NOT REQUIRED | NOT REQUIRED | REQUIRED | REQUIRED | RESTRICTED（SKIP LOCKED，仅 queue claim） |
 | CONC-006 | NOT REQUIRED | NOT REQUIRED | REQUIRED | REQUIRED（单调递增） | NOT REQUIRED |
 | CONC-007 | REQUIRED（最终提交重验 expected_revision） | NOT REQUIRED | REQUIRED（重验 Lease Holder） | REQUIRED（重验 fencing_token） | NOT REQUIRED |
@@ -169,7 +174,7 @@ NOT AUTHORIZED
 | CONC-011 | DEFAULT | REQUIRED（Scope+Key+Fingerprint） | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED |
 | CONC-012 | DEFAULT | REQUIRED（Scope+Key） | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED |
 | CONC-013 | DEFAULT | REQUIRED（Consumer Dedup Marker） | 按 Consumer | 按 Consumer | NOT REQUIRED |
-| CONC-014 | NOT REQUIRED | REQUIRED | REQUIRED | REQUIRED | RESTRICTED（SKIP LOCKED） |
+| CONC-014 | NOT REQUIRED | NOT REQUIRED FOR CLAIM EXCLUSIVITY（Crash 接管经 Lease 过期 + 重新领取，非唯一约束机制） | REQUIRED | REQUIRED | RESTRICTED（SKIP LOCKED） |
 | CONC-015 | DEFAULT | 按 DQ-08 | 按 DQ-09 | 按 DQ-09 | NOT REQUIRED |
 | CONC-016 | DEFAULT | 按参与者 | 按参与者 | 按参与者 | NOT REQUIRED |
 | CONC-017 | DEFAULT | 按参与者 | 按参与者 | 按参与者 | NOT REQUIRED |
@@ -180,6 +185,11 @@ NOT AUTHORIZED
 | CONC-022 | DEFAULT（revision CAS） | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED |
 | CONC-023 | DEFAULT（revision CAS） | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED | NOT REQUIRED |
 | CONC-024 | DEFAULT | 按 DQ-09 | REQUIRED | REQUIRED | NOT REQUIRED |
+| CONC-025 | DEFAULT | 按 DQ-08（幂等记录） | REQUIRED | REQUIRED | NOT REQUIRED |
+| CONC-026 | DEFAULT | 按 DQ-09 | REQUIRED | REQUIRED | NOT REQUIRED |
+| CONC-027 | DEFAULT | NOT REQUIRED | REQUIRED（数据库 Claim 授予所有权） | REQUIRED | RESTRICTED（SKIP LOCKED Claim） |
+| CONC-028 | DEFAULT | NOT REQUIRED（Outbox 记录已持久化） | 按 Relay（RFC-003） | 按 Relay（RFC-003） | NOT REQUIRED |
+| CONC-029 | REQUIRED（发布状态 CAS / 版本重验） | NOT REQUIRED | 按 Relay（RFC-003） | 按 Relay（RFC-003） | NOT REQUIRED |
 
 > 悲观锁说明：`SELECT FOR UPDATE / NOWAIT / 悲观行锁` 不是全局默认（DQ-07 §30）；`SKIP LOCKED` 仅限显式队列式 Claim 的短事务（DQ-07 §28-29）；Session-level Advisory Lock = PROHIBITED（DQ-07 §33）。
 
@@ -211,6 +221,11 @@ NOT AUTHORIZED
 | CONC-022 | Invalidation 显式 | Application | NOT APPLICABLE | 不静默回退 |
 | CONC-023 | 显式语义 | Application | NOT APPLICABLE | 无冲突 Current Truth |
 | CONC-024 | Cancel 协作式传播 | Runtime（RFC-003） | NOT APPLICABLE | 无部分写 |
+| CONC-025 | 并发重试受 Lease + fencing + 幂等约束，不产生重复业务效果 | Worker/Runtime（RFC-003 前为 DQ-09 语义） | 按 DQ-09/RFC-003 | 一次业务效果 |
+| CONC-026 | 顺序冲突按 DQ-09 语义处理（不选择最终调度算法） | Runtime（RFC-003） | 按 DQ-09/RFC-003 | 顺序语义边界保持 |
+| CONC-027 | wake-up 丢失不视为错误；权威 PostgreSQL Polling 重新发现 available Intent | Worker/Runtime（Polling Interval / Backend 留 RFC-003） | 权威 Polling 周期性（具体间隔留 RFC-003） | 已提交 Intent 最终被领取；wake-up 不授予所有权，数据库 Claim 授予所有权 |
+| CONC-028 | Relay Crash 后重新投递；Event Identity 稳定，Publish Attempt Identity 每次新建 | Relay（RFC-003） | 按 RFC-003（AT-LEAST-ONCE，不承诺 exactly-once） | Event 不丢失 |
+| CONC-029 | stale Attempt 拒绝，不覆盖当前发布状态；Event Identity 不变、Attempt Identity 不同 | Relay（RFC-003） | NOT APPLICABLE（stale 拒绝不盲目重试） | 无重复业务事实 |
 
 ### Table D — Traceability
 
@@ -228,7 +243,7 @@ NOT AUTHORIZED
 | CONC-010 | DQ-07 §39 · DQ-08 | rfc-002-decision-questions.md §DQ-07/08 | Scenario = ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | CONC-011 | DQ-08 | rfc-002-decision-questions.md §DQ-08 | Scenario = ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | CONC-012 | DQ-08 | rfc-002-decision-questions.md §DQ-08 | Scenario = ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
-| CONC-013 | DQ-10 · DQ-08 | rfc-002-decision-questions.md §DQ-10 §121 | Scenario = ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
+| CONC-013 | DQ-09 · DQ-10 · DQ-08 | rfc-002-decision-questions.md §DQ-09 §94 · §DQ-10 §121 | Scenario = ACCEPTED DECISION（DQ-09 duplicate Delivery + DQ-10 Integration Event Duplicate Delivery / Consumer Dedup） | NOT YET EVIDENCED / REQUIRES TS-01 |
 | CONC-014 | DQ-09 · DQ-07 | rfc-002-decision-questions.md §DQ-09 §97 | Scenario = ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | CONC-015 | DQ-07 §47-48 · DQ-16 | rfc-002-decision-questions.md §DQ-07/16 | Scenario = ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | CONC-016 | DQ-16 · DEC-035 | rfc-002-decision-questions.md §DQ-16 | Scenario = ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
@@ -240,6 +255,11 @@ NOT AUTHORIZED
 | CONC-022 | DQ-11 §154 | rfc-002-decision-questions.md §DQ-11 | Scenario = ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | CONC-023 | DQ-11 §154 | rfc-002-decision-questions.md §DQ-11 | Scenario = ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | CONC-024 | DQ-09 §94 · DEC-033 | rfc-002-decision-questions.md §DQ-09 | Scenario = ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
+| CONC-025 | DQ-09 §3.16 item 94 · DQ-08 | rfc-002-decision-questions.md §DQ-09 §94 | Scenario = ACCEPTED DECISION（DQ-09） | NOT YET EVIDENCED / REQUIRES TS-01 |
+| CONC-026 | DQ-09 §3.16 item 94 | rfc-002-decision-questions.md §DQ-09 §94 | Scenario = ACCEPTED DECISION（DQ-09） | NOT YET EVIDENCED / REQUIRES TS-01 |
+| CONC-027 | DQ-09 §3.16 item 97 | rfc-002-decision-questions.md §DQ-09 §97 | Scenario = ACCEPTED DECISION（DQ-09） | NOT YET EVIDENCED / REQUIRES TS-01 |
+| CONC-028 | DQ-10 §121 · DQ-08 | rfc-002-decision-questions.md §DQ-10 §121 | Scenario = ACCEPTED DECISION（DQ-10） | NOT YET EVIDENCED / REQUIRES TS-01 |
+| CONC-029 | DQ-10 §121 | rfc-002-decision-questions.md §DQ-10 §121 | Scenario = ACCEPTED DECISION（DQ-10） | NOT YET EVIDENCED / REQUIRES TS-01 |
 
 ---
 
@@ -247,18 +267,20 @@ NOT AUTHORIZED
 
 | 本 Artifact 元素 | 引用目标 | 关系 |
 |---|---|---|
-| CONC-001~CONC-024 Protected Business Invariant | ARP-01 INV-xxx | 每行至少一个精确 INV 引用（见 Table A；业务对象缩写表见 Table A 前言）。 |
-| CONC-004 / CONC-005 / CONC-006 / CONC-007 / CONC-014 / CONC-019 / CONC-024 | ARP-04 REC-009（Durable Work Intent） | Work Intent Supporting Record（受保护不变量仍指向 INV-001）。 |
+| CONC-001~CONC-029 Protected Business Invariant | ARP-01 INV-xxx | 每行至少一个精确 INV 引用（见 Table A；业务对象缩写表见 Table A 前言）。 |
+| CONC-004 / CONC-005 / CONC-006 / CONC-007 / CONC-014 / CONC-019 / CONC-024 / CONC-025 / CONC-026 / CONC-027 | ARP-04 REC-009（Durable Work Intent） | Work Intent Supporting Record（受保护不变量仍指向 INV-001）。 |
 | CONC-013 | ARP-04 REC-013（Integration Event / Outbox Row）+ ARP-03 IDEM-011（Consumer Dedup）/ IDEM-012（Integration Event Identity） | Duplicate Delivery / Consumer Dedup 的正确引用目标（不再指向 Durable Work Intent / Provider Call Ledger 记录类）。 |
+| CONC-028 / CONC-029 | ARP-04 REC-013（Integration Event / Outbox Row）+ ARP-03 IDEM-015（Integration Event Publish / Delivery Attempt；CONC-029 另含 IDEM-012） | Relay Crash Recovery / Stale Publish Attempt 的 Outbox 记录与 Publish Attempt 身份。 |
 | CONC-015 | ARP-04 REC-010（Provider Call Ledger）+ ARP-03 IDEM-006 | Commit Outcome Unknown 的 Provider Supporting Record。 |
 | CONC-010 / CONC-011 / CONC-012 | ARP-03 IDEM-005 / IDEM-002 / IDEM-004 | 幂等身份边界 Supporting Identity。 |
-| CONC-008 / CONC-009 / CONC-016 / CONC-017 | ARP-09 TEST-xxx | 对应测试覆盖行。 |
+| CONC-008 / CONC-009 / CONC-016 / CONC-017 / CONC-013 / CONC-025 / CONC-026 / CONC-027 / CONC-028 / CONC-029 | ARP-09 TEST-xxx | 对应测试覆盖行（含新增 Consumer Dedup / Relay Crash / stale Publish / Polling Recovery / Simultaneous Retry / Ordering Conflict）。 |
 
 ---
 
 ## 9. Review Checklist（Artifact-specific）
 
-- [ ] 覆盖并从 RFC-002 重新提取全部 TS-01 必需场景（expected_revision CAS / Pointer Promotion / Named Unique Constraint / Work Intent Claim / SKIP LOCKED / Lease Expiry-Takeover / Stale fencing_token / 40001 / 40P01 / Retry Identity / Idempotency Key±Fingerprint / Duplicate Delivery / Worker Crash / Commit Outcome Unknown / Atomic Commit Fault Windows / No Partial Write / No Orphan Version / No Duplicate Work Intent / Restore-vs-new-write / Version Number Allocation / Invalidation / Promotion-vs-Invalidation / Cancel-vs-complete）。
+- [ ] 覆盖并从 RFC-002 重新提取全部 TS-01 必需场景（expected_revision CAS / Pointer Promotion / Named Unique Constraint / Work Intent Claim / SKIP LOCKED / Lease Expiry-Takeover / Stale fencing_token / 40001 / 40P01 / Retry Identity / Idempotency Key±Fingerprint / Duplicate Delivery / Worker Crash / Commit Outcome Unknown / Atomic Commit Fault Windows / No Partial Write / No Orphan Version / No Duplicate Work Intent / Restore-vs-new-write / Version Number Allocation / Invalidation / Promotion-vs-Invalidation / Cancel-vs-complete / Simultaneous Work Retry / Ordering Conflict / Authoritative Polling Recovery / Integration Event Relay Crash Recovery / Stale Integration Event Publish Attempt Rejection）。
+- [ ] Claim Exclusivity 归因正确（SKIP LOCKED 短事务 + Durable Lease + fencing_token；唯一约束不用于 Claim 互斥，Intent 重复创建防线由 CONC-019 承载）。
 - [ ] 每行有 Source / Traceability。
 - [ ] 全部行 Evidence Status = `NOT YET EVIDENCED` / `REQUIRES TS-01`；未出现 PASS / SUPPORTED / VERIFIED。
 - [ ] 未填写真实测试结果。
