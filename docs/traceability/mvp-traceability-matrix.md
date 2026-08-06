@@ -35,6 +35,7 @@
 | Sol/Luna/Terra task routing, thread isolation and review independence | DEC-043 | [Collaboration Model](../governance/collaboration-model.md) | — | DEC-043 + Issue #34 | All | Goal governance | Actual model disclosure + independent reviewer + Required Checks |
 | Single-task workbench, two-level input gate, Needs Input and confirmed partial rerun | DEC-044 | [User Flows](../product/user-flows.md) | — | DEC-044 + Issue #36 | RFC-003, RFC-004, RFC-005 | _(placeholder)_ | Browser E2E + state / stale-review contract tests _(planned)_ |
 | Task / Fact Stage minimum gates, demo file limits and classified conflict handling | DEC-045 | [PRD](../product/prd.md) | — | DEC-045 + Issue #38 / PR #39 | RFC-003, RFC-004, RFC-005 | _(placeholder)_ | Input contract + partial file acceptance + conflict behavior tests _(planned)_ |
+| Review / Brief semantic groups, immutable domain versions, draft revision and export snapshot | DEC-046 | [PRD](../product/prd.md) | — | DEC-046 + Issue #40 / PR #41 | RFC-004, RFC-006 | _(placeholder)_ | Semantic contract + stale-revision + export snapshot tests _(planned)_ |
 | RFC Planning and Dependency Order | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
@@ -70,6 +71,8 @@
 | 三类存储分离；Checkpoint≠Current Truth | DEC-024, DEC-033 | [Runtime Failure / Recovery](../specs/runtime/workflow-runtime-failure-recovery-retry-and-observability.md) | spike-01, spike-08 | test_skeleton::test_three_stores_are_separate | RFC-002, RFC-003 | _(placeholder)_ | _(placeholder)_ |
 | 原子提交 + 幂等 + 回滚 | DEC-029, DEC-033 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | spike-04, spike-06, Recovery | test_transaction_idempotency::spike04 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
 | 阶段级失效、影响预览与确认式部分重跑 | DEC-009, DEC-044 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-05 | test_review_safety::spike05（pos_count==1） | RFC-002, RFC-003, RFC-004 | _(placeholder)_ | Invalidation preview + user confirmation + affected-stage rerun _(planned)_ |
+| 不可变正式对象 + Review Draft revision | DEC-024, DEC-029, DEC-046 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | — | DEC-046 | RFC-002, RFC-004 | _(placeholder)_ | Immutable versions + stale revision save/submit _(planned)_ |
+| Current Truth 导出快照 | DEC-046 | [PRD](../product/prd.md) | — | DEC-046 | RFC-004 | _(placeholder)_ | Export object/upstream/limitation snapshot consistency _(planned)_ |
 
 ### C. Human Review 与 Approved Strategy
 
@@ -78,6 +81,7 @@
 | Human Review 节点边界 + 独立提交事务 | DEC-029 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | spike-01, spike-05 | graph.py 节点分离 + review.py | RFC-004 | _(placeholder)_ | _(placeholder)_ |
 | No Stale Review Package Submission | DEC-029 | 同上 | spike-07 | test_review_safety::spike07（StaleReviewError） | RFC-004 | _(placeholder)_ | _(placeholder)_ |
 | Duplicate Submit 幂等 | DEC-029 | 同上 | spike-06 | test_review_safety::spike06 | RFC-002, RFC-004 | _(placeholder)_ | _(placeholder)_ |
+| Review Package / Approved Strategy 产品语义组 | DEC-029, DEC-046 | 同上 | — | DEC-046 | RFC-004 | _(placeholder)_ | Semantic groups + no fabricated empty-group content _(planned)_ |
 
 ### D. 检索与证据
 
@@ -104,7 +108,7 @@
 | Product Intake & Fact Extraction Skill | DEC-026 | [Product Intake](../specs/skills/product-intake-and-fact-extraction-skill.md) | spike-01（骨架） | graph.py extract_facts（临时） | RFC-006 | _(placeholder)_ | _(placeholder)_ |
 | Customer Insight Analysis Skill | DEC-027 | [Customer Insight](../specs/skills/customer-insight-analysis-skill.md) | spike-01（骨架） | graph.py analyze_insights（临时） | RFC-005, RFC-006 | _(placeholder)_ | _(placeholder)_ |
 | Product Positioning Skill | DEC-028 | [Product Positioning](../specs/skills/product-positioning-skill.md) | spike-01（骨架） | graph.py generate_positioning（临时） | RFC-006 | _(placeholder)_ | _(placeholder)_ |
-| Marketing Brief Generation Skill | DEC-030 | [Marketing Brief](../specs/skills/marketing-brief-generation-skill.md) | spike-01（骨架） | graph.py generate_marketing_brief（临时） | RFC-006 | _(placeholder)_ | _(placeholder)_ |
+| Marketing Brief Generation Skill + 六组产品语义 | DEC-030, DEC-046 | [Marketing Brief](../specs/skills/marketing-brief-generation-skill.md) | spike-01（骨架） | graph.py generate_marketing_brief（临时）+ DEC-046 | RFC-004, RFC-006 | _(placeholder)_ | Six-group contract + strategy-lock versioning _(planned)_ |
 | 四层结构化 Marketing Brief | DEC-006 | [Marketing Brief](../specs/skills/marketing-brief-generation-skill.md) | — | DEC-006 | RFC-006 | _(placeholder)_ | _(placeholder)_ |
 
 ### G. 平台 Adapter
@@ -112,7 +116,7 @@
 | Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
 |---|---|---|---|---|---|---|---|
 | 平台中立核心 + Xiaohongshu Demo | DEC-004 | [Integration Boundaries](../architecture/integration-boundaries.md) | — | DEC-004 | RFC-004 | _(placeholder)_ | _(placeholder)_ |
-| Xiaohongshu Brief Mapping Adapter | DEC-031 | [Xiaohongshu Adapter](../specs/adapters/xiaohongshu-brief-mapping-adapter.md) | — | DEC-031 spec | RFC-004, RFC-006 | _(placeholder)_ | _(placeholder)_ |
+| Xiaohongshu Brief Mapping Adapter + 六组产品语义 | DEC-031, DEC-046 | [Xiaohongshu Adapter](../specs/adapters/xiaohongshu-brief-mapping-adapter.md) | — | DEC-031 spec + DEC-046 | RFC-004, RFC-006 | _(placeholder)_ | Six-group mapping + brief-lock versioning _(planned)_ |
 
 ---
 

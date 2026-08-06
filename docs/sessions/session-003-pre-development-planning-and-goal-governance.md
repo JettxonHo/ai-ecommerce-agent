@@ -6,7 +6,7 @@
 - Date: 2026-08-06
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-044
+- Related Decisions: DEC-039～DEC-046
 
 ## Context
 
@@ -98,6 +98,7 @@
 - [DEC-043](../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) — 采用 Sol 主控、Luna 实现、Terra 辅助回退的多 Agent 开发编排（用户于 2026-08-06 确认；Amends DEC-040）。
 - [DEC-044](../decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) — 采用单任务工作台、两级输入门禁与确认式局部重跑（用户于 2026-08-06 接受 P-04A / P-05A / P-06A；Amends DEC-005 / 009 / 041）。
 - [DEC-045](../decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md) — 冻结最小输入、演示文件限制与分级冲突处理（用户于 2026-08-06 接受 P-07A / P-08A / P-09A；Amends DEC-005 / DEC-044，不改变 DEC-026）。
+- [DEC-046](../decisions/dec-046-review-brief-and-export-product-contract.md) — 冻结审核、Brief、版本、revision 与导出的产品契约（用户于 2026-08-06 接受 P-10A / P-11A / P-12A；Amends DEC-006 / 024 / 029 / 030 / 031）。
 
 ## Rejected Approaches
 
@@ -108,8 +109,8 @@
 
 ## Open Questions
 
-- 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；任务工作台信息架构、输入门禁和重跑触发已由 DEC-044 解决；最终字段、详细控件、Fixture 与必要阈值仍开放。
-- 四层 Brief、Review Package、Approved Strategy 与 Xiaohongshu Brief 的最终 Schema 和版本规则。
+- 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；任务工作台信息架构、输入门禁和重跑触发已由 DEC-044 解决；审核 / Brief 产品语义和版本 / revision / 导出行为已由 DEC-046 解决；最终公共 Schema、详细控件、Fixture 与必要阈值仍开放。
+- Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、引用 / 差异 UI 与导出格式。
 - RFC-003 至 RFC-007 与 Frontend Architecture 的具体技术选择。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
 - Luna 不可用时的路由已由 DEC-043 解决为 Terra 显式回退或外部 Luna 任务包；每个实际 Issue 仍需记录所用模型与独立 Reviewer。
@@ -240,3 +241,39 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - Issue #38 / PR #39 负责 DEC-045、被修订 Decision、Product Current Truth、Readiness、Traceability 与本 Session 的一致性归档。
 - 本轮不冻结公共 Schema、前端框架或 API 枚举，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。
+
+## Decision Round — Review, Brief and Export Product Contract（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-10A`：Review Package 和 Approved Strategy 使用决策导向的固定产品语义组；冻结业务语义而不把每个概念字段一对一提升为公共 Schema。
+- 用户明确接受 `P-11A`：保留平台中立 Marketing Brief，并通过显式 Xiaohongshu Brief 分组做平台映射；Adapter 不得重新制定战略或补造证据。
+- 用户明确接受 `P-12A`：正式业务对象使用不可变 Domain Version，Review Draft 使用单调递增 revision，Task 使用 Current Truth Pointer，导出冻结当前结果快照。
+
+### Domain Clarification
+
+- Review Package 是不可变审核输入快照；固定分组不代表必须展示所有上游对象，也不要求为空分组制造内容。
+- Strategy Draft 是临时 Review 工作状态，不属于 Current Truth；每次成功保存 revision 递增，陈旧保存或提交拒绝。自动保存频率与 ETag / 请求头 / 数据库锁等实现留给 Frontend Architecture 和 RFC-004。
+- Approved Strategy、Marketing Brief、Xiaohongshu Brief 的模型生成、用户业务编辑与重跑创建新 Domain Version，不覆盖历史。Approved Strategy 的修改仍必须经过 Human Review。
+- Marketing Brief 固定六组：Objective and Audience / Message Architecture / Reasons to Believe and Evidence / Execution Direction / Constraints and Honesty / Version and Workflow Context。
+- Xiaohongshu Brief 固定六组：Platform and Campaign Context / Note Format and Content Mode / Creative Structure Directions / Discovery and Action Directions / Evidence and Platform Constraints / Workflow and Version Context。
+- 导出保存发起时的当前对象版本、必要上游 / 证据引用、Hypotheses / Limitations / Risks、Task 上下文和导出时间；不新增 Hash 或 SHA-256 要求。
+
+### Alternatives and Trade-offs
+
+- 把概念字段逐项冻结为公共 Schema 可减少实现歧义，但会在 RFC-004 前过早绑定 API / 数据库；未采用。
+- 只保留候选选择、编辑和备注能简化 Review UI，但不足以支持证据、假设、限制与风险判断；未采用。
+- 合并平台中立 Brief 与 Xiaohongshu Brief 会减少对象，却让平台规则泄漏到核心结构；未采用。
+- 让 Adapter 从薄 Brief 补齐大量业务内容会迫使 Adapter 重新做战略；未采用。
+- 每次草稿保存创建 Domain Version 会制造无业务意义的历史；可覆盖 latest + 审计日志又与 DEC-024 冲突；均未采用。
+
+### Remaining Boundaries
+
+- 产品语义组和版本行为已确认；最终 JSON / OpenAPI / 数据库字段、类型、枚举、逐字段必填表达和错误代码仍待 RFC-004 / 006。
+- Draft 自动保存频率、Patch / Snapshot 存储、revision 传输与数据库并发机制、版本差异 UI、导出文件格式和下载交互仍待 Frontend Architecture / RFC-004。
+- 引用卡片、证据覆盖、编辑粒度、进度 / 错误 / 恢复的详细交互仍待后续产品 Decision Gate。
+
+### Archive Scope
+
+- Issue #40 / PR #41 负责 DEC-046、被修订 Decision、Product Current Truth、Readiness、Traceability 与本 Session 的一致性归档。
+- 本轮不冻结公共 Schema、前端框架、API 路径、数据库表、Prompt 或 Provider，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。

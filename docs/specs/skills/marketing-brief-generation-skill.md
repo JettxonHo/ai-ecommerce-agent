@@ -1,8 +1,8 @@
 # Marketing Brief Generation Skill — 概念 Specification
 
-> **Status: CONCEPTUAL（概念）**
-> 来源决定：[DEC-030 — Marketing Brief Generation 采用 Approved Strategy 锁定、平台无关信息架构与证据限制传播契约](../../decisions/dec-030-marketing-brief-generation-skill-contract.md)（Accepted，Skill Contract / Marketing Architecture，2026-07-28）。Amends DEC-006 + DEC-019。
-> 本文件是 DEC-030 的**概念结构化记录**，**不是最终实现契约**。所有字段名、枚举、Schema、阈值、算法、Prompt、模型均未确认。
+> **Status: PRODUCT SEMANTICS ACCEPTED / IMPLEMENTATION CONTRACT CONCEPTUAL**
+> 来源决定：[DEC-030 — Marketing Brief Generation 采用 Approved Strategy 锁定、平台无关信息架构与证据限制传播契约](../../decisions/dec-030-marketing-brief-generation-skill-contract.md)与 [DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md)（均 Accepted）。
+> 本文件的六个产品语义组与不可变正式版本行为已确认；字段名、类型、枚举、Schema、阈值、算法、Prompt、模型仍是概念，不是最终实现契约。
 > Development Status: **NOT READY**。
 
 ---
@@ -484,46 +484,42 @@ Xiaohongshu Brief Mapping Adapter 可以改变表达结构，但不能改变：A
 
 ## §24 Outputs
 
-输出分为六组：
+输出固定为六个产品语义组。下列字段仅为概念展开，不是最终公共 Schema；没有可靠内容时不得为满足分组而制造内容。
 
-**1. Brief Context**
+**1. Objective and Audience**
 
 ```text
-approved_strategy_version_id
-facts_version_id
-insights_version_id
 communication_objective
-input_limitations[]
-```
-
-**2. Audience and Message Architecture**
-
-```text
 audience
 audience_context
+```
+
+**2. Message Architecture**
+
+```text
 core_message
 message_hierarchy
 benefit_hierarchy
 ```
 
-**3. Evidence and Trust**
+**3. Reasons to Believe and Evidence**
 
 ```text
 reasons_to_believe[]
 proof_points[]
-objections[]
-objection_responses[]
 ```
 
-**4. Creative Direction**
+**4. Execution Direction**
 
 ```text
+objections[]
+objection_responses[]
 content_angles[]
 tone_and_voice
 CTA_objective
 ```
 
-**5. Guardrails**
+**5. Constraints and Honesty**
 
 ```text
 mandatory_messages[]
@@ -533,9 +529,14 @@ evidence_limitations[]
 risk_notes[]
 ```
 
-**6. Workflow Decision**
+**6. Version and Workflow Context**
 
 ```text
+brief_version_id
+approved_strategy_version_id
+facts_version_id
+insights_version_id
+input_limitations[]
 stage_decision:
 - valid
 - valid_with_limitations
@@ -668,7 +669,7 @@ Platform-specific Leakage Rate = 0%
 
 ## §31 Open Questions（记录而非虚构）
 
-- 最终 Marketing Brief Schema 与字段名；
+- 最终 Marketing Brief 公共 Schema、字段名、类型与逐字段必填表达；
 - 数据库表结构；
 - Content Angle 分类表（最终枚举）；
 - Tone 模板；

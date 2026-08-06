@@ -1,13 +1,14 @@
 # DEC-024：Workflow State 采用任务级业务身份、版本化领域状态与紧凑 LangGraph State
 
 > **Type:** Data Architecture / Workflow Architecture
-> **Status:** Accepted
+> **Status:** Accepted — Amended by DEC-029 / DEC-046
 > **Date:** 2026-07-28
 > **Related Session:** [Session-002 — Agent 工作流、可靠性架构与技术能力需求](../sessions/session-002-agent-workflow-reliability-and-technical-capabilities.md)
 > **Related Specification:** [Workflow State Specification（概念）](../specs/workflow/workflow-state-specification.md)
 > **Related RFC:** None
 > **Supersedes:** None
 > **Amends:** DEC-012 and DEC-013（补充细化状态与持久化边界，不推翻既有结论）
+> **Amended By:** [DEC-029](dec-029-human-review-and-approved-strategy-contract.md)（Approved Strategy Current Truth transition）与 [DEC-046](dec-046-review-brief-and-export-product-contract.md)（Review Draft revision、正式输出不可变版本与导出快照行为）
 
 ---
 

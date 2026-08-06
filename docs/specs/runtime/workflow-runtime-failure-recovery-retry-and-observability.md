@@ -394,7 +394,7 @@ Resume 前验证 `checkpoint.task_id` / `checkpoint.thread_id` / `checkpoint.inp
 
 ## §29 Human Review Resume
 
-携带 `review_id` / `review_package_version` / `draft_version` / `approved_strategy_submission_reference`。Resume 前检查：1. Review Package 未被 superseded；2. Facts / Insights / Positioning 版本仍有效；3. Review 提交事务已成功；4. Approved Strategy Current Truth 已存在；5. 当前 Stage 允许 Resume；6. Resume 未被重复处理。必须幂等。旧 Review Package 不得通过 Checkpoint 绕过 DEC-029 版本校验。
+Resume 必须表达 `review_id` / `review_package_version` / Review Draft `revision` / `approved_strategy_submission_reference` 的语义。Resume 前检查：1. Review Package 未被 superseded；2. Draft revision 未过期；3. Facts / Insights / Positioning 版本仍有效；4. Review 提交事务已成功；5. Approved Strategy Current Truth 已存在；6. 当前 Stage 允许 Resume；7. Resume 未被重复处理。必须幂等。旧 Package 或 revision 不得通过 Checkpoint 绕过 DEC-029 / DEC-046 版本校验；最终传输字段名由 RFC-004 冻结。
 
 ---
 
