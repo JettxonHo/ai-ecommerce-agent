@@ -47,7 +47,7 @@
 - **Persona 策略：** 一个复合主 Persona，商品运营与内容运营作为职责视角；详细画像继续标为假设，真实访谈是 Beta 前门禁。
 - **成功边界：** 以本地可启动、端到端闭环、结果可理解 / 审核 / 追溯 / 恢复 / 导出和人工可用性为主，不以机械总分或销量承诺自动接受。
 
-> 注：统一单 Agent、LangGraph StateGraph、按需混合 Retrieval、4 个 Core Skills、Xiaohongshu Adapter 与 PostgreSQL 持久化均已确认；仍待策划的是输入与 Brief 最终字段、工作台交互、Fixture / 必要阈值以及 RFC-003～007 / Frontend Architecture 的实现细节（见 [mvp-scope.md](mvp-scope.md)）。
+> 注：统一单 Agent、LangGraph StateGraph、按需混合 Retrieval、4 个 Core Skills、Xiaohongshu Adapter、PostgreSQL 持久化，以及首个演示的代表性验收包、行为门禁和 Markdown-first 用户导出均已确认；仍待策划的是输入与 Brief 最终公共字段、工作台组件、测试工具以及 RFC-003～007 / Frontend Architecture 的实现细节（见 [mvp-scope.md](mvp-scope.md)）。
 
 ---
 
@@ -68,7 +68,7 @@
 - 要解决的核心业务问题：**已确认**（DEC-003）。
 - 最终产品定位与差异化价值：**已确认**为证据驱动商品上新策略工作台（DEC-042）；品牌命名和对外文案不是当前阻塞项。
 - Persona / JTBD：复合 Persona 结构与基线假设已确认；画像具体取值和真实证据待 Beta 前访谈。
-- 演示成功标准：行为与人工可用性边界已确认；Fixture、必要阈值和测试执行细节待 Testing Strategy。
+- 演示成功标准：行为与人工可用性边界、三个固定资料包 + 一个变更脚本、必要行为门禁、人工 `PASS / FAIL` 与 Release Candidate Live Smoke 已确认（DEC-042 / DEC-048）；测试工具、Fixture 实例和最终 E2E 步骤待 Testing Strategy 补全。
 - Agent / Workflow：**已确认**为一个统一用户侧 Agent + LangGraph StateGraph 确定性工作流，不采用 Multi-Agent 主架构或 LLM Supervisor（DEC-021 / DEC-023）。
 - Retrieval / Skills：**已确认**按需混合 Retrieval 概念边界、4 个 Core Skills 与 1 个 Xiaohongshu Adapter（DEC-014 / DEC-020 / DEC-026～032）；具体 Provider、索引、Prompt 与实现仍待 RFC-005 / 006。
 - 平台范围：**已确认**核心中立 + 小红书 Brief 映射；其他平台、完整平台正文与自动发布不进入首个 Goal（DEC-004 / DEC-031 / DEC-041）。

@@ -6,9 +6,9 @@ Product / Review Contract / Output Contract / Versioning / Export
 
 ## Status
 
-Accepted — Amended by DEC-047
+Accepted — Amended by DEC-047 / DEC-048
 
-> **Current amendment:** [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 补充正式对象差异展示、编辑意图和导出前确认交互；本决定的产品语义组、Domain Version、Draft revision 与导出快照内容保持有效。
+> **Current amendment:** [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 补充正式对象差异展示、编辑意图和导出前确认交互；[DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) 选择 Marketing Brief 与 Xiaohongshu Brief 的 Markdown-first 用户导出。本决定的产品语义组、Domain Version、Draft revision 与导出快照内容保持有效。
 
 ## Decision
 
@@ -180,6 +180,7 @@ None.
 ## Amended By
 
 - [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)：补充语义组差异、编辑影响与导出前确认交互，不改变版本和快照契约。
+- [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)：选择 Markdown-first 用户导出，不改变版本、语义组和快照契约。
 
 ## Decision Boundary
 
@@ -195,7 +196,7 @@ None.
 
 **本决定尚未确认：**
 
-> 以下为本决定接受时的边界；版本差异与导出前确认的产品语义后来由 DEC-047 解决。最终组件、Diff 算法、导出格式和传输实现仍未确认。
+> 以下为本决定接受时的边界；版本差异与导出前确认的产品语义后来由 DEC-047 解决，Marketing Brief / Xiaohongshu Brief 的 Markdown-first 用户导出后来由 DEC-048 解决。最终组件、Diff 算法、Markdown 模板和传输实现仍未确认。
 
 - 最终 JSON / OpenAPI / 数据库字段名、类型、枚举和必填表达；
 - API 路径、请求 / 响应结构、错误代码和状态映射；

@@ -18,6 +18,7 @@
 - [x] Task / Fact Stage 最低门禁、演示默认文件限制、单文件部分接受与分级冲突处理已确认（DEC-045）
 - [x] Review Package、Approved Strategy、Marketing Brief、Xiaohongshu Brief 产品语义组，以及 Domain Version / Review Draft revision / Current Truth / 导出快照行为已确认（DEC-046）
 - [x] 渐进式证据、语义组差异与编辑意图、阶段时间线、行动导向恢复和导出前确认已确认（DEC-047）
+- [x] 三个固定资料包 + 一个变更脚本、行为门禁 + 人工可用性判断、Release Candidate Live Smoke 和 Markdown-first 用户导出已确认（DEC-048）
 - [x] 关键 Agent、Workflow、Human Review 与 Skill 边界已确认
 - [x] Retrieval / Evidence 与 Skill 的概念职责已确认
 - [x] 外部 Skill 供体的 Adapt / Reference 策略已确认
@@ -25,7 +26,7 @@
 - [ ] 关键 Decision Records 已完成（状态为 Accepted）
 - [ ] PRD 和架构文档已同步
 - [ ] 最终公共数据契约、API 与状态 / 错误映射已明确
-- [ ] 完整测试与验收标准已存在（行为型演示成功边界已由 DEC-042 确认；Fixture / 阈值待 Testing Strategy）
+- [ ] 完整测试与验收标准已存在（产品验收包与必要行为门禁已由 DEC-048 确认；测试工具、Fixture 实例与最终 E2E 步骤待 Testing Strategy 补全）
 - [ ] 文档不存在未同步或冲突部分
 - [ ] ARP-02 / 03 / 09 完整 Artifact、ARP-05～08 与 TS-01～TS-05 Charter 已完成
 - [ ] MVP Development Plan、Testing Strategy 与长期 Goal 文本已接受
@@ -43,7 +44,7 @@
 - **RFC:** RFC-001 / RFC-002 = ACCEPTED；RFC-003～RFC-007 = PROPOSED
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
-- **产品交互:** 单任务工作台、确认式局部重跑、Task / Fact Stage 最低门禁、默认文件限制、分级冲突、审核 / Brief 产品语义和版本 / revision / 导出、渐进式证据、编辑影响、阶段进度与行动导向恢复 = ACCEPTED（DEC-044～047）；最终公共 Schema、视觉组件、Diff 算法、并发实现与公共状态映射仍待 Frontend Architecture / RFC
+- **产品交互与验收:** 单任务工作台、确认式局部重跑、Task / Fact Stage 最低门禁、默认文件限制、分级冲突、审核 / Brief 产品语义和版本 / revision / 导出、渐进式证据、编辑影响、阶段进度、行动导向恢复、固定验收包、行为门禁与 Markdown-first 用户导出 = ACCEPTED（DEC-044～048）；最终公共 Schema、视觉组件、Diff 算法、并发实现、测试工具与公共状态映射仍待 Frontend Architecture / RFC / Testing Strategy
 - **允许工作:** 产品规格、Architecture RFC、Readiness Artifact / Spike Charter 规划、测试策略、开发计划、Goal 文档与一致性 Review
 - **禁止工作:** Business / Production Implementation、TS-01～TS-05 执行、公开部署、实际 Goal 启动
 - **用户 Goal 指令:** 未下达

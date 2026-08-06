@@ -6,7 +6,9 @@ Product / Interaction / Evidence / Editing / Recovery / Export
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-048
+
+> **Current amendment:** [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) 冻结代表性验收包、必要行为门禁和 Markdown-first 用户导出；本决定的证据、编辑、进度、恢复与导出确认语义保持有效。
 
 ## Decision
 
@@ -134,6 +136,10 @@ None.
 - DEC-039：适度校验、禁止普通 Hash / SHA-256 要求和非机械 Rubric 继续有效。
 - DEC-041：受控单工作区、输入格式、模型范围和非范围边界保持不变。
 
+## Amended By
+
+- [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)
+
 ## Decision Boundary
 
 **本决定已经确认：**
@@ -149,6 +155,8 @@ None.
 - 导出前展示将冻结的 Current Truth 版本和限制摘要，失效结果不可作为当前结果导出。
 
 **本决定尚未确认：**
+
+> 以下为本决定接受时的开放边界。代表性验收包、必要行为门禁和 Marketing Brief / Xiaohongshu Brief 的 Markdown-first 用户导出后来由 DEC-048 解决；具体模板、测试工具和最终浏览器步骤继续开放。
 
 - 最终组件、布局、导航方向、视觉样式与逐字段编辑控件；
 - 最终 JSON / OpenAPI / 数据库字段、Locator Schema、状态枚举与错误代码；
