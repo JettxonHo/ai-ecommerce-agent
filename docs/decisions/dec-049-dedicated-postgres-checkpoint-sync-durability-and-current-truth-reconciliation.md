@@ -14,6 +14,8 @@ Accepted
 
 > **Follow-up:** [DEC-050](dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 在本决定的 Checkpoint / 对账边界之外冻结 Durable Dispatch、执行所有权与协作式取消；[DEC-051](dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) 冻结显式兼容、确定性恢复动作与前向恢复证据边界；均不改变本决定。
 
+> **RFC status follow-up（2026-08-06）：** 本决定形成时不接受 RFC-003 整体；用户后来已单独明确接受 [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)。Implementation、Spike Execution 与 Goal Activation 仍未授权。
+
 ## Decision
 
 ### 生产 Checkpointer 与存储边界
@@ -110,7 +112,7 @@ LangGraph 会在 Replay、Retry 与 Interrupt Resume 中重新执行 Checkpoint 
 ## Impact
 
 - RFC-003 必须以 `PostgresSaver` 同步路径、独立 Checkpoint Database、可重入 Node 与 Current-Truth-first Reconciliation 为已接受输入。
-- RFC-003 在本决定接受时仍须决定 Durable Dispatch、Worker Claim / Lease / Heartbeat、Cancellation、Compatibility / Upgrade 和验收测试；这些后续已分别由 DEC-050 / DEC-051 冻结，但 RFC-003 仍须最终一致性 Review 与用户单独接受。
+- RFC-003 在本决定接受时仍须决定 Durable Dispatch、Worker Claim / Lease / Heartbeat、Cancellation、Compatibility / Upgrade 和验收测试；这些后续已分别由 DEC-050 / DEC-051 冻结，Final Consistency Review 与用户整体接受也已于 2026-08-06 完成。
 - RFC-004 的 Resume API 必须映射到 RFC-003 的合法恢复动作，不得让客户端 Checkpoint 身份直接授权业务写入。
 - RFC-007 必须观测 Checkpoint latency、Reconciliation outcome、stale / foreign / incompatible checkpoint 与恢复路径，但不得把 Checkpoint 内容当日志正文泄露。
 - Readiness 的 TS-03 / ARP-06 必须验证 Checkpoint isolation 与 reconciliation；本决定不授权执行该 Spike。
@@ -121,7 +123,7 @@ LangGraph 会在 Replay、Retry 与 Interrupt Resume 中重新执行 Checkpoint 
 
 ## Related RFC
 
-[RFC-003 — LangGraph Runtime and Checkpoint Architecture](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（Drafting；整体尚未 Accepted）
+[RFC-003 — LangGraph Runtime and Checkpoint Architecture](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（Accepted；2026-08-06 后续整体接受）
 
 ## Official Capability Evidence
 

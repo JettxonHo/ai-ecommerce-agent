@@ -479,3 +479,16 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - Issue #46 / PR #47 负责 DEC-051、RFC-003 `IN REVIEW` 状态、Architecture Current Truth、Runtime Spec、Readiness、Traceability、RFC Register 与本 Session 的一致性归档。
 - 本轮不固定精确依赖版本，不创建 Compatibility Matrix 实例、转换器、Runtime Registry、Worker、数据库或迁移，不执行 TS-01～TS-05，不编写业务代码，也不创建或激活长期 Goal。
+
+## Final Decision — RFC-003 Overall Acceptance（2026-08-06）
+
+### User Acceptance
+
+- 用户在 RFC-003 Final Consistency Review、独立五轴 Review 与最新 Required Checks 结果展示后，明确回复「接受 RFC-003 整体」。
+- RFC-003 Status 由 `IN REVIEW` 变为 `ACCEPTED`；DQ-01～DQ-09 及 DEC-049～051 共同构成正式 Workflow Runtime / Checkpoint Architecture 基线。
+
+### Authorization Boundary
+
+- RFC Acceptance 不等于实现授权；Implementation、Spike Execution 与 Goal Activation 继续为 `NOT GRANTED`。
+- 本次不安装生产 Checkpointer，不创建 Checkpoint Database、Runtime Registry、Worker、Graph、API、迁移或 Compatibility Matrix 实例，不执行 TS-01～TS-05，也不创建或激活长期 Goal。
+- 下一策划议题为 RFC-006；之后依次闭合 Frontend Architecture、RFC-004 / 005 / 007、Readiness 规划包、Testing Strategy、Development Plan 与 Goal 文本。

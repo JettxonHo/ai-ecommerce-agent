@@ -1140,4 +1140,4 @@ RFC-002 Authorization Gate（PENDING USER DECISION）
 
 FND-001 / FND-002 / FND-003 全部 = **COMPLETED**（PR #7 / #10 / #15 均已由用户 Merge；完成归档分别经 PR #8 / PR #13 / 本 Documentation PR #22 记录）。**Foundation Program Status = COMPLETED**（RFC-001-DQ-10 首批 Foundation 范围全部完成；经本归档 PR 记录，本归档 PR 合并后正式生效）。**下一架构议题：** **RFC-002 — Persistence and Transaction Architecture**；状态 = **RFC-002 Authorization Gate = PENDING USER DECISION**（RFC-002 Drafting / Issue Creation / Implementation = NOT AUTHORIZED；Coding Agent 不得起草 RFC-002、创建其 Issue / Branch、开始数据库或事务实现、启动夜间长任务）。业务实现仍 **NOT AUTHORIZED**；Architecture Readiness 与 Development Status 保持 **CONDITIONALLY READY**（Foundation 完成 ≠ Architecture 全部 READY ≠ RFC-002~007 已接受 ≠ 业务开发已授权）。
 
-> **Current next work（2026-08-06）：** RFC-002 已 Accepted 并合并。下一阶段是完成产品规格、RFC-003～007、Readiness 规划包、测试策略与长期 Goal 文本；Business / Production Implementation 和 TS-01～TS-05 执行仍未授权，已完成的 Spike-001 不在本禁令所指范围内。
+> **Current next work（2026-08-06）：** RFC-001～003 已 Accepted。下一阶段是完成产品规格、RFC-004～007、Frontend Architecture、Readiness 规划包、测试策略与长期 Goal 文本；Business / Production Implementation 和 TS-01～TS-05 执行仍未授权，已完成的 Spike-001 不在本禁令所指范围内。

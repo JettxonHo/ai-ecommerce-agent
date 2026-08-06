@@ -12,6 +12,8 @@ Accepted
 
 2026-08-06
 
+> **RFC status follow-up（2026-08-06）：** 本决定形成时不接受 RFC-003 整体；Final Consistency Review 通过后，用户已单独明确接受 [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)。Implementation、Spike Execution 与 Goal Activation 仍未授权。
+
 ## Decision
 
 ### 显式 Compatibility Tuple 与受控前向升级
@@ -136,7 +138,7 @@ LangGraph Checkpoint 会参与 Interrupt / Resume、Replay 与 Node 重执行，
 - 不授权创建 Runtime Registry、Recovery Record、Compatibility Matrix 实例、转换器、Worker、Graph 或数据库；
 - 不授权执行 Checkpointer setup / migration、TS-01～TS-05 或任何故障演练；
 - 不授权业务实现、生产实现或长期 Goal；
-- RFC-003 仍须完成最终一致性 Review，并由用户单独明确接受。
+- 本决定形成时，RFC-003 仍须完成最终一致性 Review 并由用户单独明确接受；该后续 Gate 已于 2026-08-06 完成。
 
 ## Accepted From
 

@@ -601,4 +601,4 @@ Observability 完整率目标（`= 100%`）：Runs with Trace ID / Skill Runs wi
 - Retry 的「Optional backup channel」是否存在（Failure Matrix LLM timeout 行）。
 - TS-03 的最小验证 Graph、Success / Failure Criteria、迁移演练与停止条件。
 
-RFC-003 整体 Accepted、Readiness Planning 完成且 Goal 明确激活前：**不**安装生产 Checkpointer、创建 Checkpoint Database、执行 setup / migration、实现正式业务 Graph / Worker 或执行 TS-03。Development Status 保持 `CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY`。
+RFC-003 已整体 Accepted，但在 Readiness Planning 完成且 Goal 明确激活前：**不**安装生产 Checkpointer、创建 Checkpoint Database、执行 setup / migration、实现正式业务 Graph / Worker 或执行 TS-03。Development Status 保持 `CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY`。

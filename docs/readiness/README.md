@@ -1,6 +1,6 @@
 # Architecture Readiness
 
-> **Current sync（2026-08-06）：** Architecture Readiness / Development Status = `CONDITIONALLY READY`（仅策划与治理）。RFC-001 / RFC-002 与 FND-001～003 已完成；PR #28 已合并。ARP-01 / 04 / 10 完整 Accepted，ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted；ARP-05～08 与三份 Slice 的完整 Artifact 仍待策划补全。TS-01～TS-05 执行、Business / Production Implementation 与实际 Goal 均未授权；已完成的 Spike-001 不在本禁令所指范围内。当前 Gate 见 [Implementation Readiness](../handoffs/implementation-readiness.md)。
+> **Current sync（2026-08-06）：** Architecture Readiness / Development Status = `CONDITIONALLY READY`（仅策划与治理）。RFC-001～RFC-003 与 FND-001～003 已完成；PR #28 已合并。ARP-01 / 04 / 10 完整 Accepted，ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted；ARP-05～08 与三份 Slice 的完整 Artifact 仍待策划补全。TS-01～TS-05 执行、Business / Production Implementation 与实际 Goal 均未授权；已完成的 Spike-001 不在本禁令所指范围内。当前 Gate 见 [Implementation Readiness](../handoffs/implementation-readiness.md)。
 > **Historical record note：** 下方 DEC-034～037、Spike-001 和最初 Readiness Gate 的执行顺序保留历史原貌；其中 `GRANTED`、`下一议题` 等只描述当时的 Spike 授权，不得用于重新执行 Spike 或启动当前 Goal。
 
 > **来源决定：** [DEC-034 — Technical Spike Plan and Architecture Readiness Gate](../decisions/dec-034-technical-spike-and-architecture-readiness-gate.md) · [DEC-035 — Technical Spike 临时技术栈与执行契约](../decisions/dec-035-technical-spike-temporary-stack-and-execution-contract.md) · [DEC-036 — Spike-001 Execution Authorization and Agent Handoff Contract](../decisions/dec-036-spike-001-execution-authorization-and-agent-handoff-contract.md) · [DEC-037 — Formal Spike-001 Execution Authorization](../decisions/dec-037-formal-spike-001-execution-authorization.md)
@@ -85,4 +85,4 @@ CONDITIONALLY READY
 
 **禁止范围（当前不授权）：** Production Business / Database / API / Retrieval / LLM Runtime / Observability Implementation；正式业务 Coding Issues；未经 RFC 支持的生产实现；Coding Agent 临场选择生产数据库 / ORM / Checkpointer / API / Retrieval / LLM Runtime / Observability；将 Spike 代码迁移为生产模块；将状态更新为完全 READY。
 
-> `CONDITIONALLY READY ≠ 完全 READY`：当前下一步是完成产品规格、RFC-003～007、Frontend Architecture、完整 Readiness Artifact、测试策略与 Goal 文档，并通过最终 Implementation Readiness Review；在用户明确接受策划包并发出“进入 Goal 执行阶段”前，不实例化生产 Issue，不执行 TS-01～TS-05，不启动业务实现。
+> `CONDITIONALLY READY ≠ 完全 READY`：RFC-001～003 已 Accepted；当前下一步是完成产品规格、RFC-004～007、Frontend Architecture、完整 Readiness Artifact、测试策略与 Goal 文档，并通过最终 Implementation Readiness Review；在用户明确接受策划包并发出“进入 Goal 执行阶段”前，不实例化生产 Issue，不执行 TS-01～TS-05，不启动业务实现。

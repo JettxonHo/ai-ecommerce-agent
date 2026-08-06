@@ -38,9 +38,9 @@
 | Review / Brief semantic groups, immutable domain versions, draft revision and export snapshot | DEC-046 | [PRD](../product/prd.md) | — | DEC-046 + Issue #40 / PR #41 | RFC-004, RFC-006 | _(placeholder)_ | Semantic contract + stale-revision + export snapshot tests _(planned)_ |
 | Progressive evidence, edit intent, stage progress, actionable recovery and export confirmation | DEC-047 | [User Flows](../product/user-flows.md) | — | DEC-047 + Issue #42 / PR #43 | RFC-003, RFC-004, RFC-005, RFC-007 | _(placeholder)_ | Browser evidence / edit / recovery / export interaction E2E _(planned)_ |
 | Small representative acceptance pack, behavior gates, human usability judgment and Markdown-first export | DEC-048 | [Testing Strategy](../development/testing-strategy.md) | — | DEC-048 + Issue #44 / PR #45 | RFC-004, RFC-006 | _(placeholder)_ | 3 fixed fixtures + mutation script + RC live smoke + human PASS / FAIL _(planned)_ |
-| Dedicated PostgreSQL Checkpoint Database, sync durability, reentrant nodes and Current-Truth-first reconciliation | DEC-049 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | spike-05, spike-08 | DEC-049 + Issue #46 / PR #47 | RFC-003（IN REVIEW） | _(placeholder)_ | TS-03 isolation / reconciliation + interrupt / resume + duplicate-safe replay _(planned)_ |
-| PostgreSQL Durable Work Intent dispatch, fenced worker ownership and cooperative cancellation | DEC-050 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | — | DEC-050 + Issue #46 / PR #47 | RFC-003（IN REVIEW） | _(placeholder)_ | TS-01 multi-worker claim / takeover / stale commit rejection + cancellation commit fence _(planned)_ |
-| Explicit runtime compatibility, deterministic Safe Resume and forward-recovery evidence | DEC-051 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | — | DEC-051 + Issue #46 / PR #47 | RFC-003（IN REVIEW） | _(placeholder)_ | TS-01 / TS-03 compatibility + seven-action recovery + migration / forward repair _(planned)_ |
+| Dedicated PostgreSQL Checkpoint Database, sync durability, reentrant nodes and Current-Truth-first reconciliation | DEC-049 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | spike-05, spike-08 | DEC-049 + Issue #46 / PR #47 | RFC-003（ACCEPTED） | _(placeholder)_ | TS-03 isolation / reconciliation + interrupt / resume + duplicate-safe replay _(planned)_ |
+| PostgreSQL Durable Work Intent dispatch, fenced worker ownership and cooperative cancellation | DEC-050 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | — | DEC-050 + Issue #46 / PR #47 | RFC-003（ACCEPTED） | _(placeholder)_ | TS-01 multi-worker claim / takeover / stale commit rejection + cancellation commit fence _(planned)_ |
+| Explicit runtime compatibility, deterministic Safe Resume and forward-recovery evidence | DEC-051 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | — | DEC-051 + Issue #46 / PR #47 | RFC-003（ACCEPTED） | _(placeholder)_ | TS-01 / TS-03 compatibility + seven-action recovery + migration / forward repair _(planned)_ |
 | RFC Planning and Dependency Order | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
@@ -139,8 +139,7 @@
 
 ```text
 Spike-001 = COMPLETED
-RFC-001 / RFC-002 = ACCEPTED
-RFC-003 = IN REVIEW (DEC-049 / DEC-050 / DEC-051 accepted inputs DQ-01 through DQ-09; RFC acceptance not granted)
+RFC-001 / RFC-002 / RFC-003 = ACCEPTED
 RFC-004 through RFC-007 = PROPOSED
 FND-001 / FND-002 / FND-003 = COMPLETED
 

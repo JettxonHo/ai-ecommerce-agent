@@ -2,18 +2,19 @@
 
 ## Metadata
 
-- **Status:** IN REVIEW
+- **Status:** ACCEPTED
 - **Date:** 2026-08-06
+- **Accepted:** 2026-08-06（用户明确接受：「接受 RFC-003 整体」）
 - **Issue:** [#46](https://github.com/JettxonHo/ai-ecommerce-agent/issues/46)
-- **Draft PR:** [#47](https://github.com/JettxonHo/ai-ecommerce-agent/pull/47)
-- **RFC Acceptance:** NOT GRANTED
+- **Pull Request:** [#47](https://github.com/JettxonHo/ai-ecommerce-agent/pull/47)
+- **RFC Acceptance:** GRANTED
 - **Implementation Authorization:** NOT GRANTED
 - **Spike Execution Authorization:** NOT GRANTED
 - **Goal Activation:** NOT GRANTED
 
 ## Problem
 
-项目已经选择 Python 同步后端、LangGraph StateGraph 与 PostgreSQL Business Current Truth；DEC-049 / DEC-050 / DEC-051 已冻结生产 Checkpointer、持久性、Node 重执行、Checkpoint 对账、Durable Dispatch、Worker 所有权、协作式取消、Compatibility / Upgrade、Safe Resume Action Matrix，以及迁移 / 回滚与验收证据边界。DQ-01～DQ-09 已全部闭合；RFC-003 现进入最终一致性 Review，仍须用户单独明确接受，才能整体 Accepted。
+项目已经选择 Python 同步后端、LangGraph StateGraph 与 PostgreSQL Business Current Truth；DEC-049 / DEC-050 / DEC-051 已冻结生产 Checkpointer、持久性、Node 重执行、Checkpoint 对账、Durable Dispatch、Worker 所有权、协作式取消、Compatibility / Upgrade、Safe Resume Action Matrix，以及迁移 / 回滚与验收证据边界。DQ-01～DQ-09 已全部闭合，Final Consistency Review 通过，用户已于 2026-08-06 明确接受 RFC-003 整体。
 
 ## Context
 
@@ -64,19 +65,19 @@ RFC-003 必须同时满足：
 
 | Decision Question | Status | Source |
 |---|---|---|
-| DQ-01 Checkpointer product and database topology | ACCEPTED INPUT | P-19A / DEC-049 |
-| DQ-02 Durability and node re-execution contract | ACCEPTED INPUT | P-20A / DEC-049 |
-| DQ-03 Checkpoint reconciliation authority | ACCEPTED INPUT | P-21A / DEC-049 |
-| DQ-04 Durable dispatch and worker claim | ACCEPTED INPUT | P-22A / DEC-050 |
-| DQ-05 Worker lease, fencing and heartbeat | ACCEPTED INPUT | P-23A / DEC-050 |
-| DQ-06 Cancellation and supersession | ACCEPTED INPUT | P-24A / DEC-050 |
-| DQ-07 Workflow / state compatibility and upgrade | ACCEPTED INPUT | P-25A / DEC-051 |
-| DQ-08 Safe resume protocol and recovery action matrix | ACCEPTED INPUT | P-26A / DEC-051 |
-| DQ-09 Testing, migration, rollback and acceptance evidence | ACCEPTED INPUT | P-27A / DEC-051 |
+| DQ-01 Checkpointer product and database topology | ACCEPTED | P-19A / DEC-049 |
+| DQ-02 Durability and node re-execution contract | ACCEPTED | P-20A / DEC-049 |
+| DQ-03 Checkpoint reconciliation authority | ACCEPTED | P-21A / DEC-049 |
+| DQ-04 Durable dispatch and worker claim | ACCEPTED | P-22A / DEC-050 |
+| DQ-05 Worker lease, fencing and heartbeat | ACCEPTED | P-23A / DEC-050 |
+| DQ-06 Cancellation and supersession | ACCEPTED | P-24A / DEC-050 |
+| DQ-07 Workflow / state compatibility and upgrade | ACCEPTED | P-25A / DEC-051 |
+| DQ-08 Safe resume protocol and recovery action matrix | ACCEPTED | P-26A / DEC-051 |
+| DQ-09 Testing, migration, rollback and acceptance evidence | ACCEPTED | P-27A / DEC-051 |
 
-`ACCEPTED INPUT` 表示对应子决策已由用户接受；不表示 RFC-003 整体 Accepted。
+每项 DQ 都有独立用户接受来源；RFC-003 整体已于 2026-08-06 另行由用户明确接受。
 
-## Accepted Inputs
+## Accepted Decisions
 
 ### DQ-01 — P-19A：独立 Checkpoint Database
 
@@ -363,13 +364,13 @@ P-25A / P-26A / P-27A 已于 2026-08-06 被用户明确接受并归档为 [DEC-0
 - RFC-007 负责最终日志、Trace、Metrics、告警、Timeout / Backoff / Lease 参数与 Runbook；
 - Checkpoint retention、备份与恢复边界须与 ARP-08 保留 / 删除规划一致。
 
-## Blocking Dependencies
+## Implementation and Evidence Dependencies
 
 - RFC-001 / RFC-002 = ACCEPTED；
 - DQ-01～DQ-09 已全部关闭；
-- ARP-06 Checkpoint Reconciliation Artifact 与 TS-03 Charter 完成；
-- Final Consistency Review 证明与 RFC-001 / 002、DEC-024 / 033 / 049 / 050 / 051 及 RFC-004 边界无冲突；
-- 用户明确接受 RFC-003。
+- Final Consistency Review 已证明与 RFC-001 / 002、DEC-024 / 033 / 049 / 050 / 051 及 RFC-004 边界无冲突；
+- 用户已于 2026-08-06 明确接受 RFC-003；
+- ARP-06 Checkpoint Reconciliation Artifact 与 TS-03 Charter 仍须在 Checkpoint 实现或 Spike 执行前完成，不阻止 RFC 整体接受。
 
 ## Open Questions
 
@@ -387,18 +388,20 @@ P-25A / P-26A / P-27A 已于 2026-08-06 被用户明确接受并归档为 [DEC-0
 - **Accepted architecture alignment:** 与 RFC-001 / RFC-002、DEC-013 / 023 / 024 / 033 / 039 / 049 / 050 / 051 一致；Business Transaction、Idempotency、Current Truth、Review Revision 与 Worker Ownership 边界未被绕过。
 - **Later-RFC separation:** RFC-004 继续拥有公共 API / 状态 / 错误与恢复请求协议；RFC-007 继续拥有运维参数与 Observability；ARP-06 / TS-03、ARP-08 和 TS-01 继续拥有各自证据与生命周期规划。
 - **Proportional validation:** 证据聚焦跨 Task Resume、stale Worker、陈旧 Review、Cancellation late result、Migration compatibility 与 Commit Outcome Unknown；未新增 Hash / SHA-256 要求或低概率防御变体。
-- **Authorization boundary:** RFC-003 仍为 `IN REVIEW`；Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。全部 DQ Accepted、PR Merge 或检查通过均不能替代用户接受 RFC 整体。
+- **Authorization boundary:** RFC-003 已于 2026-08-06 被用户整体接受；Implementation、Spike Execution 与 Goal Activation 仍为 `NOT GRANTED`。RFC Acceptance 不等于这些后续授权。
 - **Independent review:** 独立审阅 Agent 按 correctness / readability / architecture / security / performance-ops 五轴复核实际文件，Blocking = 0、Non-blocking = 0，最终 PASS。
 - **Verification:** 141 份 Markdown、1,436 个本地链接、0 个损坏；`git diff --check`、Format、Lint、Type、Import Contracts、Architecture、Unit、Contract、Fast Suite、Lockfile、Package Build、isolated import 与 Dependency Audit 均通过。PR Required Checks 在最新 Commit 推送后重新确认。
 
-## User Acceptance Gate
+## User Acceptance Gate（PASSED，2026-08-06）
 
-RFC-003 只有在以下条件全部满足后才可进入最终用户接受：
+RFC-003 的最终用户接受条件与结果如下：
 
-1. DQ-01～DQ-09 均有明确 Chosen Option、Rejected Alternatives 与 Trade-offs；
-2. 兼容、迁移、Rollback、测试与停止条件完整；
-3. 与 Accepted DEC、RFC-001 / 002、Current Specs 和后续 RFC 边界一致；
-4. 独立五轴 Review 与文档链接校验通过；
-5. 用户明确回复接受 RFC-003。
+1. DQ-01～DQ-09 均有明确 Chosen Option、Rejected Alternatives 与 Trade-offs — PASS；
+2. 兼容、迁移、Rollback、测试与停止条件完整 — PASS；
+3. 与 Accepted DEC、RFC-001 / 002、Current Specs 和后续 RFC 边界一致 — PASS；
+4. 独立五轴 Review 与文档链接校验通过 — PASS；
+5. 用户于 2026-08-06 明确回复「接受 RFC-003 整体」— PASS。
 
-PR Merge、Required Checks 通过、DEC-049 / DEC-050 / DEC-051 Accepted 或全部 DQ Accepted，均不能替代 RFC-003 整体接受，也不授权实现、Spike 或 Goal。
+**Final Decision：RFC-003 = ACCEPTED。** 该决定使 RFC-003 成为当前 Workflow Runtime 与 Checkpoint Architecture 基线；后续 RFC、Readiness Artifact、Spike 与实现不得违反或静默绕过其边界。
+
+Acceptance 不授权实现、Spike 或 Goal。本次仍不授权安装生产 Checkpointer、创建 Checkpoint Database、执行 setup / migration、实现 Worker / Graph / API / 业务模块、执行 TS-01～TS-05，或创建 / 激活长期 Goal。

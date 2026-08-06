@@ -47,7 +47,7 @@
 - **Persona 策略：** 一个复合主 Persona，商品运营与内容运营作为职责视角；详细画像继续标为假设，真实访谈是 Beta 前门禁。
 - **成功边界：** 以本地可启动、端到端闭环、结果可理解 / 审核 / 追溯 / 恢复 / 导出和人工可用性为主，不以机械总分或销量承诺自动接受。
 
-> 注：统一单 Agent、LangGraph StateGraph、按需混合 Retrieval、4 个 Core Skills、Xiaohongshu Adapter、PostgreSQL 持久化，以及首个演示的代表性验收包、行为门禁和 Markdown-first 用户导出均已确认；仍待策划的是输入与 Brief 最终公共字段、工作台组件、测试工具以及 RFC-003～007 / Frontend Architecture 的实现细节（见 [mvp-scope.md](mvp-scope.md)）。
+> 注：统一单 Agent、LangGraph StateGraph、按需混合 Retrieval、4 个 Core Skills、Xiaohongshu Adapter、PostgreSQL 持久化、RFC-003 Workflow Runtime，以及首个演示的代表性验收包、行为门禁和 Markdown-first 用户导出均已确认；仍待策划的是输入与 Brief 最终公共字段、工作台组件、测试工具以及 RFC-004～007 / Frontend Architecture 的实现细节（见 [mvp-scope.md](mvp-scope.md)）。
 
 ---
 

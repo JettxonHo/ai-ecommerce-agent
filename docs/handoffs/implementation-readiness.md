@@ -2,7 +2,7 @@
 
 > **Status: CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY**
 >
-> Foundation 与 RFC-001 / RFC-002 已完成，但 Business / Production Implementation、TS-01～TS-05 执行和实际 Goal 均未授权。已完成的 Spike-001 不在本禁令所指范围内。
+> Foundation 与 RFC-001～RFC-003 已完成，但 Business / Production Implementation、TS-01～TS-05 执行和实际 Goal 均未授权。已完成的 Spike-001 不在本禁令所指范围内。
 
 进入开发至少需要以下条件**全部**满足，并须先通过 Implementation Readiness Review（见 [../reviews/](../reviews/)），再由用户明确批准。
 
@@ -19,9 +19,10 @@
 - [x] Review Package、Approved Strategy、Marketing Brief、Xiaohongshu Brief 产品语义组，以及 Domain Version / Review Draft revision / Current Truth / 导出快照行为已确认（DEC-046）
 - [x] 渐进式证据、语义组差异与编辑意图、阶段时间线、行动导向恢复和导出前确认已确认（DEC-047）
 - [x] 三个固定资料包 + 一个变更脚本、行为门禁 + 人工可用性判断、Release Candidate Live Smoke 和 Markdown-first 用户导出已确认（DEC-048）
-- [x] RFC-003 的 Checkpointer 拓扑、同步持久性、可重入 Node 与 Business-Current-Truth-first Reconciliation 已确认（DEC-049；RFC-003 整体仍未 Accepted）
-- [x] RFC-003 的 PostgreSQL Durable Dispatch、数据库权威 Lease / Heartbeat / Fencing Token 与协作式取消 / Supersession 已确认（DEC-050；RFC-003 整体仍未 Accepted）
-- [x] RFC-003 的显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、前向恢复与风险切片证据边界已确认（DEC-051；RFC-003 整体仍未 Accepted）
+- [x] RFC-003 的 Checkpointer 拓扑、同步持久性、可重入 Node 与 Business-Current-Truth-first Reconciliation 已确认（DEC-049）
+- [x] RFC-003 的 PostgreSQL Durable Dispatch、数据库权威 Lease / Heartbeat / Fencing Token 与协作式取消 / Supersession 已确认（DEC-050）
+- [x] RFC-003 的显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、前向恢复与风险切片证据边界已确认（DEC-051）
+- [x] RFC-003 Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-003 整体
 - [x] 关键 Agent、Workflow、Human Review 与 Skill 边界已确认
 - [x] Retrieval / Evidence 与 Skill 的概念职责已确认
 - [x] 外部 Skill 供体的 Adapt / Reference 策略已确认
@@ -44,11 +45,11 @@
 - **Architecture Readiness:** CONDITIONALLY READY
 - **Development Status:** CONDITIONALLY READY（仅策划与治理）
 - **Spike-001:** COMPLETED
-- **RFC:** RFC-001 / RFC-002 = ACCEPTED；RFC-003 = IN REVIEW（DEC-049～051 已接受 DQ-01～09 输入，整体未 Accepted）；RFC-004～RFC-007 = PROPOSED
+- **RFC:** RFC-001 / RFC-002 / RFC-003 = ACCEPTED；RFC-004～RFC-007 = PROPOSED
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
 - **产品交互与验收:** 单任务工作台、确认式局部重跑、Task / Fact Stage 最低门禁、默认文件限制、分级冲突、审核 / Brief 产品语义和版本 / revision / 导出、渐进式证据、编辑影响、阶段进度、行动导向恢复、固定验收包、行为门禁与 Markdown-first 用户导出 = ACCEPTED（DEC-044～048）；最终公共 Schema、视觉组件、Diff 算法、并发实现、测试工具与公共状态映射仍待 Frontend Architecture / RFC / Testing Strategy
-- **Workflow Runtime:** 独立 PostgreSQL Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Current-Truth-first Reconciliation = ACCEPTED INPUT（DEC-049）；PostgreSQL Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token、协作式 Cancellation / Supersession + Commit Fence = ACCEPTED INPUT（DEC-050）；显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、Forward Repair 与风险切片证据边界 = ACCEPTED INPUT（DEC-051）。精确实施版本、最终公共字段与运维参数仍待实施证据、RFC-004 / 007；RFC-003 整体仍待最终接受
+- **Workflow Runtime:** 独立 PostgreSQL Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Current-Truth-first Reconciliation = ACCEPTED（DEC-049 / RFC-003）；PostgreSQL Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token、协作式 Cancellation / Supersession + Commit Fence = ACCEPTED（DEC-050 / RFC-003）；显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、Forward Repair 与风险切片证据边界 = ACCEPTED（DEC-051 / RFC-003）。精确实施版本、最终公共字段与运维参数仍待实施证据、RFC-004 / 007
 - **允许工作:** 产品规格、Architecture RFC、Readiness Artifact / Spike Charter 规划、测试策略、开发计划、Goal 文档与一致性 Review
 - **禁止工作:** Business / Production Implementation、TS-01～TS-05 执行、公开部署、实际 Goal 启动
 - **用户 Goal 指令:** 未下达

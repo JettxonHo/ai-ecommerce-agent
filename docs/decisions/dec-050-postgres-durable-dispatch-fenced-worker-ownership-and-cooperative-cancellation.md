@@ -10,6 +10,8 @@ Accepted
 
 > **Follow-up:** [DEC-051](dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) 冻结与本决定配套的显式兼容、确定性恢复动作、迁移 / 回滚与验收证据；不改变本决定的 Dispatch、Ownership 或 Cancellation 语义。
 
+> **RFC status follow-up（2026-08-06）：** 本决定形成时不接受 RFC-003 整体；用户后来已单独明确接受 [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)。Implementation、Spike Execution 与 Goal Activation 仍未授权。
+
 ## Date
 
 2026-08-06
