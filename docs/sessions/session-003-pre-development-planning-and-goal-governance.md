@@ -515,3 +515,54 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `P-28 / P-29 / P-30 = PROPOSED`；用户尚未接受任何选项。
 - RFC-006 Status = `DRAFTING`；RFC Acceptance、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
 - 在用户裁决前，不安装 Provider SDK、不读取 Secret、不调用模型、不创建 Prompt Runtime / Registry、不执行 Live Smoke，也不把推荐方案写成 Current Truth。
+
+## Decision Round — RFC-006 Provider, Model Runtime Port and Structured Output（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-28A`：首个 Goal 只实现 OpenAI Responses API + 官方 Python SDK + `gpt-5.6-terra` 的单一真实 Provider Adapter，不开放 Provider-hosted Tools，也不建设多 Provider 路由或容灾。
+- 用户明确接受 `P-29A`：Application 定义项目自有、typed、Provider-neutral 的窄型同步 Model Runtime Port，`platform/model_runtime` 实现单一 OpenAI Infrastructure Adapter，由 Composition Root 注入；Skill 不依赖 Provider SDK。
+- 用户明确接受 `P-30A`：每次模型调用使用 Provider-native Strict Structured Output，但项目 Pydantic / JSON Schema 与 Skill Domain Validator 保持权威；refusal / incomplete / 无内容是显式非成功分支。
+
+### Acceptance Clarification
+
+- 这是基于当前官方能力与项目架构适配度的选择，不是 OpenAI / Anthropic / Google 三家模型质量 Benchmark 结论。
+- 实施时记录已验证的 SDK / API / Model ID 组合；账号访问、Structured Output 兼容、固定验收包质量、延迟与成本仍须用实施证据验证。
+- 若真实 Adapter 被账号、兼容性或阻塞性质量问题卡住，不得静默更换 Provider 或模型，须暂停并提交 RFC Amendment。
+- Port 只抽象首个 MVP 需要的语义，不承诺无成本换 Provider，也不建设通用 Gateway。
+- Structured Output 固定顺序为 Provider 分类 → Parse → 项目 Schema → 语义保持的确定性 Normalization → Skill Domain Validator → Candidate Result；结构有效不代表业务正确。
+
+### Accepted Result
+
+- [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) 归档 P-28A / P-29A / P-30A。
+- [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) 的 DQ-01～DQ-03 变为 `ACCEPTED INPUT`；RFC 整体仍为 `DRAFTING`。
+- Issue #48 / Draft PR #49 继续承载同一 RFC；不另建重复 Issue、Branch 或 PR。
+
+### Remaining Decisions and Authorization Boundary
+
+- DQ-04～DQ-08（P-31～P-35）仍未闭合；错误 / 修复 / Retry / 取消、版本、Skill Profiles、Secret / Payload / Telemetry、确定性替身与 Live Smoke 仍不得由实现 Agent 临场决定。
+- RFC Acceptance、SDK 安装、Secret 读取、真实模型调用、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
+- 本轮只归档用户决定并同步 Current Truth；不编写业务代码、不执行 TS-01～TS-05、不创建或激活长期 Goal。
+
+## Proposal Round — RFC-006 Failure, Versioning and Skill Profiles（2026-08-06）
+
+### Official Evidence and Constraint Check
+
+- OpenAI 官方错误文档与 Python SDK 说明：SDK 默认会对连接错误、408、409、429 和 5xx 做有限重试，Timeout 也可能被重试；若项目再叠加 Model Runtime / Workflow Retry，会形成难以解释的嵌套预算。
+- Responses Cancel API 仅能取消 `background=true` 的 Response；本项目已接受同步窄型 Port，因此不能假设 Provider 支持同步调用的中途取消，必须依赖调用前后检查、受控 Timeout 与晚到结果丢弃。
+- Structured Outputs 官方示例将 `incomplete`、`refusal` 与无可解析内容作为独立非成功分支，支持 P-31 将传输失败、拒绝、不完整输出和 Candidate 校验失败分层处理。
+- GPT-5.6 Terra 官方模型说明支持 `low / medium / high` 等 Reasoning Effort；P-33 只为真实 Stage 差异建立五个命名 Profile，不开放工具或动态模型路由。
+
+### Proposed Decisions
+
+- `P-31A`（推荐）：关闭 SDK 隐式重试；一个 Model Operation 最多 2 个 Model Call（初始 + 一次共享的 Model-assisted Recovery），两者共享最多 1 次额外传输重试，故最多 3 次 Provider Attempt；Parse / Schema 失败只对语义不变表达问题先做 Normalization 并重验，Domain Validator 失败不重复 Normalization；Incomplete Recovery、Constrained Repair 与 Candidate Regeneration 共享唯一 Recovery；Refusal 不重试；同步取消采用前后检查 + Timeout + 丢弃晚到结果；稳定 `model_call_id` / `provider_attempt_id` 并记录 Provider IDs。
+- `P-32A`（推荐）：使用项目自有、可读的 Model Runtime Version Tuple，记录 Provider / API / SDK / configured+resolved Model / Prompt / Schema / Skill Contract / Validator / Profile / Context Assembly 版本；每次调用固化快照，不使用 Hash / SHA-256，不引入外部 Prompt Management SaaS。
+- `P-33A`（推荐）：五个命名 Profile，初始 Reasoning 分别为 Fact=`low`、Insight=`medium`、Positioning=`high`、Marketing Brief=`medium`、Xiaohongshu Mapping=`low`；全部禁用 Provider-hosted Tools；Context 由 Application / Retrieval Runtime 按权威版本与 Evidence Package 确定性装配。
+
+完整的 B / C 备选、优缺点、调用身份、上下文优先级、停止条件和官方链接见 [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)。
+
+### Decision and Authorization Status
+
+- `P-31 / P-32 / P-33 = PROPOSED`；用户尚未接受任何选项。
+- RFC-006 仍为 `DRAFTING`；P-34 / P-35 尚未提出，RFC Acceptance、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
+- 在用户裁决前，不把 Reasoning Profile、Retry 次数、版本 Tuple 或 Context Assembly 写成实现事实，也不安装 SDK、读取 Secret、调用模型或执行 Live Smoke。

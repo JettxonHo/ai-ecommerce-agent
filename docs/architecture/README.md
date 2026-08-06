@@ -10,7 +10,8 @@
 - **已确认：** Modular Monolith、Python 后端、LangGraph StateGraph 确定性编排、版本化 Domain State 与紧凑 Workflow State、Source / Fragment / Evidence Link、按需混合检索、单一 Human Review、API / Worker / CLI 进程边界、模块依赖规则，以及 PostgreSQL + SQLAlchemy 2.x Sync + Psycopg 3 Sync + Alembic 持久化栈。
 - **已完成：** RFC-001、RFC-002、RFC-003、Spike-001 与 FND-001～003。
 - **已接受的 RFC-003：** DEC-049 已冻结同 PostgreSQL Service 下的独立 Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Business-Current-Truth-first Reconciliation；DEC-050 已冻结 PostgreSQL Durable Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token 与协作式取消 / Supersession；DEC-051 已冻结显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移和 Forward Repair 证据边界。RFC-003 的 DQ-01～09 已闭合，并于 2026-08-06 被用户整体接受。
-- **仍未决定：** 精确实施版本与最终公共字段；RFC-004～007、Frontend Architecture、公共 API 细节、Retrieval Backend、LLM Provider / Model、Observability 产品与部署方式。
+- **已接受的 RFC-006 输入：** DEC-052 已冻结单一 OpenAI Responses API / `gpt-5.6-terra` 基线、Application-owned 窄型同步 Model Runtime Port，以及 Provider-native Strict Output → 项目 Schema → Skill Domain Validator 分层；RFC-006 整体仍为 Drafting。
+- **仍未决定：** 精确实施版本与最终公共字段；RFC-004 / 005 / 007、RFC-006 DQ-04～08、Frontend Architecture、公共 API 细节、Retrieval Backend、Observability 产品与部署方式。
 - 业务与生产实现未授权；概念架构 Accepted 不等于对应生产模块已经实现。
 
 ---

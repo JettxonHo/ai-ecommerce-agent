@@ -1,6 +1,6 @@
 # Architecture Baseline v1
 
-> **Status: ACTIVE PRE-DEVELOPMENT BASELINE（已同步至 DEC-051、RFC-001～RFC-003；RFC-004～007 仍待决定）**
+> **Status: ACTIVE PRE-DEVELOPMENT BASELINE（已同步至 DEC-052、RFC-001～RFC-003；RFC-006 DQ-01～03 已接受输入，RFC-004 / 005 / 007 与 RFC-006 剩余 DQ 仍待决定）**
 > **治理来源：** 本文件综合当前**已接受**的 DEC 与 Specs，形成 Current Architecture Truth。**不发明任何新的生产技术选择。**
 > **关联：** [../readiness/architecture-readiness-report-v1.md](../readiness/architecture-readiness-report-v1.md) · [../rfcs/rfc-register.md](../rfcs/rfc-register.md) · Spike-001（MERGED）
 > **Base Commit：** `a60ff3b6a24bf8b35e1c2ba1031038bb7123a578`
@@ -108,7 +108,7 @@ Validated Temporary Implementation — Not Production Commitment
 - pytest + 本地 JSONL Trace + CLI [临时]
 ```
 
-> 生产后端语言、数据库、ORM 与迁移方案已由 RFC-001 / RFC-002 确认；生产 Checkpointer、LLM Provider、Retrieval、Observability、Frontend 与部署边界仍为 `PENDING RFC / Decision`（见 [../rfcs/rfc-register.md](../rfcs/rfc-register.md)）。
+> 生产后端语言、数据库、ORM 与迁移方案已由 RFC-001 / RFC-002 确认，生产 Checkpointer 已由 RFC-003 确认；LLM Provider / Model / Model Runtime Port / Structured Output Authority 已由 DEC-052 确认，但 RFC-006 DQ-04～08 与 RFC 整体仍为 `PENDING DECISION`。Retrieval、Observability、Frontend 与部署边界仍为 `PENDING RFC / Decision`（见 [../rfcs/rfc-register.md](../rfcs/rfc-register.md)）。
 
 ## 9. RFC Governance and Production Decision Gate
 
@@ -1272,7 +1272,7 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 - Production Checkpointer：ACCEPTED RFC-003（精确兼容版本待实施证据）；
 - API Framework and Human Review Protocol：PENDING RFC-004；
 - Source Processing and Retrieval：PENDING RFC-005；
-- LLM Provider and Structured Output：PENDING RFC-006；
+- LLM Provider / Model / Port / Structured Output Authority：ACCEPTED INPUT（DEC-052）；RFC-006 DQ-04～08 与整体接受仍待决定；
 - Observability and Runtime Operations：PENDING RFC-007；
 - Frontend Architecture、Test Layering 与 Deployment Platform：PENDING Decision / Planning Package。
 
@@ -1285,14 +1285,14 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 | LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | ACCEPTED — 2026-08-06 | RFC-003 |
 | API and Human Review Protocol | PENDING RFC | RFC-004 |
 | Source Processing and Retrieval Architecture | PENDING RFC | RFC-005 |
-| LLM Runtime and Structured Output | PENDING RFC | RFC-006 |
+| LLM Runtime and Structured Output | PARTIAL ACCEPTED INPUT — DEC-052；DQ-04～08 / RFC overall pending | RFC-006 |
 | Observability and Runtime Operations | PENDING RFC | RFC-007 |
 
-> **RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**——DQ-01~10 全部 ACCEPTED 且 Final Consistency Review 通过。DQ-10 已确认 Acceptance 与 Authorization 严格分离、Foundation Scope（Package + Quality + Architecture Tests + CI + Repository Security）、Foundation Issue Candidates（FND-001/002/003）与 Mandatory Stop Conditions。RFC-001 Acceptance 不自动授权实现；**Foundation Planning 现已开放（AUTHORIZED）**，但仅允许生成并审查 FND-001/002/003 Issue Candidates（不自动创建 Issue）；**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30，Decision Conflict = NONE）均已完成**——当前 Candidate 状态（以 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)「授权边界（恒定成立）」为基准）：FND-001 = COMPLETED（PR #7 已合并，Merge Commit 5b75bcf，归档 PR #8），FND-002 = IN REVIEW（Issue #9 已创建，实施完成并提交 PR #10，Merge = USER DECISION REQUIRED），FND-003 = READY BLOCKED BY FND-002，Issue Creation / Implementation 均未授权；**Foundation Implementation 仍需单独明确授权（NOT AUTHORIZED；除 FND-001 / FND-002 单项授权外）**；Production CI、Production Skeleton、质量工具版本锁定、Secret Scanner、业务模块、API、Worker、CLI、Database、Production LangGraph 与 Production Runtime 创建仍 **NOT AUTHORIZED**。其余 RFC 仍为 `PROPOSED`。上述在生产实现前必须先经 RFC 提案 + 用户 Accepted Decision 收敛；**不得**临场选择。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
+> **Historical planning record（2026-07-30）：** RFC-001 已由用户正式接受；当时 Foundation Planning 开放，FND-001 已完成、FND-002 处于 Review、FND-003 被 FND-002 阻塞，其余 RFC 尚为 `PROPOSED`。该段只保留当时的授权与依赖背景，不表示当前状态；当前 RFC / Foundation 状态以上表、本文件顶部 Current Sync 与后续 Historical Status Snapshot 顶部说明为准。所有尚未接受的技术选择仍不得由实现 Agent 临场决定。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
 
 ## 21. Historical Status Snapshot（Foundation 完成前）
 
-> 本节保留 Foundation 实施期间的收口快照，不代表 2026-08-06 当前状态。当前状态为：RFC-001～003 与 FND-001～003 已完成；RFC-004～007、Frontend Architecture、产品最终规格、完整 Readiness Artifact、测试与 Goal 文档仍待策划；TS-01～TS-05 执行、业务实现和实际 Goal 均未授权。
+> 本节保留 Foundation 实施期间的收口快照。2026-08-06 当前状态为：RFC-001～003 与 FND-001～003 已完成；RFC-006 DQ-01～03 已由 DEC-052 接受、其余 DQ 与 RFC 整体仍在策划；RFC-004 / 005 / 007、Frontend Architecture、产品最终规格、完整 Readiness Artifact、测试与 Goal 文档仍待策划；TS-01～TS-05 执行、业务实现和实际 Goal 均未授权。
 
 ```text
 Spike Execution Status = COMPLETED

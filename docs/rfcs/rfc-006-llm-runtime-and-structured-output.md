@@ -13,7 +13,7 @@
 
 ## Problem
 
-首个演示 MVP 已确定使用一个真实 LLM Provider 与一个确定性测试替身，但生产 Provider、模型、SDK、项目内 Model Runtime Port、Structured Output、错误修复、版本记录、Secret 和 Live Smoke 边界尚未冻结。若把这些选择留给单个实现 Issue 临场决定，四个 Core Skills 会直接耦合厂商 SDK，并可能把 Provider 输出、业务 Validator、Workflow Retry 和 Current Truth 写入混成同一职责。
+首个演示 MVP 已确定使用一个真实 LLM Provider 与一个确定性测试替身；DEC-052 已进一步冻结生产 Provider、默认模型、SDK 能力基线、项目内 Model Runtime Port 与 Structured Output Authority。错误修复、版本记录、Skill Profile、Secret / Payload / Telemetry 和 Live Smoke 边界仍未冻结。若把剩余选择留给单个实现 Issue 临场决定，Provider Output、业务 Validator、Workflow Retry、运行证据和 Current Truth 仍可能被写入同一职责。
 
 RFC-006 需要在不实现 Prompt Runtime、不调用真实模型、不扩大 MVP 的前提下，冻结一个足够窄、可测试、可追溯的生产 LLM Runtime 契约。
 
@@ -43,6 +43,7 @@ RFC-006 必须同时满足：
 - [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md)
 - [DEC-041](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)
 - [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)
+- [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)
 - [RFC-001](rfc-001-repository-and-application-architecture.md)
 - [RFC-002](rfc-002-persistence-and-transaction-architecture.md)
 - [RFC-003](rfc-003-langgraph-runtime-and-checkpoint-architecture.md)
@@ -75,22 +76,22 @@ RFC-006 必须同时满足：
 
 | Decision Question | Proposal | Status |
 |---|---|---|
-| DQ-01 Provider / Model / SDK Capability Baseline | P-28 | PROPOSED |
-| DQ-02 Model Runtime Port, DI and Configuration | P-29 | PROPOSED |
-| DQ-03 Structured Output Contract and Schema Authority | P-30 | PROPOSED |
-| DQ-04 Provider Failure, Repair, Retry, Cancellation and Call Identity | P-31 | NOT YET PROPOSED |
-| DQ-05 Prompt / Model / Schema / Execution Configuration Versioning | P-32 | NOT YET PROPOSED |
-| DQ-06 Skill-specific Invocation Profiles and Context Assembly | P-33 | NOT YET PROPOSED |
+| DQ-01 Provider / Model / SDK Capability Baseline | P-28A | ACCEPTED INPUT（DEC-052） |
+| DQ-02 Model Runtime Port, DI and Configuration | P-29A | ACCEPTED INPUT（DEC-052） |
+| DQ-03 Structured Output Contract and Schema Authority | P-30A | ACCEPTED INPUT（DEC-052） |
+| DQ-04 Provider Failure, Repair, Retry, Cancellation and Call Identity | P-31 | PROPOSED |
+| DQ-05 Prompt / Model / Schema / Execution Configuration Versioning | P-32 | PROPOSED |
+| DQ-06 Skill-specific Invocation Profiles and Context Assembly | P-33 | PROPOSED |
 | DQ-07 Secret, Provider Payload, Persistence and Telemetry Boundary | P-34 | NOT YET PROPOSED |
 | DQ-08 Deterministic Substitute, Contract Tests and Live Smoke | P-35 | NOT YET PROPOSED |
 
-未获得用户明确接受前，任何推荐方案都只是 Proposed Decision，不得写入 Current Truth 或实现。
+用户已于 2026-08-06 明确接受 P-28A、P-29A 与 P-30A，并由 [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) 归档。该接受只闭合 DQ-01～DQ-03；DQ-04～DQ-08、RFC-006 Final Consistency Review 与 RFC 整体接受仍未完成。
 
-## Proposed Decision Round 1
+## Accepted Decision Round 1
 
 ### P-28：Provider / Model / SDK Capability Baseline
 
-#### P-28A（推荐）：OpenAI Responses API + GPT-5.6 Terra + 官方 Python SDK
+#### P-28A（已接受）：OpenAI Responses API + GPT-5.6 Terra + 官方 Python SDK
 
 首个 Goal 只实现 OpenAI 一个真实 Provider Adapter，使用 Responses API、官方 Python SDK 与 `gpt-5.6-terra` 作为默认生产模型。模型调用保持纯文本输入 / Structured Output，不开放内置 Web Search、File Search、Computer Use、Hosted Shell 或其他 Provider-hosted Tools。部署时固定已验证的 SDK / API 组合，并在 Compatibility Matrix 记录实际 Model ID；若厂商提供可用的稳定 Snapshot，优先固定 Snapshot，否则固定已验证的稳定 Model ID 并把模型变更视为受控配置变更。
 
@@ -116,11 +117,11 @@ RFC-006 必须同时满足：
 
 #### 推荐理由
 
-P-28A 是基于当前官方能力说明与项目已接受架构边界作出的**适配度推断**：OpenAI Responses API 已同时提供本 RFC 需要的结构化输出、refusal / incomplete、usage metadata 和 Python 支持，因此预计额外协议适配最少；这不是三家模型质量 Benchmark 的结论。三案的账号可用性、固定验收包质量、实际延迟和成本证据均尚未执行，必须在实施前置兼容检查与 Release Candidate Smoke 中验证。推荐不等于接受；本 RFC 不授权安装 SDK、读取 Secret 或调用模型。
+P-28A 是基于当前官方能力说明与项目已接受架构边界作出的**适配度推断**：OpenAI Responses API 已同时提供本 RFC 需要的结构化输出、refusal / incomplete、usage metadata 和 Python 支持，因此预计额外协议适配最少；这不是三家模型质量 Benchmark 的结论。三案的账号可用性、固定验收包质量、实际延迟和成本证据均尚未执行，必须在实施前置兼容检查与 Release Candidate Smoke 中验证。用户已接受 P-28A，但本 RFC 仍不授权安装 SDK、读取 Secret 或调用模型。
 
 ### P-29：Model Runtime Port, DI and Configuration
 
-#### P-29A（推荐）：项目自有窄型同步 Port + 单一已接受 Provider Adapter
+#### P-29A（已接受）：项目自有窄型同步 Port + 单一已接受 Provider Adapter
 
 由 Application 定义项目自有、Provider-neutral、typed 的同步 Port，并在 `platform/model_runtime` 提供单一已接受 Provider 的 Infrastructure Adapter。概念输入只包含 `ModelCallRequest`、`StructuredOutputSpec`、`ModelExecutionProfile`、调用身份与受控上下文；概念结果只包含解析前的 Provider-neutral Output Envelope、Provider Call Metadata 和稳定内部 Error。具体 SDK Client、SDK 类型、Credential 和 Response 对象只存在于 Infrastructure Adapter。Composition Root 创建并注入单例 Client / Adapter，Skill Application Service 依赖 Port，不依赖厂商 SDK。
 
@@ -149,7 +150,7 @@ P-29A 是“单 Provider 实现”与“领域不依赖厂商 SDK”的最小交
 
 ### P-30：Structured Output Contract and Schema Authority
 
-#### P-30A（推荐）：Provider-native Strict Schema + 项目 Schema + Domain Validator
+#### P-30A（已接受）：Provider-native Strict Schema + 项目 Schema + Domain Validator
 
 每个模型调用使用 Provider-native Strict Structured Output；项目内 Pydantic / JSON Schema 是结构契约的权威来源，Adapter 负责生成 Provider 支持的等价 Schema 表达并把响应收敛为 Provider-neutral Envelope。Provider 不支持的约束必须在预检中显式识别并由本地原始 Schema / Domain Validator 保留，禁止静默丢弃约束或改变字段语义。处理链固定为：
 
@@ -182,19 +183,125 @@ Schema 合规只证明结构有效，不证明事实、证据、战略或业务�
 
 P-30A 同时利用 Provider 的结构保证与项目 Validator 的业务保证，不把 Structured Output 当作自动接受器，也不堆叠重复的防御性解析变体。
 
+## Proposed Decision Round 2
+
+### P-31：Provider Failure, Repair, Retry, Cancellation and Call Identity
+
+#### P-31A（推荐）：项目统一预算 + 共享单次传输重试 + 单次 Model-assisted Recovery
+
+Model Runtime Adapter 将 Provider / SDK 结果收敛为少量稳定内部类别：`configuration_or_access`、`invalid_request`、`transient_provider_failure`、`refusal`、`incomplete_output`、`invalid_candidate`、`cancelled_or_superseded`。Provider 的细粒度异常保留在诊断 metadata，不上浮为公共业务契约，也不为每个低概率子类型建立独立防御分支。
+
+项目禁用 OpenAI Python SDK 的隐式重试（Client `max_retries=0`），由 Model Runtime 在 DEC-033 的单一 Retry Budget 与 Deadline 内控制：
+
+- 一个 Model Operation 最多包含 **2 个 Model Call**（1 个初始调用 + 1 个 Model-assisted Recovery），并在两者之间共享 **最多 1 次额外传输重试**；因此整个 Operation 最多发起 **3 次 Provider Transport Attempt**，且 Overall Deadline 可进一步提前终止；
+- 连接失败、显式 Timeout、429 与可重试 5xx 可以消耗这唯一的额外传输重试；存在 `Retry-After` 且仍能满足 Deadline 时遵守，否则直接失败；若初始 Model Call 已消耗该重试，Recovery Call 发生传输失败时不得获得新预算；
+- Authentication / Permission / Model Access / Invalid Request 不重试；
+- `refusal` 不自动重试，也不伪装成结构化结果；
+- `incomplete` 仅在 Profile 预先定义了适用恢复变体、且 Deadline / Budget 允许时使用 1 次 Model-assisted Recovery，否则失败；
+- Parse / Project Schema 失败时，只对 DEC-033 允许的语义不变表达问题执行零调用的 Deterministic Normalization，随后必须重新 Parse 并重新验证 Schema；仍失败时可使用精简 Schema 反馈执行 1 次 Constrained Repair；
+- Skill Domain Validator 失败发生在 Schema 与 Normalization 已通过之后，不重复执行 Normalization；可使用精简 Validator 反馈执行 1 次 Candidate Regeneration；
+- `incomplete` 恢复、Constrained Repair 与 Candidate Regeneration 共享同一个 **最多 1 次 Model-assisted Recovery** 预算。Responses API 没有独立的项目修复通道，因此这一次恢复在传输层表现为新的 Model Call，并以恢复原因区分 `repair` / `regeneration`；不得形成“修复 + 再修复 + 再生成”链，再次失败即终止当前 Model Operation；该收紧是对 DEC-033 条件式 Recovery Stages 的具体预算化，不删除其中任何校验步骤，也不允许先 Repair 再 Regenerate；
+- Retry 只重发同一请求，不创建业务版本；Regeneration 是新的语义调用，也不能自行触发 Workflow Rerun。
+
+每个相同语义请求使用稳定 `model_call_id`，每次传输尝试创建新的 `provider_attempt_id`；任何 Model-assisted Recovery 都创建新的 `model_call_id`，以 `recovers_call_id` 关联原调用，并用 `recovery_kind = incomplete | repair | regeneration` 区分原因。成功或失败时记录 Provider `response_id`（如存在）、SDK 暴露的 request ID、实际 Model ID、Attempt 次序与 disposition。模型调用没有项目外部业务副作用；Timeout 或连接中断后未观察到的 Provider 输出永远不能提交，只有当前有效 Ownership / Cancellation / Revision 下成功接收并通过 Validator 的 Candidate 才可进入 Commit。
+
+同步调用不切换为 Responses Background Mode。由于 OpenAI Cancel API 只支持 `background=true` 的 Response，本项目的取消边界固定为：调用前检查 → 受控 Timeout → 调用返回后检查 → Node / Commit 前检查；在取消、Supersession 或 Ownership Loss 后返回的结果必须丢弃。
+
+- **优点：** Retry Budget 只有一个所有者，避免 SDK 默认重试与 Workflow Retry 嵌套放大；失败分支少而明确；与同步 Port、协作式取消和 Current-Truth-first Commit 一致。
+- **缺点：** Adapter 需显式映射可重试状态并尊重 `Retry-After`；同步请求不能向 Provider 发起中途取消，最坏仍需等待受控 Timeout。
+
+#### P-31B：保留 SDK 默认重试，再由项目处理修复与再生成
+
+- **优点：** Adapter 代码少，官方 SDK 已覆盖连接、408、409、429 与 5xx 的默认重试。
+- **缺点：** SDK 默认重试、Model Runtime 重试与 Workflow Retry 形成嵌套预算；Timeout 也可能被 SDK再次尝试，Deadline 与真实调用次数不易解释。
+
+#### P-31C：所有 Provider / Structured Output 失败立即终止，不做自动重试或再生成
+
+- **优点：** 行为最简单、成本最可预测。
+- **缺点：** 把一次瞬时网络 / 限流或一次可纠正的 Candidate 失败直接升级为用户可见失败，不符合本地演示的可靠性目标。
+
+#### 推荐理由
+
+P-31A 以“最多 2 个 Model Call、共享 1 次额外传输重试、整个 Operation 最多 3 次 Provider Attempt”的硬上限覆盖最常见且真实的失败，不建设复杂修复树。显式关闭 SDK 默认重试使 DEC-033 的 Budget、Deadline、Trace 与实际 Provider 调用次数保持一致。
+
+### P-32：Prompt / Model / Schema / Execution Configuration Versioning
+
+#### P-32A（推荐）：项目自有可读 Version Tuple + 每次调用固化快照
+
+项目在 Source Control 中维护可读、显式的 Model Runtime Version Tuple，不引入外部 Prompt Management SaaS，也不使用内容 Hash 作为身份。每个 Model Call 至少绑定：
+
+- `provider_id` 与 `api_family`；
+- 锁文件中的 `sdk_version`；
+- `configured_model_id` 与响应返回的 `resolved_model_id`（如 Provider 提供）；
+- `prompt_template_id` / `prompt_template_version`；
+- `output_schema_id` / `output_schema_version`；
+- `skill_contract_version`；
+- `domain_validator_version`；
+- `execution_profile_id` / `execution_profile_version`；
+- `context_assembly_version`。
+
+以上使用人类可读、单调演进的显式版本；每次调用把实际 Tuple 固化到 Model Call Record 与 Candidate metadata，后续不得随配置漂移回写历史。Prompt、Schema、Validator、Profile 或 Context Assembly 的行为变化必须提升对应版本；破坏兼容的变化必须创建新 Major / 新 ID。Model alias 或 Snapshot 变化属于受控配置发布，必须经过固定验收包回归和适用 Live Smoke，不能只改环境变量后静默生效。
+
+- **优点：** 运行结果可解释、可回归、可定位；不会把厂商 Prompt 对象或部署平台当项目权威；不需要 Hash / SHA-256。
+- **缺点：** 需要维护一个小型版本清单并在变更 PR 中同步多个显式版本；人工漏升版本需要 Contract Test 发现。
+
+#### P-32B：使用 OpenAI 托管 Prompt ID / Version 作为主要权威
+
+- **优点：** Prompt 发布与回滚可由 Provider 管理，运行请求较简洁。
+- **缺点：** 项目历史和 Review 依赖外部控制面；Prompt 与项目 Schema / Validator / Skill Contract 的复合兼容仍需另建本地记录；不利于本地可复现目标。
+
+#### P-32C：只记录应用 Release Version，不拆分 Prompt / Schema / Validator / Profile
+
+- **优点：** 字段最少，发布管理简单。
+- **缺点：** 无法判断同一 Release 内哪项模型配置造成回归，也无法安全执行局部重跑和历史结果解释。
+
+#### 推荐理由
+
+P-32A 只记录真正影响模型行为与结果契约的身份，足以支持回归、Resume 和审计，又不引入通用配置平台、内容指纹或机械版本矩阵。
+
+### P-33：Skill-specific Invocation Profiles and Context Assembly
+
+#### P-33A（推荐）：五个命名 Profile + 确定性 Context Assembly + 无工具调用
+
+四个 Core Skills 与 Xiaohongshu Adapter 各使用一个版本化、不可在运行中由模型改写的命名 Profile，并共用 DEC-052 接受的 Provider / Model：
+
+| Profile | 初始 Reasoning Effort | 说明 |
+|---|---:|---|
+| `product_intake_v1` | `low` | 受 Schema 与 Evidence ID 约束的事实候选提取 |
+| `customer_insight_v1` | `medium` | 多条证据的主题与需求归纳 |
+| `product_positioning_v1` | `high` | 多候选战略推理与权衡，是 MVP 最高推理档 |
+| `marketing_brief_v1` | `medium` | 在 Approved Strategy Lock 下生成平台中立 Brief |
+| `xiaohongshu_mapping_v1` | `low` | 在 Brief Lock 下做方向化平台映射 |
+
+所有 Profile 的 Provider-hosted Tools 均为 `none`。`max_output_tokens`、Call Timeout 与一次恢复变体必须写入同一 Versioned Profile；策划阶段不虚构秒数或 Token 数，实施前由固定 Schema 大小、三个验收资料包与 P-31 Budget 校准，并在该 Profile 的实现 PR 中由 Sol 独立审查。实现 Agent 不得在运行时自由改变 Reasoning、Token、Timeout 或工具权限。
+
+Context 由 Application / Retrieval Runtime 在调用前确定性装配，Provider 不能扩大范围。优先级固定为：
+
+1. Stage 指令、输出 Schema、Validator 约束与允许动作；
+2. 当前有效且明确授权的 Domain Version / Approved Strategy / Marketing Brief；
+3. 当前 Source Set Version 对应的 Evidence Package、允许引用的 ID、Conflicts、Hypotheses 与 Limitations；
+4. 仍有预算时加入的补充 Fragment。
+
+预算不足时只按已版本化的装配规则裁剪第 4 层，并保留来源定位与原始 ID；不得截断关键 ID、删除 Evidence Limitation、把旧版本或越权 Source 补入上下文，也不得让模型自行检索更多资料。若第 1～3 层无法完整装入已批准 Profile，返回显式 `context_budget_exceeded` 技术失败并停止该 Stage，不静默摘要或缩小业务约束。Profile / Context Assembly 的任何行为变化按 P-32 提升版本并触发固定验收包回归。
+
+- **优点：** 将推理成本集中到 Positioning，其他 Stage 保持适度；上下文可复现且不绕过 Retrieval / Permission / Current Truth；不用建设动态 Router。
+- **缺点：** 五个 Profile 需要分别校准；固定 Profile 不会自动利用未来模型能力变化，升级须显式评测与版本变更。
+
+#### P-33B：所有 Skill 共用一个全局 Profile 与相同 Context 模板
+
+- **优点：** 配置最少，初始实现简单。
+- **缺点：** Extraction、Strategic Reasoning 与 Platform Mapping 的成本 / 质量需求明显不同；单一大模板容易携带不相关上下文并扩大输出。
+
+#### P-33C：由模型或运行时根据输入动态选择 Reasoning / Context / Tools
+
+- **优点：** 理论上可自适应任务难度。
+- **缺点：** 难以复现和回归；把成本、权限与工具边界交给模型，违反确定性工作流和本 RFC 的单一无工具 Provider 边界。
+
+#### 推荐理由
+
+P-33A 用五个显式 Profile 覆盖真实 Stage 差异，并把 Context Scope、权限、Current Truth 与 Evidence ID 控制留在确定性 Application / Retrieval 层。精确数值以小型固定资料包校准，避免在无证据时机械固定大参数矩阵。
+
 ## Remaining Decision Questions
-
-### DQ-04 — P-31：Provider Failure, Repair, Retry, Cancellation and Call Identity
-
-待决定 Provider error taxonomy、refusal / incomplete / invalid output、transient retry 与 structured repair / regeneration 的分离、调用 Deadline、取消传播、Provider Call Identity、commit-unknown 处理和有界上限。RFC-003 拥有总体 Workflow Retry / Rerun / Cancellation；RFC-006 不得自行触发业务 Rerun。
-
-### DQ-05 — P-32：Prompt / Model / Schema / Execution Configuration Versioning
-
-待决定 Prompt Template、Model ID、Provider API、Output Schema、Skill Contract、Validator 与 Execution Profile 的版本身份、兼容性、运行记录、变更发布和回归触发条件。身份机制保持算法中立，不引入 Hash / SHA-256 要求。
-
-### DQ-06 — P-33：Skill-specific Invocation Profiles and Context Assembly
-
-待决定四个 Skills 与 Adapter 的命名 Profile、Reasoning / Token / Output 上限、Evidence Package 装配、上下文裁剪、工具权限和 Stage 间差异。Provider 不得决定 Retrieval Scope、权限、流程路由或 Current Truth。
 
 ### DQ-07 — P-34：Secret, Provider Payload, Persistence and Telemetry Boundary
 
@@ -219,7 +326,7 @@ P-30A 同时利用 Provider 的结构保证与项目 Validator 的业务保证�
 
 这些链接证明候选能力在策划日存在，不构成长期兼容保证；实施时仍须复核官方文档、锁文件与最小兼容证据。
 
-- OpenAI：[Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)、[GPT-5.6 Terra](https://developers.openai.com/api/docs/models/gpt-5.6-terra)、[Error Codes](https://developers.openai.com/api/docs/guides/error-codes)、[Data Controls](https://developers.openai.com/api/docs/guides/your-data)
+- OpenAI：[Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)、[GPT-5.6 Terra](https://developers.openai.com/api/docs/models/gpt-5.6-terra)、[Error Codes](https://developers.openai.com/api/docs/guides/error-codes)、[Cancel Response](https://developers.openai.com/api/reference/python/resources/responses/methods/cancel)、[Official Python SDK](https://github.com/openai/openai-python)、[Data Controls](https://developers.openai.com/api/docs/guides/your-data)
 - Anthropic：[Structured Outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)、[API Errors](https://platform.claude.com/docs/en/api/errors)、[API and Data Retention](https://platform.claude.com/docs/en/manage-claude/api-and-data-retention)
 - Google：[Structured Outputs](https://ai.google.dev/gemini-api/docs/structured-output)、[API Versions](https://ai.google.dev/gemini-api/docs/api-versions)、[Model Version Patterns](https://ai.google.dev/gemini-api/docs/models)
 
