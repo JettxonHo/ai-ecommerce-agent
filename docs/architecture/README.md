@@ -7,15 +7,19 @@
 ## 定位
 
 - 架构规格描述「系统当前应该怎样工作」，其内容只能来自用户明确接受的 Decision。
-- **当前没有任何已确认的架构。** 尚未决定：技术栈、是否使用 LangGraph、RAG 实现、开源底座、数据结构与集成边界。
+- **已确认：** Modular Monolith、Python 后端、LangGraph StateGraph 确定性编排、版本化 Domain State 与紧凑 Workflow State、Source / Fragment / Evidence Link、按需混合检索、单一 Human Review、API / Worker / CLI 进程边界、模块依赖规则，以及 PostgreSQL + SQLAlchemy 2.x Sync + Psycopg 3 Sync + Alembic 持久化栈。
+- **已完成：** RFC-001、RFC-002、Spike-001 与 FND-001～003。
+- **仍未决定：** RFC-003～007 的生产 Checkpointer / Runtime、Frontend Architecture、公共 API 细节、Retrieval Backend、LLM Provider / Model、Observability 产品与部署方式。
+- 业务与生产实现未授权；概念架构 Accepted 不等于对应生产模块已经实现。
 
 ---
 
 ## 文件
 
-- [system-architecture.md](system-architecture.md) — 系统架构（NOT READY）
-- [data-architecture.md](data-architecture.md) — 数据架构与数据契约（NOT READY）
-- [integration-boundaries.md](integration-boundaries.md) — 集成边界（外部系统 / API）（NOT READY）
+- [system-architecture.md](system-architecture.md) — 已接受的系统架构概念与仍待 RFC 决定的实现边界
+- [data-architecture.md](data-architecture.md) — 已接受的数据 / 状态 / 事务概念与仍待冻结的公共 Schema
+- [integration-boundaries.md](integration-boundaries.md) — 已接受的集成边界与仍待 RFC-004～007 决定的协议细节
+- [architecture-baseline-v1.md](architecture-baseline-v1.md) — Spike-001 与 RFC 规划使用的架构基线
 
 ---
 

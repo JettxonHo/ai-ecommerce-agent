@@ -1,9 +1,9 @@
-# Foundation Issue Candidates（Foundation 议题候选）
+# Foundation Program（候选计划与完成记录）
 
-> **Status: FOUNDATION PLANNING — DEC-038 · RFC-001-DQ-10 Foundation Authorization Gate**
+> **Status: COMPLETED — FND-001 / FND-002 / FND-003 merged and verified**
 > **治理来源：** [../decisions/](../decisions/) DEC-034 / DEC-036 / DEC-038 · [../rfcs/rfc-register.md](../rfcs/rfc-register.md)
 > **Parent Architecture Input：** RFC-001 Repository and Application Architecture（**Status = ACCEPTED**，2026-07-30）
-> **纪律：** 本文件**只**记录 Foundation Issue Candidates（候选议题），供用户审查。**它不创建任何 GitHub Issue、不创建 Branch、不创建 Pull Request、不修改 Repository、不创建 `apps/backend/`、不安装 Dependency、不创建 Lockfile、不开始任何 Foundation Implementation。** 每个 Foundation Issue 在被创建或实施前，都必须获得用户**单独、明确**的授权。
+> **Current truth：** 本文件同时保留候选规划、授权过程和完成证据。FND-001 / 002 / 003 均已完成；历史段落中的 `NOT AUTHORIZED`、`READY` 或 `IN REVIEW` 只表示当时状态，不是当前指令。Foundation 完成不授权 Business / Production Implementation。
 
 ---
 
@@ -65,7 +65,7 @@ Production Implementation = NOT AUTHORIZED
 
 ---
 
-## Candidate 总览与依赖顺序
+## Candidate 总览与依赖顺序（历史计划，现均已完成）
 
 ```text
 FND-001  Backend Package and Local Tooling Foundation        (无前置 Foundation Issue)
@@ -1132,10 +1132,12 @@ Issue 创建   : NOT REQUIRED（独立文档维护，非 Foundation Issue）
 实施授权     : 由用户在独立会话中单独处理
 ```
 
-## Immediate Next Topic
+## Historical Immediate Next Topic
 
 ```text
 RFC-002 Authorization Gate（PENDING USER DECISION）
 ```
 
 FND-001 / FND-002 / FND-003 全部 = **COMPLETED**（PR #7 / #10 / #15 均已由用户 Merge；完成归档分别经 PR #8 / PR #13 / 本 Documentation PR #22 记录）。**Foundation Program Status = COMPLETED**（RFC-001-DQ-10 首批 Foundation 范围全部完成；经本归档 PR 记录，本归档 PR 合并后正式生效）。**下一架构议题：** **RFC-002 — Persistence and Transaction Architecture**；状态 = **RFC-002 Authorization Gate = PENDING USER DECISION**（RFC-002 Drafting / Issue Creation / Implementation = NOT AUTHORIZED；Coding Agent 不得起草 RFC-002、创建其 Issue / Branch、开始数据库或事务实现、启动夜间长任务）。业务实现仍 **NOT AUTHORIZED**；Architecture Readiness 与 Development Status 保持 **CONDITIONALLY READY**（Foundation 完成 ≠ Architecture 全部 READY ≠ RFC-002~007 已接受 ≠ 业务开发已授权）。
+
+> **Current next work（2026-08-06）：** RFC-002 已 Accepted 并合并。下一阶段是完成产品规格、RFC-003～007、Readiness 规划包、测试策略与长期 Goal 文本；Business / Production Implementation 和 TS-01～TS-05 执行仍未授权，已完成的 Spike-001 不在本禁令所指范围内。

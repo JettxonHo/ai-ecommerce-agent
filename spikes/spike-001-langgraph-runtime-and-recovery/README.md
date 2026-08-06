@@ -1,9 +1,9 @@
 # Spike-001 — LangGraph Runtime and Recovery（代码工作区）
 
-> **Status: IN PROGRESS（S0—S6 执行中）**
+> **Status: COMPLETED（S0—S6 已完成；临时验证代码，非生产实现）**
 > **治理来源：** DEC-034 · DEC-035 · DEC-036 · DEC-037
-> **执行简报：** [`../../../docs/spikes/spike-001-langgraph-runtime-and-recovery/execution-brief.md`](../../../docs/spikes/spike-001-langgraph-runtime-and-recovery/execution-brief.md)
-> **临时栈：** [`../../../docs/spikes/spike-001-langgraph-runtime-and-recovery/temporary-stack.md`](../../../docs/spikes/spike-001-langgraph-runtime-and-recovery/temporary-stack.md)
+> **执行简报：** [`../../docs/spikes/spike-001-langgraph-runtime-and-recovery/execution-brief.md`](../../docs/spikes/spike-001-langgraph-runtime-and-recovery/execution-brief.md)
+> **临时栈：** [`../../docs/spikes/spike-001-langgraph-runtime-and-recovery/temporary-stack.md`](../../docs/spikes/spike-001-langgraph-runtime-and-recovery/temporary-stack.md)
 > **Spike Issue：** [#1](https://github.com/JettxonHo/ai-ecommerce-agent/issues/1) · **Branch：** `spike/001-langgraph-runtime-recovery`
 
 这是 Spike-001 的**临时、可抛弃**代码工作区。它验证**架构运行时行为**（StateGraph 执行 / Interrupt·Resume / Checkpoint / 三类存储分离 / 事务回滚 / 幂等 / 有界重试 / Stale Review / Stale Checkpoint / Retrieval Fallback / Cancellation / Trace 关联），**不是** MVP、**不是**正式业务 Graph、**不是**生产技术承诺。

@@ -5,6 +5,8 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
+> **Current truth（2026-08-06）：** RFC-001 / RFC-002 = `ACCEPTED`；RFC-003～RFC-007 = `PROPOSED`。FND-001～003 已完成。Wave 1 中 ARP-01 / 04 / 10 完整 Accepted，ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted。当前授权 RFC 与 Readiness 规划，不授权 TS-01～TS-05 执行、Business / Production Implementation 或实际 Goal；已完成的 Spike-001 不在本禁令所指范围内。
+> **Historical snapshot：** 下列“当前阶段”长段和 RFC-001 DQ / Foundation 时间线保留其形成时状态；如与上面的 Current truth 或最新 Accepted Decision 冲突，以后者为准。
 > **当前阶段：** DEC-038 已接受，**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过。**RFC-002 已于 2026-08-04 被用户正式接受（`ACCEPTED`）**：RFC-002-DQ-01~DQ-17 全部 ACCEPTED（Pending Decision Questions = 0）；最终一致性审查未发现跨 DQ 实质架构冲突，Documentation-only Final Consistency Remediation 已消除文档状态冲突（详见 `rfc-002-persistence-and-transaction-architecture.md` §33 Decision Log 2026-08-04 Final Decision 记录）。RFC-002 的接受**不授权任何实现**：Implementation、Architecture Readiness Package、Technical Spikes、测试与基础设施均 NOT AUTHORIZED；PR #24 Merge = USER DECISION REQUIRED / NOT AUTHORIZED；后续 RFC、Architecture Readiness Package、Technical Spike 与 Persistence Implementation 不得违反或静默绕过 RFC-002。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation 仍未授权。**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30，Decision Conflict = NONE）均已完成**——当前 Candidate 状态（以 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)「授权边界（恒定成立）」为基准）：**FND-001 = COMPLETED（PR #7 已合并，Merge Commit 5b75bcf，归档 PR #8）；FND-002 = IN REVIEW（Issue #9 已创建，实施完成并提交 PR #10，Merge = USER DECISION REQUIRED）；FND-003 = READY, BLOCKED BY FND-002**，Issue Creation / Implementation 均未授权。下一正式 Gate：**FND-002 Pull Request Review and Merge Gate**（由用户审查 FND-002 PR #10 并决定 Merge；Coding Agent 不得自行 Merge，用户 Merge 前 FND-002 Status 不标记 COMPLETED；FND-002 的授权不包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue / Branch / PR，不开始 FND-003 实施）。
 
 ---
@@ -123,7 +125,7 @@ RFC-001-DQ-10 已接受：
 - Foundation Planning 不得开始；
 - RFC-001 保持 `DRAFTING`。
 
-## 下一议题：FND-002 Pull Request Review and Merge Gate
+## Historical Timeline：FND-002 Pull Request Review and Merge Gate
 
 **RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**——DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过（八项审查全部 PASS，Decision Conflict = NONE FOUND）。RFC-001 的接受**仅开放 Foundation Planning**。
 
@@ -253,23 +255,24 @@ RFC-001-DQ-04 已接受：
 ```text
 Spike Execution Status = COMPLETED
 RFC-001 Status = ACCEPTED (2026-07-30)
+RFC-002 Status = ACCEPTED (2026-08-04; PR #24 merged; Issue #23 closed)
+RFC-003 through RFC-007 Status = PROPOSED
 Architecture Readiness Status = CONDITIONALLY READY
-Development Status = CONDITIONALLY READY
+Development Status = CONDITIONALLY READY (planning and governance only)
 
-Foundation Planning = AUTHORIZED
-Foundation Candidate Planning = COMPLETED
-Foundation Candidate Final Review = PASS（2026-07-30，Decision Conflict = NONE）
-FND-001 Candidate Status = COMPLETED
-FND-001 Issue Creation = COMPLETED（2026-07-30，Issue #6）
-FND-001 Implementation = COMPLETED（2026-07-30，PR #7 已合并，Merge Commit 5b75bcf，归档 PR #8）
-FND-002 Candidate Status = IN REVIEW
-FND-002 Issue Creation = COMPLETED（2026-07-30，Issue #9）
-FND-002 Implementation = COMPLETED（2026-07-30，PR #10）
-FND-002 Status = IN REVIEW（PR #10 待用户审查；Merge = USER DECISION REQUIRED）
-FND-003 Candidate Status = READY, BLOCKED BY FND-002
-FND-003 Issue Creation = NOT AUTHORIZED
-FND-003 Implementation = NOT AUTHORIZED
-Foundation（除 FND-001 / FND-002 单项授权外）/ Business / Production Implementation = NOT AUTHORIZED
+FND-001 Status = COMPLETED (PR #7; archive PR #8)
+FND-002 Status = COMPLETED (PR #10; archive PR #13)
+FND-003 Status = COMPLETED (PR #15; archive PR #22)
+Foundation Program Status = COMPLETED
 
-Next Topic: FND-002 Pull Request Review and Merge Gate（FND-001 = COMPLETED；FND-002 已经用户单独明确授权「确认授权创建并实施 FND-002」，Issue #9 已创建，实施完成并提交 PR #10，待用户审查并决定 Merge；FND-002 Merge = USER DECISION REQUIRED，Coding Agent 不得自行 Merge，用户 Merge 前 FND-002 Status 不标记 COMPLETED；该授权不包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue、不开始 FND-003 实施）
+ARP-01 / ARP-04 / ARP-10 = ACCEPTED (full declared scope)
+ARP-02 / ARP-03 / ARP-09 = ACCEPTED (TS-01 minimum slice only; full artifact pending)
+ARP-05 / ARP-06 / ARP-07 / ARP-08 = NOT CREATED
+
+Pre-development RFC and readiness planning = AUTHORIZED
+TS-01～TS-05 Execution = NOT AUTHORIZED
+Business / Production Implementation = NOT AUTHORIZED
+Actual Goal = NOT CREATED / NOT ACTIVATED
+
+Next Gate: product specification closure, RFC-003 through RFC-007, complete readiness planning package, testing strategy, Goal text, final consistency review, and explicit user approval
 ```

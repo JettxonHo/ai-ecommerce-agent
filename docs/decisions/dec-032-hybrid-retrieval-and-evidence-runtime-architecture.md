@@ -524,7 +524,7 @@ Hard Rules:
 
 ## Related Decisions
 
-- [DEC-008 — 输出采用分级证据标记与结论可追溯机制](dec-008-graded-evidence-and-traceable-conclusions.md)（Graded Evidence；检索结果须经校验才成正式证据）
+- [DEC-008 — 输出采用分级证据标记与结论可追溯机制](dec-008-tiered-evidence-and-traceable-conclusions.md)（Graded Evidence；检索结果须经校验才成正式证据）
 - [DEC-009 — 用户修改上游内容后采用阶段级失效与局部重跑](dec-009-stage-level-invalidation-and-partial-rerun.md)（Source Set Version 变化触发重新装配）
 - [DEC-013 — MVP 采用支持跨会话恢复的任务级持久化状态](dec-013-task-level-persistent-state-and-cross-session-resume.md)（任务级 task_id 隔离）
 - [DEC-014 — MVP 采用按需、混合式 RAG 与分层数据访问策略](dec-014-on-demand-hybrid-rag-and-layered-data-access.md)（本决定 Amends 的来源；按需混合 RAG + 分层数据访问）

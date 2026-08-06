@@ -1,24 +1,24 @@
 # Source and Evidence Specification（来源与证据规格 — 概念）
 
 > **Status: CONCEPTUAL — 仅记录概念 Schema、来源类型、状态、Evidence 关系与边界。**
-> **本文件是 Current Truth Layer 的一部分。** 其内容只能来自用户明确接受的 Decision（来源：[DEC-025](../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)）。
+> **本文件是 Current Truth Layer 的一部分。** 其内容只能来自用户明确接受的 Decision（来源：[DEC-025](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)）。
 > 本文件**不**包含：最终数据库表、Parser 代码、OCR、RAG 代码、Embedding、Vector Store、Web Scraper、Review Importer、Evidence UI、正式 API。所有结构名为**概念示意，非最终数据契约 / 最终实现**。
 
 ---
 
 ## 1. 范围与来源
 
-本规格记录 AI Ecommerce Agent 来源与证据系统的**概念层**结构，来源于 [DEC-025 — 采用版本化来源、可定位 Fragment 与显式 Evidence Link 的证据架构](../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)（Accepted，Data Architecture / Reliability Architecture，2026-07-28）。
+本规格记录 AI Ecommerce Agent 来源与证据系统的**概念层**结构，来源于 [DEC-025 — 采用版本化来源、可定位 Fragment 与显式 Evidence Link 的证据架构](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)（Accepted，Data Architecture / Reliability Architecture，2026-07-28）。
 
 承接：
 
-- [DEC-008 — 分级证据标记与来源可追溯](../decisions/dec-008-tiered-evidence-and-traceable-conclusions.md)（被 DEC-025 补充细化）
-- [DEC-009 — 阶段失效与局部重跑](../decisions/dec-009-stage-level-invalidation-and-partial-rerun.md)
-- [DEC-012 — 结构化 Workflow State](../decisions/dec-012-stage-state-and-structured-business-items.md)
-- [DEC-014 — 按需、混合式 RAG 与分层数据访问](../decisions/dec-014-on-demand-hybrid-rag-and-layered-data-access.md)（被 DEC-025 补充细化）
-- [DEC-017 — Customer Insight Skill Adapt](../decisions/dec-017-adapt-product-review-analysis-for-customer-insight-skill.md)
-- [DEC-018 — Product Positioning Skill Adapt](../decisions/dec-018-adapt-product-differentiation-for-positioning-skill.md)
-- [DEC-024 — 版本化领域状态与紧凑 LangGraph State](../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)
+- [DEC-008 — 分级证据标记与来源可追溯](../../decisions/dec-008-tiered-evidence-and-traceable-conclusions.md)（被 DEC-025 补充细化）
+- [DEC-009 — 阶段失效与局部重跑](../../decisions/dec-009-stage-level-invalidation-and-partial-rerun.md)
+- [DEC-012 — 结构化 Workflow State](../../decisions/dec-012-stage-state-and-structured-business-items.md)
+- [DEC-014 — 按需、混合式 RAG 与分层数据访问](../../decisions/dec-014-on-demand-hybrid-rag-and-layered-data-access.md)（被 DEC-025 补充细化）
+- [DEC-017 — Customer Insight Skill Adapt](../../decisions/dec-017-adapt-product-review-analysis-for-customer-insight-skill.md)
+- [DEC-018 — Product Positioning Skill Adapt](../../decisions/dec-018-adapt-product-differentiation-for-positioning-skill.md)
+- [DEC-024 — 版本化领域状态与紧凑 LangGraph State](../../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)
 
 > 当本规格与 DEC-025 冲突时，以 DEC-025 为准。本规格为 DEC-025 的概念展开，**不**新增任何决定。
 

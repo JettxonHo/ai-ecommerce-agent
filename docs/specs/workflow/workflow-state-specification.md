@@ -1,23 +1,23 @@
 # Workflow State Specification（工作流状态规格 — 概念）
 
 > **Status: CONCEPTUAL — 仅记录概念 Schema、状态、版本与边界。**
-> **本文件是 Current Truth Layer 的一部分。** 其内容只能来自用户明确接受的 Decision（来源：[DEC-024](../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)）。
+> **本文件是 Current Truth Layer 的一部分。** 其内容只能来自用户明确接受的 Decision（来源：[DEC-024](../../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)）。
 > 本文件**不**包含：最终数据库 Schema、Migration、LangGraph State Python 代码、Pydantic Models、TypedDict、Reducer、Checkpointer、API、正式业务 Graph。所有结构名为**概念示意，非最终数据契约 / 最终实现**。
 
 ---
 
 ## 1. 范围与来源
 
-本规格记录 AI Ecommerce Agent 工作流状态的**概念层**结构，来源于 [DEC-024 — Workflow State 采用任务级业务身份、版本化领域状态与紧凑 LangGraph State](../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)（Accepted，Data Architecture / Workflow Architecture，2026-07-28）。
+本规格记录 AI Ecommerce Agent 工作流状态的**概念层**结构，来源于 [DEC-024 — Workflow State 采用任务级业务身份、版本化领域状态与紧凑 LangGraph State](../../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)（Accepted，Data Architecture / Workflow Architecture，2026-07-28）。
 
 承接：
 
-- [DEC-008 — 分级证据标记与来源可追溯](../decisions/dec-008-tiered-evidence-and-traceable-conclusions.md)
-- [DEC-009 — 阶段失效与局部重跑](../decisions/dec-009-stage-level-invalidation-and-partial-rerun.md)
-- [DEC-012 — 结构化 Workflow State](../decisions/dec-012-stage-state-and-structured-business-items.md)（被 DEC-024 补充细化）
-- [DEC-013 — 任务级持久化](../decisions/dec-013-task-level-persistent-state-and-cross-session-resume.md)（被 DEC-024 补充细化）
-- [DEC-022 — 工作流框架能力需求](../decisions/dec-022-workflow-framework-capability-requirements.md)
-- [DEC-023 — 选择 LangGraph StateGraph](../decisions/dec-023-select-langgraph-stategraph-for-mvp-workflow.md)
+- [DEC-008 — 分级证据标记与来源可追溯](../../decisions/dec-008-tiered-evidence-and-traceable-conclusions.md)
+- [DEC-009 — 阶段失效与局部重跑](../../decisions/dec-009-stage-level-invalidation-and-partial-rerun.md)
+- [DEC-012 — 结构化 Workflow State](../../decisions/dec-012-stage-state-and-structured-business-items.md)（被 DEC-024 补充细化）
+- [DEC-013 — 任务级持久化](../../decisions/dec-013-task-level-persistent-state-and-cross-session-resume.md)（被 DEC-024 补充细化）
+- [DEC-022 — 工作流框架能力需求](../../decisions/dec-022-workflow-framework-capability-requirements.md)
+- [DEC-023 — 选择 LangGraph StateGraph](../../decisions/dec-023-select-langgraph-stategraph-for-mvp-workflow.md)
 
 > 当本规格与 DEC-024 冲突时，以 DEC-024 为准。本规格为 DEC-024 的概念展开，**不**新增任何决定。
 
