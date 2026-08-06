@@ -6,7 +6,7 @@
 - Date: 2026-08-06
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039、DEC-040、DEC-041
+- Related Decisions: DEC-039～DEC-044
 
 ## Context
 
@@ -96,6 +96,7 @@
 - [DEC-041](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md) — 冻结本地端到端演示 MVP 的交付边界（用户于 2026-08-06 确认）。
 - [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) — 确认证据驱动商品上新策略工作台定位、复合 Persona 假设与行为型演示成功边界（用户于 2026-08-06 接受 P-01A / P-02A / P-03A）。
 - [DEC-043](../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) — 采用 Sol 主控、Luna 实现、Terra 辅助回退的多 Agent 开发编排（用户于 2026-08-06 确认；Amends DEC-040）。
+- [DEC-044](../decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) — 采用单任务工作台、两级输入门禁与确认式局部重跑（用户于 2026-08-06 接受 P-04A / P-05A / P-06A；Amends DEC-005 / 009 / 041）。
 
 ## Rejected Approaches
 
@@ -106,7 +107,7 @@
 
 ## Open Questions
 
-- 产品定位、复合 Persona / JTBD 假设策略与行为型演示成功边界已由 DEC-042 解决；任务工作台流程、最终字段、Fixture 与必要阈值仍开放。
+- 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；任务工作台信息架构、输入门禁和重跑触发已由 DEC-044 解决；最终字段、详细控件、Fixture 与必要阈值仍开放。
 - 四层 Brief、Review Package、Approved Strategy 与 Xiaohongshu Brief 的最终 Schema 和版本规则。
 - RFC-003 至 RFC-007 与 Frontend Architecture 的具体技术选择。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
@@ -118,7 +119,7 @@
 
 ## Documentation Updates
 
-- 新增 DEC-039、DEC-040、DEC-041 并更新 Decision Log。
+- 新增 DEC-039～DEC-044 并更新 Decision Log。
 - 更新 AGENTS.md 与 Collaboration Model。
 - 后续独立 PR 同步 README、Implementation Readiness、RFC Register、Architecture / Agent 入口、Foundation、Traceability 与本地链接。
 
@@ -138,6 +139,7 @@
 - Current Truth Sync：Issue #32 / PR #33 已合并并关闭，范围限定为入口状态、产品 Current Truth、Readiness / RFC / Foundation / Traceability 同步和 30 个失效本地 Markdown 链接修复；不包含新产品字段、RFC-003～007 技术选择、业务代码、Spike 执行或 Goal 激活。
 - Link Audit：排除 `.claude/worktrees`、`.venv` 和生成目录后，Tracked Workspace Markdown 本地链接由 30 个损坏修复为 0。
 - Current Truth Review：经 Sol/xhigh 独立复审三轮修正，产品、架构、Readiness、Traceability 与治理口径最终结果 = `PASS`；未把未接受事项写成实现事实。
+- Product Identity and Agent Orchestration：Issue #34 / PR #35 已合并并关闭；DEC-042 / 043、Product Current Truth 与 Sol/Luna/Terra 协作规则已归档，8/8 Required Checks 全绿，未启动 Goal 或业务编码。
 
 ## Decision Round — Product Identity and Multi-Agent Orchestration（2026-08-06）
 
@@ -168,3 +170,38 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - Issue #34 / PR #35 负责 DEC-042 / DEC-043、AGENTS、Collaboration Model、Product Current Truth、Readiness、Decision Log 与本 Session 的一致性归档。
 - 本轮不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。
+
+## Decision Round — Workbench, Input Gate and Partial Rerun Interaction（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-04A`：采用单任务工作台，以阶段导航、当前工作区和可收起证据 / 上下文面板承载完整任务。
+- 用户明确接受 `P-05A`：采用两级输入门禁；最低可运行输入通过即可启动，增强 / 可选资料不强制，真实阻塞进入 Needs Input。
+- 用户明确接受 `P-06A`：资料变化创建新 Source Version，系统先展示受影响阶段，由用户确认后局部重跑；旧审核自动过期且不得提交。
+
+### Domain Clarification
+
+- Source 内容变化沿用 DEC-025 的 `Source Version`；事实、洞察、策略或 Brief 的用户编辑沿用 DEC-024 的 Versioned Domain Object。二者不得混为同一版本类型。
+- `Needs Input` 是用户可见的产品交互语言，不提前冻结 RFC-003 / 004 的 API 或数据库枚举；既有 `waiting_for_input` / `waiting_input` 概念状态的最终映射仍由 RFC 决定。
+- 失效范围继续遵守 DEC-009 的阶段级依赖；DEC-044 只冻结“预览 → 用户确认 → 局部重跑 → 必要时重新审核”的交互，不引入字段级依赖图。
+- DEC-029 的 No Stale Review Package Submission 保持有效；旧审核不得自动迁移为对新版本的批准。
+
+### Alternatives and Trade-offs
+
+- 全屏线性向导首次使用简单，但恢复、审核和证据回看上下文割裂；未采用。
+- 每阶段独立页面隔离清楚，但导航与状态交接成本更高；未采用为主信息架构。
+- 任意资料都允许启动摩擦最低，但会产生无法形成基础事实层的运行；未采用。
+- 所有资料完整后才能启动更整齐，但会把增强资料机械化为强制项并造成过度防御；未采用。
+- 编辑后自动立即重跑或每次全量重跑操作较少，但会增加调用、竞态和无关内容变化；未采用。
+- 当前方案增加一次影响预览和用户确认，但换取可理解的版本变化、局部成本控制和审核安全。
+
+### Remaining Boundaries
+
+- 尚未确认最终输入字段类型 / 逐字段必填、文件大小 / 页数 / CSV 行数限制和具体补充问题。
+- 尚未确认详细控件、视觉布局、版本差异 UI、重要 / 非重要修改的确定性识别与公共状态 / 错误映射。
+- 尚未确认四层 Brief、Review Package、Approved Strategy、Marketing Brief 与 Xiaohongshu Brief 的最终字段和外部契约。
+
+### Archive Scope
+
+- Issue #36 负责 DEC-044、被修订 Decision、Product Current Truth、Readiness、Traceability 与本 Session 的一致性归档。
+- 本轮不冻结前端框架或公共 API，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。

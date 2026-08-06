@@ -6,7 +6,9 @@ Product / Scope / Delivery
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-044
+
+> **Current amendment:** [DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) 将本决定的“引导式任务工作台”具体化为单任务工作台、两级输入门禁与确认式局部重跑交互，不扩大演示范围。
 
 ## Decision
 
@@ -42,7 +44,7 @@ Accepted
 
 - 产品规格、架构 RFC、公共契约、测试策略和 Goal 必须以此交付边界为准。
 - 未列入 In Scope 的能力不得由单个 Issue 或实现 PR 擅自加入。
-- 产品流程和字段仍需在后续产品规格 Decision Gate 中冻结；本决定不虚构尚未确认的字段、框架或 Provider。
+- 产品主信息架构与重跑交互已由 DEC-044 冻结；最终字段、详细控件、框架与 Provider 仍需后续 Decision Gate，本决定不自行补全。
 
 ## Related Session
 
@@ -59,6 +61,10 @@ None.
 ## Amends
 
 DEC-004、DEC-005、DEC-006、DEC-010、DEC-020 与 DEC-021：在不推翻其原则的前提下，补充并收紧首个端到端演示的交付范围。
+
+## Amended By
+
+[DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)
 
 ## Notes
 

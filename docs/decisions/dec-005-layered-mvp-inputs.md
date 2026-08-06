@@ -6,7 +6,9 @@ Product
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-041 / DEC-044
+
+> **Current amendment:** DEC-041 收紧首个演示的允许输入格式并排除图片 / OCR；[DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) 补充两级输入门禁、真实阻塞边界与 Needs Input 产品交互态。以下原文保留为 2026-07-27 的历史决定。
 
 ## Decision
 
@@ -173,6 +175,11 @@ None
 ## Amends
 
 None
+
+## Amended By
+
+- [DEC-041](dec-041-end-to-end-demo-mvp-delivery-envelope.md)
+- [DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)
 
 ## Decision Boundary
 

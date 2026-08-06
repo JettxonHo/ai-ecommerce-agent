@@ -33,6 +33,7 @@
 | Local end-to-end demo MVP envelope | DEC-041 | [MVP Scope](../product/mvp-scope.md) | — | DEC-041 | RFC-003—RFC-007 | _(placeholder)_ | Browser E2E + release smoke _(planned)_ |
 | Evidence-driven launch strategy workbench positioning, composite Persona assumptions and behavior-based demo success | DEC-042 | [PRD](../product/prd.md) | — | DEC-042 | RFC-003—RFC-007 | _(placeholder)_ | Browser E2E + human usability review _(planned)_ |
 | Sol/Luna/Terra task routing, thread isolation and review independence | DEC-043 | [Collaboration Model](../governance/collaboration-model.md) | — | DEC-043 + Issue #34 | All | Goal governance | Actual model disclosure + independent reviewer + Required Checks |
+| Single-task workbench, two-level input gate, Needs Input and confirmed partial rerun | DEC-044 | [User Flows](../product/user-flows.md) | — | DEC-044 + Issue #36 | RFC-003, RFC-004, RFC-005 | _(placeholder)_ | Browser E2E + state / stale-review contract tests _(planned)_ |
 | RFC Planning and Dependency Order | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
@@ -67,7 +68,7 @@
 | Versioned Domain State + Compact State | DEC-024 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-01, spike-06 | test_transaction_idempotency | RFC-002 | _(placeholder)_ | _(placeholder)_ |
 | 三类存储分离；Checkpoint≠Current Truth | DEC-024, DEC-033 | [Runtime Failure / Recovery](../specs/runtime/workflow-runtime-failure-recovery-retry-and-observability.md) | spike-01, spike-08 | test_skeleton::test_three_stores_are_separate | RFC-002, RFC-003 | _(placeholder)_ | _(placeholder)_ |
 | 原子提交 + 幂等 + 回滚 | DEC-029, DEC-033 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | spike-04, spike-06, Recovery | test_transaction_idempotency::spike04 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
-| 阶段级失效与部分重跑 | DEC-009 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-05 | test_review_safety::spike05（pos_count==1） | RFC-002 | _(placeholder)_ | _(placeholder)_ |
+| 阶段级失效、影响预览与确认式部分重跑 | DEC-009, DEC-044 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-05 | test_review_safety::spike05（pos_count==1） | RFC-002, RFC-003, RFC-004 | _(placeholder)_ | Invalidation preview + user confirmation + affected-stage rerun _(planned)_ |
 
 ### C. Human Review 与 Approved Strategy
 

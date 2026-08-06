@@ -15,11 +15,11 @@
 | DEC-002 | MVP 首要用户为中小电商商家的商品运营与内容运营人员 | Product | Accepted | 2026-07-27 | Session-001 | — | 仅确认首要用户群体；Persona 拆分 / 核心任务 / 定位 / 平台 / 技术均未确认 |
 | DEC-003 | MVP 核心任务为商品上新定位分析与营销 Brief 生成 | Product | Accepted | 2026-07-27 | Session-001 | — | 核心任务 + 交付物已确认；平台 / 输入 / Brief 字段 / 技术实现均未确认 |
 | DEC-004 | 产品核心保持平台中立，小红书种草作为首个 MVP 演示场景 | Product | Accepted | 2026-07-27 | Session-001 | — | 核心平台中立 + 小红书首个演示；模板字段 / API / 抓取 / 其他平台 / 适配层技术均未确认 |
-| DEC-005 | MVP 采用最低可运行输入与增强输入分层 | Product | Accepted | 2026-07-27 | Session-001 | — | 输入分层原则已确认；字段类型 / 格式 / 采集方式 / RAG / 向量库 / 联网均未确认 |
+| DEC-005 | MVP 采用最低可运行输入与增强输入分层 | Product | Amended by DEC-041 / DEC-044 | 2026-07-27 | Session-001 | — | 输入分层原则保持有效；DEC-041 收紧演示输入格式，DEC-044 补充两级输入门禁、真实阻塞边界与 Needs Input 产品交互态。 |
 | DEC-006 | MVP 输出采用四层结构化营销 Brief | Product | Accepted | 2026-07-27 | Session-001 | — | 四层输出主结构（事实/洞察/策略/执行）已确认；字段 / 必填 / 格式 / 引用 / 置信度 / 审核节点 / 小红书完整笔记均未确认 |
 | DEC-007 | MVP 采用单一关键审核节点与异常暂停机制 | Product | Accepted | 2026-07-27 | Session-001 | — | 单一关键审核节点 + 异常暂停 + 用户最终判断权已确认；LangGraph / Interrupt / Checkpoint / Agent 数量 / 审核页面 / 风险规则均未确认；有潜在架构影响，暂不建 Architecture Decision / RFC |
 | DEC-008 | MVP 采用分级证据标记与结论可追溯机制 | Product | Accepted | 2026-07-27 | Session-001 | — | 五类结论标记（明确事实/有证据洞察/模型推断/待验证假设/资料不足）+ 可追溯原则已确认；引用 UI / 置信度算法 / RAG / 向量库 / 知识图谱 / LangGraph State / Checkpoint / 重跑机制 / 数据库均未确认；可靠性原则成为架构与仓库选型硬约束，暂不建 RFC |
-| DEC-009 | MVP 采用阶段级依赖失效与局部重跑 | Product | Accepted | 2026-07-27 | Session-001 | — | 阶段级失效规则（事实→洞察→策略→执行）+ 重要/非重要修改区分已确认；LangGraph / Checkpoint / Interrupt / 状态数据库 / 自动重跑交互 / 版本历史 / 字段级依赖图 / 节点划分均未确认；与 DEC-007/008 同为架构 RFC 业务约束，暂不建 RFC |
+| DEC-009 | MVP 采用阶段级依赖失效与局部重跑 | Product | Amended by DEC-044 | 2026-07-27 | Session-001 | — | 阶段级失效范围保持有效；DEC-044 确认失效预览、用户确认后局部重跑和受影响内容重新审核。字段级依赖图仍不进入首个 Goal。 |
 | DEC-010 | MVP 采用任务质量、可靠性与用户效率三维评价框架 | Product | Accepted | 2026-07-27 | Session-001 | — | 三维评价（任务质量/可靠性/用户效率）+ 六项优先指标已确认；不把流畅度或销量作为唯一标准；指标公式 / 阈值 / 测试集 / 人数 / LLM-judge / 埋点 / Dashboard / 真实销量承诺均未确认，暂不建 RFC |
 | DEC-011 | 确定性工作流控制流程，LLM 负责受约束的语义分析与业务判断 | Architecture | Accepted | 2026-07-27 | Session-002 | — | 首个架构决定：确定性工作流控制 + 受约束 LLM + 人工审核三层分工；不采用 LLM 完全自治已确认；LangGraph / 框架 / 节点数量 / 一层一节点 / 独立 Agent / 单 vs Multi-Agent / 状态模型 / Schema / Checkpoint / 数据库 / 模型 / 开源仓库均未确认，暂不建 RFC |
 | DEC-012 | Workflow State 采用阶段状态与关键条目结构化设计 | Architecture | Accepted | 2026-07-27 | Session-002 | — | 两层状态（阶段状态 + 结构化业务条目）已确认；原始输入/AI 结果分开、四层条目化、阶段有效性显式、不等于聊天历史已确认；LangGraph State / Pydantic / JSON Schema / 最终字段 / 阶段枚举 / 节点数 / 数据库 / Checkpoint / 持久化 / 版本历史 / 字段级依赖图均未确认，暂不建 RFC |
@@ -51,15 +51,18 @@
 | DEC-038 | RFC Planning and Dependency Order | Architecture Governance / RFC Governance / Implementation Planning | Accepted | 2026-07-30 | Session-002 | — | Architecture Readiness 进入 CONDITIONALLY READY 后，项目采用依赖驱动的 RFC 波次、单 RFC Issue/Branch/PR、用户 Acceptance Gate 与分阶段 Roadmap 生成流程。RFC-001 至 RFC-007 按依赖顺序逐个提交用户评审，当前全部状态为 PROPOSED，未接受任何 RFC。不得开始未经 Accepted RFC 支持的生产实现，不得由 Coding Agent 临场选择生产数据库/ORM/Checkpointer/API/Retrieval/LLM Runtime/Observability。Amends Architecture Readiness Governance，不推翻已接受 DEC 含义。决定文件见 docs/decisions/dec-038-rfc-planning-and-dependency-order.md；规格见 docs/specs/governance/rfc-planning-and-dependency-order.md。下一议题：RFC-001 Repository and Application Architecture。 |
 | DEC-039 | 采用与真实风险相称的校验与审阅治理 | Governance / Quality / Security | Accepted | 2026-08-06 | Session-003 | RFC-001 / RFC-002 / RFC-003~007 | 禁止过度防御、非重大核心风险下的新增哈希或 SHA-256 要求、低概率 Case 堆叠和机械 Rubric；保留与变更相关的必要校验与 Required Checks。Amends DEC-034 / DEC-035 / DEC-038 的未来校验治理。 |
 | DEC-040 | 采用分级自主执行权限与固定模型角色 | Agent Governance / Git and GitHub Operations / Model Roles | Amended by DEC-043 | 2026-08-06 | Session-003 | RFC-001 / RFC-002 / RFC-003~007 | 普通低风险工作自主闭环与高风险人工 Gate 保持有效；原“实现模型不可用即暂停”规则由 DEC-043 修订为 Luna 优先、Terra 显式回退。 |
-| DEC-041 | 冻结本地端到端演示 MVP 的交付边界 | Product / Scope / Delivery | Accepted | 2026-08-06 | Session-003 | RFC-001 / RFC-002 / RFC-003~007 | 本地可复现、受控单工作区、引导式任务工作台、用户提供文本资料、单一真实 Provider + 确定性替身；排除登录计费、多租户、联网抓取、OCR、多媒体生成、自动发布、Multi-Agent 和多 Provider 容灾。 |
+| DEC-041 | 冻结本地端到端演示 MVP 的交付边界 | Product / Scope / Delivery | Amended by DEC-044 | 2026-08-06 | Session-003 | RFC-001 / RFC-002 / RFC-003~007 | 交付包络保持有效；DEC-044 将引导式任务工作台具体化为单任务工作台、两级输入门禁与确认式局部重跑，不扩大范围。 |
 | DEC-042 | 确认证据驱动商品上新策略工作台定位、复合 Persona 假设与行为型演示成功标准 | Product / Positioning / Persona / Acceptance | Accepted | 2026-08-06 | Session-003 | RFC-003~007 | 接受 P-01A / P-02A / P-03A；产品定位、复合主 Persona 策划方式、Beta 前访谈门禁与行为型演示成功边界已确认，具体字段、Fixture 与阈值仍待策划。 |
 | DEC-043 | 采用 Sol 主控、Luna 实现、Terra 辅助回退的多 Agent 开发编排 | Agent Governance / Development Orchestration / Model Roles | Accepted | 2026-08-06 | Session-003 | RFC-001~007 | Sol = ORCHESTRATOR_REVIEWER，Luna = 首选 IMPLEMENTER，Terra = AUXILIARY_IMPLEMENTER 与显式回退；实现 Agent 不得自批或自合并，线程通过任务合同和持久化载体交接。Amends DEC-040 / DEC-036 / DEC-037 的未来协作规则，不改变产品运行时单 Agent 边界。 |
+| DEC-044 | 采用单任务工作台、两级输入门禁与确认式局部重跑交互 | Product / Interaction / Input Gate / Versioning / Rerun | Accepted | 2026-08-06 | Session-003 | RFC-003 / RFC-004 / RFC-005 | 接受 P-04A / P-05A / P-06A；确认阶段导航 + 当前工作区 + 可收起证据上下文、Needs Input 产品交互态、Source Version / Domain Version 边界、失效预览、用户确认后局部重跑与过期审核拒绝。Amends DEC-005 / DEC-009 / DEC-041。 |
 
 ---
 
 ## 状态说明
 
 > **Amendment note：** DEC-036 与 DEC-037 作为 Spike-001 的 Accepted 历史执行记录保留；其未来协作与 Merge 规则先由 DEC-040、后由 DEC-043 修订。DEC-040 的普通工作自主闭环与高风险人工 Gate 保持有效；模型不可用规则以 DEC-043 为准。RFC-001 DQ-09 / DQ-10 同理保留原文，由最新 Accepted Decision 解释未来执行权限。
+
+> **Product interaction amendment note：** DEC-005 的分层输入原则、DEC-009 的阶段级失效范围和 DEC-041 的演示包络保持有效；输入门禁、任务工作台与重跑交互以 DEC-044 为当前解释。DEC-024 / DEC-025 的版本边界与 DEC-029 的过期审核拒绝规则未被改变。
 
 - `Accepted` — 用户明确接受，当前有效。
 - `Rejected` — 被明确否决。
