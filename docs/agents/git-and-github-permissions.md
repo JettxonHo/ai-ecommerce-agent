@@ -1,6 +1,8 @@
 # Git and GitHub Permissions（DEC-036 / DEC-037 操作参考）
 
-> **Status: Operational Reference — 权限与操作边界参考**
+> **Historical record — 不得作为当前执行指令：** 本文件 §0 至 §15 完整保留 DEC-036 / DEC-037 授权当时的 Spike-001 操作契约和状态快照。Spike-001 现已完成；Architecture Readiness 与 Development Status 当前为 `CONDITIONALLY READY`，实际 Goal 尚未激活。未来策划与长期 Goal 的 Git / GitHub 权限只以 [DEC-040](../decisions/dec-040-autonomous-agent-execution-and-model-roles.md) 与 [AGENTS.md](../../AGENTS.md) 为准。普通低风险 PR 在验收标准和 Required Checks 全部通过后可由 Agent 自主合并；破坏性操作、重大架构或公共契约变更、数据迁移、安全核心风险、范围变化与 Decision Conflict 仍需人工 Gate。
+
+> **Status: Historical Operational Record — Spike-001 权限与操作边界快照**
 > **来源决定：** [../decisions/dec-036-spike-001-execution-authorization-and-agent-handoff-contract.md](../decisions/dec-036-spike-001-execution-authorization-and-agent-handoff-contract.md)（DEC-036，Accepted，2026-07-29；Agent Governance / Git and GitHub Operations / Spike Execution Authorization；Amends DEC-034 + DEC-035）· [../decisions/dec-037-formal-spike-001-execution-authorization.md](../decisions/dec-037-formal-spike-001-execution-authorization.md)（DEC-037，Accepted，2026-07-30；Execution Authorization / Agent Governance / GitHub Workflow；Amends DEC-034 + DEC-035 + DEC-036）
 > **概念规格：** [../specs/readiness/spike-001-execution-authorization-and-agent-handoff-contract.md](../specs/readiness/spike-001-execution-authorization-and-agent-handoff-contract.md) · [../specs/readiness/formal-spike-001-execution-authorization.md](../specs/readiness/formal-spike-001-execution-authorization.md)
 > **适用范围：** Spike-001（`spike/001-langgraph-runtime-recovery` Branch）及相关 Git / GitHub 操作。
@@ -192,7 +194,9 @@ Dedicated Spike Branch: spike/001-langgraph-runtime-recovery
 
 ---
 
-## §14 当前授权状态（已由 DEC-037 更新）
+## §14 历史授权状态快照（DEC-037 接受时）
+
+> 本节不是当前状态，也不授权重新执行 Spike。以下内容只说明 DEC-037 接受当时的执行起点。
 
 ```text
 Contract Authorization = ACCEPTED
@@ -206,9 +210,9 @@ Development Status = NOT READY
 
 ---
 
-## §15 DEC-037 执行授权激活（Execution Authorization Activation）
+## §15 DEC-037 执行授权激活历史记录（Execution Authorization Activation）
 
-DEC-037（Accepted，2026-07-30）正式把 `Execution Authorization` 从 `NOT GRANTED` 转为 **`GRANTED`**，允许 Claude Code 作为 Spike-001 Primary Execution Agent 从规划与归档阶段进入实际仓库执行阶段。本节记录激活后的**执行顺序与额外边界**；§1—§13 的角色、操作白名单与禁止项**保持不变**，继续有效。
+DEC-037（Accepted，2026-07-30）曾把 `Execution Authorization` 从 `NOT GRANTED` 转为 **`GRANTED`**，允许 Claude Code 作为 Spike-001 Primary Execution Agent 从规划与归档阶段进入实际仓库执行阶段。本节记录当时的**执行顺序与额外边界**；这些内容不授权重新执行 Spike，也不覆盖 DEC-040 的未来权限规则。
 
 ### §15.1 授权状态迁移
 
