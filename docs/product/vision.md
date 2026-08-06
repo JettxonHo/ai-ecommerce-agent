@@ -1,8 +1,8 @@
 # Product Vision
 
-> **Status: ACTIVE PRE-DEVELOPMENT PRODUCT VISION — 高层产品与架构方向已确认，最终定位句、JTBD / Persona 假设和演示成功标准仍待策划**
+> **Status: ACTIVE PRE-DEVELOPMENT PRODUCT VISION — 产品定位、复合 Persona / JTBD 假设策略与行为型演示成功边界已确认；最终字段和交互仍待策划**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
-> 当前已确认：项目总体导向（DEC-001）、MVP 首要用户（DEC-002）、MVP 核心任务（DEC-003）、平台范围与首个演示场景（DEC-004），以及受控单工作区、本地端到端演示和引导式任务工作台交付边界（DEC-041）。
+> 当前已确认：项目总体导向（DEC-001）、MVP 首要用户（DEC-002）、MVP 核心任务（DEC-003）、平台范围（DEC-004）、本地演示包络（DEC-041），以及证据驱动商品上新策略工作台定位、复合 Persona / JTBD 假设策略和行为型演示成功标准（DEC-042）。
 
 ---
 
@@ -39,14 +39,22 @@
 - **首个演示场景：** MVP 在演示与作品集案例中选择 **小红书商品种草** 作为首个具体展示场景。
 - **产品逻辑边界：** 通用层（通用定位与营销 Brief）为核心；平台适配层负责将通用 Brief 映射为平台表达（首个＝小红书种草模板）。小红书模板是通用 Brief 的一种适配方式，**不是**唯一输出形态。
 
-> 注：统一单 Agent、LangGraph StateGraph、按需混合 Retrieval、4 个 Core Skills、Xiaohongshu Adapter 与 PostgreSQL 持久化均已确认；仍待策划的是最终产品定位表述、JTBD / Persona 假设、输入与 Brief 最终字段、工作台交互以及 RFC-003～007 / Frontend Architecture 的实现细节（见下方「待讨论的开放问题」与 [mvp-scope.md](mvp-scope.md)）。
+### DEC-042 — 证据驱动商品上新策略工作台定位与行为型演示成功标准（Accepted，2026-08-06）
+
+> 来源：[DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md)
+
+- **定位：** 面向中小电商商品与内容运营人员的证据驱动商品上新策略工作台，将用户资料转化为可审核、可追溯的定位分析、平台中立 Marketing Brief 与小红书 Brief 映射。
+- **Persona 策略：** 一个复合主 Persona，商品运营与内容运营作为职责视角；详细画像继续标为假设，真实访谈是 Beta 前门禁。
+- **成功边界：** 以本地可启动、端到端闭环、结果可理解 / 审核 / 追溯 / 恢复 / 导出和人工可用性为主，不以机械总分或销量承诺自动接受。
+
+> 注：统一单 Agent、LangGraph StateGraph、按需混合 Retrieval、4 个 Core Skills、Xiaohongshu Adapter 与 PostgreSQL 持久化均已确认；仍待策划的是输入与 Brief 最终字段、工作台交互、Fixture / 必要阈值以及 RFC-003～007 / Frontend Architecture 的实现细节（见 [mvp-scope.md](mvp-scope.md)）。
 
 ---
 
 ## 当前状态
 
 - 项目处于 **Pre-development Planning（正式开发前策划）阶段**；业务实现与长期 Goal 均未启动。
-- 已确认总体导向、首要用户、核心任务、平台范围、Agent / Workflow / Retrieval 概念架构、生产持久化基础与本地演示包络；最终产品表述、用户研究假设和交互 / 契约细节仍待策划。
+- 已确认总体导向、首要用户、核心任务、平台范围、产品定位、复合 Persona / JTBD 假设策略、行为型演示成功边界、Agent / Workflow / Retrieval 概念架构、生产持久化基础与本地演示包络；详细用户研究证据和交互 / 契约细节仍待策划。
 - 其余具体内容，必须等到对应 Proposed Decision 被用户明确接受并记为 Accepted Decision（见 [../decisions/](../decisions/)）后，才能写入。
 
 ---
@@ -58,8 +66,9 @@
 - 最终目标用户：**MVP 首要用户已确认**（DEC-002）；Persona 细节见 [user-personas.md](user-personas.md)。
 - 商家端 / 消费者端：**已确认商家端**（DEC-002）。
 - 要解决的核心业务问题：**已确认**（DEC-003）。
-- 最终产品定位：**已基本明确**（用户 DEC-002 + 任务 DEC-003 + 平台 DEC-004）；正式产品名称 / 定位表述未单独作为决定接受。
-- 产品的差异化价值、最终定位句与演示成功标准：待本轮产品策划确认。
+- 最终产品定位与差异化价值：**已确认**为证据驱动商品上新策略工作台（DEC-042）；品牌命名和对外文案不是当前阻塞项。
+- Persona / JTBD：复合 Persona 结构与基线假设已确认；画像具体取值和真实证据待 Beta 前访谈。
+- 演示成功标准：行为与人工可用性边界已确认；Fixture、必要阈值和测试执行细节待 Testing Strategy。
 - Agent / Workflow：**已确认**为一个统一用户侧 Agent + LangGraph StateGraph 确定性工作流，不采用 Multi-Agent 主架构或 LLM Supervisor（DEC-021 / DEC-023）。
 - Retrieval / Skills：**已确认**按需混合 Retrieval 概念边界、4 个 Core Skills 与 1 个 Xiaohongshu Adapter（DEC-014 / DEC-020 / DEC-026～032）；具体 Provider、索引、Prompt 与实现仍待 RFC-005 / 006。
 - 平台范围：**已确认**核心中立 + 小红书 Brief 映射；其他平台、完整平台正文与自动发布不进入首个 Goal（DEC-004 / DEC-031 / DEC-041）。

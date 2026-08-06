@@ -3,6 +3,7 @@
 > **治理来源：** RFC-001（ACCEPTED，DQ-06 / DQ-08 / DQ-09 / DQ-10）· DEC-036 · DEC-038
 > **实施：** [FND-003 Issue #14](https://github.com/JettxonHo/ai-ecommerce-agent/issues/14)
 > **核心原则：** Local Configuration = CI Configuration。CI 复用 `apps/backend/` 的同一份 `pyproject.toml` / `uv.lock` / Ruff / Pyright / pytest / Import Linter 配置与 [backend README](../../apps/backend/README.md) 的统一命令。**不存在第二套 CI 专用质量规则。**
+> **Current merge governance（2026-08-06）：** 本文中“用户最终 Merge”描述的是 FND-003 形成时的历史规则。未来 Goal 以 [DEC-040](../decisions/dec-040-autonomous-agent-execution-and-model-roles.md)、[DEC-043](../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) 与 [AGENTS.md](../../AGENTS.md) 为准：实现 Agent 不得自批或自合并；普通低风险 PR 可在 Required Checks 全绿、Sol 独立 Review 无阻塞后由 Sol 或另一非实现 Agent 合并；高风险事项保留人工 Gate。
 
 ---
 

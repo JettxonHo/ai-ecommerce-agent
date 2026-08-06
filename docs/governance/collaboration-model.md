@@ -13,30 +13,42 @@
 - 是唯一能接受 RFC、批准范围变化与下达「进入 Goal 执行阶段」指令的一方。
 - 批准破坏性操作、重大架构变更、数据迁移、不可逆外部操作和最终发布条件。
 
-### 1.2 策划与审阅 Agent（GPT-5.6 Sol / `xhigh`）
+### 1.2 主控与审阅 Agent（GPT-5.6 Sol / `xhigh` / `ORCHESTRATOR_REVIEWER`）
 
 - 主持产品和架构讨论，提供 2～3 个有意义的方案、权衡与推荐。
-- 负责 RFC、复杂任务拆分、风险判断、复杂诊断和 PR / 阶段 / Goal Review。
+- 负责 RFC、Goal、里程碑、复杂任务拆分、依赖 / 并行判断、风险、复杂诊断和任务合同。
+- 路由实现任务，并检查实际 Diff、测试、文档同步和回归风险，完成 PR / 阶段 / Goal Review。
 - 将未确认内容保持为 Proposal、Assumption 或 Open Question，不替用户接受 Decision / RFC。
 - 校验强度遵守 [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md)，不建设泛化过度防御。
+- 原则上不承担普通实现；只在 DEC-043 列出的复杂、阻塞、原型或实现 Agent 不可用等例外下直接修改代码，并交由独立 Agent 或人工最终审查。
 
-### 1.3 代码实现 Agent（GPT-5.6 Luna / `max`）
+### 1.3 首选代码实现 Agent（GPT-5.6 Luna / `max` / `IMPLEMENTER`）
 
 - 仅在规格冻结、Goal 被用户激活且 Issue 可独立验收后介入。
-- 按 Accepted Decision、RFC、Spec 和单一 Issue 范围实现；不得临场更换框架、数据库、Provider 或公共契约。
-- 执行必要的静态检查、测试与构建，记录失败和已知限制。
+- 按 Accepted Decision、RFC、Spec、Issue 和任务合同实现；不得临场更换框架、数据库、Provider、公共契约或验收标准。
+- 执行必要的静态检查、单元 / 集成 / E2E 测试与构建，记录失败、限制、风险和回滚方式。
+- 创建并更新 PR，根据 Sol Review 修复后重新运行验证。
 - 不得为了完成任务降低验收标准或扩大产品范围。
+- 需求不明、文档冲突、范围扩大、跨模块失败、公共接口 / 重大依赖 / 数据迁移或产品取舍时，暂停受影响工作并升级给 Sol；可以继续不受影响的独立任务。
+- 不得最终批准或合并自己实现的 PR。
 
-### 1.4 文档与 Git 操作者
+### 1.4 辅助与回退 Agent（GPT-5.6 Terra / `xhigh` / `AUXILIARY_IMPLEMENTER`）
+
+- 可执行代码库调查、文件 / 符号定位、测试、文档整理、独立分析、边界明确的实现、Bug 初步定位、类型 / 构建修复、测试补充和初步 Review。
+- Luna 不可用时可作为显式实现回退；Issue、任务合同和 PR 必须记录实际模型，不得把 Terra 成果标记为 Luna 完成。
+- 不替代 Sol 作产品 / 核心架构决定、高风险拆分、跨模块裁决、最终 PR 批准或 Goal 验收。
+- 回退不改变范围、测试、Review 独立性、验收标准或人工 Gate。
+
+### 1.5 文档与 Git 操作者
 
 - 准确归档讨论、提案、决定、证据与进度，区分所有内容类型。
 - 在授权范围内创建或整理 Issue、Branch、Commit、PR 与 Review 修复。
 - 普通低风险 PR 在验收和 Required Checks 全部通过后可自主合并；高风险事项必须停在用户 Gate。
 - 每次归档后执行检查清单并输出 Archive Result。
 
-### 1.5 模型可用性
+### 1.6 模型路由与可用性
 
-指定模型是任务约束，不是偏好。平台无法提供对应模型时，必须暂停该任务类型并报告，不得静默使用其他模型替代。Luna 不可用不阻塞策划文档，但阻塞代码实现。
+禁止静默替换和错误归因。Luna 是首选实现 Agent：工具可以创建 Luna 时由 Sol 按任务合同创建；不能创建时，Sol 输出标准化 Luna 任务包供用户、上层调度器或外部编排器创建。当前环境可以创建 Terra 时，可明确回退至 Terra XHigh，不因 Luna 不可用而停止整个项目。Sol 直接实现只适用于 DEC-043 的例外，并必须更换最终 Reviewer。
 
 ---
 
@@ -69,17 +81,17 @@
 ```text
 Accepted Goal and authoritative docs
 ↓
-Sol/xhigh decomposes a bounded Issue
+Sol/xhigh creates bounded Issue + task contract + dependency/file boundaries
 ↓
-Luna/max implements on a dedicated branch
+Luna/max implements; if unavailable, explicitly route to Terra/xhigh
 ↓
-Required checks and deterministic tests
+Implementer self-check + Required Checks + deterministic tests
 ↓
-Sol/xhigh five-axis review
+Sol/xhigh reviews actual diff, tests and documentation
 ↓
-Fix and rerun checks
+Implementer fixes and reruns checks
 ↓
-ordinary low-risk PR: agent merge and close
+ordinary low-risk PR: Sol or another non-implementer merges and closes
 high-risk trigger: stop and request user decision
 ```
 
@@ -94,13 +106,28 @@ high-risk trigger: stop and request user decision
 - Agent 不得为了让文档看起来完整而补充未经讨论的事实。
 - Agent 不得静默删除、覆盖或改写历史决策；改变旧决定时必须保留追踪关系。
 - 在用户明确激活 Goal 前，不得编写业务实现代码或执行新的 Technical Spike。
-- 指定模型不可用时不得静默替换；需求与 Accepted 文档冲突时不得强行继续。
+- 模型回退必须按 DEC-043 显式记录；不得静默替换、错误归因或降低质量要求。
+- 实现 Agent 不得最终批准或合并自己的 PR；Sol 实现时必须更换独立 Reviewer。
 - 不得隐藏失败测试、已知缺陷或未解决风险。
 - 不得为低概率 Case 堆叠防御、机械 Rubric 或非重大核心风险引入哈希要求。
 
 ---
 
-## 5. 相关文档
+## 5. 持久化交接与线程隔离
+
+- Sol 主控线程维护全局策划、调度、Review 和最终验收。
+- 每个实现线程原则上只处理一个 Issue；并行任务必须先冻结接口、依赖、文件或模块所有权。
+- 线程之间不假设自动共享上下文。持久化交接载体包括：项目文档、AGENTS、权威 Goal、GitHub Issue、任务合同、Git 分支 / Commit、PR、Review、Implementation Readiness / Current Status、Decision Log、测试与构建记录。
+- 仓库继续使用现有权威路径，不为相同事实新建重复的根级 `GOAL.md`、`docs/current-status.md` 或 `docs/decision-log.md`；长期 Goal、当前状态和决定分别写入 `docs/goals/`、`docs/handoffs/implementation-readiness.md` 和 `docs/decisions/decision-log.md`。
+- 聊天记录不是项目事实的唯一来源；任何影响后续执行的信息必须进入上述持久化载体。
+
+### 标准任务合同
+
+任务合同至少包含：模型与逻辑角色、Issue / 目标 / 交付物、权威文档与阅读顺序、In Scope / Non-goals、依赖与允许修改边界、冻结接口 / 状态 / 数据 / 错误契约、验收与测试、风险 / 停止 / 升级条件、PR / 文档 / 回滚要求、独立 Reviewer 与合并权限。
+
+---
+
+## 6. 相关文档
 
 - [product-design-protocol.md](product-design-protocol.md) — 完整设计与决策协议
 - [documentation-rules.md](documentation-rules.md) — 文档规则与内容类型
@@ -108,3 +135,5 @@ high-risk trigger: stop and request user decision
 - [../decisions/dec-039-proportional-validation-and-review-governance.md](../decisions/dec-039-proportional-validation-and-review-governance.md) — 适度校验
 - [../decisions/dec-040-autonomous-agent-execution-and-model-roles.md](../decisions/dec-040-autonomous-agent-execution-and-model-roles.md) — 自主权限与模型角色
 - [../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md) — 演示 MVP 包络
+- [../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) — 产品定位与演示成功边界
+- [../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md](../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) — 多 Agent 开发编排与任务合同
