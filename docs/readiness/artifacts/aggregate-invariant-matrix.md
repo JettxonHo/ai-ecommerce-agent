@@ -206,7 +206,7 @@ NOT AUTHORIZED
 - [ ] Atomic Business Commit 作为提交协议呈现，未作为 Aggregate 成员资格判断。
 - [ ] 区分 Current Truth / Immutable Version / Audit / Projection。
 - [ ] Restore Rule 区分 Business Restore 与 Workflow Time Travel。
-- [ ] 无法确定 Owning Module 处写 `PENDING BUSINESS DEFINITION / Owner Decision Required Before Artifact Acceptance`。
+- [ ] 无法确定具体 package 名称时写 `PENDING BUSINESS DEFINITION`；该名称不阻塞 Wave 1 Vocabulary Review / Acceptance，但须在 Implementation / Full Ownership Freeze 前确定。模块边界或唯一所有者是否成立仍分别遵循 OQ-2 / OQ-3，并在 ARP-01 Acceptance 前决定。
 - [ ] 无物理 Schema（无表名/列名/DDL）。
 - [ ] 20 正式列全部出现于 Table A–D（见第 6 节 Column Index）。
 

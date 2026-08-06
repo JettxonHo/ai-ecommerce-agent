@@ -123,6 +123,16 @@ Production-topology Qualification
 
 > 本 TS-01 Slice 仅使用 `Real PostgreSQL Acceptance` / `Multi-connection Concurrency` / `Crash / Fault Injection`（及 QL-01 Harness Qualification 行）。`Pure Unit` / `Application Test Double` / `Port Contract` 不证明 PostgreSQL 语义（DQ-16）。
 
+### 6.1 Proportional Validation Guardrail（用户工程治理约束）
+
+> 来源：用户当前明确指令（2026-08-06，优先级高于既有文档）；正式 DEC / AGENTS 同步在 PR #28 之后的独立文档任务归档，本节不替代该归档。
+
+- 本表是覆盖目录，不要求为每一行、每一层重复创建独立测试；一个确定性场景可以覆盖多个 Row，但须保留清晰的 Evidence Mapping。
+- `Required` 表示 TS-01 必须形成可信证据，不自动等于每项都成为永久 Required PR Check。CI 层级应按真实发生概率、业务影响、执行成本与回归价值决定；高成本、低概率场景可放入 Spike / Scheduled / Manual Tier。
+- 已有代表性测试能够覆盖同一失效机制时，不再为基本不可能出现的细小变体反复增加防御性 Case。
+- 普通校验不新增密码学算法或摘要要求；只有明确影响核心功能的重大安全或完整性风险，且普通业务约束无法解决时，才单独提出并说明理由、范围与成本。
+- Rubric 用于帮助 Reviewer 判断，不作为机械打分或自动接受规则；最终结论保留基于上下文的专业判断。
+
 ---
 
 ## 7. Column Index（18 正式列 + Source/Traceability + Decision Status + Evidence Status 映射）

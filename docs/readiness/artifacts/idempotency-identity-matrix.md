@@ -133,7 +133,7 @@ NOT AUTHORIZED
 | IDEM-008 | Durable Work Intent（可靠工作意图） | Integration/Dispatch Capability（DQ-09） | 关联触发 Command ID | Dispatch Scope | dispatch_id（Retry 稳定） |
 | IDEM-009 | Work Intent Claim Attempt（意图领取尝试） | Dispatch Capability | 关联 Intent 的 Command | Dispatch Scope | dispatch_id + holder/lease |
 | IDEM-010 | Durable Work Intent Delivery / Execution Attempt | Dispatch Capability | 关联 Intent Command | Dispatch Scope | delivery_attempt_id（每次 Work Intent claim/execution attempt 新建） |
-| IDEM-011 | Consumer Dedup（消费者去重） | 消费模块（DQ-08(b)） | 关联被消费事件身份 | Consumer Scope | Message ID / Dispatch ID + Consumer Scope 组合 |
+| IDEM-011 | Consumer Dedup（消费者去重） | 消费模块（DQ-08(b)） | 关联被消费事件身份 | Consumer Scope | Integration Event 使用 `source + event_id + Consumer Scope`；Work Intent 如需消费去重则使用其独立 `dispatch_id + Consumer Scope`，两类身份不得互换 |
 | IDEM-012 | Integration Event Identity（集成事件身份） | Integration Event Capability | 关联产生事实的 Command | source + event_id | source + event_id 唯一识别逻辑事件 |
 | IDEM-013 | Provider Call Identity（Provider 调用身份语义边界） | Provider/Integration 模块（DQ-08(d)） | 关联触发 Command | Provider Call Scope | 稳定 Provider Call Identity（绑定 Input Fingerprint） |
 | IDEM-014 | Retry 与 Rerun 身份分离（对照） | 各相应 Owning Module | 见 Retry/Rerun Identity 列 | — | — |
@@ -163,7 +163,7 @@ NOT AUTHORIZED
 
 | Row ID | Input Fingerprint Fields | Fingerprint Schema Version | State Machine | Unique Constraint | Atomic Transaction Boundary |
 |---|---|---|---|---|---|
-| IDEM-001 | task_id / skill_name / input_version_ids / source_set_version_id / skill_contract_version / execution_configuration_version / logical_operation（DEC-033）；含决定业务效果字段，排除 trace/arrival/retry/Attempt 等观测字段 | PENDING OWNER DECISION（canonicalization version + fingerprint schema version + hash algorithm） | IN_PROGRESS / SUCCEEDED / FAILED_TERMINAL / ABANDONED-EXPIRED-RETRYABLE（精确 Enum 留实现） | Scope + Key（+ Fingerprint 冲突检测） | 与业务状态更新同一 PostgreSQL 事务 |
+| IDEM-001 | task_id / skill_name / input_version_ids / source_set_version_id / skill_contract_version / execution_configuration_version / logical_operation（DEC-033）；含决定业务效果字段，排除 trace/arrival/retry/Attempt 等观测字段 | PENDING OWNER DECISION（canonicalization version + fingerprint schema version + comparison semantics；不预设密码学算法） | IN_PROGRESS / SUCCEEDED / FAILED_TERMINAL / ABANDONED-EXPIRED-RETRYABLE（精确 Enum 留实现） | Scope + Key（+ Fingerprint 冲突检测） | 与业务状态更新同一 PostgreSQL 事务 |
 | IDEM-002 | 同 IDEM-001 | 同 IDEM-001 | 复用原记录状态 | 同 IDEM-001 | 重放不再执行业务副作用 |
 | IDEM-003 | 同 IDEM-001 | 同 IDEM-001 | 并发仅一次 SUCCEEDED | 同 IDEM-001 | 同 IDEM-001 |
 | IDEM-004 | 同 Key 不同 Fingerprint | 同 IDEM-001 | 返回 Idempotency Key Conflict | Scope + Key | 不覆盖不执行 |
@@ -173,7 +173,7 @@ NOT AUTHORIZED
 | IDEM-008 | 关联业务 Fingerprint | PENDING OWNER DECISION | Intent 状态机（留 DQ-09/RFC-003） | Intent 唯一性 | Intent 与业务状态同一 Atomic Commit |
 | IDEM-009 | 关联 Intent Fingerprint | PENDING OWNER DECISION | Claim 状态 | Lease/Holder 唯一 | 短事务 Claim（DQ-07） |
 | IDEM-010 | 关联 Intent Fingerprint | PENDING OWNER DECISION | Delivery 状态 | delivery_attempt 身份 | 按 DQ-09 |
-| IDEM-011 | 被消费事件身份 | PENDING OWNER DECISION | Dedup 状态 | Message ID/Dispatch ID + Consumer Scope 唯一 | Dedup Marker 与消费业务更新同事务 |
+| IDEM-011 | 被消费事件身份 | PENDING OWNER DECISION | Dedup 状态 | Integration Event Identity + Consumer Scope 唯一；Work Intent identity 在自身 Scope 内独立 | Dedup Marker 与消费业务更新同事务 |
 | IDEM-012 | event payload fingerprint | PENDING OWNER DECISION（event_schema_version） | Outbox 发布状态机（留 RFC-003） | source + event_id 唯一 | Outbox 与业务事实同一 Atomic Commit |
 | IDEM-013 | Input Fingerprint 绑定 Provider Key | PENDING OWNER DECISION | Provider Call Ledger 状态 | Provider Call Identity 唯一 | DB 事务 Retry 不生成新 Provider Key |
 | IDEM-014 | — | — | — | — | — |
@@ -213,7 +213,7 @@ NOT AUTHORIZED
 | IDEM-008 | dispatch_id（Retry 稳定） | NOT APPLICABLE | NOT APPLICABLE | 按 IDEM-013 | DQ-09 · DQ-08 | rfc-002-decision-questions.md §DQ-09 | ACCEPTED DECISION；Relay = DEFERRED TO RFC-003 | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-009 | dispatch_id | NOT APPLICABLE | NOT APPLICABLE | NOT APPLICABLE | DQ-09 · DQ-07 | rfc-002-decision-questions.md §DQ-09 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-010 | dispatch_id（stable for the logical Work Intent） | delivery_attempt_id（new for each Work Intent claim/execution attempt） | NOT APPLICABLE | NOT APPLICABLE（Work Intent Delivery，非 Integration Event Publication Attempt） | DQ-09 | rfc-002-decision-questions.md §DQ-09 | ACCEPTED DECISION（DQ-09 Work Intent） | NOT YET EVIDENCED / REQUIRES TS-01 |
-| IDEM-011 | 关联 Dispatch ID | NOT APPLICABLE | Consumer Scope（去重范围） | NOT APPLICABLE | DQ-08(b) · DQ-10 | rfc-002-decision-questions.md §DQ-08/10 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
+| IDEM-011 | Integration Event Consumer = NOT APPLICABLE；Work Intent Consumer 如适用则使用其独立 dispatch_id | NOT APPLICABLE | Consumer Scope（与被消费的逻辑身份组合去重） | NOT APPLICABLE | DQ-08(b) · DQ-10 | rfc-002-decision-questions.md §DQ-08/10 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-012 | NOT APPLICABLE | NOT APPLICABLE | Consumer Scope（消费去重） | NOT APPLICABLE | DQ-10 | rfc-002-decision-questions.md §DQ-10 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-013 | NOT APPLICABLE | NOT APPLICABLE | NOT APPLICABLE | 稳定 Provider Call Identity（绑定 Fingerprint） | DQ-08(d) · DQ-17 | rfc-002-decision-questions.md §DQ-08 | ACCEPTED DECISION；不调用真实 Provider | NOT YET EVIDENCED / REQUIRES TS-01 |
 | IDEM-014 | 按各层 | 按各层 | 按各层 | 按各层 | DQ-08 · DQ-07 · DQ-09 | rfc-002-decision-questions.md §DQ-08 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
@@ -271,7 +271,7 @@ NOT AUTHORIZED
 
 | # | 问题 | 决定所有者 | 下一 Gate |
 |---|---|---|---|
-| OQ-1 | Fingerprint Schema Version / canonicalization version / hash algorithm 具体值 | 幂等层 Owning Module + 用户 | ARP-03 Acceptance 前 |
+| OQ-1 | Fingerprint Schema Version / canonicalization version / comparison semantics 具体值（不预设密码学算法） | 幂等层 Owning Module + 用户 | ARP-03 Acceptance 前 |
 | OQ-2 | HTTP 幂等 Header / 状态码 / 响应协议 | 用户 | DEFERRED TO RFC-004 |
 | OQ-3 | 幂等记录 Retention Period | 用户（DQ-15 拥有） | DQ-15 Retention Policy Table Gate |
 | OQ-4 | 完整 ARP-03（非 TS-01 操作）补齐范围 | 用户 | 后续 Wave / Full ARP-03 Gate |
