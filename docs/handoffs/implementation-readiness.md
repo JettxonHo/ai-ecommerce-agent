@@ -27,6 +27,9 @@
 - [x] RFC-006 的有界 Model Recovery、可读 Version Tuple、五个固定 Profile 与确定性 Context Assembly 已确认（DEC-053；DQ-04～06）
 - [x] RFC-006 的 Adapter Secret / Payload / Telemetry Allowlist、同 Port Scripted Substitute、断网 Contract Tests 与单次人工 RC Smoke 已确认（DEC-054；DQ-07～08）
 - [x] RFC-006 Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-006 整体
+- [x] Frontend Foundation 已确认：React 19 + TypeScript + Vite 8 SPA、React Router Declarative Mode、TanStack Query / React Hook Form 显式状态所有权、OpenAPI 类型生成、npm + Vitest / Testing Library + Playwright Chromium（DEC-055；P-36～P-38）
+- [x] Frontend Workbench / Interaction / Web Quality 已确认：深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有 WorkbenchProjection、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance（DEC-056；P-39～P-41）
+- [x] Frontend Architecture Final Consistency Review 已通过，用户已于 2026-08-07 明确接受 Frontend Architecture 整体
 - [x] 关键 Agent、Workflow、Human Review 与 Skill 边界已确认
 - [x] Retrieval / Evidence 与 Skill 的概念职责已确认
 - [x] 外部 Skill 供体的 Adapt / Reference 策略已确认
@@ -34,7 +37,7 @@
 - [ ] 关键 Decision Records 已完成（状态为 Accepted）
 - [ ] PRD 和架构文档已同步
 - [ ] 最终公共数据契约、API 与状态 / 错误映射已明确
-- [ ] 完整测试与验收标准已存在（产品验收包与必要行为门禁已由 DEC-048 确认；测试工具、Fixture 实例与最终 E2E 步骤待 Testing Strategy 补全）
+- [ ] 完整测试与验收标准已存在（产品验收包与必要行为门禁由 DEC-048 确认；Frontend 工具 / 质量边界由 DEC-055 / 056 确认；Fixture 实例与最终 E2E 步骤待 Testing Strategy 补全）
 - [ ] 文档不存在未同步或冲突部分
 - [ ] ARP-02 / 03 / 09 完整 Artifact、ARP-05～08 与 TS-01～TS-05 Charter 已完成
 - [ ] MVP Development Plan、Testing Strategy 与长期 Goal 文本已接受
@@ -52,7 +55,7 @@
 - **RFC:** RFC-001 / RFC-002 / RFC-003 / RFC-006 = ACCEPTED；RFC-004 / 005 / 007 = PROPOSED
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
-- **产品交互与验收:** 单任务工作台、确认式局部重跑、Task / Fact Stage 最低门禁、默认文件限制、分级冲突、审核 / Brief 产品语义和版本 / revision / 导出、渐进式证据、编辑影响、阶段进度、行动导向恢复、固定验收包、行为门禁与 Markdown-first 用户导出 = ACCEPTED（DEC-044～048）；最终公共 Schema、视觉组件、Diff 算法、并发实现、测试工具与公共状态映射仍待 Frontend Architecture / RFC / Testing Strategy
+- **产品交互与验收:** 单任务工作台、确认式局部重跑、输入门禁、审核 / Brief / Evidence / Recovery / Markdown 导出 = ACCEPTED（DEC-044～048）；前端应用 / 状态 / Contract Generation / Verification Foundation = ACCEPTED（DEC-055）；深 TaskWorkbench、Primitive / Styling、私有投影、revision-safe Autosave / Diff、Accessibility / Browser / Reflow / Performance = ACCEPTED（DEC-056）。Frontend Final Consistency Review 与 overall acceptance 均已完成；最终公共 Schema、公共状态 / 错误 / Conflict / Pagination / 下载协议与 Fixture 仍待 RFC / Testing Strategy
 - **Workflow Runtime:** 独立 PostgreSQL Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Current-Truth-first Reconciliation = ACCEPTED（DEC-049 / RFC-003）；PostgreSQL Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token、协作式 Cancellation / Supersession + Commit Fence = ACCEPTED（DEC-050 / RFC-003）；显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、Forward Repair 与风险切片证据边界 = ACCEPTED（DEC-051 / RFC-003）。精确实施版本、最终公共字段与运维参数仍待实施证据、RFC-004 / 007
 - **LLM Runtime:** OpenAI Responses API + `gpt-5.6-terra`、typed sync Port、Adapter 隔离、Strict Output → 项目 Schema → Domain Validator、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute、断网三层 Contract Tests 与单次人工 RC Smoke = ACCEPTED（DEC-052～054 / RFC-006）；精确实施版本、Token / Timeout 与实际 Provider 兼容性仍待实施证据
 - **允许工作:** 产品规格、Architecture RFC、Readiness Artifact / Spike Charter 规划、测试策略、开发计划、Goal 文档与一致性 Review

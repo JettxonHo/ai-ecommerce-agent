@@ -1,8 +1,8 @@
 # Marketing Brief Generation Skill — 概念 Specification
 
 > **Status: PRODUCT SEMANTICS ACCEPTED / IMPLEMENTATION CONTRACT CONCEPTUAL**
-> 来源决定：[DEC-030 — Marketing Brief Generation 采用 Approved Strategy 锁定、平台无关信息架构与证据限制传播契约](../../decisions/dec-030-marketing-brief-generation-skill-contract.md)、[DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md)与 [DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)（均 Accepted）。
-> 本文件的六个产品语义组、不可变正式版本、语义组差异和“Marketing Brief 修改使当前 Xiaohongshu Brief 失效”行为已确认；字段名、类型、枚举、Schema、Diff 算法、阈值、Prompt 与模型仍是概念，不是最终实现契约。
+> 来源决定：[DEC-030 — Marketing Brief Generation 采用 Approved Strategy 锁定、平台无关信息架构与证据限制传播契约](../../decisions/dec-030-marketing-brief-generation-skill-contract.md)、[DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md)、[DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)与 [DEC-056 — 深 TaskWorkbench、revision-safe 交互与适度 Web 质量边界](../../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md)（均 Accepted）。
+> 本文件的六个产品语义组、不可变正式版本、语义组差异和“Marketing Brief 修改使当前 Xiaohongshu Brief 失效”行为已确认；DEC-056 已冻结前端语义组级 Diff，公共 Change Set、字段名、类型、枚举、Schema、阈值、Prompt 与模型仍是概念，不是最终实现契约。
 > Development Status: **NOT READY**。
 
 ---

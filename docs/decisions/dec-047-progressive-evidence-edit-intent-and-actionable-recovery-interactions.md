@@ -59,7 +59,7 @@ MVP 不显示未经校准的数字置信度，也不使用证据覆盖总分或 
 
 导出前展示本次将冻结的当前 Approved Strategy、Marketing Brief、Xiaohongshu Brief 版本，以及适用的上游引用、Hypotheses、Evidence Limitations 与 Risks 摘要。用户确认后按 DEC-046 创建导出快照。
 
-失效结果不得作为当前结果导出。导出文件格式、模板、下载协议、视觉布局和是否提供多种格式仍留给 Frontend Architecture 与 RFC-004；本决定不新增 Hash、SHA-256 或内容指纹要求。
+失效结果不得作为当前结果导出。本文接受时把导出文件格式、模板、下载协议、视觉布局和是否提供多种格式留给 Frontend Architecture 与 RFC-004；后续 DEC-056 已冻结前端视觉与确认交互边界，最终模板和下载协议仍待 RFC-004。本决定不新增 Hash、SHA-256 或内容指纹要求。
 
 ## Alternatives Considered
 

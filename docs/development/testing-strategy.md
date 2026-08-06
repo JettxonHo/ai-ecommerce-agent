@@ -1,9 +1,9 @@
 # MVP Testing Strategy
 
 > **Status: PARTIAL — product acceptance baseline accepted; implementation tooling and executable suites pending RFC / Goal**
-> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md)
+> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) · [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md)
 
-本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前只固化已接受的产品验收基线与 DEC-052～054 / RFC-006 的模型契约，不授权业务实现，也不提前选择测试框架、浏览器工具或公共接口。
+本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前固化已接受的产品验收基线、DEC-052～054 / RFC-006 的模型契约，以及 DEC-055～056 的前端工具、交互与 Web 质量验证边界；不授权业务实现，也不提前冻结公共接口、Fixture 或未实例化的测试步骤。
 
 ---
 
@@ -49,10 +49,18 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 
 ### 3.3 前端与端到端
 
+- 前端静态与构建基线使用 Prettier、ESLint、`tsc --noEmit` 与 Vite Production Build；
+- Unit / Module / State Transition 使用 Vitest + React Testing Library / `user-event`；类型化 Client Contract 使用注入式 Typed Transport / Fixture；
 - 组件与状态转换测试覆盖输入、进度、Needs Input、Review、恢复、结果和导出；
 - API Contract 测试验证前后端状态、错误和版本映射；
-- Browser E2E 使用固定验收包覆盖正常闭环、冲突恢复和 mutation script；
-- 最终浏览器工具、步骤和截图 / Trace 证据格式待 Frontend Architecture 冻结。
+- Browser E2E 使用 Playwright Chromium 与确定性本地 API / Model Substitute，按固定验收包覆盖正常闭环、冲突恢复和 mutation script；
+- 相关前端 PR 运行受影响的关键 E2E，Release Candidate 运行完整固定 Browser E2E；普通测试不得访问真实 Provider；
+- Module / State Transition 测试覆盖 WorkbenchProjection 的模式优先级、stale snapshot、Capability / Intent、轮询停止，以及 Mutation 成功后刷新而非乐观 Current Truth；
+- Review 测试覆盖 latest-buffer 串行 Save、成功 revision 链、歧义编辑意图、Save / Flush / Conflict 阻止 Submit，以及 Stale / Superseded 保留缓冲；
+- 不可信文本使用普通 React Text Rendering；若出现已接受的 Markdown Preview，覆盖 Raw HTML 关闭和安全 Link Protocol；不测试不存在的泛化 Sanitizer 平台；
+- 少量代表性 `@axe-core/playwright` A / AA 检查与人工键盘、Focus、Announcement、200% Text Resize、等价 320 CSS px / 400% Zoom Reflow 共同构成无障碍证据；自动扫描不替代人工判断；
+- 正式支持当前稳定 Desktop Chrome；Edge / Firefox / Safari 为 Best-effort。Firefox / WebKit、Visual Regression 和手机矩阵不机械加入首个 Goal；
+- 首个完整纵向切片建立固定本地性能 Profile，Release Candidate 同 Profile 复测。输入卡顿 / 丢失、轮询整页闪烁、无界 Fetch / Render、Focus 丢失或 Evidence 阻塞主操作是 Blocking Finding；先 Profile 再优化，不使用无实现基线的机械分数。
 
 ### 3.4 真实 Provider Smoke
 
@@ -109,11 +117,11 @@ Goal 完成前必须同时满足：
 ## 8. 尚待冻结
 
 - Fixture 的具体业务数据、许可、文件布局与 expected-output 表示；
-- 测试框架、浏览器 E2E 工具、命令、CI 分组和证据保存格式；
+- 前端精确工具版本、除 `dev` / `build` / `preview` 外的最终命令、CI Job 分组和浏览器证据保存格式；前端框架、核心测试工具、Accessibility / Browser / Reflow / Performance 边界已由 DEC-055 / 056 冻结；
 - Fixture / SDK Stub 的物理实现、Live Smoke 操作手册与证据文件格式；Provider、Version、Profile、Recovery、Secret / Payload / Telemetry、确定性替身分层与 Smoke 触发边界已由 DEC-052～054 冻结；
 - Integration / Migration / concurrency / failure-injection 的最终场景矩阵；
-- Markdown 模板、文件名、下载协议与视觉样式；
-- 性能基线、Beta 用户样本、埋点和 Dashboard。
+- Markdown 模板、文件名与下载协议；视觉架构与样式边界已由 DEC-056 冻结；
+- 实际性能 Profile 基线、Beta 用户样本、埋点和 Dashboard；性能判定方法已由 DEC-056 冻结。
 
 这些事项必须由对应 Accepted RFC、Frontend Architecture、Development Plan 或 Goal Issue 冻结；未接受内容不得写成实现事实。
 

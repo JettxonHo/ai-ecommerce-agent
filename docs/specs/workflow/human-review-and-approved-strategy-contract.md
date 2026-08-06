@@ -1,7 +1,7 @@
 # Human Review and Approved Strategy Contract（概念 Workflow Spec）
 
-> **Status:** PRODUCT SEMANTICS ACCEPTED / IMPLEMENTATION CONTRACT CONCEPTUAL（产品语义已确认；最终 Schema / 字段名 / 数据库表 / API / Review UI / LangGraph Interrupt Payload / 并发实现 / Transaction 实现仍未确认）
-> **来源 Decision：** [DEC-029 — Human Review 采用版本化审核包、结构化用户决策与事务化 Approved Strategy 契约](../../decisions/dec-029-human-review-and-approved-strategy-contract.md)、[DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md) 与 [DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)（均 Accepted）
+> **Status:** PRODUCT SEMANTICS ACCEPTED / IMPLEMENTATION CONTRACT CONCEPTUAL（产品语义与前端审核交互边界已确认；最终公共 Schema / 字段名 / 数据库表 / API / LangGraph Interrupt Payload / 服务端并发与 Transaction 实现仍未确认）
+> **来源 Decision：** [DEC-029 — Human Review 采用版本化审核包、结构化用户决策与事务化 Approved Strategy 契约](../../decisions/dec-029-human-review-and-approved-strategy-contract.md)、[DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md)、[DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 与 [DEC-056 — 深 TaskWorkbench、revision-safe 交互与适度 Web 质量边界](../../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md)（均 Accepted）
 > **承接：** DEC-009（阶段失效）/ DEC-012（阶段状态 + 结构化条目）/ DEC-013（任务级持久化与 Resume）/ DEC-020（核心工作流单审核 Gate）/ DEC-023（LangGraph Interrupt / Resume）/ DEC-024（版本化 Domain Objects + Current Truth Pointer + 结构化 ReviewState）/ DEC-025（Proof Point → Fact → Evidence Link → Fragment → Source Version）/ DEC-028（上游 Positioning Candidates）
 > **本文件是 Current Truth Layer 的一部分，但当前仅为概念规格。** 所有字段名 / 枚举 / 概念结构均为**概念示意，非最终数据契约**。
 
@@ -181,7 +181,7 @@ StrategyDraft
 └── status
 ```
 
-Strategy Draft：不属于业务 Current Truth / 不允许下游使用 / 可以多次修改 / 可以自动保存 / 必须记录单调递增 revision / 提交前必须通过 Validator。每次成功保存产生更高 revision；基于旧 revision 的保存或提交必须拒绝。**Draft 自动保存频率、传输字段名和并发实现仍未确认。**
+Strategy Draft：不属于业务 Current Truth / 不允许下游使用 / 可以多次修改 / 可以自动保存 / 必须记录单调递增 revision / 提交前必须通过 Validator。每次成功保存产生更高 revision；基于旧 revision 的保存或提交必须拒绝。**DEC-056 已冻结前端侧约 1 秒初始等待、串行单请求、只保留最新缓冲、按服务端返回 revision 续链与提交前 flush / block 语义；最终传输字段、Patch 或 Snapshot 与服务端并发实现仍待 RFC-004。**
 
 ---
 
@@ -455,7 +455,7 @@ Model Recommendation 被选择比例 / 推荐候选的用户修改量 / 用户�
 - Review Draft 与正式对象的差异至少按语义组显示修改前后、模型 / 用户来源和相关版本。
 - 明确结构化业务语义修改按重要修改处理；展示性润色不触发上游重跑；歧义自由文本由用户确认一次编辑意图。
 - 陈旧 revision 恢复路径须支持刷新、比较后继续；LLM 不替用户决定编辑影响。
-- 最终 Diff 组件、自动保存频率、传输与并发实现仍未确认。
+- DEC-056 已冻结语义组级 Diff 与 revision-safe 自动保存的产品和前端交互语义；最终公共 Change Set、传输字段、Patch 或 Snapshot 与服务端并发实现仍待 RFC-004。
 
 ---
 
@@ -496,7 +496,7 @@ Hard Rules:
 
 ## §22 Open Questions（记录而非虚构）
 
-最终 Review / Approved Strategy 公共 Schema、字段名、类型与逐字段必填表达 / Review UI 组件与 Diff 算法 / Draft 自动保存频率 / Patch 或完整 Snapshot 策略 / revision 的传输和数据库并发实现 / 数据库事务实现 / LangGraph Interrupt Payload / API / 审核权限 / 多人协作审核 / 电子签名 / 审批链 / Review Status 最终枚举名 / Review Actions 最终字段 / Hypothesis Decision 最终字段 / Proof Point Decision 最终字段 / Evidence Limitation Decision 最终字段 / Audit Record 最终 Schema / Withdrawal Record 最终 Schema / 具体错误代码 / Golden Dataset 最终数据与阈值。
+最终 Review / Approved Strategy 公共 Schema、字段名、类型与逐字段必填表达 / 公共 Change Set / Patch 或完整 Snapshot 策略 / revision 的传输和数据库并发实现 / 数据库事务实现 / LangGraph Interrupt Payload / API / 审核权限 / 多人协作审核 / 电子签名 / 审批链 / Review Status 最终枚举名 / Review Actions 最终字段 / Hypothesis Decision 最终字段 / Proof Point Decision 最终字段 / Evidence Limitation Decision 最终字段 / Audit Record 最终 Schema / Withdrawal Record 最终 Schema / 具体错误代码 / Golden Dataset 最终数据与阈值。
 
 ---
 
@@ -512,7 +512,7 @@ Hard Rules:
 - Draft 自动保存代码；
 - Approved Strategy Service 代码。
 
-**当前不选择**：前端框架 / 数据库 / 并发控制技术 / Draft 存储方案 / API 框架 / 权限系统 / 多人审批系统。
+**当前不选择**：数据库并发控制技术 / Draft 服务端存储方案 / API 框架 / 权限系统 / 多人审批系统。前端框架与交互边界已由 DEC-055 / DEC-056 冻结，但本文件不授权实现。
 
 **当前不创建 RFC。**
 

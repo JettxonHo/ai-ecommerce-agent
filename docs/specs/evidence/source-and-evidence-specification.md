@@ -584,7 +584,7 @@ New Source Version
 - 直接证据可显示短摘录，综合判断可显示忠实摘要和主要依据，不强制逐句引用。
 - 不显示未经校准数字置信度或机械证据覆盖总分。
 
-本节只定义业务数据向用户交互的投影要求；最终组件、Locator Schema、权限映射与 Evidence API 仍待 Frontend Architecture / RFC-004 / RFC-005。
+本节只定义业务数据向用户交互的投影要求；工作台与证据交互边界已由 DEC-055 / DEC-056 冻结，最终 Locator Schema、权限映射与 Evidence API 仍待 RFC-004 / RFC-005。
 
 ---
 

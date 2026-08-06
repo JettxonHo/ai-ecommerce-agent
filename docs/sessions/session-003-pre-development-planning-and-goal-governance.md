@@ -4,9 +4,11 @@
 
 - Status: In Discussion
 - Date: 2026-08-06
+- Last Updated: 2026-08-07
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-051
+- Related Decisions: DEC-039～DEC-056
+- Frontend Proposal Status: P-36～P-41 全部 Accepted；Frontend Architecture overall Accepted
 
 ## Context
 
@@ -87,7 +89,8 @@
 
 ## Proposed Decisions
 
-RFC-003 的 `P-19A`～`P-27A` 已全部由用户接受，当前没有未决 RFC-003 子决策。下一项治理 Gate 是 RFC-003 最终一致性 Review 后的整体接受；该 Gate 尚未通过，不能写成 Accepted。
+- 当前无未接受的 Frontend Architecture Proposal；P-36～P-41 的完整提案与接受过程保留在下方各 Decision Round。
+- Frontend Architecture 整体接受不授权安装依赖、生成脚手架或编写前端，未接受的 RFC-004 / 005 / 007 公共契约不得被提前写成实现事实。
 
 ## Accepted Decisions
 
@@ -104,6 +107,11 @@ RFC-003 的 `P-19A`～`P-27A` 已全部由用户接受，当前没有未决 RFC-
 - [DEC-049](../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) — 采用独立 PostgreSQL Checkpoint Database、同步持久性、可重入 Node 与 Business-Current-Truth-first Reconciliation（用户于 2026-08-06 接受 P-19A / P-20A / P-21A；Amends DEC-013 / 023 / 024 / 033）。
 - [DEC-050](../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) — 采用 PostgreSQL Durable Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token 与持久化协作式取消 / Supersession（用户于 2026-08-06 接受 P-22A / P-23A / P-24A；Amends DEC-013 / 033，Complements DEC-049）。
 - [DEC-051](../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) — 采用显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移和 Forward Repair 证据边界（用户于 2026-08-06 接受 P-25A / P-26A / P-27A；Amends DEC-013 / 033，Complements DEC-049 / 050）。
+- [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) — 采用单一 OpenAI Responses Provider、窄型同步 Model Runtime Port 与 Structured Output 权威边界（用户于 2026-08-06 接受 P-28A / P-29A / P-30A）。
+- [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) — 采用有界 Model Recovery、可读 Version Tuple 与确定性 Skill Profiles（用户于 2026-08-06 接受 P-31A / P-32A / P-33A；Amends DEC-052）。
+- [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) — 采用 Adapter Secret / Payload 边界、同 Port Scripted Substitute 与单次人工 RC Smoke（用户于 2026-08-06 接受 P-34A / P-35A；Amends DEC-052 / 053）。
+- [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) — 采用 React / Vite SPA、显式前端状态所有权、OpenAPI 生成与 npm + Vitest / Testing Library + Playwright Chromium 验证基础（用户于 2026-08-06 接受 P-36A / P-37A / P-38A）。
+- [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) — 采用深 TaskWorkbench、revision-safe 交互投影与适度 Web 质量边界（用户于 2026-08-06 接受 P-39A / P-40A / P-41A；2026-08-07 接受 Frontend Architecture 整体）。
 
 ## Rejected Approaches
 
@@ -115,9 +123,9 @@ RFC-003 的 `P-19A`～`P-27A` 已全部由用户接受，当前没有未决 RFC-
 ## Open Questions
 
 - 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决；代表性验收包、必要行为门禁和 Markdown-first 用户导出由 DEC-048 解决。
-- Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、Diff 算法、状态 / 错误映射、Markdown 模板与下载协议。
+- Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、公共 Change Set、状态 / 错误映射、Markdown 模板与下载协议。
 - Fixture 具体业务数据、测试工具、最终浏览器 E2E 步骤、Live Smoke 手册与 Beta 指标。
-- RFC-003 已进入 `IN REVIEW`；其 DQ-01～09 已由 DEC-049～051 全部解决，整体仍待最终一致性 Review 后由用户单独接受。精确实施版本与公共字段不在 DEC-051 中虚构，继续由实施证据、RFC-004 / 007 冻结。RFC-004 至 RFC-007 与 Frontend Architecture 的具体技术选择仍开放。
+- RFC-003、RFC-006 与 Frontend Architecture 均已整体接受；RFC-004 / 005 / 007、精确实施版本、最终公共字段与运维参数仍开放。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
 - Luna 不可用时的路由已由 DEC-043 解决为 Terra 显式回退或外部 Luna 任务包；每个实际 Issue 仍需记录所用模型与独立 Reviewer。
 
@@ -134,6 +142,8 @@ RFC-003 的 `P-19A`～`P-27A` 已全部由用户接受，当前没有未决 RFC-
 - 新增 DEC-049 与 RFC-003 Draft，更新架构 Current Truth、Readiness、Traceability、RFC Register 和本 Session。
 - 新增 DEC-050，接受 RFC-003 DQ-04～06，并将 DQ-07～09 的 P-25A～P-27A 方案写入 RFC Draft。
 - 新增 DEC-051，接受 RFC-003 DQ-07～09，将 RFC-003 推进到 `IN REVIEW` 并同步 Compatibility、Safe Resume、迁移 / 回滚和验收证据边界。
+- 新增 DEC-052～054，接受 RFC-006 DQ-01～08；完成 Final Consistency Review、用户整体接受、PR #49 合并和 Issue #48 关闭。
+- 新增 DEC-055 / DEC-056，接受 Frontend Architecture P-36A～P-41A，完成 Final Consistency Review 与整体接受，并同步 `docs/architecture/frontend-architecture.md` Current Truth。
 
 ## Synchronization Checklist
 
@@ -656,3 +666,306 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - RFC Acceptance 不等于实现授权；SDK Installation、Secret Read、Live Model Call、Implementation、Spike Execution 与 Goal Activation 继续为 `NOT GRANTED`。
 - 本次不安装或升级 Provider SDK，不读取真实 Secret，不调用真实模型或执行 Live Smoke，不创建 Model Runtime、Provider Adapter、Prompt、Fixture 或测试 Harness，不执行 TS-01～TS-05，也不创建或激活长期 Goal。
 - 下一策划议题按既定依赖顺序为 Frontend Architecture；之后继续闭合 RFC-004 / 005 / 007、Readiness 规划包、Testing Strategy、Development Plan 与 Goal 文本。
+
+## Proposal Round — Frontend Application, State and Verification Foundation（2026-08-06）
+
+### Context and Investigation
+
+- RFC-006 合并后已创建 Frontend Architecture Issue [#50](https://github.com/JettxonHo/ai-ecommerce-agent/issues/50) 与独立分支 `codex/frontend-architecture`。仓库当前不存在前端包、JavaScript Package Manager Lockfile 或前端实现，因此本轮没有兼容遗留前端的负担，也不得借策划名义安装依赖或生成脚手架。
+- 已接受的产品形态是受控单工作区的引导式任务工作台，浏览器负责资料输入、长任务进度、补充资料、结构化审核、结果查看与 Markdown 导出；业务状态属于后端 Task / Run / Review / Brief，不属于聊天记录或浏览器内存。
+- 首个 Goal 没有公开部署、SEO、服务端渲染、账号、多租户或前端直连 Provider 的需求；前端与独立 Python REST API / Worker 进程协作，长任务允许轮询，公共资源、状态与错误契约由后续 RFC-004 冻结。
+- Vite 官方文档提供 React + TypeScript 模板、开发代理和静态构建；React Router 官方把 Declarative Mode 定位为由应用自行拥有数据层时的基础路由方式，而 Data / Framework Mode 增加 loader、action、pending state 或服务端能力。Next.js Static Export 可以产出静态站点，但其 Server Features 在该模式下不可用。
+- TanStack Query 提供可按 Query 状态动态停止的 `refetchInterval`；`openapi-typescript` / `openapi-fetch` 可从 OpenAPI 3.1 生成 `paths` 类型并提供基于原生 `fetch` 的类型化客户端；React Hook Form 提供 TypeScript 表单、Field Array 和低重渲染的受控边界。
+- Vitest 与 Vite 共享配置和转换管线；Playwright 可以在测试前启动一个或多个本地 Web Server，并保存失败诊断证据。首个 Goal 只需要代表性 Chromium E2E，不需要在每个 PR 机械运行三浏览器矩阵或再建设一层通用 Mock Server。
+
+### P-36 — Application Shape, Framework, Routing and Build
+
+#### Option A — React 19 + TypeScript + Vite 8 SPA + React Router Declarative Mode（推荐）
+
+- 在 RFC-001 已接受的唯一前端根 `apps/web/` 建立纯浏览器 SPA；React 19 负责 UI，Vite 8 负责开发与静态构建，React Router Declarative Mode 只负责可链接的 Task / Stage / Panel 导航。
+- 浏览器只调用同源 `/api`；开发期由 Vite Proxy 转发到本地 Python API，构建产物为静态资源。首个 Goal 不使用 SSR、React Server Components、Route Loader / Action 作为业务状态层，也不让 Node 成为生产 API 进程。
+- 冻结 Major-line 与能力边界；精确 Patch、Node 兼容组合和 Lockfile 只在实施 Issue 中依据官方兼容性证据固定，不由实现 Agent 临场改架构。
+- 优点：与独立 Python API、P-37 选择的独立数据层和本地演示边界贴合；开发 / 构建链短；路由、远程状态和表单职责分离。
+- 代价：需要项目自行定义工作台模块、Error Boundary 与数据预取规则；未来若确需 SSR，要另立架构 Decision。
+
+#### Option B — React Router Framework Mode
+
+- 使用同一 React Router 同时承担路由、Loader / Action、Pending State、代码分割与可选服务端渲染。
+- 优点：路由数据约定完整，未来增加 SSR 的路径更直接。
+- 代价：若与 P-37A 组合，Loader / Action 会与 TanStack Query 的缓存、Mutation 和长轮询职责重叠；只有选择 P-37C 时才充分利用该模式，但仍会引入首个 Goal 不需要的服务端 / 构建约定。
+
+#### Option C — Next.js App Router + Static Export
+
+- 使用 Next.js App Router，但演示环境只产出 Static Export，并继续调用独立 Python API。
+- 优点：生态成熟，文件路由、代码分割和未来公开站点能力完整。
+- 代价：Static Export 下 Server Features 不可用；为了当前无 SEO / SSR 需求的内部工作台承担额外缓存、Server / Client Component 与构建语义。
+
+#### Recommendation
+
+选择 `P-36A`，并与 `P-37A` 组合。它把浏览器客户端保持为浅层适配器：路由表达位置，独立 Query Layer 表达远程状态，后端仍是业务状态权威；不会为首个本地演示引入第二个应用服务器模型。
+
+### P-37 — Remote State, Form State and Generated API Contract
+
+#### Option A — Explicit Ownership + TanStack Query + React Hook Form + OpenAPI Generation（推荐）
+
+- TanStack Query v5 独占 Task / Run / Source / Review / Brief 等远程资源缓存、Mutation、失效和长任务自适应轮询；终态、`needs_input`、待审核或错误态出现后停止对应轮询，后台标签页沿用库的节流 / 暂停语义。
+- React Hook Form v7 只拥有尚未保存的输入、补充资料和 Review 表单编辑缓冲；已经保存的 Review Draft、单调 revision 与跨标签恢复状态仍属于后端远程资源，由 TanStack Query 的 Query / Mutation 同步。React 局部状态只保存短命视觉状态，URL Route / Search Params 保存可分享的 Task、Stage 与 Panel 选择。首个 Goal 不引入 Redux 或 Zustand。
+- RFC-004 产出的已提交 OpenAPI 3.1 Artifact 是 HTTP Contract 唯一权威；`openapi-typescript` 生成类型，`openapi-fetch` 提供原生 `fetch` Client。生成文件是不可手改的派生产物，随 Contract 变更提交，并由 `api:generate` + clean-diff Gate 防止漂移，不创建第二套手写 DTO。
+- 组件不得直接调用 `fetch`。一个窄型 API Client / Query Adapter 负责 Request Identity、标准错误归一化和 DTO 到 View Model 的投影；业务 Revision / Idempotency / Stale Conflict 语义仍由 RFC-004 定义。
+- 前端同步校验只服务即时 UX；后端和公共 Contract 保持最终权威。首个 Goal 不把全部后端 Schema 机械复制为 Zod，也不为同项目 API 的每个响应重复运行通用 Runtime Validation；真正的非类型输入在其边界做针对性解析。
+- 优点：远程、表单、URL 和视觉状态边界明确；适合长轮询与结构化审核；Contract Drift 可被 CI 直接发现。
+- 代价：需要维护 Query Key / Invalidation 约定和生成步骤；如果未来出现大量跨页纯客户端状态，再单独评估 Store。
+
+#### Option B — Redux Toolkit + RTK Query + Centralized Draft State
+
+- Server Cache、Form Draft、Wizard 和视觉状态统一进入 Redux Store。
+- 优点：单一调试面板和集中式事件流，复杂跨页离线编辑时有优势。
+- 代价：当前单任务工作台会把后端 Current Truth、表单草稿和短命 UI State 混在一起；Boilerplate 和失效逻辑重于实际需求。
+
+#### Option C — React Router Framework Data APIs + Native Form / Custom Fetch（仅兼容 P-36B）
+
+- 用 Loader / Action / Fetcher 管理所有远程读写，自建轮询和缓存；复杂表单使用原生 React State。
+- 优点：依赖少，导航和请求生命周期统一。
+- 代价：长任务轮询、跨 Panel Cache、Revision Conflict 和 Field Array 会转化为项目自有基础设施；Route 生命周期与业务执行状态耦合。
+
+#### Recommendation
+
+选择 `P-37A`。它只为已经存在的三类复杂度选专用工具，不提前建设全局客户端状态平台；OpenAPI 生成链把 RFC-004 公共契约连接到前端而不产生手写重复定义。
+
+#### Compatibility Matrix
+
+| Application choice | P-37A | P-37B | P-37C |
+|---|---:|---:|---:|
+| P-36A — Vite SPA + Declarative Router | 推荐 | 可兼容，但偏重 | 不兼容；需改选 P-36B |
+| P-36B — React Router Framework Mode | 可兼容，但须禁用重复 Loader / Action 数据职责 | 可兼容，但偏重 | 原生组合 |
+| P-36C — Next.js Static Export | 可兼容 | 可兼容，但偏重 | 不兼容；不是 React Router Runtime |
+
+推荐组合是 `P-36A + P-37A`。若用户选择表中“不兼容”的组合，该组不能归档为 Accepted，必须重新裁决或通过后续 Decision 正式修订，而不是让实现 Agent 自行调和。
+
+### P-38 — Frontend Verification, Package Policy and Local Execution
+
+#### Option A — npm + Vitest / Testing Library + Playwright Chromium（推荐）
+
+- 使用实施开始时仍处于 Active LTS、且被已接受 Vite Major 官方支持的 Node 版本，配套 npm 与提交的 `package-lock.json`；精确版本在实施 Issue 的兼容性证据中固定，不为单一前端包引入 pnpm Workspace、Yarn 或 Bun。依赖升级和 Major 迁移保持独立 Issue / PR。
+- PR 基线为 Prettier Format Check、ESLint、`tsc --noEmit`、Vitest + React Testing Library / `user-event` 的 Unit / Component / State Transition Tests、类型化 API Client Contract Tests 和 Vite Production Build。
+- Playwright Chromium 覆盖关键浏览器纵向切片；涉及关键流程的前端 PR 跑相关 E2E，Release Candidate 跑完整固定 E2E。Firefox / WebKit 与 Visual Regression 只有出现明确发布目标或代表性缺陷时再提案，不作为首个 Goal 的机械矩阵。
+- Unit / Component Tests 使用注入式 Typed Transport / Fixture；Playwright 使用确定性本地 API / Model Substitute。首个 Goal 不额外建设通用 MSW 平台，也不允许测试访问真实 Provider。
+- `npm run dev` 是前端单独启动入口，使用固定严格端口和同源 `/api` Development Proxy；`npm run build` 是可发布构建入口，`npm run preview` 只用于本地构建预览、不冒充 Production Server。完整数据库 / API / Worker / Frontend 一键命令在 RFC-004 / 005 / 007 后由 Development Plan 冻结，但必须调用这些标准脚本并正确回收子进程。
+- 优点：Vite-native、配置少、失败反馈快；把行为测试和真实浏览器 E2E 分层，符合适度校验原则。
+- 代价：jsdom Component Test 不是完整浏览器；由少量关键 Playwright E2E 补齐，而不是把所有组件测试搬进浏览器。
+
+#### Option B — pnpm Workspace + Vitest Browser Mode + Playwright Chromium（Browser-first Stack）
+
+- 使用 pnpm Workspace 管理前端及未来可能的 TypeScript Package；Component Test 使用 Vitest Browser Mode，关键 E2E 仍使用 Playwright Chromium。Firefox / WebKit 与 P-38A 一样只在明确发布目标出现后启用，不绑定每 PR 三浏览器矩阵。
+- 优点：依赖存储高效，组件交互在真实浏览器运行；若后续确实出现多个 TypeScript Package，Workspace 边界更自然。
+- 代价：仓库当前只有一个计划中的前端 Package；额外 Package Manager / Workspace 约定没有即时收益，Browser Mode 与 Playwright E2E 仍存在两层浏览器测试职责和更高运行成本。
+
+#### Option C — npm + Jest / Testing Library + Cypress
+
+- 优点：工具成熟、交互式调试体验广泛。
+- 代价：Jest 需维护与 Vite 不同的转换 / Alias 配置，Cypress 又形成另一套 Dev Server 和 E2E 约定；没有证据表明这些额外边界能提升本项目首个 Goal 的可靠性。
+
+#### Recommendation
+
+选择 `P-38A`。它提供静态检查、行为测试、Contract、Build 和关键浏览器闭环，同时刻意不扩大为多 Package Manager、多浏览器或泛化 Mock 平台。
+
+### Primary Sources
+
+- [Vite Guide](https://vite.dev/guide/) 与 [Vite Server Proxy](https://vite.dev/config/server-options.html#server-proxy)
+- [React `createRoot`](https://react.dev/reference/react-dom/client/createRoot)
+- [React Router Modes](https://reactrouter.com/start/modes) 与 [Declarative Routing](https://reactrouter.com/start/declarative/routing)
+- [Next.js Static Exports](https://nextjs.org/docs/pages/guides/static-exports) 与 [Single-Page Applications](https://nextjs.org/docs/app/guides/single-page-applications)
+- [TanStack Query `useQuery`](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery)
+- [OpenAPI TypeScript](https://openapi-ts.dev/) 与 [OpenAPI Fetch](https://openapi-ts.dev/openapi-fetch/)
+- [React Hook Form](https://github.com/react-hook-form/react-hook-form)
+- [Vitest Guide](https://vitest.dev/guide/) 与 [Playwright Web Server](https://playwright.dev/docs/test-webserver)
+
+### Decision and Authorization Status
+
+- `P-36 / P-37 / P-38 = PROPOSED`；推荐项分别为 `P-36A / P-37A / P-38A`，用户尚未接受任何选项。
+- `P-39～P-41`（工作台模块 / UI Primitive、运行 / 审核 / 冲突状态投影、可访问性 / 浏览器 / 响应式 / 性能边界）将在首轮裁决后提出，避免把相互依赖的六项决定一次性机械打包。
+- Frontend Architecture Current Truth、Decision Record、Implementation、依赖安装、脚手架生成、浏览器测试执行与 Goal Activation 均为 `NOT GRANTED`。
+
+## Decision Round — Frontend Application, State and Verification Foundation（2026-08-06）
+
+### User Acceptance
+
+- 用户明确确认推荐组合 `P-36A + P-37A + P-38A`。
+- 应用基础采用 `apps/web/` 下的 React 19 + TypeScript + Vite 8 SPA 与 React Router Declarative Mode；状态采用 TanStack Query / React Hook Form / URL / React Local State 的显式所有权；HTTP Contract 使用 RFC-004 OpenAPI 3.1 Artifact → `openapi-typescript` / `openapi-fetch` 生成链；验证采用 npm + Vitest / Testing Library + Playwright Chromium。
+
+### Accepted Result
+
+- [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) 归档 P-36A / P-37A / P-38A。
+- [Frontend Architecture](../architecture/frontend-architecture.md) 只同步已经接受的应用、状态、生成契约与验证基础，并明确标记 `PARTIAL CURRENT TRUTH`。
+- Draft PR #51 的首轮 8 项 Required Checks 全部通过；独立审查结果 Critical = 0、Required = 0、Optional = 0。
+
+### Authorization Boundary and Next Gate
+
+- 接受不授权依赖安装、脚手架、组件、路由、样式、Client、测试、CI、业务实现、Spike 或 Goal。
+- Frontend Architecture 仍未整体闭合；下一轮 P-39～P-41 负责工作台 Module / UI Primitive / Styling、状态 / 错误投影与自动保存 / Diff，以及可访问性 / 浏览器 / 响应式 / 性能边界。
+
+## Proposal Round — Frontend Workbench Modules, Interaction Projection and Quality Boundary（2026-08-06）
+
+### Investigation and Design-It-Twice Result
+
+- 三个独立 Sol 设计上下文分别以“最小 Interface / 最大 Depth”“最大扩展性”“默认目标用户路径最简单”为目标，设计了 Workbench Module 的不同 Seam；均只读审阅 DEC-044～048、RFC-001 与 DEC-055，没有修改文件或冻结 RFC-004 字段。
+- 最小 Interface 与默认路径方案均收敛为一个深 `TaskWorkbench Module`：Router 只负责打开新任务或稳定 Task Context，Query、RHF、轮询、Review revision、失效、证据、恢复和导出复杂度隐藏在 Module 内部。
+- 最大扩展性方案提出静态 Feature Contribution Registry；它适合频繁增加 Stage / Panel，但会引入 Registry、Contribution Taxonomy、排序和配置诊断。首个 Goal 的 Stage / Panel 已固定，没有证据支持提前建设内部插件框架。
+- Radix Primitives 官方定位为可增量采用、无样式且处理复杂控件 ARIA、键盘与焦点细节的低层 Primitive；shadcn/ui 把实际组件源码交给项目并以 Tailwind 提供默认样式；Material UI 提供完整 Material 组件体系。三者都可行，但锁定程度和本地维护面不同。
+- WCAG 2.2 是 W3C Recommendation；Playwright 官方说明 `@axe-core/playwright` 只能发现部分常见问题，仍须键盘 / 焦点等人工检查。性能要求遵循 Measure → Identify → Fix → Verify，不在没有实现基线时机械复制公共网站预算或 Lighthouse 总分。
+
+### P-39 — Workbench Module, UI Primitive and Styling
+
+#### Option A — One Deep TaskWorkbench Module + Native/Radix Primitives + CSS Modules（推荐）
+
+- `app` 层只负责 Composition、Provider 和外层 Declarative Router；它拥有 `/tasks/new` 与稳定 Task Route 的匹配和 Task Identity 提取。一个深 `TaskWorkbench Module` 负责校验 / 规范化该 Task 内可链接的 Stage / Panel 位置并投影 Active Workspace；Router 不学习 Upload、Start、Resume、Review、Rerun 或 Export 的逐动作回调。
+- Workbench 内部保持固定的私有 Module：Intake、Progress / Recovery、Review、Results / Export、Evidence / Context；它们共同消费 P-40 的 `WorkbenchProjection`、产生语义化 `WorkbenchIntent`，不直接消费 HTTP DTO，也不互相导入 Implementation。
+- Python API 属于 remote-but-owned 依赖，在内部 Seam 只保留两个真实 Adapter：基于生成 Client 的 Typed HTTP Adapter，以及驱动固定资料包 / 变更脚本的 Deterministic Test Adapter。TanStack Query 包装该 Seam 并拥有 Cache、Mutation、失效和轮询。
+- UI Primitive Module 优先使用语义化原生 HTML；只在 Dialog、Alert Dialog、Popover、Tabs、Tooltip、Collapsible 等原生能力不足的复杂交互按需使用兼容 React 19 的 Radix Primitives，不一次性安装或暴露整套控件。
+- 用户、Source 与 Model 提供的文本默认只通过 React Text Rendering 展示，禁止 `dangerouslySetInnerHTML` 或 Raw HTML。若某个已接受的用户路径需要 Markdown Preview，则关闭 Raw HTML、只允许明确的安全 Link Protocol，并用行为测试覆盖代表性文本 / 链接；在没有 Raw HTML 边界时不建设泛化 Sanitizer 平台。
+- Styling 使用 CSS Modules + 少量语义 CSS Custom Properties，集中定义 Color、Typography、Spacing、Radius、Elevation、Focus 与 Motion Token；不引入 Tailwind、CSS-in-JS Runtime 或完整主题框架。
+- 视觉方向为专业、证据优先的信息工作台：稳定 Stage Timeline、清晰 Active Workspace、按需 Evidence Context、一个主要 Accent；禁止 Chat Bubble 主界面、无意义 Card Grid、虚构百分比 / 置信度和只靠颜色表达状态。
+- 优点：外部 Interface 最小，删除 Workbench Module 后复杂度会重新散落，说明其 Depth / Leverage 真实；HTTP、状态投影、视觉 Primitive 与 Feature Change 各有明确 Locality；视觉不受 Material 或通用模板支配。
+- 代价：WorkBench 内部较深，必须通过私有 Module 保持可维护；CSS 视觉实现比采用完整组件套件需要更多项目自有设计判断。
+
+#### Option B — Static Contribution Registry + shadcn/ui / Tailwind
+
+- Stage 与 Panel Module 通过静态 Registry 贡献 Route、Placement、Renderer 和 Action；使用 shadcn/ui 源码组件、Tailwind Utility 与 CSS Variable Theme。
+- 优点：新增已批准 Stage / Panel 时 Host 基本不变；开源组件有较好默认视觉，源码可直接修改。
+- 代价：当前固定工作台会承担 Registry、Contribution、排序与生成组件维护；若继续增加 Slot / Hook / Middleware 容易演变为内部插件框架，Tailwind Class 与生成源码也扩大 Review 面。
+
+#### Option C — Route-first Stage Pages + Material UI
+
+- 每个 Stage 作为独立 Route Feature，使用 Material UI 完整组件与 Theme；共享 Query / Form Utility 协调远程状态。
+- 优点：上手快、组件丰富，独立 Stage Page 易于局部开发。
+- 代价：跨 Stage 的 Current Truth、Evidence、Review revision、恢复和导出规则会散落到多个 Route；Material 视觉与 Runtime Styling 锁定更强，单任务上下文与深 Module 的 Locality 较弱。
+
+#### Recommendation
+
+选择 `P-39A`。它结合最小 Interface 与默认路径两项独立方案，并拒绝为尚未出现的扩展需求提前建设 Contribution Registry。Radix 只解决真正复杂的可访问交互，CSS Modules 与语义 Token 保留工作台自身的视觉语言。
+
+### P-40 — Interaction Projection, Autosave, Diff and Recovery Surface
+
+#### Option A — Derived WorkbenchProjection + Intent / Capability + Serialized Autosave（推荐）
+
+- 在 `TaskWorkbench Module` 内建立私有、判别明确的 `WorkbenchProjection`；它由 RFC-004 资源、TanStack Query 状态、当前 Mutation、URL 与本地编辑缓冲确定性派生，不是第二套业务状态机或公共枚举。
+- Active Workspace 使用产品模式表达 `intake`、`running`、`needs_input`、`review`、`invalidation_preview`、`results`、`recovery` 与 `unavailable`；实际 RFC-004 状态名可不同。每次突出一个当前主要动作，Stage Timeline、最后有效结果与少量合法次动作保持可达。
+- 可用 Action 只能来自 RFC-004 接受的 Resource / Command Capability 与本地 Mutation 状态；前端不得根据显示文案或未知状态猜测写操作。业务 Cancel 是显式 Intent，浏览器 Abort 只取消等待。
+- 状态同时出现时使用固定产品优先级：无可用成功快照且首次读取明确失败 / Task 不存在 → Unavailable；当前写入 Conflict / Confirmation → 恢复或确认面；Needs Input → 补料 / 裁决；Human Review → Review；待确认失效 → Invalidation Preview；Active Run → Running；当前有效结果 → Results；其余 → Intake。已有成功快照但暂时刷新失败时保持原产品模式并加 `stale + retry` 状态，而非改成 Unavailable；依赖新鲜前置条件的远程写入暂停到刷新成功，本地编辑缓冲保留。旧有效结果可以作为明确标记的辅助内容查看，但失效结果不得显示为 Current Truth 或导出。
+- Review Draft 使用短空闲 Debounce 自动保存，实施默认值为 1 秒且一次只允许一个 Save Mutation；In-flight Save 期间继续编辑时只排队最新缓冲，前一 Save 成功后使用其返回的新 revision 保存最新缓冲，不回放中间快照。保存状态明确显示 `saving / saved / unsaved / conflict` 产品语义。1 秒是可由真实输入体验证据在实施 Issue 中调整的起始配置，不改变状态所有权或提交语义时无需另立架构 Decision；精确 HTTP revision 字段和并发实现仍由 RFC-004 冻结。
+- DEC-047 所定义的歧义自由文本必须先由用户确认编辑意图，才能进入相应 Save Queue；未确认内容保留为本地未保存缓冲。自动保存失败时保留缓冲并显示持久 `unsaved` 与手动重试，不无限重试或丢弃内容。Submit 必须等待 In-flight Save 与最新缓冲 Flush，且只使用最后一次成功 Flush 返回的新 revision；任何 Save / Flush 失败、Conflict 或未确认编辑意图都阻止 Submit，不得退回旧 revision 提交。Stale / Superseded 时保留本地缓冲、刷新权威 Draft、按语义组比较并由用户决定重新应用或放弃，不自动 Merge / 覆盖 / 提交。
+- Diff 的权威单位是结构化语义组 + Field Path + Before / After + Model / User Origin + Object Version；长文本可提供基于词或行的视觉辅助，但不改变 Field-level Change Set，也不使用 LLM 分类器替用户作编辑意图 Gate。
+- Field Error 放在字段旁；单文件拒绝留在文件行；Needs Input / Review / Invalidation 是正常 Workspace；暂时读取失败保留最后成功快照、更新时间与手动重试；不可恢复 UI Error 进入 Route Error Boundary。Toast 只用于非关键短暂确认，不作为错误、Conflict 或未保存状态的唯一载体。
+- Query Mutation 不乐观制造 Current Truth。成功后按统一规则失效 / 刷新再投影；轮询只在 Active Run 等需要远程变化的模式继续，并在业务等待、审核、终态或明确错误时停止。
+- 优点：可靠性规则集中且可通过 Module Interface 验证；不会复制后端 FSM；自动保存、Conflict、Diff 和错误都与已接受 revision / Current Truth 语义一致。
+- 代价：Projection 和 Intent Mapping 需要集中维护；默认 1 秒 Autosave 仍须用真实表单交互验证，若证据显示影响输入，应在实施 Issue 中调整并记录，但不得改变串行保存、revision 链与 Submit 阻断语义。
+
+#### Option B — XState Client Actor + Explicit Statechart
+
+- 用 XState v5 Actor / Statechart 表达 Workbench 模式、Autosave、轮询、Conflict 和恢复，TanStack Query 作为被调用 Actor。
+- 优点：复杂并发状态可视化，Transition 与 Guard 明确，适合多个客户端拥有的长流程。
+- 代价：本项目业务流程已经由后端 Domain / Workflow / Runtime 拥有；再建 Client Statechart 容易复制状态和 Transition，增加 Query / Actor 同步、Hydration 和调试复杂度。
+
+#### Option C — Route-local Conditions + Explicit Save + Toast-oriented Feedback
+
+- 每个 Stage Page 自行组合 Query、Form、条件判断和 Toast；Review 只用显式 Save，Diff 使用通用文本比较。
+- 优点：首批页面代码直观，中央 Projection 较少。
+- 代价：状态优先级、轮询、未保存、Conflict、最后有效结果和恢复规则散落；通用文本 Diff 无法可靠表达语义组、来源与版本，Toast 也不能承载持久恢复状态。
+
+#### Recommendation
+
+选择 `P-40A`。它把复杂度放在一个深 Module 内的私有 Projection / Intent Seam，而不是复制后端状态机；1 秒串行 Autosave、语义组 Diff 和持久恢复面能直接验证 DEC-046 / 047 的核心用户行为。
+
+### P-41 — Accessibility, Browser, Responsive and Performance Boundary
+
+#### Option A — WCAG 2.2 AA Baseline + Chromium Support + Evidence-driven Performance（推荐）
+
+- WCAG 2.2 A / AA 作为所有首个 Goal Workbench 状态的设计与验证基线，但不宣称未经完整审计的法律合规认证。使用语义化 HTML、完整 Label / Description、键盘导航、可见 Focus、合理 Focus 进入 / 返回、非颜色唯一状态、`prefers-reduced-motion` 与必要的异步状态 Announcement。
+- 关键 Browser E2E 在现有 Playwright Chromium 中加入少量代表性 `@axe-core/playwright` A / AA 自动检查；同时人工验证完整键盘主路径、Dialog / Drawer Focus、动态状态 Announcement、200% Text Resize，以及主流程在等价 `320 CSS px` 宽度 / 400% Zoom 下的 WCAG Reflow。自动扫描不能替代人工判断，也不建立大量页面扫描矩阵。
+- 首个 Goal 的正式支持目标是当前稳定 Desktop Chrome；Playwright Chromium 是硬 Gate，Release Candidate 在实际 Chrome 上人工 Smoke。Edge / Firefox / Safari 保持 Best-effort，不作支持声明或阻塞 Gate；出现明确发布目标或代表性缺陷时再升级。
+- 视觉以 `1280×800` 桌面工作台为主要目标；`1024×768` 保持完整多区布局或可收起 Context；`768×1024` 使用单列 Active Workspace，Stage Navigation 与 Evidence Context 变为可访问的折叠区 / Sheet，仍可完成资料、Needs Input、Review、结果与导出主路径。等价 `320 CSS px` 只验证支持桌面 Chrome 在高缩放下的关键路径 Reflow，不构成手机设备、触控手势或手机专用布局的发布支持；手机专用优化不进入首个 Goal。
+- 页面级不允许横向滚动；宽表或长 Locator 可以在自身 Region 内滚动。证据、历史和长 Diff 按需加载；评论 / Evidence 列表不得无界抓取或一次渲染全部记录，精确 Pagination Contract 由 RFC-004 / 005 冻结。
+- 性能采用 Measure → Identify → Fix → Verify：首个完整纵向切片形成固定本地 Profile 基线，记录冷构建后的 Shell 可见、Task Hydration、表单输入、Stage 切换、轮询更新和 Evidence / Diff 打开体验；Release Candidate 在同一 Profile 复测并保留差异理由。
+- 在取得基线前不设置公共网站 Core Web Vitals、Lighthouse 总分、Bundle KB 或固定毫秒为自动 Goal Gate。可观察的输入卡顿 / 丢失、长任务轮询导致整页闪烁、无界 Fetch / Render、失去 Focus、Evidence 打开阻塞主操作属于阻塞 Finding；具体 Bottleneck 必须先 Profile 再优化，不预先散布 `memo` / `useMemo` 或通用虚拟化。
+- 优点：对真实工作台风险建立明确、代表性且可执行的质量边界；支持常用桌面与平板宽度，不扩大为手机或三浏览器产品；性能要求有证据而非虚假精确度。
+- 代价：Firefox / Safari 与手机不是首个发布承诺；没有前置数字预算意味着首个纵向切片必须认真建立可复测基线和人工可用性结论。
+
+#### Option B — Full Modern-browser + Mobile + Automated Compliance / Performance Matrix
+
+- Chrome、Edge、Firefox、Safari 与手机视口全部作为硬支持；每 PR 运行多浏览器 E2E、全状态 Axe、Visual Regression 与 Lighthouse / Bundle 数字预算。
+- 优点：覆盖广、自动指标完整。
+- 代价：明显扩大首个本地演示的设计、CI、调试和发布范围；自动工具仍不能证明完整可访问性，固定预算在没有实现基线时容易机械化。
+
+#### Option C — Desktop Chromium Visual QA Only
+
+- 只保证 1280 桌面 Chromium 视觉可用，依赖 Radix 默认行为，不设显式 WCAG、窄屏、键盘或性能验证。
+- 优点：首轮实现最少。
+- 代价：会遗漏审核、Drawer、错误恢复和长表单的键盘 / Focus 问题，也不能发现轮询闪烁、无界列表和窄屏阻断，低于产品人工可用性要求。
+
+#### Recommendation
+
+选择 `P-41A`。它把可访问性、Viewport 与性能检查限制在首个 Goal 的真实用户路径，使用一个浏览器引擎、两个代表性布局和少量关键状态，而不把项目扩张为完整公开 Web 产品质量平台。
+
+### Primary Sources
+
+- [Radix Primitives Introduction](https://www.radix-ui.com/primitives/docs/overview/introduction)、[Accessibility](https://www.radix-ui.com/primitives/docs/overview/accessibility) 与 [Styling](https://www.radix-ui.com/primitives/docs/guides/styling)
+- [shadcn/ui Introduction](https://ui.shadcn.com/docs) 与 [Tailwind v4 Integration](https://ui.shadcn.com/docs/tailwind-v4)
+- [Material UI Overview](https://mui.com/material-ui/getting-started/)
+- [XState v5 Documentation](https://stately.ai/docs)
+- [WCAG 2.2 W3C Recommendation](https://www.w3.org/TR/WCAG22/)
+- [Playwright Accessibility Testing](https://playwright.dev/docs/accessibility-testing)
+- [Web Vitals](https://web.dev/articles/vitals)
+
+### Decision and Authorization Status
+
+- `P-39 / P-40 / P-41 = PROPOSED`；推荐项分别为 `P-39A / P-40A / P-41A`，用户尚未接受任何选项。
+- 用户接受后还须创建 DEC、同步 Frontend Architecture Current Truth、Testing Strategy 与 Readiness，并完成 Frontend Architecture Final Consistency Review；Acceptance 之前不得安装 Radix / axe 或任何前端依赖。
+- 本轮不冻结 RFC-004 / 005 / 007 字段、路径、枚举、错误代码、Pagination 或运维参数；不生成脚手架、代码、样式、Fixture 或测试，不执行 Browser / Spike / Live，不创建或激活 Goal。
+
+## Decision Round — Frontend Workbench, Interaction and Web Quality Boundary（2026-08-06）
+
+### User Acceptance
+
+- 用户明确接受 `P-39A + P-40A + P-41A`。
+- 选择一个深 `TaskWorkbench Module` + Native / 按需 Radix Primitives + CSS Modules；私有 `WorkbenchProjection` + Capability / Intent + revision-safe 串行 Autosave；WCAG 2.2 A / AA 基线 + Desktop Chrome + 代表性 Reflow / Accessibility + Evidence-driven Performance。
+
+### Accepted Result
+
+- [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) 归档 P-39A / P-40A / P-41A，并明确 Concretizes DEC-055 / 044 / 046 / 047、Applies DEC-039。
+- [Frontend Architecture](../architecture/frontend-architecture.md) 同步全部已接受的 P-36～P-41；产品 / Module / 交互 / Web 质量决策已闭合，最终 HTTP Contract、精确依赖版本与实现证据仍待 RFC / Development Plan / Goal。
+- 接受不改变 RFC-004 对最终 Resource、字段、状态、错误、revision、幂等、Conflict 和下载协议的权威，也不改变 RFC-005 对 Pagination / Retrieval Contract 的权威。
+
+### Authorization Boundary and Next Gate
+
+- 接受不授权安装 Radix、axe 或其他依赖，不授权脚手架、组件、样式、Client、测试、CI、业务实现、Spike、PR 合并或 Goal。
+- 下一步是完成 Frontend Architecture Final Consistency Review，展示整体收口结果并取得用户对 Frontend Architecture 整体的明确接受；之后才可合并 Draft PR #51、关闭 Issue #50，并继续下一个策划议题。
+- 全部策划、最终策划包与 Goal 文本展示并获用户明确“进入 Goal 执行阶段”批准前，仍不启动自动开发。
+
+## Final Consistency Review — Frontend Architecture（2026-08-06）
+
+### Independent Review Result
+
+- 独立 `Sol / xhigh` Reviewer 审阅 DEC-055 / DEC-056、P-36～P-41、Frontend Current Truth、Testing、Readiness、Traceability 与实际 Diff。
+- 第一轮发现 3 项 Required 状态口径：Integration Boundaries 未同步 DEC-055 / 056；PRD / MVP Scope 与 Frontend 主规格把“逐项接受”写得像“整体接受”。均已修正，未改变产品或架构内容。
+- 快速复审结果：`Critical = 0 / Required = 0 / Optional = 0`，Final Consistency Review = `PASS`。
+- 正确性、可读性、架构、安全与性能五轴均通过；公共 RFC-004 / 005 / 007 权威、Accepted / Proposed、历史快照与授权边界无冲突。
+
+### Validation and Next Gate
+
+- 本地 Markdown 链接损坏数为 0；`git diff --check` 与仓库既有格式、Lint、Type、Architecture、Fast Tests、Lock、Build、Dependency Audit 均通过。
+- P-36～P-41 已满足进入 Frontend Architecture 整体接受 Gate 的条件。
+- 用户整体接受前，不安装依赖、不实施前端、不合并 PR #51、不关闭 Issue #50、不执行 Spike、不创建或激活 Goal。
+
+## Overall Acceptance — Frontend Architecture（2026-08-07）
+
+### User Acceptance
+
+- 用户在 P-36～P-41 全部逐项接受、DEC-055 / DEC-056 归档、Current Truth 同步和 Final Consistency Review = `PASS` 后明确回复：“接受 Frontend Architecture 整体”。
+- Frontend Architecture 整体状态由 `OVERALL ACCEPTANCE PENDING` 更新为 `ACCEPTED`。
+
+### Accepted Result and Boundary
+
+- React / Vite SPA、显式状态所有权、OpenAPI 生成链、深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有 WorkbenchProjection、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance 构成首个 Goal 的已接受 Frontend Architecture。
+- RFC-004 继续拥有公共 Resource / 字段 / 状态 / 错误 / revision / 幂等 / Conflict / 下载协议；RFC-005 继续拥有 Pagination / Retrieval Contract；RFC-007 继续拥有 Observability 与运维边界。
+- 整体接受不授权依赖安装、Frontend Implementation、Technical Spike、业务实现或 Goal 创建 / 激活。
+- PR #51 只有在最新提交的 Required Checks 全部通过且最终五轴 Review 无阻塞 Finding 后才可合并；合并后关闭 Issue #50 并继续产品规格与 RFC-004 / 005 / 007 策划。
