@@ -66,4 +66,4 @@
 
 ## 索引
 
-见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。
+见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 [DEC-049](dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。

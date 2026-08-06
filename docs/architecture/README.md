@@ -9,7 +9,8 @@
 - 架构规格描述「系统当前应该怎样工作」，其内容只能来自用户明确接受的 Decision。
 - **已确认：** Modular Monolith、Python 后端、LangGraph StateGraph 确定性编排、版本化 Domain State 与紧凑 Workflow State、Source / Fragment / Evidence Link、按需混合检索、单一 Human Review、API / Worker / CLI 进程边界、模块依赖规则，以及 PostgreSQL + SQLAlchemy 2.x Sync + Psycopg 3 Sync + Alembic 持久化栈。
 - **已完成：** RFC-001、RFC-002、Spike-001 与 FND-001～003。
-- **仍未决定：** RFC-003～007 的生产 Checkpointer / Runtime、Frontend Architecture、公共 API 细节、Retrieval Backend、LLM Provider / Model、Observability 产品与部署方式。
+- **已决定的 RFC-003 输入：** DEC-049 已冻结同 PostgreSQL Service 下的独立 Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Business-Current-Truth-first Reconciliation；RFC-003 整体仍为 `DRAFTING`。
+- **仍未决定：** RFC-003 的 Durable Dispatch、Lease / Heartbeat、Cancellation、Compatibility、Safe Resume Matrix 与验收证据；RFC-004～007、Frontend Architecture、公共 API 细节、Retrieval Backend、LLM Provider / Model、Observability 产品与部署方式。
 - 业务与生产实现未授权；概念架构 Accepted 不等于对应生产模块已经实现。
 
 ---

@@ -1,9 +1,9 @@
 # Workflow Runtime Failure Recovery, Retry and Observability — 概念 Specification
 
 > **Status: CONCEPTUAL（概念）**
-> 来源决定：[DEC-033 — Workflow Runtime 采用分层运行记录、分类故障处置、有界重试、安全恢复、事务幂等与端到端可观测性契约](../../decisions/dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md) 与 [DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)（均 Accepted；DEC-047 只冻结产品投影，不改变 DEC-033 Runtime 边界）。
-> 本文件是 DEC-033 的**概念结构化记录**，**不是最终实现契约**。所有字段名、枚举、Schema、阈值、算法、Provider、技术选型均未确认。
-> Development Status: **NOT READY**。
+> 来源决定：[DEC-033 — Workflow Runtime 采用分层运行记录、分类故障处置、有界重试、安全恢复、事务幂等与端到端可观测性契约](../../decisions/dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)、[DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 与 [DEC-049 — 独立 PostgreSQL Checkpoint、同步持久性与 Current-Truth-first 对账](../../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)（均 Accepted；DEC-047 只冻结产品投影，DEC-049 收敛 Checkpoint 技术与恢复边界）。
+> 本文件仍是**概念结构化记录**，**不是最终实现契约**。DEC-049 已确认的 Checkpointer 拓扑、`sync` durability、可重入 Node 与 Reconciliation 为 Current Truth；最终字段、枚举、Schema、阈值及 RFC-003 其余技术问题仍未确认。
+> Development Status: **CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY**。
 
 ---
 
@@ -376,7 +376,9 @@ Schema 合法但业务候选违反硬证据规则时，可有限 `candidate_rege
 
 ## §26 Checkpoint Recovery
 
-LangGraph Checkpointer 负责：执行状态恢复；Interrupt / Resume；Node 进度；临时运行上下文。**不负责**：保存业务 Current Truth；替代业务 Repository；判断业务版本是否有效；覆盖较新的业务状态；创建正式业务对象。
+LangGraph Checkpointer 负责：执行状态恢复；Interrupt / Resume；Node 进度；临时运行上下文。生产拓扑采用同 PostgreSQL Service 下的独立 Checkpoint Database、独立 Runtime Role / Credential / Pool 和官方同步 `PostgresSaver`；setup / migration 由受控部署任务执行，不与 Business Alembic chain 混合。正式 Graph 使用 `sync` durability。
+
+Checkpointer **不负责**：保存业务 Current Truth；替代业务 Repository；判断业务版本是否有效；覆盖较新的业务状态；创建正式业务对象。Checkpoint 落盘不承诺 Node exactly-once；Node 按可重入设计并通过 `Prepare → Execute → Commit` 将正式业务效果收口到 duplicate-safe Application Command。
 
 ---
 
@@ -388,7 +390,12 @@ LangGraph Checkpointer 负责：执行状态恢复；Interrupt / Resume；Node �
 
 ## §28 Checkpoint Reconciliation
 
-Resume 前验证 `checkpoint.task_id` / `checkpoint.thread_id` / `checkpoint.input_version_ids` / `current_truth_pointers` / `stage_validity` / `review_package_version`。若 Checkpoint 基于旧业务版本：`checkpoint_status = stale`，不得继续旧计划；从当前最早失效阶段重新规划，或创建 Manual Recovery Case；不得自动覆盖新业务版本。
+Resume 前采用 Business-Current-Truth-first Reconciliation：验证 Runtime Registry、Pending Durable Work Intent、执行所有权、`checkpoint.task_id` / `checkpoint.thread_id` / Workflow Definition / State Schema compatibility、`checkpoint.input_version_ids` / `current_truth_pointers` / `stage_validity` / Invalidation / `review_package_version` 与请求恢复动作。
+
+- Compatible Checkpoint 可以在同一 `thread_id` 上 Resume，但业务 Commit 前仍须重新验证当前版本与执行所有权；
+- stale / foreign / incompatible Checkpoint 不得继续旧计划、不得写 Current Truth；从当前最早失效阶段确定性重跑、创建新安全分支，或建立 Manual Recovery Case；
+- 对账结果写入 Application Runtime Registry / Recovery Record，不修改历史 Checkpoint；
+- Time Travel / Replay 不等于 Business Restore，不得回退 Current Truth。
 
 ---
 
@@ -555,17 +562,18 @@ Observability 完整率目标（`= 100%`）：Runs with Trace ID / Skill Runs wi
 
 ## Open Questions
 
-以下均**未虚构**，仅记录为待确认（受 Technical Spike Plan and Architecture Readiness Gate 议题约束）：
+以下仍待 RFC-003～007 或 Readiness Planning 确认：
 
 - Retry 次数、Timeout 秒数、Backoff 参数、Jitter 策略。
 - Circuit Breaker 阈值、算法、实现库。
 - Queue System / Worker Framework / Dead-letter Queue 技术是否采用。
 - Logging / Tracing / Metrics / Alerting Provider；是否采用 OpenTelemetry。
-- LangGraph Checkpointer 实现 / Backend。
-- 数据库 / Outbox 技术 / 分布式锁 / 并发模型。
+- Durable Dispatch、Worker Claim / Lease / Heartbeat、Cancellation 与 Shutdown。
+- Workflow Definition / State Schema / Serializer / Checkpointer 兼容矩阵、升级与 Rollback。
+- Runtime Registry / Recovery Record 最终 Schema 与 Safe Resume Action Matrix。
 - 数据保留周期、日志采样率、PII 脱敏实现。
 - 最终 SLO、最终字段名称、最终错误代码、最终状态枚举名称。
 - Retry 的「Optional backup channel」是否存在（Failure Matrix LLM timeout 行）。
-- Technical Spike 的目标、最小验证 Graph、Success/Failure Criteria、Spike Report、Architecture Readiness Checklist、READY/NOT READY 决策权限、Spike 后哪些问题进入 RFC、正式业务实现启动条件。
+- TS-03 的最小验证 Graph、Success / Failure Criteria、迁移演练与停止条件。
 
-在 **Technical Spike Plan and Architecture Readiness Gate** 议题确认前：**不**实现正式业务 Graph；**不**编写四个核心 Skill 的生产 Prompt；**不**建立正式数据库 Schema；**不**选择生产级基础设施；Development Status 保持 `NOT READY`。
+RFC-003 整体 Accepted、Readiness Planning 完成且 Goal 明确激活前：**不**安装生产 Checkpointer、创建 Checkpoint Database、执行 setup / migration、实现正式业务 Graph / Worker 或执行 TS-03。Development Status 保持 `CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY`。
