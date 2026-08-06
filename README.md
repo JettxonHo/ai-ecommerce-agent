@@ -11,7 +11,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 首个交付目标是**本地可复现、受控单工作区的端到端演示 MVP**。产品使用带阶段导航、当前工作区和可收起证据 / 上下文面板的单任务工作台；聊天记录不作为业务 Current Truth。名称 / 品类 / 推广目标用于创建任务，满足 DEC-026 的最小事实资料后运行 Fact Stage；真实阻塞进入 Needs Input，非阻断差异继续但显式说明限制。资料或上游内容变化先展示影响范围，由用户确认后局部重跑。
 
-权威定位、范围和交互边界见 [DEC-042](docs/decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md)、[DEC-041](docs/decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)、[DEC-044](docs/decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)、[DEC-045](docs/decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md)、[DEC-046](docs/decisions/dec-046-review-brief-and-export-product-contract.md) 与 [DEC-047](docs/decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)。Review / Brief / 导出语义、渐进式证据、编辑影响、阶段进度与行动导向恢复已冻结；公共字段类型、API Schema、视觉组件、Frontend Architecture、Provider 与 RFC-003～007 仍待后续 Decision Gate，不得从本简介自行推断。
+权威定位、范围和交互边界见 [DEC-042](docs/decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md)、[DEC-041](docs/decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)、[DEC-044](docs/decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)、[DEC-045](docs/decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md)、[DEC-046](docs/decisions/dec-046-review-brief-and-export-product-contract.md)、[DEC-047](docs/decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 与 [DEC-048](docs/decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)。Review / Brief / 导出语义、渐进式证据、编辑影响、阶段进度、行动导向恢复、代表性验收包和 Markdown-first 用户导出已冻结；公共字段类型、API Schema、视觉组件、Frontend Architecture、Provider 与 RFC-003～007 仍待后续 Decision Gate，不得从本简介自行推断。
 
 ---
 
@@ -24,6 +24,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 - 1 个 Xiaohongshu Brief Mapping Adapter；
 - Review Package、Approved Strategy、平台中立 Marketing Brief 与 Xiaohongshu Brief 使用固定产品语义组；正式对象使用不可变 Domain Version，Review Draft 使用单调递增 revision，导出冻结 Current Truth 快照；
 - 决策相关内容从当前上下文渐进展开证据；修改按语义组和编辑意图判断阶段影响；长任务使用阶段时间线和行动导向恢复，不显示虚构百分比；
+- 首个演示使用三个固定资料包和一个变更脚本验收；行为硬门禁与人工可用性判断分离，Release Candidate 执行一次真实 Provider 正常任务 Smoke；用户侧导出采用 UTF-8 Markdown，不提供首 Goal 的 PDF / JSON 文件导出；
 - 按需混合检索、版本化 Source / Fragment / Evidence Link、单一关键 Human Review、阶段失效与局部重跑；
 - RFC-001 Repository and Application Architecture 与 RFC-002 Persistence and Transaction Architecture 已 Accepted；
 - Business Current Truth 的生产持久化栈已由 RFC-002 选定为 PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；SQLite 不作为持久化验收引擎；
@@ -33,11 +34,11 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 当前策划缺口
 
-- 任务工作台的公共字段类型、最终组件 / 视觉布局和 Persona / JTBD 的后续研究证据；输入与冲突已由 DEC-045 冻结，审核 / Brief / 版本已由 DEC-046 冻结，证据 / 编辑 / 进度 / 恢复 / 导出确认已由 DEC-047 冻结；
+- 任务工作台的公共字段类型、最终组件 / 视觉布局和 Persona / JTBD 的后续研究证据；输入与冲突已由 DEC-045 冻结，审核 / Brief / 版本已由 DEC-046 冻结，证据 / 编辑 / 进度 / 恢复 / 导出确认已由 DEC-047 冻结，验收包与 Markdown-first 用户导出已由 DEC-048 冻结；
 - Frontend Architecture；
 - RFC-003 LangGraph Runtime、RFC-004 API / Human Review、RFC-005 Source / Retrieval、RFC-006 LLM Runtime、RFC-007 Observability；
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；
-- MVP Development Plan、Testing Strategy 与长期 Goal 最终文本。
+- MVP Development Plan、Testing Strategy 的技术层补全与长期 Goal 最终文本。
 
 以上缺口必须在业务实现前闭合。具体 Provider、前端框架、公共 API 和最终 Schema 尚未决定。
 
@@ -78,6 +79,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 | `docs/handoffs/` | Execution Gate | 交接与进入开发前的就绪状态 |
 | `docs/readiness/` | Readiness | Architecture Readiness Artifact 与 Spike 前置证据 |
 | `docs/traceability/` | Traceability | 需求、Decision、RFC、未来 Issue 与测试的映射 |
+| `docs/development/` | Development | CI 治理、测试策略与后续开发计划 |
 | `docs/goals/` | Goal | 待接受或已激活的长期执行计划 |
 | `prompts/` | — | 人机协作提示词模板（如把 ChatGPT 输出交接给 Claude） |
 

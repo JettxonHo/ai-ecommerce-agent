@@ -1,12 +1,13 @@
 # PRD（产品需求文档）
 
-> **Status: PARTIAL — 产品定位、Persona / JTBD 假设、行为型成功边界、工作台、输入、冲突、审核 / Brief / 版本，以及证据、编辑、进度、恢复与导出交互已确认；最终公共 Schema、视觉组件、工作流实现、Fixture 与阈值仍待确认**
+> **Status: PARTIAL — 产品定位、Persona / JTBD 假设、工作台、输入、审核 / Brief、证据 / 恢复交互、代表性验收包、行为门禁与 Markdown-first 用户导出已确认；最终公共 Schema、视觉组件、工作流实现和测试工具仍待确认**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
-> 当前已确认：产品设计原则（DEC-001）、首要用户与核心任务（DEC-002 / 003）、平台与输入输出范围（DEC-004～006）、Human Review、证据与失效规则（DEC-007～009）、三维评价框架（DEC-010）、本地演示包络（DEC-041）、产品定位与行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制和冲突分级（DEC-045）、审核 / Brief / 版本 / 导出产品契约（DEC-046），以及证据披露、编辑意图、阶段进度和恢复交互（DEC-047）。
+> 当前已确认：产品设计原则（DEC-001）、首要用户与核心任务（DEC-002 / 003）、平台与输入输出范围（DEC-004～006）、Human Review、证据与失效规则（DEC-007～009）、三维评价框架（DEC-010）、本地演示包络（DEC-041）、产品定位与行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制和冲突分级（DEC-045）、审核 / Brief / 版本 / 导出产品契约（DEC-046）、证据披露、编辑意图、阶段进度和恢复交互（DEC-047），以及代表性验收包、行为门禁、人工验收和 Markdown-first 用户导出（DEC-048）。
 > **DEC-041 同步：** 首个交付为本地可复现、受控单工作区的引导式任务工作台；输入限结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV，不做 OCR、图片理解、链接抓取或主动联网研究；完整小红书正文、图片 / 视频生成和自动发布均不在首个 Goal。
 > **DEC-044 同步：** 工作台采用阶段导航 + 当前工作区 + 可收起证据 / 上下文面板；最低可运行输入通过后即可启动，真实阻塞进入 Needs Input；变更先展示失效范围，由用户确认后局部重跑，旧 Review Package 不得提交。
 > **DEC-046 同步：** Review Package / Approved Strategy / Marketing Brief / Xiaohongshu Brief 的产品语义组已冻结；正式对象采用不可变 Domain Version，Review Draft 使用单调递增 revision，导出冻结 Current Truth 快照。最终公共字段与实现仍由 RFC-004 / 006 冻结。
-> **DEC-047 同步：** 五类标记从当前条目渐进展开证据；语义组差异和编辑意图决定既有阶段级失效；阶段时间线不使用虚构百分比，错误按恢复动作组织，导出前确认 Current Truth 版本和限制摘要。最终组件、状态、传输与文件格式仍待 Frontend Architecture / RFC。
+> **DEC-047 同步：** 五类标记从当前条目渐进展开证据；语义组差异和编辑意图决定既有阶段级失效；阶段时间线不使用虚构百分比，错误按恢复动作组织，导出前确认 Current Truth 版本和限制摘要。最终组件、状态、传输与导出模板仍待 Frontend Architecture / RFC。
+> **DEC-048 同步：** 首个演示使用三个固定资料包和一个变更脚本；行为硬门禁与非机械人工 `PASS / FAIL` 分离；Release Candidate 使用资料充分 Fixture 完成一次真实 Provider Smoke；当前有效 Marketing Brief 与 Xiaohongshu Brief 分别导出 UTF-8 Markdown，用户侧 PDF / JSON 文件导出不进入首个 Goal。
 > **DEC-045 同步：** 名称 / 临时名称、品类和推广目标用于创建 Task；Fact Stage 还需核心用途、至少一个当前商品来源、至少一个有来源的核心属性且无阻断性身份冲突。默认每任务 20 文件、10 MB / 文件、文本 PDF 100 页、评论 CSV 10,000 行；单文件失败不回滚已接受文件。
 
 ---
@@ -195,14 +196,22 @@
 - 关键中断可恢复，失效内容不会继续作为当前有效结果；
 - 目标用户视角下的 Brief 可用于后续内容策划，不要求开发者解释内部实现才能完成流程。
 
-具体 Fixture、测试层级和必要阈值由 Testing Strategy 冻结；Rubric 只辅助判断，不以机械总分、语言流畅度或销量承诺自动接受。
+DEC-048 已冻结三个固定资料包 + 一个变更脚本、必要行为门禁、人工 `PASS / FAIL`、Release Candidate 单次 Live Smoke 与 Critical / Blocking 缺陷为零的完成边界。测试工具、Fixture 具体内容和最终 E2E 步骤由 Testing Strategy 补全；Rubric 只辅助判断，不以机械总分、语言流畅度或销量承诺自动接受。
+
+### 验收包与用户导出（DEC-048，Accepted，2026-08-06）
+
+> 来源：[DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [Testing Strategy](../development/testing-strategy.md)
+
+- **固定验收包：** 资料充分正常任务、资料不足但可运行任务、阻断性冲突与恢复任务，以及覆盖 Source 更新、业务编辑、陈旧 Review 和确认式局部重跑的变更脚本。
+- **验证分离：** 普通 PR 使用确定性替身；Release Candidate 使用正常任务执行一次真实 Provider Smoke；行为不变量全部通过后仍需人工从目标用户视角判断可理解、可审核、可恢复和可用于后续策划。
+- **用户导出：** 当前有效 Marketing Brief 与 Xiaohongshu Brief 分别导出 UTF-8 Markdown，并保留 Task、版本、必要上游、语义组、Hypotheses、Limitations、Risks、证据与导出时间上下文。首个 Goal 不提供用户侧 PDF / JSON 文件导出。
 
 ---
 
 ## 当前状态
 
 - 项目处于 **Pre-development Planning（正式开发前策划）阶段**；业务实现与长期 Goal 均未启动。
-- 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、输入门禁、确认式局部重跑、审核 / Brief 产品语义、版本 / revision / 导出行为，以及证据 / 编辑 / 进度 / 恢复 / 导出确认交互（DEC-001～010 / DEC-041 / DEC-042 / DEC-044～047）；最终公共字段、视觉组件、工作流与数据实现、Fixture 与阈值仍待确认。
+- 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、输入门禁、确认式局部重跑、审核 / Brief 产品语义、版本 / revision / 导出行为、证据 / 编辑 / 进度 / 恢复交互，以及代表性验收包、行为门禁与 Markdown-first 用户导出（DEC-001～010 / DEC-041 / DEC-042 / DEC-044～048）；最终公共字段、视觉组件、工作流与数据实现、测试工具和 Fixture 实例仍待确认。
 - 其余具体内容，必须等到对应 Proposed Decision 被用户明确接受并记为 Accepted Decision（见 [../decisions/](../decisions/)）后，才能写入。
 
 ---
@@ -217,15 +226,15 @@
 - 功能范围（与 [mvp-scope.md](mvp-scope.md) 保持一致）—— **核心任务 + 平台范围 + 输入分层 + 四层输出主结构已确认**；具体 In / Out of Scope 见 [mvp-scope.md](mvp-scope.md)
 - 平台范围 —— **已确认**（DEC-004）；模板字段与适配层技术待确认
 - 输入设计 —— **分层原则、允许格式、Task / Fact Stage 最低门禁、默认文件限制、分级冲突与 Needs Input 交互语言已确认**（DEC-005 / 041 / 044 / 045）；公共字段类型、补充问题与状态映射待确认
-- 输出设计 —— **四层主结构 + Review / Approved Strategy / Marketing Brief / Xiaohongshu Brief 产品语义组 + 不可变版本、导出快照与导出确认已确认**（DEC-006 / 046 / 047）；最终公共字段、输出 / 文件格式与视觉组件待确认
+- 输出设计 —— **四层主结构 + Review / Approved Strategy / Marketing Brief / Xiaohongshu Brief 产品语义组 + 不可变版本、导出快照 / 确认和 Markdown 用户格式已确认**（DEC-006 / 046 / 047 / 048）；最终公共字段、Markdown 模板、下载实现与视觉组件待确认
 - 人机协作 —— **单一关键审核节点 + 异常暂停 + 用户最终判断权 + 过期 Package / revision 拒绝 + 行动导向恢复已确认**（DEC-007 / 029 / 044 / 046 / 047）；自动保存频率、并发实现与工作流技术实现待确认
 - 输出可靠性 —— **五类结论标记、渐进式证据、非数字置信度、可追溯、版本化 Source / Evidence 与按需混合 Retrieval 已确认**；最终组件、公共 Schema、Retrieval Backend 与索引方案待确认
 - 失效与重跑 —— **阶段级失效 + 编辑意图 + 语义组差异 + 失效预览 + 用户确认后局部重跑已确认**；字段级依赖图不进入首个 Goal；生产 Checkpointer、Diff 算法和公共状态映射待确认
-- 评价框架 —— **三维评价 + 六项优先指标已确认**（DEC-010）；指标公式 / 阈值 / 测试集 / 人数 / 埋点 / Dashboard 待确认
+- 评价框架 —— **三维评价 + 六项优先指标、首个演示固定验收包、行为门禁与非机械人工判断已确认**（DEC-010 / DEC-048）；Beta 指标公式 / 阈值 / 人数 / 埋点 / Dashboard，以及 Fixture 实例与测试工具待确认
 - 非目标 —— 见 [mvp-scope.md](mvp-scope.md)「Out of Scope」
 - 关键体验与流程（与 [user-flows.md](user-flows.md) 保持一致）—— **高层流程已确认**（DEC-003 / 004 / 005）；具体步骤待 [user-flows.md](user-flows.md)
 - 约束与假设
-- 验收标准 —— **框架层已确认**（DEC-010 三维评价 + 六项优先指标）；具体公式 / 阈值 / 测试方式待确认
+- 验收标准 —— **DEC-010 三维评价 + 六项优先指标与 DEC-048 固定验收包、行为硬门禁、人工 `PASS / FAIL` 和 Live Smoke 边界已确认**；Beta 指标、Fixture 实例、测试工具和最终执行步骤待确认
 - 开放问题
 
 ---
@@ -236,14 +245,14 @@
 - 要解决的核心业务问题：**已确认**（DEC-003）。
 - 平台范围：**已确认**（DEC-004）；小红书模板字段与适配层技术实现待确认。
 - 输入设计：**分层原则、首个演示允许格式、Task / Fact Stage 最低门禁、默认文件限制、分级冲突与 Needs Input 交互语言已确认**（DEC-005 / DEC-041 / DEC-044 / DEC-045）；公共字段类型、长期知识库 / 向量索引、具体补充问题与状态 / 错误映射待确认。
-- 通用营销 Brief 的输出结构：**四层主结构、四类审核 / Brief 产品语义组、渐进式证据、不可变版本与导出确认已确认**（DEC-006 / DEC-046 / DEC-047）；最终公共 Schema、输出 / 文件格式和视觉组件仍待确认。
+- 通用营销 Brief 的输出结构：**四层主结构、四类审核 / Brief 产品语义组、渐进式证据、不可变版本、导出确认与 Markdown 用户格式已确认**（DEC-006 / DEC-046 / DEC-047 / DEC-048）；最终公共 Schema、Markdown 模板、下载实现和视觉组件仍待确认。
 - 人机协作 / 审核节点：**单一关键审核、异常暂停、用户最终判断权、不可变 Review Package、Draft revision、陈旧提交拒绝和行动导向恢复已确认**（DEC-007 / DEC-029 / DEC-044 / DEC-046 / DEC-047）；自动保存频率、并发实现、具体异常规则和工作流技术实现仍待确认。
 - 输出可靠性 / 可追溯：**五类结论标记、渐进式证据、非数字置信度、版本化 Source / Evidence 与按需混合 Retrieval 已确认**；最终组件、公共 Schema、Retrieval Backend 与索引方案仍待确认。
 - 失效与局部重跑：**阶段级失效、编辑意图、语义组差异、影响预览、用户确认后局部重跑和过期审核拒绝已确认**；生产 Checkpointer、Diff 算法和公共状态映射待确认，字段级依赖图不进入首个 Goal。
 - 完整小红书标题 / 正文、图片 / 视频生成与自动发布：**不进入首个 Goal**（DEC-041）。
-- 产品价值与评估指标（Question-003）：**框架层已确认**（DEC-010：三维评价 + 六项优先指标，不以流畅度 / 销量为唯一标准）；指标公式 / 阈值 / 测试集 / 人数 / 埋点 / Dashboard 待确认。
+- 产品价值与评估指标（Question-003）：三维评价 + 六项优先指标由 DEC-010 确认；首个演示的固定验收包、行为门禁与非机械人工判断由 DEC-048 确认。真实用户指标公式 / 阈值、人数、埋点与 Dashboard 待 Beta 规划。
 - Agent、Retrieval / Evidence、Skill 的职责边界：**概念层已确认**（DEC-020～033）；生产 Runtime 与具体 Provider / Backend 仍待 RFC-003～007。
-- 演示成功边界：**行为与人工可用性标准已确认**（DEC-042）；Fixture、必要阈值和执行细节待 Testing Strategy。
+- 演示成功边界：行为与人工可用性标准由 DEC-042 确认；固定验收包、必要行为门禁、人工 `PASS / FAIL` 和 Live Smoke 边界由 DEC-048 确认；测试工具、Fixture 实例和最终 E2E 步骤待 Testing Strategy 补全。
 
 讨论与提案记录在 [../sessions/](../sessions/)；确认后的决定记录在 [../decisions/](../decisions/) 并同步回本文件。
 

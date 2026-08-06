@@ -6,7 +6,7 @@
 - Date: 2026-08-06
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-047
+- Related Decisions: DEC-039～DEC-048
 
 ## Context
 
@@ -100,6 +100,7 @@
 - [DEC-045](../decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md) — 冻结最小输入、演示文件限制与分级冲突处理（用户于 2026-08-06 接受 P-07A / P-08A / P-09A；Amends DEC-005 / DEC-044，不改变 DEC-026）。
 - [DEC-046](../decisions/dec-046-review-brief-and-export-product-contract.md) — 冻结审核、Brief、版本、revision 与导出的产品契约（用户于 2026-08-06 接受 P-10A / P-11A / P-12A；Amends DEC-006 / 024 / 029 / 030 / 031）。
 - [DEC-047](../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) — 采用渐进式证据披露、结构化编辑意图与行动导向恢复交互（用户于 2026-08-06 接受 P-13A / P-14A / P-15A；Amends DEC-007 / 008 / 009 / 044 / 046）。
+- [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) — 采用小型代表性验收包、行为门禁与 Markdown-first 导出（用户于 2026-08-06 接受 P-16A / P-17A / P-18A；Amends DEC-010 / 042 / 046 / 047）。
 
 ## Rejected Approaches
 
@@ -110,8 +111,9 @@
 
 ## Open Questions
 
-- 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决。最终公共 Schema、视觉组件、Fixture 与必要阈值仍开放。
-- Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、Diff 算法、状态 / 错误映射与导出文件格式。
+- 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决；代表性验收包、必要行为门禁和 Markdown-first 用户导出由 DEC-048 解决。
+- Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、Diff 算法、状态 / 错误映射、Markdown 模板与下载协议。
+- Fixture 具体业务数据、测试工具、最终浏览器 E2E 步骤、Live Smoke 手册与 Beta 指标。
 - RFC-003 至 RFC-007 与 Frontend Architecture 的具体技术选择。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
 - Luna 不可用时的路由已由 DEC-043 解决为 Terra 显式回退或外部 Luna 任务包；每个实际 Issue 仍需记录所用模型与独立 Reviewer。
@@ -125,6 +127,7 @@
 - 新增 DEC-039～DEC-045 并更新 Decision Log。
 - 更新 AGENTS.md 与 Collaboration Model。
 - 后续独立 PR 同步 README、Implementation Readiness、RFC Register、Architecture / Agent 入口、Foundation、Traceability 与本地链接。
+- 新增 DEC-048 与首版 Testing Strategy，更新产品 Current Truth、Readiness、Traceability 和本 Session。
 
 ## Synchronization Checklist
 
@@ -270,7 +273,7 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 ### Remaining Boundaries
 
-> 以下为 DEC-046 归档当时的开放边界；其中引用、差异、编辑影响、进度、错误、恢复与导出确认后来由 DEC-047 部分解决。最终实现项继续开放。
+> 以下为 DEC-046 归档当时的开放边界；其中引用、差异、编辑影响、进度、错误、恢复与导出确认后来由 DEC-047 部分解决，Markdown-first 用户导出后来由 DEC-048 解决。最终实现项继续开放。
 
 - 产品语义组和版本行为已确认；最终 JSON / OpenAPI / 数据库字段、类型、枚举、逐字段必填表达和错误代码仍待 RFC-004 / 006。
 - Draft 自动保存频率、Patch / Snapshot 存储、revision 传输与数据库并发机制、版本差异 UI、导出文件格式和下载交互仍待 Frontend Architecture / RFC-004。
@@ -310,6 +313,8 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 ### Remaining Boundaries
 
+> 以下为 DEC-047 归档当时的开放边界；其中代表性验收包、必要行为门禁和 Markdown-first 用户导出后来由 DEC-048 解决。具体模板、测试工具和浏览器步骤继续开放。
+
 - 最终组件、布局、视觉样式、Diff 算法、逐字段编辑控件和自动保存频率。
 - 最终 Source / Locator / Evidence、进度、状态、错误与恢复公共 Schema；轮询 / SSE / WebSocket 等传输方式。
 - 导出文件格式、模板、下载协议与视觉布局。
@@ -319,3 +324,43 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - Issue #42 / PR #43 负责 DEC-047、被修订 Decision、Product Current Truth、相关概念规格、Readiness、Traceability 与本 Session 的一致性归档。
 - 本轮不冻结公共 Schema、前端框架、API 路径、数据库表、传输协议、Diff 算法、导出格式、Prompt 或 Provider，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。
+
+## Decision Round — Acceptance Pack, Behavior Gates and Markdown Export（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-16A`：首个演示使用三个固定资料包（资料充分、资料不足但可运行、阻断性冲突与恢复）和一个基于正常任务的变更脚本；Fixture 使用可读版本，不新增 Hash / SHA-256 要求。
+- 用户明确接受 `P-17A`：验收采用行为硬门禁 + 人工可用性判断；固定场景关键不变量、Required Checks、Critical / Blocking = 0 与 Release Candidate 单次 Live Smoke 属完成门禁，Rubric 不作机械总分或自动接受器。
+- 用户明确接受 `P-18A`：当前有效 Marketing Brief 与 Xiaohongshu Brief 分别导出 UTF-8 Markdown；首个 Goal 不提供用户侧 PDF / JSON 文件导出，API JSON 不受此用户文件决定限制。
+
+### Acceptance Clarification
+
+- 正常资料包完成 Fact、Insight、Positioning、Human Review、Marketing Brief、Xiaohongshu Brief 与 Markdown 导出闭环。
+- 资料不足资料包必须诚实显示 Hypotheses、Evidence Limitations 与 Insufficient Information，不能为满足结构制造事实或 Proof Point。
+- 冲突资料包进入 Needs Input，补料或确认后从正确阶段恢复；旧失效结果不成为 Current Truth。
+- 变更脚本至少覆盖 Source Version 更新、业务语义编辑、影响预览、陈旧 Review 拒绝和用户确认后的局部重跑。
+- 普通 PR 使用确定性替身；真实 Provider 只在 Release Candidate 使用正常资料包执行一次端到端 Smoke。
+- 人工验收记录 `PASS / FAIL` 与理由，确认无需理解内部 Runtime 即可审核、编辑、恢复和使用导出交付物。
+
+### Alternatives and Trade-offs
+
+- 10～20 个行业 Benchmark 覆盖更广，但会在首个演示前形成独立评测工程；未采用。
+- 仅人工临时演示准备最少，但不可重复、无法稳定发现回归；未采用。
+- 加权 Rubric 总分便于比较，但在缺少样本与真实基线时制造虚假精确；未采用。
+- 完全主观 Review 无法保护版本、证据、Current Truth、失效和恢复不变量；未采用。
+- Markdown + 用户侧 JSON 增加机器可读性，但扩大第二套公共契约；不进入首个 Goal。
+- PDF-first 展示正式，但增加排版 / 渲染链路且不利于继续编辑；不进入首个 Goal。
+
+### Remaining Boundaries
+
+- Fixture 的具体商品、内容、文件、目录、数据许可与 expected-output 表示。
+- 测试框架、浏览器工具、命令、CI 分组、故障注入和最终 E2E 步骤。
+- 最终 Provider、Prompt / Schema 版本和 Live Smoke 操作手册。
+- Markdown 文件名、模板、Front Matter、下载协议和视觉样式。
+- API JSON / OpenAPI、数据库字段、状态、错误与并发契约。
+- Beta 用户样本、性能阈值、埋点、Dashboard 与真实业务对照实验。
+
+### Archive Scope
+
+- Issue #44 负责 DEC-048、被修订 Decision、Testing Strategy、Product Current Truth、Readiness、Traceability 与本 Session 的一致性归档；实际 PR 在创建后回填。
+- 本轮不创建实际 Fixture、不选择测试框架 / Provider、不冻结 API / Schema / 前端技术，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。

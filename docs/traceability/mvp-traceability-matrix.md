@@ -37,6 +37,7 @@
 | Task / Fact Stage minimum gates, demo file limits and classified conflict handling | DEC-045 | [PRD](../product/prd.md) | — | DEC-045 + Issue #38 / PR #39 | RFC-003, RFC-004, RFC-005 | _(placeholder)_ | Input contract + partial file acceptance + conflict behavior tests _(planned)_ |
 | Review / Brief semantic groups, immutable domain versions, draft revision and export snapshot | DEC-046 | [PRD](../product/prd.md) | — | DEC-046 + Issue #40 / PR #41 | RFC-004, RFC-006 | _(placeholder)_ | Semantic contract + stale-revision + export snapshot tests _(planned)_ |
 | Progressive evidence, edit intent, stage progress, actionable recovery and export confirmation | DEC-047 | [User Flows](../product/user-flows.md) | — | DEC-047 + Issue #42 / PR #43 | RFC-003, RFC-004, RFC-005, RFC-007 | _(placeholder)_ | Browser evidence / edit / recovery / export interaction E2E _(planned)_ |
+| Small representative acceptance pack, behavior gates, human usability judgment and Markdown-first export | DEC-048 | [Testing Strategy](../development/testing-strategy.md) | — | DEC-048 + Issue #44 | RFC-004, RFC-006 | _(placeholder)_ | 3 fixed fixtures + mutation script + RC live smoke + human PASS / FAIL _(planned)_ |
 | RFC Planning and Dependency Order | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
@@ -73,7 +74,7 @@
 | 原子提交 + 幂等 + 回滚 | DEC-029, DEC-033 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | spike-04, spike-06, Recovery | test_transaction_idempotency::spike04 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
 | 阶段级失效、编辑意图、语义组差异、影响预览与确认式部分重跑 | DEC-009, DEC-044, DEC-047 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-05 | test_review_safety::spike05（pos_count==1）+ DEC-047 | RFC-002, RFC-003, RFC-004 | _(placeholder)_ | Material / presentation edit + invalidation preview + affected-stage rerun _(planned)_ |
 | 不可变正式对象 + Review Draft revision | DEC-024, DEC-029, DEC-046 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | — | DEC-046 | RFC-002, RFC-004 | _(placeholder)_ | Immutable versions + stale revision save/submit _(planned)_ |
-| Current Truth 导出快照与导出前确认 | DEC-046, DEC-047 | [PRD](../product/prd.md) | — | DEC-046 / DEC-047 | RFC-004 | _(placeholder)_ | Export current-version confirmation + snapshot consistency _(planned)_ |
+| Current Truth 导出快照、导出前确认与 Markdown 用户文件 | DEC-046, DEC-047, DEC-048 | [PRD](../product/prd.md) | — | DEC-046 / DEC-047 / DEC-048 | RFC-004 | _(placeholder)_ | Current-version confirmation + Markdown snapshot consistency _(planned)_ |
 
 ### C. Human Review 与 Approved Strategy
 

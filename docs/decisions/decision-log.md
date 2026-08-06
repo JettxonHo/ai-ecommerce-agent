@@ -20,7 +20,7 @@
 | DEC-007 | MVP 采用单一关键审核节点与异常暂停机制 | Product | Amended by DEC-047 | 2026-07-27 | Session-001 | — | 单一关键审核节点、异常暂停和用户最终判断权保持有效；DEC-047 补充用户可见原因、业务影响与行动导向恢复。最终 Runtime / API 映射仍待 RFC。 |
 | DEC-008 | MVP 采用分级证据标记与结论可追溯机制 | Product | Amended by DEC-047 | 2026-07-27 | Session-001 | — | 五类结论标记与可追溯原则保持有效；DEC-047 冻结渐进式证据披露、真实可用定位与非数字置信度产品边界。最终来源结构与 Evidence API 仍待 RFC。 |
 | DEC-009 | MVP 采用阶段级依赖失效与局部重跑 | Product | Amended by DEC-044 / DEC-047 | 2026-07-27 | Session-001 | — | 阶段级失效范围保持有效；DEC-044 确认失效预览与用户确认后局部重跑，DEC-047 冻结修改影响识别和语义组差异。字段级依赖图仍不进入首个 Goal。 |
-| DEC-010 | MVP 采用任务质量、可靠性与用户效率三维评价框架 | Product | Accepted | 2026-07-27 | Session-001 | — | 三维评价（任务质量/可靠性/用户效率）+ 六项优先指标已确认；不把流畅度或销量作为唯一标准；指标公式 / 阈值 / 测试集 / 人数 / LLM-judge / 埋点 / Dashboard / 真实销量承诺均未确认，暂不建 RFC |
+| DEC-010 | MVP 采用任务质量、可靠性与用户效率三维评价框架 | Product | Amended by DEC-042 / DEC-048 | 2026-07-27 | Session-001 | — | 三维评价与六项优先指标保持有效；DEC-042 选择行为 + 人工可用性成功边界，DEC-048 冻结首个演示的固定验收包、必要行为门禁和非机械人工判断。Beta 指标、埋点与 Dashboard 仍开放。 |
 | DEC-011 | 确定性工作流控制流程，LLM 负责受约束的语义分析与业务判断 | Architecture | Accepted | 2026-07-27 | Session-002 | — | 首个架构决定：确定性工作流控制 + 受约束 LLM + 人工审核三层分工；不采用 LLM 完全自治已确认；LangGraph / 框架 / 节点数量 / 一层一节点 / 独立 Agent / 单 vs Multi-Agent / 状态模型 / Schema / Checkpoint / 数据库 / 模型 / 开源仓库均未确认，暂不建 RFC |
 | DEC-012 | Workflow State 采用阶段状态与关键条目结构化设计 | Architecture | Accepted | 2026-07-27 | Session-002 | — | 两层状态（阶段状态 + 结构化业务条目）已确认；原始输入/AI 结果分开、四层条目化、阶段有效性显式、不等于聊天历史已确认；LangGraph State / Pydantic / JSON Schema / 最终字段 / 阶段枚举 / 节点数 / 数据库 / Checkpoint / 持久化 / 版本历史 / 字段级依赖图均未确认，暂不建 RFC |
 | DEC-013 | MVP 采用支持跨会话恢复的任务级持久化状态 | Architecture | Accepted | 2026-07-27 | Session-002 | — | 任务级持久化 + 跨页面/跨会话恢复 + 内存非唯一存储已确认；完整事件溯源 / 任意历史版本恢复暂缓；LangGraph Checkpointer / thread_id / PostgreSQL / SQLite / Redis / Checkpoint 频率 / 序列化 / 文件持久化 / 保留期限 / 隐私权限 / 并发任务锁 / 开源仓库均未确认，暂不建 RFC |
@@ -52,12 +52,13 @@
 | DEC-039 | 采用与真实风险相称的校验与审阅治理 | Governance / Quality / Security | Accepted | 2026-08-06 | Session-003 | RFC-001 / RFC-002 / RFC-003~007 | 禁止过度防御、非重大核心风险下的新增哈希或 SHA-256 要求、低概率 Case 堆叠和机械 Rubric；保留与变更相关的必要校验与 Required Checks。Amends DEC-034 / DEC-035 / DEC-038 的未来校验治理。 |
 | DEC-040 | 采用分级自主执行权限与固定模型角色 | Agent Governance / Git and GitHub Operations / Model Roles | Amended by DEC-043 | 2026-08-06 | Session-003 | RFC-001 / RFC-002 / RFC-003~007 | 普通低风险工作自主闭环与高风险人工 Gate 保持有效；原“实现模型不可用即暂停”规则由 DEC-043 修订为 Luna 优先、Terra 显式回退。 |
 | DEC-041 | 冻结本地端到端演示 MVP 的交付边界 | Product / Scope / Delivery | Amended by DEC-044 | 2026-08-06 | Session-003 | RFC-001 / RFC-002 / RFC-003~007 | 交付包络保持有效；DEC-044 将引导式任务工作台具体化为单任务工作台、两级输入门禁与确认式局部重跑，不扩大范围。 |
-| DEC-042 | 确认证据驱动商品上新策略工作台定位、复合 Persona 假设与行为型演示成功标准 | Product / Positioning / Persona / Acceptance | Accepted | 2026-08-06 | Session-003 | RFC-003~007 | 接受 P-01A / P-02A / P-03A；产品定位、复合主 Persona 策划方式、Beta 前访谈门禁与行为型演示成功边界已确认，具体字段、Fixture 与阈值仍待策划。 |
+| DEC-042 | 确认证据驱动商品上新策略工作台定位、复合 Persona 假设与行为型演示成功标准 | Product / Positioning / Persona / Acceptance | Amended by DEC-048 | 2026-08-06 | Session-003 | RFC-003~007 | 产品定位、复合 Persona 与行为型成功边界保持有效；DEC-048 补全首个演示的 Fixture 结构、必要门禁、人工判断和 Live Smoke。 |
 | DEC-043 | 采用 Sol 主控、Luna 实现、Terra 辅助回退的多 Agent 开发编排 | Agent Governance / Development Orchestration / Model Roles | Accepted | 2026-08-06 | Session-003 | RFC-001~007 | Sol = ORCHESTRATOR_REVIEWER，Luna = 首选 IMPLEMENTER，Terra = AUXILIARY_IMPLEMENTER 与显式回退；实现 Agent 不得自批或自合并，线程通过任务合同和持久化载体交接。Amends DEC-040 / DEC-036 / DEC-037 的未来协作规则，不改变产品运行时单 Agent 边界。 |
 | DEC-044 | 采用单任务工作台、两级输入门禁与确认式局部重跑交互 | Product / Interaction / Input Gate / Versioning / Rerun | Amended by DEC-045 / DEC-047 | 2026-08-06 | Session-003 | RFC-003 / RFC-004 / RFC-005 | 接受 P-04A / P-05A / P-06A；DEC-045 补全最低输入、文件限制与冲突，DEC-047 补全证据、编辑影响、进度和恢复交互。Amends DEC-005 / DEC-009 / DEC-041。 |
 | DEC-045 | 冻结最小输入、演示文件限制与分级冲突处理 | Product / Input Contract / File Limits / Conflict Handling | Accepted | 2026-08-06 | Session-003 | RFC-003 / RFC-004 / RFC-005 | 接受 P-07A / P-08A / P-09A；Task 创建需名称 / 品类 / 推广目标，Fact Stage 沿用 DEC-026 最低条件；默认 20 文件、10 MB / 文件、文本 PDF 100 页、评论 CSV 10,000 行；单文件失败不回滚已接受文件；身份 / 关键事实冲突阻断，非阻断差异继续并显式限制。Amends DEC-005 / DEC-044。 |
-| DEC-046 | 冻结审核、Brief 与导出的产品语义和版本行为 | Product / Review Contract / Output Contract / Versioning / Export | Amended by DEC-047 | 2026-08-06 | Session-003 | RFC-004 / RFC-006 | 产品语义组、Domain Version、Draft revision、Current Truth Pointer 与导出快照保持有效；DEC-047 补充差异、编辑意图和导出前确认交互。 |
-| DEC-047 | 采用渐进式证据披露、结构化编辑意图与行动导向恢复交互 | Product / Interaction / Evidence / Editing / Recovery / Export | Accepted | 2026-08-06 | Session-003 | RFC-003 / RFC-004 / RFC-005 / RFC-007 | 接受 P-13A / P-14A / P-15A；冻结证据卡片 / 可收起面板、语义组差异、重要修改识别、阶段时间线、行动导向恢复和导出确认。Amends DEC-007 / 008 / 009 / 044 / 046；不冻结组件、公共状态、传输、Diff 算法或导出格式。 |
+| DEC-046 | 冻结审核、Brief 与导出的产品语义和版本行为 | Product / Review Contract / Output Contract / Versioning / Export | Amended by DEC-047 / DEC-048 | 2026-08-06 | Session-003 | RFC-004 / RFC-006 | 产品语义组、Domain Version、Draft revision、Current Truth Pointer 与导出快照保持有效；DEC-047 补充差异、编辑意图和导出前确认，DEC-048 选择 Markdown-first 用户导出。 |
+| DEC-047 | 采用渐进式证据披露、结构化编辑意图与行动导向恢复交互 | Product / Interaction / Evidence / Editing / Recovery / Export | Amended by DEC-048 | 2026-08-06 | Session-003 | RFC-003 / RFC-004 / RFC-005 / RFC-007 | 证据、编辑、进度、恢复和导出确认语义保持有效；DEC-048 补全代表性验收包、必要行为门禁和 Markdown-first 用户导出。 |
+| DEC-048 | 采用小型代表性验收包、行为门禁与 Markdown-first 导出 | Product / Acceptance / Testing / Export | Accepted | 2026-08-06 | Session-003 | RFC-004 / RFC-006 | 接受 P-16A / P-17A / P-18A；三个固定资料包 + 一个变更脚本，确定性 PR 验证 + Release Candidate 单次 Live Smoke，行为硬门禁 + 非机械人工 `PASS / FAIL`，Marketing Brief / Xiaohongshu Brief 使用 UTF-8 Markdown 用户导出。Amends DEC-010 / 042 / 046 / 047。 |
 
 ---
 
@@ -65,9 +66,9 @@
 
 > **Amendment note：** DEC-036 与 DEC-037 作为 Spike-001 的 Accepted 历史执行记录保留；其未来协作与 Merge 规则先由 DEC-040、后由 DEC-043 修订。DEC-040 的普通工作自主闭环与高风险人工 Gate 保持有效；模型不可用规则以 DEC-043 为准。RFC-001 DQ-09 / DQ-10 同理保留原文，由最新 Accepted Decision 解释未来执行权限。
 
-> **Product interaction amendment note：** DEC-005 的分层输入原则、DEC-009 的阶段级失效范围和 DEC-041 的演示包络保持有效；任务工作台与确认式重跑以 DEC-044 为准，最低输入、文件限制与冲突分级以 DEC-045 为准，证据披露、修改影响、进度、恢复和导出确认以 DEC-047 为准。DEC-024 / DEC-025 的版本边界、DEC-026 的 Fact Stage 最低条件与 DEC-029 的过期审核拒绝规则未被改变。
+> **Product interaction amendment note：** DEC-005 的分层输入原则、DEC-009 的阶段级失效范围和 DEC-041 的演示包络保持有效；任务工作台与确认式重跑以 DEC-044 为准，最低输入、文件限制与冲突分级以 DEC-045 为准，证据披露、修改影响、进度、恢复和导出确认以 DEC-047 为准，代表性验收包、必要行为门禁和 Markdown-first 用户导出以 DEC-048 为准。DEC-024 / DEC-025 的版本边界、DEC-026 的 Fact Stage 最低条件与 DEC-029 的过期审核拒绝规则未被改变。
 
-> **Product output amendment note：** DEC-006 的四层主结构与 DEC-029～031 的 Human Review / Skill / Adapter 边界保持有效；产品语义组、Review Draft revision、正式对象不可变版本、Current Truth Pointer 与导出快照行为以 DEC-046 为准，差异和导出确认交互以 DEC-047 为准。最终 API / Schema / 并发机制仍由 RFC-004 / RFC-006 冻结。
+> **Product output amendment note：** DEC-006 的四层主结构与 DEC-029～031 的 Human Review / Skill / Adapter 边界保持有效；产品语义组、Review Draft revision、正式对象不可变版本、Current Truth Pointer 与导出快照行为以 DEC-046 为准，差异和导出确认交互以 DEC-047 为准，用户导出格式以 DEC-048 的 Markdown-first 边界为准。最终 API / Schema / 并发机制、Markdown 模板和下载协议仍由 RFC-004 / RFC-006 / Frontend Architecture 冻结。
 
 - `Accepted` — 用户明确接受，当前有效。
 - `Rejected` — 被明确否决。

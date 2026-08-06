@@ -6,7 +6,9 @@ Product
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-042 / DEC-048
+
+> **Current amendment:** [DEC-042](dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) 将首个演示收束为行为与人工可用性验收；[DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) 冻结三个固定资料包、一个变更脚本、必要行为门禁与非机械人工判断。三维评价框架和六项优先指标保持有效。
 
 ## Decision
 
@@ -196,6 +198,11 @@ None
 
 None
 
+## Amended By
+
+- [DEC-042](dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md)
+- [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)
+
 ## Decision Boundary
 
 **本决定已经确认：**
@@ -207,6 +214,8 @@ None
 - 自动评价与人工评价可能同时存在。
 
 **本决定尚未确认：**
+
+> 以下为本决定接受时的开放边界。首个演示的 Fixture 结构、必要行为门禁、人工判断方式与 Live Smoke 边界后来由 DEC-048 解决；真实用户样本、Beta 指标、埋点和 Dashboard 继续开放。
 
 - 每项指标的具体公式；
 - 每项指标的目标阈值；

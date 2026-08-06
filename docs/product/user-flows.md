@@ -2,18 +2,19 @@
 
 > **Status: PARTIAL — 已确认高层任务闭环、工作台、输入、冲突、Human Review、渐进式证据、编辑影响、阶段进度、行动导向恢复与确认式局部重跑；最终组件、公共状态与工作流技术实现仍待讨论**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
-> 当前已确认：MVP 核心任务的高层级流程（DEC-003）、首个演示场景映射（DEC-004）、输入分层（DEC-005）、四层输出（DEC-006）、单一关键审核节点 + 异常暂停（DEC-007）、证据与可追溯（DEC-008）、阶段级失效（DEC-009）、单任务工作台与确认式局部重跑（DEC-044）、最小输入 / 文件限制 / 冲突分级（DEC-045）、审核 / Brief 产品语义、版本 / revision / 导出行为（DEC-046），以及渐进式证据、编辑意图、阶段进度、恢复与导出确认（DEC-047）；最终组件、公共 Schema / 状态与工作流技术实现仍未确认。
+> 当前已确认：MVP 核心任务的高层级流程（DEC-003）、首个演示场景映射（DEC-004）、输入分层（DEC-005）、四层输出（DEC-006）、单一关键审核节点 + 异常暂停（DEC-007）、证据与可追溯（DEC-008）、阶段级失效（DEC-009）、单任务工作台与确认式局部重跑（DEC-044）、最小输入 / 文件限制 / 冲突分级（DEC-045）、审核 / Brief 产品语义、版本 / revision / 导出行为（DEC-046）、渐进式证据、编辑意图、阶段进度、恢复与导出确认（DEC-047），以及代表性验收包和 Markdown-first 用户导出（DEC-048）；最终组件、公共 Schema / 状态与工作流技术实现仍未确认。
 > **DEC-041 同步：** 交互形态为引导式任务工作台；允许结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV。不提供图片 / OCR、链接抓取、主动联网研究、完整小红书正文生成或自动发布流程。
 > **DEC-042 同步：** 工作台必须让用户无需理解内部实现即可完成闭环，并能理解、审核和追溯主要结论；主信息架构已由 DEC-044 冻结，详细控件与视觉布局仍待策划。
 > **DEC-044 同步：** 工作台信息架构为阶段导航 + 当前工作区 + 可收起证据 / 上下文面板；真实阻塞进入 Needs Input；资料或上游内容变化先展示影响范围，再由用户确认局部重跑。
 > **DEC-045 同步：** Task 创建和 Fact Stage 使用不同门禁；单文件失败不回滚同批已接受文件；身份 / 关键事实冲突阻断，其他证据差异继续并显示限制。
 > **DEC-047 同步：** 证据从当前条目按需展开；修改按语义组和编辑意图判断影响；长任务显示阶段时间线而非虚构百分比；错误提供匹配恢复动作；导出前确认当前版本与限制。
+> **DEC-048 同步：** 当前有效 Marketing Brief 与 Xiaohongshu Brief 分别导出 UTF-8 Markdown；文件保留 Task、版本、必要上游、产品语义组、假设 / 限制 / 风险、证据与导出时间上下文。首个 Goal 不提供用户侧 PDF / JSON 文件导出。
 
 ---
 
 ## 已确认内容（Confirmed）
 
-> 来源：[DEC-003](../decisions/dec-003-product-launch-positioning-and-marketing-brief.md) + [DEC-004](../decisions/dec-004-platform-neutral-core-xiaohongshu-demo.md) + [DEC-005](../decisions/dec-005-layered-mvp-inputs.md) + [DEC-006](../decisions/dec-006-four-layer-structured-marketing-brief.md) + [DEC-007](../decisions/dec-007-single-review-node-and-exception-pauses.md) + [DEC-008](../decisions/dec-008-tiered-evidence-and-traceable-conclusions.md) + [DEC-009](../decisions/dec-009-stage-level-invalidation-and-partial-rerun.md) + [DEC-041](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md) + [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) + [DEC-044](../decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) + [DEC-045](../decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md) + [DEC-046](../decisions/dec-046-review-brief-and-export-product-contract.md) + [DEC-047](../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)
+> 来源：[DEC-003](../decisions/dec-003-product-launch-positioning-and-marketing-brief.md) + [DEC-004](../decisions/dec-004-platform-neutral-core-xiaohongshu-demo.md) + [DEC-005](../decisions/dec-005-layered-mvp-inputs.md) + [DEC-006](../decisions/dec-006-four-layer-structured-marketing-brief.md) + [DEC-007](../decisions/dec-007-single-review-node-and-exception-pauses.md) + [DEC-008](../decisions/dec-008-tiered-evidence-and-traceable-conclusions.md) + [DEC-009](../decisions/dec-009-stage-level-invalidation-and-partial-rerun.md) + [DEC-041](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md) + [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) + [DEC-044](../decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) + [DEC-045](../decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md) + [DEC-046](../decisions/dec-046-review-brief-and-export-product-contract.md) + [DEC-047](../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) + [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)
 
 - **高层级流程（已确认）：**
 
@@ -119,7 +120,9 @@
 
 > **阶段进度与恢复（DEC-047）：** 长任务显示当前 / 已完成 / 待处理阶段、最近更新时间、当前等待原因和下一项动作，不显示虚构百分比。暂停或错误说明原因、受影响阶段以及最近有效结果，并按情形提供补料继续、恢复、重试当前阶段、查看失效预览并确认重跑、刷新比较陈旧 Draft、取消或返回最后有效结果。返回旧结果不改变其有效性；失效或部分提交结果不得标成 Current Truth。技术详情按需展开，最终错误代码和状态映射仍待 RFC。
 
-> **结果与导出：** Task 的 Current Truth Pointer 决定当前有效 Approved Strategy、Marketing Brief 与 Xiaohongshu Brief。导出前展示将被冻结的当前对象版本、必要上游引用、Hypotheses / Limitations / Risks 摘要；用户确认后冻结 Task 上下文和导出时间。失效结果不可作为当前结果导出，导出不修改 Current Truth。文件格式、模板、下载协议和视觉组件仍待 Frontend Architecture / RFC。
+> **Markdown 用户导出（DEC-048）：** 用户在 DEC-047 的版本与限制确认后，可分别导出当前有效的 Marketing Brief 或 Xiaohongshu Brief。导出文件是 UTF-8 Markdown，并携带能够解释其 Task、对象版本、必要上游、语义组、Hypotheses、Limitations、Risks、证据与导出时间的上下文；失效或部分提交结果不提供“作为当前结果导出”。最终文件名、模板和下载控件仍待 Frontend Architecture / RFC-004。
+
+> **结果与导出：** Task 的 Current Truth Pointer 决定当前有效 Approved Strategy、Marketing Brief 与 Xiaohongshu Brief。导出前展示将被冻结的当前对象版本、必要上游引用、Hypotheses / Limitations / Risks 摘要；用户确认后冻结 Task 上下文和导出时间。失效结果不可作为当前结果导出，导出不修改 Current Truth。用户文件格式已由 DEC-048 确认为 UTF-8 Markdown；模板、文件名、下载协议和视觉组件仍待 Frontend Architecture / RFC。
 
 ---
 
@@ -135,11 +138,11 @@
 - 异常与回退路径：**异常暂停 + 追问已确认**（DEC-007）；异常判断规则、高风险表达具体范围尚未确认；
 - 阶段级失效与局部重跑：**失效范围、编辑意图、语义组差异、影响预览、用户确认后重跑和过期审核拒绝已确认**；最终 Diff 算法与组件待 Frontend Architecture，字段级依赖图不进入首个 Goal；
 - Retrieval / Evidence 与 4 个 Core Skills 的概念边界，以及阶段进度和行动导向异常语义已确认；各步骤的最终触发、公共状态与传输映射仍待 RFC-003～006 明确；
-- 通用 Brief 与小红书种草 Brief 的产品语义、导出快照和导出前确认已确认；文件格式、模板、下载协议与视觉组件仍待确认；
-- 四层与 Review / Brief 的产品语义组、渐进式证据与非数字置信度边界已确认；最终公共字段名 / 类型 / 逐字段必填表达、输出格式和组件仍待确认；
+- 通用 Brief 与小红书 Brief 的产品语义、导出快照、导出前确认和 UTF-8 Markdown 用户格式已确认；模板、下载协议与视觉组件仍待确认；
+- 四层与 Review / Brief 的产品语义组、渐进式证据与非数字置信度边界已确认；最终公共字段名 / 类型 / 逐字段必填表达、Markdown 模板和组件仍待确认；
 - 证据标记与可追溯的具体呈现（DEC-008 / DEC-047）：**五类标记 + 当前上下文入口 + 证据卡片 / 可收起面板 + 真实可用定位 + 非数字置信度已确认**；最终组件、来源公共结构、Locator Schema、权限与 Evidence API 仍未确认；
 - 各层查看 / 编辑控件与可编辑字段；人工审核位置与单一性已确认，不再作为开放问题；
-- Xiaohongshu Brief 的六个产品语义组已确认；最终公共字段、展示与导出格式仍待确认；完整小红书正文、图片 / 视频生成和自动发布不进入首个 Goal；
+- Xiaohongshu Brief 的六个产品语义组和 Markdown 用户导出已确认；最终公共字段、展示、模板与下载实现仍待确认；完整小红书正文、图片 / 视频生成和自动发布不进入首个 Goal；
 - Xiaohongshu Adapter 的映射链、阶段进度和失败恢复产品语义已确认；触发时机、公共状态、错误代码与传输仍待 API 契约冻结。
 
 ---
@@ -157,7 +160,7 @@
 ## 当前状态
 
 - 项目处于 **Pre-development Planning（正式开发前策划）阶段**；业务实现与长期 Goal 均未启动。
-- 已确认高层任务流程、平台映射、输入分层、四层输出、Human Review、证据追溯、工作台、输入与冲突、审核 / Brief 产品语义、版本 / revision / 导出，以及证据 / 编辑 / 进度 / 恢复交互（DEC-003～009 / DEC-042 / DEC-044～047）；最终组件、公共 Schema / 状态与工作流实现仍待讨论。
+- 已确认高层任务流程、平台映射、输入分层、四层输出、Human Review、证据追溯、工作台、输入与冲突、审核 / Brief 产品语义、版本 / revision / 导出、证据 / 编辑 / 进度 / 恢复交互，以及 Markdown-first 用户导出（DEC-003～009 / DEC-042 / DEC-044～048）；最终组件、公共 Schema / 状态与工作流实现仍待讨论。
 - 其余具体流程，必须等到对应 Proposed Decision 被用户明确接受并记为 Accepted Decision（见 [../decisions/](../decisions/)）后，才能写入。
 
 ---
@@ -167,7 +170,7 @@
 - 用户与 Agent 交互的核心入口是什么？—— **已确认**为单任务工作台，含阶段导航、当前工作区和可收起证据 / 上下文面板；详细控件与视觉布局待策划。
 - 关键业务流程的细节？—— 高层已确认（DEC-003 / 004 / 005 / 006 / 007 / 008 / 009）；细节待讨论。
 - 输入不足时如何与用户交互？—— **Task / Fact Stage 门禁、默认文件限制、冲突分级 + Needs Input 的原因 / 影响 / 补充内容 / 恢复方式已确认**（DEC-044 / DEC-045）；具体补充问题、公共字段与状态映射尚未确认。
-- 四层与 Review / Brief 的产品语义组、渐进式证据和导出确认已确认；最终公共字段 / 类型 / 逐字段必填表达、输出 / 文件格式与组件仍待确认。
+- 四层与 Review / Brief 的产品语义组、渐进式证据、导出确认和 Markdown 用户格式已确认；最终公共字段 / 类型 / 逐字段必填表达、Markdown 模板与组件仍待确认。
 - 证据标记与可追溯如何呈现？—— **五类标记、当前上下文证据入口、真实可用定位和非数字置信度已确认**（DEC-008 / DEC-047）；最终组件、来源公共结构和权限映射尚未确认。
 - 审核节点：位置、单一性、不可跳过、Review Package 不可变、Draft revision 冲突、语义组差异和编辑影响已确认；最终组件、自动保存频率、并发实现与 Diff 算法待策划，多人协作不进入首个 Goal。
 - 通用 Brief 到小红书 Brief 的 Adapter 映射链、阶段进度和行动导向恢复已确认；具体触发、公共状态与传输待 RFC。
