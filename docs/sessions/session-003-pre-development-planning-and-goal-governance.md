@@ -4,10 +4,11 @@
 
 - Status: In Discussion
 - Date: 2026-08-06
+- Last Updated: 2026-08-07
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-055
-- Related Proposals: P-39～P-41（PROPOSED；待裁决）
+- Related Decisions: DEC-039～DEC-056
+- Frontend Proposal Status: P-36～P-41 全部 Accepted；Frontend Architecture overall Accepted
 
 ## Context
 
@@ -88,8 +89,8 @@
 
 ## Proposed Decisions
 
-- Frontend Architecture Issue #50 的 `P-36A / P-37A / P-38A` 已由用户接受并归档为 DEC-055；`P-39A / P-40A / P-41A` 为当前推荐提案，仍待用户裁决。
-- DEC-055 接受不授权安装 React / Vite 等依赖、生成脚手架或编写前端；P-39～P-41 用户明确裁决前，不得把工作台 Module、UI Primitive / Styling、状态投影、自动保存 / Diff 或质量边界写成 Current Truth。
+- 当前无未接受的 Frontend Architecture Proposal；P-36～P-41 的完整提案与接受过程保留在下方各 Decision Round。
+- Frontend Architecture 整体接受不授权安装依赖、生成脚手架或编写前端，未接受的 RFC-004 / 005 / 007 公共契约不得被提前写成实现事实。
 
 ## Accepted Decisions
 
@@ -110,6 +111,7 @@
 - [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) — 采用有界 Model Recovery、可读 Version Tuple 与确定性 Skill Profiles（用户于 2026-08-06 接受 P-31A / P-32A / P-33A；Amends DEC-052）。
 - [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) — 采用 Adapter Secret / Payload 边界、同 Port Scripted Substitute 与单次人工 RC Smoke（用户于 2026-08-06 接受 P-34A / P-35A；Amends DEC-052 / 053）。
 - [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) — 采用 React / Vite SPA、显式前端状态所有权、OpenAPI 生成与 npm + Vitest / Testing Library + Playwright Chromium 验证基础（用户于 2026-08-06 接受 P-36A / P-37A / P-38A）。
+- [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) — 采用深 TaskWorkbench、revision-safe 交互投影与适度 Web 质量边界（用户于 2026-08-06 接受 P-39A / P-40A / P-41A；2026-08-07 接受 Frontend Architecture 整体）。
 
 ## Rejected Approaches
 
@@ -121,9 +123,9 @@
 ## Open Questions
 
 - 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决；代表性验收包、必要行为门禁和 Markdown-first 用户导出由 DEC-048 解决。
-- Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、Diff 算法、状态 / 错误映射、Markdown 模板与下载协议。
+- Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、公共 Change Set、状态 / 错误映射、Markdown 模板与下载协议。
 - Fixture 具体业务数据、测试工具、最终浏览器 E2E 步骤、Live Smoke 手册与 Beta 指标。
-- RFC-003 与 RFC-006 均已整体接受；Frontend Architecture P-36～P-38 已由 DEC-055 解决，P-39～P-41、RFC-004 / 005 / 007、精确实施版本、最终公共字段与运维参数仍开放。
+- RFC-003、RFC-006 与 Frontend Architecture 均已整体接受；RFC-004 / 005 / 007、精确实施版本、最终公共字段与运维参数仍开放。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
 - Luna 不可用时的路由已由 DEC-043 解决为 Terra 显式回退或外部 Luna 任务包；每个实际 Issue 仍需记录所用模型与独立 Reviewer。
 
@@ -141,7 +143,7 @@
 - 新增 DEC-050，接受 RFC-003 DQ-04～06，并将 DQ-07～09 的 P-25A～P-27A 方案写入 RFC Draft。
 - 新增 DEC-051，接受 RFC-003 DQ-07～09，将 RFC-003 推进到 `IN REVIEW` 并同步 Compatibility、Safe Resume、迁移 / 回滚和验收证据边界。
 - 新增 DEC-052～054，接受 RFC-006 DQ-01～08；完成 Final Consistency Review、用户整体接受、PR #49 合并和 Issue #48 关闭。
-- 新增 DEC-055，接受 Frontend Architecture P-36A / P-37A / P-38A，并创建 Partial Current Truth `docs/architecture/frontend-architecture.md`；P-39～P-41 继续保持开放。
+- 新增 DEC-055 / DEC-056，接受 Frontend Architecture P-36A～P-41A，完成 Final Consistency Review 与整体接受，并同步 `docs/architecture/frontend-architecture.md` Current Truth。
 
 ## Synchronization Checklist
 
@@ -953,3 +955,17 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - 本地 Markdown 链接损坏数为 0；`git diff --check` 与仓库既有格式、Lint、Type、Architecture、Fast Tests、Lock、Build、Dependency Audit 均通过。
 - P-36～P-41 已满足进入 Frontend Architecture 整体接受 Gate 的条件。
 - 用户整体接受前，不安装依赖、不实施前端、不合并 PR #51、不关闭 Issue #50、不执行 Spike、不创建或激活 Goal。
+
+## Overall Acceptance — Frontend Architecture（2026-08-07）
+
+### User Acceptance
+
+- 用户在 P-36～P-41 全部逐项接受、DEC-055 / DEC-056 归档、Current Truth 同步和 Final Consistency Review = `PASS` 后明确回复：“接受 Frontend Architecture 整体”。
+- Frontend Architecture 整体状态由 `OVERALL ACCEPTANCE PENDING` 更新为 `ACCEPTED`。
+
+### Accepted Result and Boundary
+
+- React / Vite SPA、显式状态所有权、OpenAPI 生成链、深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有 WorkbenchProjection、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance 构成首个 Goal 的已接受 Frontend Architecture。
+- RFC-004 继续拥有公共 Resource / 字段 / 状态 / 错误 / revision / 幂等 / Conflict / 下载协议；RFC-005 继续拥有 Pagination / Retrieval Contract；RFC-007 继续拥有 Observability 与运维边界。
+- 整体接受不授权依赖安装、Frontend Implementation、Technical Spike、业务实现或 Goal 创建 / 激活。
+- PR #51 只有在最新提交的 Required Checks 全部通过且最终五轴 Review 无阻塞 Finding 后才可合并；合并后关闭 Issue #50 并继续产品规格与 RFC-004 / 005 / 007 策划。

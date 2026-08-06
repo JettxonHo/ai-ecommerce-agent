@@ -7,7 +7,7 @@
 - **Decision Type:** Frontend Architecture / State Ownership / Contract Generation / Verification
 - **Source:** Session-003；用户明确确认推荐组合 `P-36A + P-37A + P-38A`
 - **Related Issue:** [#50](https://github.com/JettxonHo/ai-ecommerce-agent/issues/50)
-- **Related PR:** [#51](https://github.com/JettxonHo/ai-ecommerce-agent/pull/51)（Draft；P-39～P-41 后续已由 DEC-056 接受，仍待 Frontend Architecture 整体接受 Gate）
+- **Related PR:** [#51](https://github.com/JettxonHo/ai-ecommerce-agent/pull/51)（Draft；P-39～P-41 后续已由 DEC-056 接受，Frontend Architecture 整体已于 2026-08-07 接受）
 
 ## Context
 
@@ -94,11 +94,12 @@ Vitest Browser Mode 与 Playwright E2E 会形成两层浏览器职责；Jest 与
 
 - 不授权安装 React、Vite、TanStack Query、React Hook Form、OpenAPI 或测试依赖；
 - 不授权生成前端脚手架、`package.json`、Lockfile、组件、路由、样式、Client、测试或 CI Workflow；
-- 不接受仍待 P-39～P-41 的 Frontend Architecture 整体；
+- 本决定作出时不接受当时仍待 P-39～P-41 的 Frontend Architecture 整体；后续接受状态见 DEC-056 与 Session-003，不追溯扩大本决定的实现授权；
 - 不授权 RFC-004 / 005 / 007 实现、TS-01～TS-05 执行、业务实现或 Goal 创建 / 激活。
 
 ## Evidence
 
 - [Session-003](../sessions/session-003-pre-development-planning-and-goal-governance.md)：P-36～P-38 的三组选项、兼容矩阵与官方资料。
 - 用户于 2026-08-06 明确回复：“确认推荐组合为 P-36A + P-37A + P-38A。”
+- 用户于 2026-08-07 在 P-39～P-41 归档和 Final Consistency Review 通过后明确回复：“接受 Frontend Architecture 整体”。
 - Draft PR [#51](https://github.com/JettxonHo/ai-ecommerce-agent/pull/51) 的 8 项 Required Checks 全部通过；首轮独立审查 Critical = 0、Required = 0、Optional = 0。

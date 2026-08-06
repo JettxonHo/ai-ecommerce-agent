@@ -1,9 +1,9 @@
 # Frontend Architecture
 
-> **Status: ACTIVE PRE-DEVELOPMENT CURRENT TRUTH — P-36～P-41 individually accepted; Final Consistency Review passed; Frontend Architecture overall acceptance pending; public HTTP contract and implementation pending**
+> **Status: ACCEPTED PRE-DEVELOPMENT CURRENT TRUTH — P-36～P-41 accepted; Final Consistency Review passed; Frontend Architecture overall accepted; public HTTP contract and implementation pending**
 > **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md)
 
-本文只记录 P-36～P-41 已逐项接受的 Frontend Architecture 内容；Final Consistency Review 已通过，整体接受仍是单独用户 Gate，在明确通过前不得把逐项接受写成整体接受。最终 HTTP Resource / 字段 / 状态 / 错误 / revision / 幂等 / Conflict / Pagination / 下载协议、精确依赖版本、实现与运行证据仍未完成，不得从本文空白处推断实现事实。
+本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。最终 HTTP Resource / 字段 / 状态 / 错误 / revision / 幂等 / Conflict / Pagination / 下载协议、精确依赖版本、实现与运行证据仍未完成，不得从本文空白处推断实现事实。整体接受不授权依赖安装或实现。
 
 ## 1. Application Shape
 

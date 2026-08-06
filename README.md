@@ -29,14 +29,13 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 - RFC-001 Repository and Application Architecture、RFC-002 Persistence and Transaction Architecture、RFC-003 LangGraph Runtime and Checkpoint Architecture 与 RFC-006 LLM Runtime and Structured Output 已 Accepted；
 - Business Current Truth 的生产持久化栈已由 RFC-002 选定为 PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；SQLite 不作为持久化验收引擎；
 - FND-001～003 已完成，仓库已有 Python 后端 Package、质量工具、架构测试、CI 与 Repository Protection 基础。
-- Frontend Architecture P-36～P-41 已逐项接受：`apps/web/` React / Vite SPA、显式状态职责、OpenAPI 生成、一个深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有交互投影、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance；依赖尚未安装，前端尚未实现。
+- Frontend Architecture P-36～P-41 及整体已接受：`apps/web/` React / Vite SPA、显式状态职责、OpenAPI 生成、一个深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有交互投影、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance；依赖尚未安装，前端尚未实现。
 
 ---
 
 ## 当前策划缺口
 
 - 任务工作台的最终公共字段、API 状态 / 错误 / Conflict / Pagination / 下载协议，以及 Persona / JTBD 的后续研究证据；产品与 Frontend P-36～P-41 已由 DEC-045～048、DEC-055～056 冻结；
-- Frontend Architecture Final Consistency Review 已通过，仍待整体接受 Gate；
 - RFC-004 API / Human Review、RFC-005 Source / Retrieval、RFC-007 Observability；
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；
 - MVP Development Plan、Testing Strategy 的技术层补全与长期 Goal 最终文本。
@@ -90,4 +89,4 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 开发状态
 
-**CONDITIONALLY READY（规划范围）** — Foundation、RFC-001～003 与 RFC-006 已完成，但业务实现仍未授权。必须完成 RFC-004 / 005 / 007、Frontend Architecture、Readiness 规划包、测试策略、Goal 文本和最终一致性 Review，并由用户明确批准“进入 Goal 执行阶段”后，才可开始长期开发。详见 [Implementation Readiness](docs/handoffs/implementation-readiness.md) 与 [AGENTS.md](AGENTS.md)。
+**CONDITIONALLY READY（规划范围）** — Foundation、RFC-001～003、RFC-006 与 Frontend Architecture 已完成，但业务实现仍未授权。必须完成 RFC-004 / 005 / 007、Readiness 规划包、测试策略、Goal 文本和最终一致性 Review，并由用户明确批准“进入 Goal 执行阶段”后，才可开始长期开发。详见 [Implementation Readiness](docs/handoffs/implementation-readiness.md) 与 [AGENTS.md](AGENTS.md)。

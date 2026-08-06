@@ -1,6 +1,6 @@
 # MVP Scope（最小可行产品范围）
 
-> **Status: PARTIAL — 产品定位、MVP 包络、工作台、输入、审核 / Brief、证据 / 恢复交互和验收边界已确认；Frontend P-36～P-41 已逐项接受、整体接受待 Gate；最终公共 Schema、工作流实现和 Fixture 仍待确认**
+> **Status: PARTIAL — 产品定位、MVP 包络、工作台、输入、审核 / Brief、证据 / 恢复交互和验收边界已确认；Frontend P-36～P-41 与整体均已接受；最终公共 Schema、工作流实现和 Fixture 仍待确认**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
 > 当前已确认：MVP 核心任务与交付物（DEC-003）、平台与输入输出边界（DEC-004～006）、Human Review / 证据 / 失效重跑（DEC-007～009）、三维评价（DEC-010）、本地演示包络（DEC-041）、行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制与冲突分级（DEC-045）、审核 / Brief / 版本 / 导出产品契约（DEC-046）、证据披露、编辑意图、阶段进度和恢复交互（DEC-047）、代表性验收包、行为门禁、人工验收与 Markdown-first 用户导出（DEC-048），以及 Frontend 应用 / 状态 / 生成契约 / 深工作台 / revision-safe 交互与 Web 质量边界（DEC-055 / 056）；最终公共 Schema、Fixture 实例与最终 E2E 步骤仍未确认，**不得擅自补全**。
 > **DEC-041 同步：** 首个本地演示只接收结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV；不做 OCR、图片理解或扫描文档。下文 DEC-005 的旧“图片或文字”示例按此最新边界修订。

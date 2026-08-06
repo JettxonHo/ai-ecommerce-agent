@@ -7,7 +7,7 @@
 - **Decision Type:** Frontend Architecture / Workbench Module / Interaction Projection / Accessibility / Performance
 - **Source:** Session-003；用户明确接受 `P-39A + P-40A + P-41A`
 - **Related Issue:** [#50](https://github.com/JettxonHo/ai-ecommerce-agent/issues/50)
-- **Related PR:** [#51](https://github.com/JettxonHo/ai-ecommerce-agent/pull/51)（Draft；Final Consistency Review = PASS，等待 Frontend Architecture 整体接受 Gate）
+- **Related PR:** [#51](https://github.com/JettxonHo/ai-ecommerce-agent/pull/51)（Draft；Final Consistency Review = PASS，Frontend Architecture 整体已于 2026-08-07 接受）
 
 ## Context
 
@@ -124,10 +124,11 @@ Chrome、Edge、Firefox、Safari、手机、多浏览器 E2E、全状态 Axe、V
 - 不授权安装 Radix、axe 或其他前端依赖；
 - 不授权生成前端脚手架、组件、样式、Client、测试、CI Workflow 或业务代码；
 - 不冻结 RFC-004 / 005 / 007 的公共字段、路径、枚举、错误码、Pagination 或运维参数；
-- 不授权 Technical Spike、Frontend Implementation、业务实现、PR 合并或 Goal 创建 / 激活。
+- 本决定形成时不授权 Technical Spike、Frontend Implementation、业务实现、PR 合并或 Goal 创建 / 激活；用户于 2026-08-07 接受 Frontend Architecture 整体后，PR #51 可在最新提交的 Required Checks 全部通过且独立五轴 Review 无阻塞 Finding 时合并，但仍不授权实现、Spike 或 Goal 创建 / 激活。
 
 ## Evidence
 
 - [Session-003](../sessions/session-003-pre-development-planning-and-goal-governance.md)：P-39～P-41 的备选方案、权衡、推荐与 Primary Sources。
 - 用户于 2026-08-06 明确回复：“接受 P-39A、P-40A、P-41A”。
+- 用户于 2026-08-07 在 Final Consistency Review 通过后明确回复：“接受 Frontend Architecture 整体”。
 - 接受前独立五轴 Review 对提案给出 Critical = 0、Required = 0、Optional = 0；Draft PR #51 的上一归档提交 8 项 Required Checks 全部通过。

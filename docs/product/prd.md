@@ -1,6 +1,6 @@
 # PRD（产品需求文档）
 
-> **Status: PARTIAL — 产品定位、Persona / JTBD 假设、工作台、输入、审核 / Brief、证据 / 恢复交互和验收边界已确认；Frontend P-36～P-41 已逐项接受、整体接受待 Gate；最终公共 Schema、工作流实现和 Fixture 仍待确认**
+> **Status: PARTIAL — 产品定位、Persona / JTBD 假设、工作台、输入、审核 / Brief、证据 / 恢复交互和验收边界已确认；Frontend P-36～P-41 与整体均已接受；最终公共 Schema、工作流实现和 Fixture 仍待确认**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
 > 当前已确认：产品设计原则（DEC-001）、首要用户与核心任务（DEC-002 / 003）、平台与输入输出范围（DEC-004～006）、Human Review、证据与失效规则（DEC-007～009）、三维评价框架（DEC-010）、本地演示包络（DEC-041）、产品定位与行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制和冲突分级（DEC-045）、审核 / Brief / 版本 / 导出产品契约（DEC-046）、证据披露、编辑意图、阶段进度和恢复交互（DEC-047）、代表性验收包、行为门禁、人工验收和 Markdown-first 用户导出（DEC-048），以及 Frontend 应用 / 状态 / 生成契约 / 深工作台 / revision-safe 交互与 Web 质量边界（DEC-055 / 056）。
 > **DEC-041 同步：** 首个交付为本地可复现、受控单工作区的引导式任务工作台；输入限结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV，不做 OCR、图片理解、链接抓取或主动联网研究；完整小红书正文、图片 / 视频生成和自动发布均不在首个 Goal。
