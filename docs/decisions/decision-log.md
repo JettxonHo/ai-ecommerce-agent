@@ -15,7 +15,7 @@
 | DEC-002 | MVP 首要用户为中小电商商家的商品运营与内容运营人员 | Product | Accepted | 2026-07-27 | Session-001 | — | 仅确认首要用户群体；Persona 拆分 / 核心任务 / 定位 / 平台 / 技术均未确认 |
 | DEC-003 | MVP 核心任务为商品上新定位分析与营销 Brief 生成 | Product | Accepted | 2026-07-27 | Session-001 | — | 核心任务 + 交付物已确认；平台 / 输入 / Brief 字段 / 技术实现均未确认 |
 | DEC-004 | 产品核心保持平台中立，小红书种草作为首个 MVP 演示场景 | Product | Accepted | 2026-07-27 | Session-001 | — | 核心平台中立 + 小红书首个演示；模板字段 / API / 抓取 / 其他平台 / 适配层技术均未确认 |
-| DEC-005 | MVP 采用最低可运行输入与增强输入分层 | Product | Amended by DEC-041 / DEC-044 | 2026-07-27 | Session-001 | — | 输入分层原则保持有效；DEC-041 收紧演示输入格式，DEC-044 补充两级输入门禁、真实阻塞边界与 Needs Input 产品交互态。 |
+| DEC-005 | MVP 采用最低可运行输入与增强输入分层 | Product | Amended by DEC-041 / DEC-044 / DEC-045 | 2026-07-27 | Session-001 | — | 输入分层原则保持有效；DEC-041 收紧格式，DEC-044 补充两级门禁，DEC-045 将最低输入明确为 Task 创建 + Fact Stage 门禁并取消价格 / 商家卖点的全局硬必填。 |
 | DEC-006 | MVP 输出采用四层结构化营销 Brief | Product | Accepted | 2026-07-27 | Session-001 | — | 四层输出主结构（事实/洞察/策略/执行）已确认；字段 / 必填 / 格式 / 引用 / 置信度 / 审核节点 / 小红书完整笔记均未确认 |
 | DEC-007 | MVP 采用单一关键审核节点与异常暂停机制 | Product | Accepted | 2026-07-27 | Session-001 | — | 单一关键审核节点 + 异常暂停 + 用户最终判断权已确认；LangGraph / Interrupt / Checkpoint / Agent 数量 / 审核页面 / 风险规则均未确认；有潜在架构影响，暂不建 Architecture Decision / RFC |
 | DEC-008 | MVP 采用分级证据标记与结论可追溯机制 | Product | Accepted | 2026-07-27 | Session-001 | — | 五类结论标记（明确事实/有证据洞察/模型推断/待验证假设/资料不足）+ 可追溯原则已确认；引用 UI / 置信度算法 / RAG / 向量库 / 知识图谱 / LangGraph State / Checkpoint / 重跑机制 / 数据库均未确认；可靠性原则成为架构与仓库选型硬约束，暂不建 RFC |
@@ -54,7 +54,8 @@
 | DEC-041 | 冻结本地端到端演示 MVP 的交付边界 | Product / Scope / Delivery | Amended by DEC-044 | 2026-08-06 | Session-003 | RFC-001 / RFC-002 / RFC-003~007 | 交付包络保持有效；DEC-044 将引导式任务工作台具体化为单任务工作台、两级输入门禁与确认式局部重跑，不扩大范围。 |
 | DEC-042 | 确认证据驱动商品上新策略工作台定位、复合 Persona 假设与行为型演示成功标准 | Product / Positioning / Persona / Acceptance | Accepted | 2026-08-06 | Session-003 | RFC-003~007 | 接受 P-01A / P-02A / P-03A；产品定位、复合主 Persona 策划方式、Beta 前访谈门禁与行为型演示成功边界已确认，具体字段、Fixture 与阈值仍待策划。 |
 | DEC-043 | 采用 Sol 主控、Luna 实现、Terra 辅助回退的多 Agent 开发编排 | Agent Governance / Development Orchestration / Model Roles | Accepted | 2026-08-06 | Session-003 | RFC-001~007 | Sol = ORCHESTRATOR_REVIEWER，Luna = 首选 IMPLEMENTER，Terra = AUXILIARY_IMPLEMENTER 与显式回退；实现 Agent 不得自批或自合并，线程通过任务合同和持久化载体交接。Amends DEC-040 / DEC-036 / DEC-037 的未来协作规则，不改变产品运行时单 Agent 边界。 |
-| DEC-044 | 采用单任务工作台、两级输入门禁与确认式局部重跑交互 | Product / Interaction / Input Gate / Versioning / Rerun | Accepted | 2026-08-06 | Session-003 | RFC-003 / RFC-004 / RFC-005 | 接受 P-04A / P-05A / P-06A；确认阶段导航 + 当前工作区 + 可收起证据上下文、Needs Input 产品交互态、Source Version / Domain Version 边界、失效预览、用户确认后局部重跑与过期审核拒绝。Amends DEC-005 / DEC-009 / DEC-041。 |
+| DEC-044 | 采用单任务工作台、两级输入门禁与确认式局部重跑交互 | Product / Interaction / Input Gate / Versioning / Rerun | Amended by DEC-045 | 2026-08-06 | Session-003 | RFC-003 / RFC-004 / RFC-005 | 接受 P-04A / P-05A / P-06A；工作台与重跑原则保持有效，具体最低字段、文件限制与冲突分级由 DEC-045 补全。Amends DEC-005 / DEC-009 / DEC-041。 |
+| DEC-045 | 冻结最小输入、演示文件限制与分级冲突处理 | Product / Input Contract / File Limits / Conflict Handling | Accepted | 2026-08-06 | Session-003 | RFC-003 / RFC-004 / RFC-005 | 接受 P-07A / P-08A / P-09A；Task 创建需名称 / 品类 / 推广目标，Fact Stage 沿用 DEC-026 最低条件；默认 20 文件、10 MB / 文件、文本 PDF 100 页、评论 CSV 10,000 行；单文件失败不回滚已接受文件；身份 / 关键事实冲突阻断，非阻断差异继续并显式限制。Amends DEC-005 / DEC-044。 |
 
 ---
 
@@ -62,7 +63,7 @@
 
 > **Amendment note：** DEC-036 与 DEC-037 作为 Spike-001 的 Accepted 历史执行记录保留；其未来协作与 Merge 规则先由 DEC-040、后由 DEC-043 修订。DEC-040 的普通工作自主闭环与高风险人工 Gate 保持有效；模型不可用规则以 DEC-043 为准。RFC-001 DQ-09 / DQ-10 同理保留原文，由最新 Accepted Decision 解释未来执行权限。
 
-> **Product interaction amendment note：** DEC-005 的分层输入原则、DEC-009 的阶段级失效范围和 DEC-041 的演示包络保持有效；输入门禁、任务工作台与重跑交互以 DEC-044 为当前解释。DEC-024 / DEC-025 的版本边界与 DEC-029 的过期审核拒绝规则未被改变。
+> **Product interaction amendment note：** DEC-005 的分层输入原则、DEC-009 的阶段级失效范围和 DEC-041 的演示包络保持有效；任务工作台与重跑交互以 DEC-044 为准，最低输入、文件限制与冲突分级以 DEC-045 为准。DEC-024 / DEC-025 的版本边界、DEC-026 的 Fact Stage 最低条件与 DEC-029 的过期审核拒绝规则未被改变。
 
 - `Accepted` — 用户明确接受，当前有效。
 - `Rejected` — 被明确否决。

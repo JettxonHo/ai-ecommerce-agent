@@ -6,9 +6,9 @@ Product
 
 ## Status
 
-Accepted — Amended by DEC-041 / DEC-044
+Accepted — Amended by DEC-041 / DEC-044 / DEC-045
 
-> **Current amendment:** DEC-041 收紧首个演示的允许输入格式并排除图片 / OCR；[DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) 补充两级输入门禁、真实阻塞边界与 Needs Input 产品交互态。以下原文保留为 2026-07-27 的历史决定。
+> **Current amendment:** DEC-041 收紧首个演示的允许输入格式并排除图片 / OCR；[DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) 补充两级输入门禁、真实阻塞边界与 Needs Input 产品交互态；[DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md) 明确 Task 创建与 Fact Stage 门禁，并取消价格 / 商家卖点的全局硬必填。以下原文保留为 2026-07-27 的历史决定。
 
 ## Decision
 
@@ -180,6 +180,7 @@ None
 
 - [DEC-041](dec-041-end-to-end-demo-mvp-delivery-envelope.md)
 - [DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)
+- [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md)
 
 ## Decision Boundary
 
@@ -191,12 +192,15 @@ None
 - 系统应诚实表达资料不足；
 - 输入资料采用分层管理。
 
-**本决定尚未确认：**
+**本决定原本尚未确认、现由后续决定闭合：**
+
+- 最低输入字段是否全部强制填写：由 DEC-045 修订为 Task 创建门禁 + DEC-026 Fact Stage 门禁；
+- 商品图片是否技术上必填：由 DEC-041 排除图片 / OCR、DEC-045 确认手动结构化来源可运行；
+- 支持哪些文件格式：由 DEC-041 冻结；
+
+**仍未确认：**
 
 - 每个字段的具体数据类型；
-- 最低输入字段是否全部强制填写；
-- 商品图片是否技术上必填；
-- 支持哪些文件格式；
 - 是否支持商品链接；
 - 是否自动抓取商品页面；
 - 是否自动抓取评论或竞品数据；

@@ -1,17 +1,18 @@
 # MVP Scope（最小可行产品范围）
 
-> **Status: PARTIAL — 产品定位、MVP 包络、单任务工作台、两级输入门禁、确认式局部重跑与行为型成功边界已确认；输出字段、详细控件、工作流实现、Fixture 与阈值仍待确认**
+> **Status: PARTIAL — 产品定位、MVP 包络、工作台、最小输入、文件限制、冲突分级、确认式局部重跑与行为型成功边界已确认；输出 / 公共字段、详细控件、工作流实现、Fixture 与阈值仍待确认**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
-> 当前已确认：MVP 核心任务与交付物（DEC-003）、平台与输入输出边界（DEC-004～006）、Human Review / 证据 / 失效重跑（DEC-007～009）、三维评价（DEC-010）、本地演示包络（DEC-041）、行为型成功边界（DEC-042），以及单任务工作台、两级输入门禁与确认式局部重跑（DEC-044）；最终字段、详细控件、Fixture 与阈值仍未确认，**不得擅自补全**。
+> 当前已确认：MVP 核心任务与交付物（DEC-003）、平台与输入输出边界（DEC-004～006）、Human Review / 证据 / 失效重跑（DEC-007～009）、三维评价（DEC-010）、本地演示包络（DEC-041）、行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044），以及最小输入、文件限制与冲突分级（DEC-045）；输出 / 公共字段、详细控件、Fixture 与阈值仍未确认，**不得擅自补全**。
 > **DEC-041 同步：** 首个本地演示只接收结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV；不做 OCR、图片理解或扫描文档。下文 DEC-005 的旧“图片或文字”示例按此最新边界修订。
 > **DEC-042 同步：** 产品定位为证据驱动商品上新策略工作台；复合 Persona / JTBD 作为演示期假设；成功以端到端行为与人工可用性判断，不使用机械总分自动接受。
 > **DEC-044 同步：** 单任务工作台使用阶段导航、当前工作区和可收起证据 / 上下文面板；最低输入通过即可启动，真实阻塞进入 Needs Input；用户确认失效预览后才局部重跑。
+> **DEC-045 同步：** Task 创建需名称 / 临时名称、品类和推广目标；Fact Stage 需核心用途、当前商品来源、有来源核心属性且无阻断性身份冲突；演示默认限制为 20 文件 / 任务、10 MB / 文件、文本 PDF 100 页、评论 CSV 10,000 行。
 
 ---
 
 ## 已确认内容（Confirmed）
 
-> 来源：[DEC-003](../decisions/dec-003-product-launch-positioning-and-marketing-brief.md) + [DEC-004](../decisions/dec-004-platform-neutral-core-xiaohongshu-demo.md) + [DEC-005](../decisions/dec-005-layered-mvp-inputs.md) + [DEC-006](../decisions/dec-006-four-layer-structured-marketing-brief.md) + [DEC-007](../decisions/dec-007-single-review-node-and-exception-pauses.md) + [DEC-008](../decisions/dec-008-tiered-evidence-and-traceable-conclusions.md) + [DEC-009](../decisions/dec-009-stage-level-invalidation-and-partial-rerun.md) + [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md)（Accepted，2026-07-27）
+> 来源：[DEC-003](../decisions/dec-003-product-launch-positioning-and-marketing-brief.md) + [DEC-004](../decisions/dec-004-platform-neutral-core-xiaohongshu-demo.md) + [DEC-005](../decisions/dec-005-layered-mvp-inputs.md) + [DEC-006](../decisions/dec-006-four-layer-structured-marketing-brief.md) + [DEC-007](../decisions/dec-007-single-review-node-and-exception-pauses.md) + [DEC-008](../decisions/dec-008-tiered-evidence-and-traceable-conclusions.md) + [DEC-009](../decisions/dec-009-stage-level-invalidation-and-partial-rerun.md) + [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) + [DEC-041](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md) + [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) + [DEC-044](../decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) + [DEC-045](../decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md)
 
 - **MVP 核心任务：** 商品上新（或正式内容推广前）的定位分析 + 结构化营销 Brief 生成，服务中小电商商家的商品运营与内容运营人员（DEC-002）。
 - **产品定位（DEC-042）：** 证据驱动商品上新策略工作台；把用户资料转化为可审核、可追溯的定位分析、平台中立 Marketing Brief 与 Xiaohongshu Brief 映射。
@@ -20,7 +21,9 @@
 - **平台范围：** 核心能力**平台中立**；**小红书商品种草** 为首个 MVP 演示场景（DEC-004）。
 - **产品逻辑边界：** 通用层（通用定位 + 通用 Brief）为核心；平台适配层将通用 Brief 映射为平台表达，首个适配＝**小红书种草 Brief 模板**。
 - **输入分层（DEC-005）：**
-  - **最低可运行输入：** 商品名称、品类、功能 / 参数 / 文字说明、价格或区间、商家主要卖点、文本型展示资料、本次推广目标。仅凭此层即可运行基础流程。
+  - **Task 创建：** 商品名称或临时工作名称、品类、推广目标；创建后进入稳定任务工作台。
+  - **Fact Stage 可运行：** 核心用途、至少一个可用当前商品来源（手动结构化输入可计入）、至少一个有来源核心属性、无阻断性商品身份冲突。
+  - **价格 / 当前卖点：** 不是全局硬必填；相关缺失作为限制和建议补充展示。
   - **推荐增强输入：** 用户评论、用户调研、常见用户问题、商品详情页、已有营销内容、品牌定位 / 资料。
   - **可选扩展输入：** 竞品资料、行业报告、平台案例、运营知识文档、历史推广结果、其他。
   - 缺少增强 / 可选输入**不得阻断**基础流程；资料不足须诚实表达。
@@ -29,6 +32,7 @@
 - **输出可靠性（DEC-008）：** MVP 采用**五类结论标记**（明确事实 / 有证据洞察 / 模型推断 / 待验证假设 / 资料不足）。**事实可追溯**；事实与推断分离；重要洞察保留依据；资料不足时**不得编造**（禁止伪造文档名 / 评论原文 / 引用编号 / 来源）；**用户修改上游事实或关键洞察后，下游依赖内容须重新处理或标记失效**。只展示最终结论、强制逐条原文引用两个方案**未采用但保留为备选**（非永久禁止）。
 - **失效与重跑（DEC-009）：** MVP 按**阶段级依赖**（事实 → 洞察 → 策略 → 执行）处理失效：改事实层 → 洞察 / 策略 / 执行失效；改洞察层 → 策略 / 执行失效；改策略层 → 执行失效；直接编辑执行层 Brief 默认不触发上游重跑。重要业务修改（价格 / 参数 / 功能 / 目标用户 / 定位等）触发下游失效，纯文字修改（错别字 / 标点 / 润色）可不触发失效。失效内容不得显示为有效 / 进入最终 Brief / 作后续依据。**字段级依赖图暂缓到后续版本**；全量重跑、只改直接字段不更新下游两个方案**未采用但保留为备选**（非永久禁止）。
 - **工作台与输入门禁（DEC-044）：** 一个稳定任务在阶段导航 + 当前工作区 + 可收起证据 / 上下文面板中完成全流程。最低可运行输入决定能否启动；增强 / 可选资料缺失不阻塞。真实阻塞进入 Needs Input 并说明原因、受影响阶段、所需资料和恢复方式。
+- **文件限制与冲突分级（DEC-045）：** 默认 20 文件 / 任务、10 MB / 文件、文本 PDF 100 页、评论 CSV 10,000 行；单文件失败不回滚已接受文件。身份 / 关键事实冲突进入 Needs Input，非阻断证据差异继续并显式说明限制。
 - **确认式局部重跑（DEC-044）：** Source 变化创建新 Source Version，业务结果编辑创建新 Domain Object Version；系统先展示失效 / 保留阶段和建议重跑起点，用户确认后才局部重跑。旧 Review Package 过期并拒绝提交，受影响内容重跑后进入同一审核 Gate。
 - **评价框架（DEC-010）：** MVP 用**任务质量 / 结果可靠性 / 用户效率**三维评价，**不**把流畅度或销量作为唯一标准。优先六项指标：事实来源可追溯率、无依据事实数量、四层 Brief 完整率、关键结论人工接受率、生成可用 Brief 任务完成时间、下游失效正确率。销量 / 点击 / 转化 / 互动为未来真实试点业务指标，**非** MVP 唯一验收依据。
 - **演示成功边界（DEC-042）：** 新环境可启动、允许资料可提交、端到端闭环可完成、证据 / 假设 / 不足 / 冲突可理解和审核、中断可恢复、失效结果不再有效、结果可导出且从目标用户视角可用。
@@ -76,7 +80,7 @@
 > **已关闭的范围问题：** DEC-041 已确认只接收结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV，不接收图片 / OCR，不抓取网页、评论或平台内容，不进行主动联网研究；DEC-023 已确认 LangGraph StateGraph；RFC-002 已确认生产数据库与事务栈；DEC-009 / DEC-044 已确认阶段级失效与用户确认后局部重跑；DEC-014 / DEC-032 已确认按需混合检索及证据运行边界；DEC-020 / DEC-031 / DEC-041 已确认首个演示只交付小红书 Brief 映射，不生成完整小红书正文，也不扩展其他平台。
 >
 > **仍待本轮策划确认：**
-> - 输入：最小字段的数据类型与逐字段必填规则；文件大小、页数、CSV 行数等演示限制；具体补充问题与权限 / 保存策略。
+> - 输入：最低字段语义与默认文件限制已确认；公共字段名 / 数据类型、具体补充问题、状态 / 错误映射与权限 / 保存策略待确认。
 > - 工作台：信息架构已确认；详细控件、字段级编辑、证据卡片、进度 / 错误 / 恢复 / 导出表现仍待策划。
 > - 输出契约：四层 Brief、Review Package、Approved Strategy、Marketing Brief 与 Xiaohongshu Brief 的最终字段、版本和 revision 规则。
 > - 技术实现：RFC-003～007 与 Frontend Architecture 覆盖的 Checkpointer、API、Retrieval、LLM Provider、Observability 和前端方案。
@@ -106,7 +110,7 @@
 ## 待讨论的开放问题（MVP 相关）
 
 - 产品成功定义：行为与人工可用性边界已确认；代表性 Fixture、必要阈值和测试执行方法待确认。
-- 输入契约：两级门禁与 Needs Input 已确认；最小字段数据类型 / 逐字段必填、文件限制和具体补充问题待确认。
+- 输入契约：Task / Fact Stage 最低门禁、默认文件限制、分级冲突与 Needs Input 已确认；公共字段类型、具体补充问题及状态 / 错误映射待确认。
 - 工作台交互：单任务信息架构与确认式重跑已确认；详细控件、证据 / 进度 / 错误 / 恢复 / 导出表现待确认。
 - 输出契约：四层 Brief、Review Package、Approved Strategy、Marketing Brief 和 Xiaohongshu Brief 的最终字段、版本与 revision 规则。
 - 技术细节：RFC-003～007 与 Frontend Architecture 中的 Checkpointer、API、Retrieval、LLM Provider、Observability 和前端方案。
