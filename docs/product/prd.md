@@ -229,7 +229,7 @@ DEC-048 已冻结三个固定资料包 + 一个变更脚本、必要行为门禁
 - 输出设计 —— **四层主结构 + Review / Approved Strategy / Marketing Brief / Xiaohongshu Brief 产品语义组 + 不可变版本、导出快照 / 确认和 Markdown 用户格式已确认**（DEC-006 / 046 / 047 / 048）；最终公共字段、Markdown 模板、下载实现与视觉组件待确认
 - 人机协作 —— **单一关键审核节点 + 异常暂停 + 用户最终判断权 + 过期 Package / revision 拒绝 + 行动导向恢复已确认**（DEC-007 / 029 / 044 / 046 / 047）；自动保存频率、并发实现与工作流技术实现待确认
 - 输出可靠性 —— **五类结论标记、渐进式证据、非数字置信度、可追溯、版本化 Source / Evidence 与按需混合 Retrieval 已确认**；最终组件、公共 Schema、Retrieval Backend 与索引方案待确认
-- 失效与重跑 —— **阶段级失效 + 编辑意图 + 语义组差异 + 失效预览 + 用户确认后局部重跑已确认**；字段级依赖图不进入首个 Goal；生产 Checkpointer、Diff 算法和公共状态映射待确认
+- 失效与重跑 —— **阶段级失效 + 编辑意图 + 语义组差异 + 失效预览 + 用户确认后局部重跑，以及生产 Checkpointer 拓扑、同步持久性与 Current-Truth-first 对账已确认**；字段级依赖图不进入首个 Goal；Workflow / State Compatibility、Safe Resume Action Matrix、Diff 算法和公共状态映射待确认
 - 评价框架 —— **三维评价 + 六项优先指标、首个演示固定验收包、行为门禁与非机械人工判断已确认**（DEC-010 / DEC-048）；Beta 指标公式 / 阈值 / 人数 / 埋点 / Dashboard，以及 Fixture 实例与测试工具待确认
 - 非目标 —— 见 [mvp-scope.md](mvp-scope.md)「Out of Scope」
 - 关键体验与流程（与 [user-flows.md](user-flows.md) 保持一致）—— **高层流程已确认**（DEC-003 / 004 / 005）；具体步骤待 [user-flows.md](user-flows.md)
@@ -248,7 +248,7 @@ DEC-048 已冻结三个固定资料包 + 一个变更脚本、必要行为门禁
 - 通用营销 Brief 的输出结构：**四层主结构、四类审核 / Brief 产品语义组、渐进式证据、不可变版本、导出确认与 Markdown 用户格式已确认**（DEC-006 / DEC-046 / DEC-047 / DEC-048）；最终公共 Schema、Markdown 模板、下载实现和视觉组件仍待确认。
 - 人机协作 / 审核节点：**单一关键审核、异常暂停、用户最终判断权、不可变 Review Package、Draft revision、陈旧提交拒绝和行动导向恢复已确认**（DEC-007 / DEC-029 / DEC-044 / DEC-046 / DEC-047）；自动保存频率、并发实现、具体异常规则和工作流技术实现仍待确认。
 - 输出可靠性 / 可追溯：**五类结论标记、渐进式证据、非数字置信度、版本化 Source / Evidence 与按需混合 Retrieval 已确认**；最终组件、公共 Schema、Retrieval Backend 与索引方案仍待确认。
-- 失效与局部重跑：**阶段级失效、编辑意图、语义组差异、影响预览、用户确认后局部重跑和过期审核拒绝已确认**；生产 Checkpointer、Diff 算法和公共状态映射待确认，字段级依赖图不进入首个 Goal。
+- 失效与局部重跑：**阶段级失效、编辑意图、语义组差异、影响预览、用户确认后局部重跑、过期审核拒绝，以及生产 Checkpointer 拓扑、同步持久性与 Current-Truth-first 对账已确认**；Workflow / State Compatibility、Safe Resume Action Matrix、Diff 算法和公共状态映射待确认，字段级依赖图不进入首个 Goal。
 - 完整小红书标题 / 正文、图片 / 视频生成与自动发布：**不进入首个 Goal**（DEC-041）。
 - 产品价值与评估指标（Question-003）：三维评价 + 六项优先指标由 DEC-010 确认；首个演示的固定验收包、行为门禁与非机械人工判断由 DEC-048 确认。真实用户指标公式 / 阈值、人数、埋点与 Dashboard 待 Beta 规划。
 - Agent、Retrieval / Evidence、Skill 的职责边界：**概念层已确认**（DEC-020～033）；生产 Runtime 与具体 Provider / Backend 仍待 RFC-003～007。
