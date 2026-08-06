@@ -1,9 +1,9 @@
 # MVP Testing Strategy
 
 > **Status: PARTIAL — product acceptance baseline accepted; implementation tooling and executable suites pending RFC / Goal**
-> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md)
+> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md)
 
-本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前只固化已接受的产品验收基线与 DEC-052 / 053 的模型契约输入，不授权业务实现，也不提前选择测试框架、浏览器工具或公共接口。
+本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前只固化已接受的产品验收基线与 DEC-052～054 的模型契约输入，不授权业务实现，也不提前选择测试框架、浏览器工具或公共接口。
 
 ---
 
@@ -36,6 +36,7 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 - 运行仓库既有 8 项 Required Checks；
 - 按变更相关性运行 Unit、Contract、Architecture、Integration、Migration 或 Browser 测试；
 - LLM 行为使用确定性替身，不要求真实 Secret、外部网络或 Live Provider；
+- 确定性模型验证分为同 Port Contract、注入 SDK Stub 的断网 Adapter Contract、固定资料包 Workflow / Skill Behavior 三层；只覆盖 DEC-054 的一个权威版本代表性分支；
 - 只覆盖当前 Issue 的代表性路径和相关错误分支，不把不相关 Live / E2E 场景塞入普通 PR Gate。
 
 ### 3.2 持久化与 Workflow
@@ -56,9 +57,10 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 ### 3.4 真实 Provider Smoke
 
 - 仅在 Release Candidate 使用 `fixture-sufficient-v1` 执行一次完整端到端 Smoke；
-- Secret 只经环境变量或运行环境注入，不写入仓库、Fixture、日志或导出；
+- Bootstrap 只选择 Credential Reference，Infrastructure Adapter 在自身边界解析环境 Secret；Secret 不写入仓库、Fixture、日志或导出；
 - Live Smoke 不进入普通 PR Required Checks；
-- Live Smoke 使用 DEC-052 / 053 接受的 OpenAI Responses API / `gpt-5.6-terra`、Version Tuple、Profile 与有界 Recovery；Secret / Payload / Telemetry、确定性替身、操作手册与证据格式待 RFC-006 DQ-07～08 冻结；
+- Live Smoke 使用 DEC-052～054 接受的 OpenAI Responses API / `gpt-5.6-terra`、Version Tuple、Profile、有界 Recovery 与最小证据；仅在显式 `live` + `RUN_LIVE_MODEL_SMOKE=1` + Secret + 已接受版本同时满足时人工执行；
+- 只运行一次 `fixture-sufficient-v1` 完整闭环，不增加 Live Edge-case Matrix；失败证据保留并阻塞 Release Candidate，修复后创建新 Run，不覆盖失败或降低 Gate；
 - 验收目标是契约、闭环和诚实证据行为，不要求每次生成完全相同措辞，也不使用语言流畅度总分。
 
 ## 4. 行为硬门禁
@@ -108,7 +110,7 @@ Goal 完成前必须同时满足：
 
 - Fixture 的具体业务数据、许可、文件布局与 expected-output 表示；
 - 测试框架、浏览器 E2E 工具、命令、CI 分组和证据保存格式；
-- Secret / Payload / Telemetry、确定性替身与 Live Smoke 操作手册；Provider / 默认模型、Prompt / Schema / Model Execution Version Tuple、Profile 与错误恢复边界已由 DEC-052 / 053 冻结；
+- Fixture / SDK Stub 的物理实现、Live Smoke 操作手册与证据文件格式；Provider、Version、Profile、Recovery、Secret / Payload / Telemetry、确定性替身分层与 Smoke 触发边界已由 DEC-052～054 冻结；
 - Integration / Migration / concurrency / failure-injection 的最终场景矩阵；
 - Markdown 模板、文件名、下载协议与视觉样式；
 - 性能基线、Beta 用户样本、埋点和 Dashboard。

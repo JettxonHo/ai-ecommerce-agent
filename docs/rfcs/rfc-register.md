@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **Current truth（2026-08-06）：** RFC-001 / RFC-002 / RFC-003 = `ACCEPTED`；RFC-006 已进入 `DRAFTING`，P-28A～P-30A 由 DEC-052 接受、P-31A～P-33A 由 DEC-053 接受，DQ-01～DQ-06 已闭合；P-34～P-35 为 `PROPOSED`，RFC 整体仍未决定；RFC-004 / 005 / 007 = `PROPOSED`。FND-001～003 已完成。Wave 1 中 ARP-01 / 04 / 10 完整 Accepted，ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted。当前授权 RFC 与 Readiness 规划，不授权 TS-01～TS-05 执行、Business / Production Implementation 或实际 Goal；已完成的 Spike-001 不在本禁令所指范围内。
+> **Current truth（2026-08-06）：** RFC-001 / RFC-002 / RFC-003 = `ACCEPTED`；RFC-006 已进入 `IN REVIEW`，P-28A～P-30A 由 DEC-052 接受、P-31A～P-33A 由 DEC-053 接受、P-34A～P-35A 由 DEC-054 接受，DQ-01～DQ-08 已闭合且 Final Consistency Review = PASS；RFC 整体接受仍待用户决定；RFC-004 / 005 / 007 = `PROPOSED`。FND-001～003 已完成。Wave 1 中 ARP-01 / 04 / 10 完整 Accepted，ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted。当前授权 RFC 与 Readiness 规划，不授权 TS-01～TS-05 执行、Business / Production Implementation 或实际 Goal；已完成的 Spike-001 不在本禁令所指范围内。
 > **Historical snapshot：** 下列“当前阶段”长段和 RFC-001 DQ / Foundation 时间线保留其形成时状态；如与上面的 Current truth 或最新 Accepted Decision 冲突，以后者为准。
 > **当前阶段：** DEC-038 已接受，**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过。**RFC-002 已于 2026-08-04 被用户正式接受（`ACCEPTED`）**：RFC-002-DQ-01~DQ-17 全部 ACCEPTED（Pending Decision Questions = 0）；最终一致性审查未发现跨 DQ 实质架构冲突，Documentation-only Final Consistency Remediation 已消除文档状态冲突（详见 `rfc-002-persistence-and-transaction-architecture.md` §33 Decision Log 2026-08-04 Final Decision 记录）。RFC-002 的接受**不授权任何实现**：Implementation、Architecture Readiness Package、Technical Spikes、测试与基础设施均 NOT AUTHORIZED；PR #24 Merge = USER DECISION REQUIRED / NOT AUTHORIZED；后续 RFC、Architecture Readiness Package、Technical Spike 与 Persistence Implementation 不得违反或静默绕过 RFC-002。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation 仍未授权。**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30，Decision Conflict = NONE）均已完成**——当前 Candidate 状态（以 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)「授权边界（恒定成立）」为基准）：**FND-001 = COMPLETED（PR #7 已合并，Merge Commit 5b75bcf，归档 PR #8）；FND-002 = IN REVIEW（Issue #9 已创建，实施完成并提交 PR #10，Merge = USER DECISION REQUIRED）；FND-003 = READY, BLOCKED BY FND-002**，Issue Creation / Implementation 均未授权。下一正式 Gate：**FND-002 Pull Request Review and Merge Gate**（由用户审查 FND-002 PR #10 并决定 Merge；Coding Agent 不得自行 Merge，用户 Merge 前 FND-002 Status 不标记 COMPLETED；FND-002 的授权不包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue / Branch / PR，不开始 FND-003 实施）。
 
@@ -15,7 +15,7 @@
 
 - 优先级 `P0` = 阻塞对应生产模块开始（开始该模块生产实现**前**必须接受）。
 - 优先级 `P1` = 建议在相关生产实现早期接受。
-- **RFC-001、RFC-002 与 RFC-003 已 `ACCEPTED`**（用户正式决定）；RFC-006 当前为 **`DRAFTING`**，其中 P-28A～P-33A 已由 DEC-052 / 053 接受，P-34～P-35 为 `PROPOSED`，RFC 整体仍开放；RFC-004 / RFC-005 / RFC-007 当前为 **`PROPOSED`**。各 RFC 的正文与接受与否由用户在相应 Decision Gate 决定。
+- **RFC-001、RFC-002 与 RFC-003 已 `ACCEPTED`**（用户正式决定）；RFC-006 当前为 **`IN REVIEW`**，P-28A～P-35A 已由 DEC-052～054 接受，八个 DQ 已闭合且 Final Review = PASS，RFC 整体仍开放；RFC-004 / RFC-005 / RFC-007 当前为 **`PROPOSED`**。各 RFC 的正文与接受与否由用户在相应 Decision Gate 决定。
 - 在对应 RFC 被**接受**前，任何生产实现**不得**临场选择相关技术。
 
 ## Required RFC 清单
@@ -27,7 +27,7 @@
 | RFC-003 | **[LangGraph Runtime and Checkpoint Architecture](rfc-003-langgraph-runtime-and-checkpoint-architecture.md)**（生产 Checkpointer、Safe Resume、Worker、Checkpoint 对账与兼容） | Wave 2 | P0 | `ACCEPTED`（2026-08-06 用户明确整体接受） | Workflow Runtime / Resume | DEC-013/023/024/033/049/050/051 · runtime/failure-recovery spec | R-3 |
 | RFC-004 | **API and Human Review Protocol**（生产 API 边界、Human Review 提交/暂停协议、权限） | Wave 3 | P0 | `PROPOSED` | Review / Orchestration 接口层 | DEC-007/029 · workflow/human-review spec | R-1 |
 | RFC-005 | **Source Processing and Retrieval Architecture**（生产检索：词法/向量/融合、权限与版本过滤、证据装配） | Wave 3 | P0 | `PROPOSED` | Retrieval & Evidence Runtime | DEC-014/025/032 · runtime/hybrid-retrieval spec | R-2 |
-| RFC-006 | **[LLM Runtime and Structured Output](rfc-006-llm-runtime-and-structured-output.md)**（生产 LLM Provider、结构化输出、真实模型 Smoke 策略、Secret 注入边界） | Wave 2 | P0 | `DRAFTING`（P-28A～P-33A = `ACCEPTED INPUT` / DEC-052～053；P-34～P-35 = `PROPOSED`） | 所有 LLM 驱动 Skill | DEC-011/026/027/028/030/052/053 · skills specs | R-2 |
+| RFC-006 | **[LLM Runtime and Structured Output](rfc-006-llm-runtime-and-structured-output.md)**（生产 LLM Provider、结构化输出、真实模型 Smoke 策略、Secret 注入边界） | Wave 2 | P0 | `IN REVIEW`（P-28A～P-35A = `ACCEPTED INPUT` / DEC-052～054；Final Review PASS / overall pending） | 所有 LLM 驱动 Skill | DEC-011/026/027/028/030/052/053/054 · skills specs | R-2 |
 | RFC-007 | **Observability and Runtime Operations**（结构化日志 / Tracing / Metrics、是否 OpenTelemetry、Retry/Timeout/Backoff/Circuit Breaker 生产参数） | Wave 4 | P1 | `PROPOSED` | Runtime Operations | DEC-033 · runtime/failure-recovery spec | R-1, R-4 |
 
 ## 与 Spike-001 Required RFC List 的映射
@@ -258,7 +258,7 @@ RFC-001 Status = ACCEPTED (2026-07-30)
 RFC-002 Status = ACCEPTED (2026-08-04; PR #24 merged; Issue #23 closed)
 RFC-003 Status = ACCEPTED (2026-08-06 user final acceptance; implementation, spike execution, and Goal activation not granted)
 RFC-004 / RFC-005 / RFC-007 Status = PROPOSED
-RFC-006 Status = DRAFTING (P-28A through P-33A accepted input via DEC-052 / DEC-053; P-34 through P-35 proposed; RFC acceptance not granted)
+RFC-006 Status = IN REVIEW (P-28A through P-35A accepted input via DEC-052 / DEC-053 / DEC-054; all DQs closed; final review passed; RFC acceptance pending)
 Architecture Readiness Status = CONDITIONALLY READY
 Development Status = CONDITIONALLY READY (planning and governance only)
 
@@ -276,5 +276,5 @@ TS-01～TS-05 Execution = NOT AUTHORIZED
 Business / Production Implementation = NOT AUTHORIZED
 Actual Goal = NOT CREATED / NOT ACTIVATED
 
-Next Gate: product specification closure, RFC-006 remaining DQs and final acceptance, RFC-004 / RFC-005 / RFC-007, Frontend Architecture, complete readiness planning package, testing strategy, Goal text, final consistency review, and explicit user approval
+Next Gate: RFC-006 overall acceptance; then product specification closure, RFC-004 / RFC-005 / RFC-007, Frontend Architecture, complete readiness planning package, testing strategy, Goal text, project-wide planning consistency review, and explicit user approval
 ```

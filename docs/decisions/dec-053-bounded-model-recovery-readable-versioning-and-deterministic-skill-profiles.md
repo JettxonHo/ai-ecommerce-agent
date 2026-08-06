@@ -6,8 +6,8 @@
 - **Date:** 2026-08-06
 - **Decision Type:** LLM Runtime / Failure Recovery / Versioning / Invocation Profile
 - **Source:** Session-003；用户明确接受 P-31A、P-32A、P-33A
-- **Related RFC:** [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)（Drafting）
-- **Amends:** [DEC-033](dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)（Structured Output Recovery 顺序与共享预算）
+- **Related RFC:** [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)（In Review；Final Consistency Review 已通过，整体尚未接受）
+- **Amends:** [DEC-033](dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md) 与 [DEC-052](dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)（Structured Output Recovery 顺序与共享预算）
 
 ## Context
 
@@ -86,21 +86,21 @@ Context 由 Application / Retrieval Runtime 确定性装配，优先级固定为
 - Prompt、Schema、Validator、Profile 和 Context 变化可以被明确追踪；
 - 五个 Stage 的推理投入不同，但不会建设动态 Router、多模型路由或工具自治；
 - 精确 Token / Timeout 值仍需实施证据，不得由实现 Agent 无审查决定；
-- P-34 / P-35 仍需冻结 Secret / Payload / Telemetry、确定性替身、Contract Tests 与 Live Smoke。
+- 本决定形成时 P-34 / P-35 仍待冻结；后续已由 DEC-054 接受并补全 Secret / Payload / Telemetry、确定性替身、Contract Tests 与 Live Smoke。
 
 ## Relationships
 
-- **Complements [DEC-052](dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)：** 在已接受 Provider / Port / Structured Output 分层上补全 DQ-04～DQ-06。
+- **Builds on and Amends [DEC-052](dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)：** 在已接受 Provider / Port / Schema 权威上补全 DQ-04～DQ-06，并收敛 Normalization 后重新 Parse / Validate、Repair / Regeneration 分工与共享 Recovery Budget。
 - **Amends [DEC-033](dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)：** 把条件式 LLM Recovery Stages 收紧为单次共享 Recovery 与单一 Retry Budget，并明确 Parse / Schema 失败后的语义不变 Normalization 必须重新 Parse / Validate；不删除任何 Schema / Validator Gate。
 - **Applies [DEC-039](dec-039-proportional-validation-and-review-governance.md)：** 只覆盖代表性真实失败，不建设修复树、低概率错误矩阵、内容 Hash 或机械评分。
-- **Input to [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** 接受 DQ-04～DQ-06；RFC-006 整体仍为 `DRAFTING`。
+- **Input to [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** 接受 DQ-04～DQ-06；DQ-01～DQ-08 后续均已闭合且 Final Consistency Review 已通过，RFC-006 当前为 `IN REVIEW`，整体仍待用户接受。
 
 ## Authorization Boundary
 
 本决定：
 
 - 不接受 RFC-006 整体；
-- 不接受 P-34 / P-35；
+- 本决定本身不接受 P-34 / P-35；它们后由 DEC-054 单独接受；
 - 不固定未经实施证据校准的 Token / Timeout 数值；
 - 不授权安装或升级 OpenAI SDK、读取真实 Secret、调用真实模型或执行 Live Smoke；
 - 不授权创建 Model Runtime、Prompt、Provider Adapter、Profile Registry 或业务实现；

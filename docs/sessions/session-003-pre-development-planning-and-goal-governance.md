@@ -608,3 +608,38 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `P-34 / P-35 = PROPOSED`；用户尚未接受任何选项。
 - RFC-006 仍为 `DRAFTING`；全部 DQ 只有在 P-34 / P-35 被用户接受后才闭合，随后还须 Final Consistency Review 与单独的 RFC Overall Acceptance。
 - 在用户裁决前，不把 Secret Resolution、`store=false`、Payload Persistence、Scripted Substitute 或 Live Smoke 流程写成实现事实，也不安装 SDK、读取 Secret、调用模型或执行 Live Smoke。
+
+## Decision Round — RFC-006 Secret, Payload, Test Substitute and Live Smoke（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-34A`：Bootstrap 只选择固定 Credential Reference，Infrastructure Adapter 在自身边界解析进程环境并创建 Client；Responses 显式 `store=false`；项目只保存最小 Provider Ledger、Provider-neutral Candidate / Diagnostic Candidate 与 Payload-free Telemetry，不持久化完整 Prompt、Context 或原始响应，并诚实记录 Provider 外部留存。
+- 用户明确接受 `P-35A`：使用同 Port `ScriptedModelRuntime`、断网三层 Contract Tests 与代表性失败分支；Release Candidate 只在显式 `live` / `RUN_LIVE_MODEL_SMOKE=1` / Secret / 已接受版本同时满足时，人工执行一次 `fixture-sufficient-v1` 完整闭环，不使用机械总分或额外 Live Edge-case Matrix。
+
+### Accepted Result
+
+- [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) 归档 P-34A / P-35A。
+- [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) 的 DQ-01～DQ-08 已全部闭合。
+- RFC-006 仍为 `DRAFTING`；下一 Gate 是 Final Consistency Review，之后才可请求用户单独接受 RFC 整体。
+
+### Authorization Boundary
+
+- RFC Acceptance、SDK 安装、Secret 读取、真实模型调用、Live Smoke、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
+- 本轮只归档用户决定、同步 Current Truth 并执行 RFC Final Consistency Review；不编写业务代码、不执行 TS-01～TS-05、不创建或激活长期 Goal。
+
+## Final Consistency Review — RFC-006（2026-08-06）
+
+### Review Result
+
+- RFC-006 的 DQ-01～DQ-08 已由 DEC-052～054 全部闭合，输入完整性检查通过。
+- Provider / Port / Structured Output、Recovery / Version / Profiles、Secret / Payload / Tests 三组决定内部一致，DEC-053 / 054 对 DEC-052 的修订关系已双向记录。
+- RFC-001 的 Application-owned Port / Infrastructure Adapter、RFC-002 的短事务边界与 RFC-003 的 Workflow / Run 恢复职责均未被越界；Model Operation Retry 与 Workflow Retry / Rerun 已明确分层。
+- 适度校验约束保持有效：未新增 Hash / SHA-256、泛化安全平台、低概率 Case 矩阵或机械 Rubric。
+- Provider 外部留存、`store=false`、非 ZDR 边界与人工 Live Smoke 均被如实记录；SDK、Secret、真实调用与实现仍未授权。
+- 独立五轴 Review 结果为 `PASS`：Critical = 0、Required = 0、Optional = 0；本地 Markdown 链接检查为 1512 / 1512 通过。
+
+### Gate Result
+
+- RFC-006 Status 从 `DRAFTING` 进入 `IN REVIEW`；Final Consistency Review = `PASS`。
+- 下一且唯一的 RFC Gate 是用户明确接受 RFC-006 整体；PR 合并本身不能替代整体接受。
+- RFC Overall Acceptance、SDK 安装、Secret 读取、真实模型调用、Live Smoke、Implementation、Spike Execution 与 Goal Activation 仍为 `NOT GRANTED`。

@@ -2,10 +2,11 @@
 
 ## Metadata
 
-- **Status:** DRAFTING
+- **Status:** IN REVIEW
 - **Date:** 2026-08-06
 - **Issue:** [#48](https://github.com/JettxonHo/ai-ecommerce-agent/issues/48)
 - **Pull Request:** [#49](https://github.com/JettxonHo/ai-ecommerce-agent/pull/49)（Draft）
+- **Final Consistency Review:** PASS（2026-08-06）
 - **RFC Acceptance:** NOT GRANTED
 - **Implementation Authorization:** NOT GRANTED
 - **Spike Execution Authorization:** NOT GRANTED
@@ -13,7 +14,7 @@
 
 ## Problem
 
-首个演示 MVP 已确定使用一个真实 LLM Provider 与一个确定性测试替身；DEC-052 / 053 已进一步冻结生产 Provider、默认模型、SDK 能力基线、项目内 Model Runtime Port、Structured Output Authority、有界 Recovery、可读版本元组与确定性 Skill Profile。Secret / Payload / Telemetry、确定性测试替身和 Live Smoke 边界仍未冻结。若把剩余选择留给单个实现 Issue 临场决定，Provider Output、运行证据、敏感内容、测试替身和 Current Truth 仍可能被写入同一职责。
+首个演示 MVP 已确定使用一个真实 LLM Provider 与一个确定性测试替身；DEC-052～054 已冻结生产 Provider、默认模型、SDK 能力基线、项目内 Model Runtime Port、Structured Output Authority、有界 Recovery、可读版本元组、确定性 Skill Profile、Secret / Payload / Telemetry、确定性测试替身和 Live Smoke 边界。RFC-006 的八个 DQ 已全部闭合，Final Consistency Review 已通过；RFC 整体仍须单独获得用户接受。
 
 RFC-006 需要在不实现 Prompt Runtime、不调用真实模型、不扩大 MVP 的前提下，冻结一个足够窄、可测试、可追溯的生产 LLM Runtime 契约。
 
@@ -45,6 +46,7 @@ RFC-006 必须同时满足：
 - [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)
 - [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)
 - [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md)
+- [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md)
 - [RFC-001](rfc-001-repository-and-application-architecture.md)
 - [RFC-002](rfc-002-persistence-and-transaction-architecture.md)
 - [RFC-003](rfc-003-langgraph-runtime-and-checkpoint-architecture.md)
@@ -83,10 +85,10 @@ RFC-006 必须同时满足：
 | DQ-04 Provider Failure, Repair, Retry, Cancellation and Call Identity | P-31A | ACCEPTED INPUT（DEC-053） |
 | DQ-05 Prompt / Model / Schema / Execution Configuration Versioning | P-32A | ACCEPTED INPUT（DEC-053） |
 | DQ-06 Skill-specific Invocation Profiles and Context Assembly | P-33A | ACCEPTED INPUT（DEC-053） |
-| DQ-07 Secret, Provider Payload, Persistence and Telemetry Boundary | P-34 | PROPOSED |
-| DQ-08 Deterministic Substitute, Contract Tests and Live Smoke | P-35 | PROPOSED |
+| DQ-07 Secret, Provider Payload, Persistence and Telemetry Boundary | P-34A | ACCEPTED INPUT（DEC-054） |
+| DQ-08 Deterministic Substitute, Contract Tests and Live Smoke | P-35A | ACCEPTED INPUT（DEC-054） |
 
-用户已于 2026-08-06 明确接受 P-28A～P-30A 与 P-31A～P-33A，分别由 [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) 与 [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) 归档。DQ-01～DQ-06 已闭合；DQ-07～DQ-08、RFC-006 Final Consistency Review 与 RFC 整体接受仍未完成。
+用户已于 2026-08-06 明确接受 P-28A～P-30A、P-31A～P-33A 与 P-34A～P-35A，分别由 [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)、[DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) 与 [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) 归档。DQ-01～DQ-08 已全部闭合，Final Consistency Review 已通过；RFC 整体接受仍未完成。
 
 ## Accepted Decision Round 1
 
@@ -97,7 +99,7 @@ RFC-006 必须同时满足：
 首个 Goal 只实现 OpenAI 一个真实 Provider Adapter，使用 Responses API、官方 Python SDK 与 `gpt-5.6-terra` 作为默认生产模型。模型调用保持纯文本输入 / Structured Output，不开放内置 Web Search、File Search、Computer Use、Hosted Shell 或其他 Provider-hosted Tools。部署时固定已验证的 SDK / API 组合，并在 Compatibility Matrix 记录实际 Model ID；若厂商提供可用的稳定 Snapshot，优先固定 Snapshot，否则固定已验证的稳定 Model ID 并把模型变更视为受控配置变更。
 
 - **优点：** 官方文档明确支持 Responses API、Structured Outputs、Pydantic 解析、显式 refusal / incomplete 状态与 usage metadata；Terra 定位为智能与成本平衡档，适合本地演示的多阶段分析；与 Python sync-first 后端自然对接。
-- **缺点：** 单厂商依赖；当前文档化 Model ID 仍需在实施时验证行为稳定性和账号可用性；标准数据控制下 Provider 可能保留请求相关数据，具体最小发送与 `store` 策略仍须由 DQ-07 冻结；Provider 服务不可用时 MVP 不具备自动容灾。
+- **缺点：** 单厂商依赖；当前文档化 Model ID 仍需在实施时验证行为稳定性和账号可用性；标准数据控制下 Provider 可能保留请求相关数据，最小发送与 `store=false` 边界后由 DEC-054 冻结，但 Provider 外部留存仍不能由项目消除；Provider 服务不可用时 MVP 不具备自动容灾。
 - **停止条件：** 实施时若账号无法访问所选模型、Structured Output 与同步 SDK 组合不兼容，或固定验收包出现阻塞性质量问题，暂停真实 Adapter，实现不得静默换 Provider / 模型，须提交 RFC Amendment。
 
 #### P-28B：Anthropic Claude API + Sonnet 档模型 + 官方 Python SDK
@@ -124,7 +126,7 @@ P-28A 是基于当前官方能力说明与项目已接受架构边界作出的**
 
 #### P-29A（已接受）：项目自有窄型同步 Port + 单一已接受 Provider Adapter
 
-由 Application 定义项目自有、Provider-neutral、typed 的同步 Port，并在 `platform/model_runtime` 提供单一已接受 Provider 的 Infrastructure Adapter。概念输入只包含 `ModelCallRequest`、`StructuredOutputSpec`、`ModelExecutionProfile`、调用身份与受控上下文；概念结果只包含解析前的 Provider-neutral Output Envelope、Provider Call Metadata 和稳定内部 Error。具体 SDK Client、SDK 类型、Credential 和 Response 对象只存在于 Infrastructure Adapter。Composition Root 创建并注入单例 Client / Adapter，Skill Application Service 依赖 Port，不依赖厂商 SDK。
+由 Application 定义项目自有、Provider-neutral、typed 的同步 Port，并在 `platform/model_runtime` 提供单一已接受 Provider 的 Infrastructure Adapter。概念输入只包含 `ModelCallRequest`、`StructuredOutputSpec`、`ModelExecutionProfile`、调用身份与受控上下文；概念结果只包含解析前的 Provider-neutral Output Envelope、Provider Call Metadata 和稳定内部 Error。具体 SDK Client、SDK 类型、Credential 和 Response 对象只存在于 Infrastructure Adapter。Composition Root 调用 Infrastructure Adapter Factory，管理并注入返回的单例 Adapter；Factory 按 P-34A 在 Adapter 边界解析 Secret 并创建 Client / Adapter。Skill Application Service 依赖 Port，不依赖厂商 SDK。
 
 Port 只抽象 MVP 实际需要的共同语义，不承诺能无成本更换 Provider，也不实现多 Provider 注册、路由或 fallback。
 
@@ -153,19 +155,23 @@ P-29A 是“单 Provider 实现”与“领域不依赖厂商 SDK”的最小交
 
 #### P-30A（已接受）：Provider-native Strict Schema + 项目 Schema + Domain Validator
 
-每个模型调用使用 Provider-native Strict Structured Output；项目内 Pydantic / JSON Schema 是结构契约的权威来源，Adapter 负责生成 Provider 支持的等价 Schema 表达并把响应收敛为 Provider-neutral Envelope。Provider 不支持的约束必须在预检中显式识别并由本地原始 Schema / Domain Validator 保留，禁止静默丢弃约束或改变字段语义。处理链固定为：
+每个模型调用使用 Provider-native Strict Structured Output；项目内 Pydantic / JSON Schema 是结构契约的权威来源，Adapter 负责生成 Provider 支持的等价 Schema 表达并把响应收敛为 Provider-neutral Envelope。Provider 不支持的约束必须在预检中显式识别并由本地原始 Schema / Domain Validator 保留，禁止静默丢弃约束或改变字段语义。结合 DEC-053 Amendment 后，当前处理链固定为：
 
 ```text
 Provider Response
   -> Refusal / Incomplete / Transport Classification
-  -> Structured Payload Parse
-  -> Project Schema Validation
-  -> Semantics-preserving Deterministic Normalization
+  -> Structured Payload Parse + Project Schema Validation
+     -> eligible expression failure: Deterministic Normalization
+        -> re-parse + re-validate Project Schema
+     -> still invalid: Constrained Repair, if shared Recovery remains
   -> Skill Domain Validator
+     -> invalid: Candidate Regeneration, if the same Recovery remains
   -> Candidate Result
 ```
 
-Schema 合规只证明结构有效，不证明事实、证据、战略或业务语义正确。Unknown Field 默认拒绝；禁止隐式弱类型转换、生成不存在的 Source / Fragment / Fact ID，或绕过各 Skill Validator。`refusal`、`incomplete` 与无内容结果是显式非成功分支，不能伪装成 Schema 对象。具体修复、重新生成与上限由 DQ-04 决定。
+Constrained Repair、Candidate Regeneration 与适用的 incomplete Recovery 共享最多一次 Model-assisted Recovery；不得先 Repair 再 Regenerate。
+
+Schema 合规只证明结构有效，不证明事实、证据、战略或业务语义正确。Unknown Field 默认拒绝；禁止隐式弱类型转换、生成不存在的 Source / Fragment / Fact ID，或绕过各 Skill Validator。`refusal`、`incomplete` 与无内容结果是显式非成功分支，不能伪装成 Schema 对象。具体修复、重新生成与上限由 P-31A / DEC-053 冻结。
 
 - **优点：** 消除常见 JSON 语法 / 必填字段错误，同时保留项目自己的业务权威；可用同一 Schema 驱动确定性替身和 Contract Test；与 DEC-033 的 Parse / Normalize / Repair / Regeneration 分层一致。
 - **缺点：** Provider 支持的是 JSON Schema 子集，复杂业务约束仍需本地 Validator；Schema 转换和版本兼容需要明确测试。
@@ -302,11 +308,11 @@ Context 由 Application / Retrieval Runtime 在调用前确定性装配，Provid
 
 P-33A 用五个显式 Profile 覆盖真实 Stage 差异，并把 Context Scope、权限、Current Truth 与 Evidence ID 控制留在确定性 Application / Retrieval 层。精确数值以小型固定资料包校准，避免在无证据时机械固定大参数矩阵。
 
-## Proposed Decision Round 3
+## Accepted Decision Round 3
 
 ### P-34：Secret, Provider Payload, Persistence and Telemetry Boundary
 
-#### P-34A（推荐）：Adapter 边界环境解析 + `store=false` + 最小 Provider Ledger + Payload-free Telemetry
+#### P-34A（已接受）：Adapter 边界环境解析 + `store=false` + 最小 Provider Ledger + Payload-free Telemetry
 
 首个本地演示只使用一个固定 Credential Reference（概念名 `openai_primary`）。Bootstrap / Composition Root 只选择该 Reference 并调用 Infrastructure Adapter Factory；Adapter 在自身边界内把 Reference 解析为进程环境中的 `OPENAI_API_KEY` 并创建 OpenAI Client，Secret Value 不回传 Bootstrap 配置对象。Secret Value 只在 Adapter 进程内存中短暂存在，不进入 Application / Domain、配置对象序列化、数据库、Checkpoint、Work Intent、Audit、日志、Trace、Fixture、导出或 Git。应用本身不加载或管理 `.env`，也不在 MVP 建设 Vault / KMS / Rotation Service；开发者可由 Shell 或外部启动器注入环境变量。
 
@@ -343,7 +349,7 @@ P-34A 通过数据结构和职责边界避免 Secret / Payload 泄漏，而不�
 
 ### P-35：Deterministic Substitute, Contract Tests and Live Smoke
 
-#### P-35A（推荐）：同 Port Scripted Substitute + 分层 Contract Suite + 单次人工 RC Smoke
+#### P-35A（已接受）：同 Port Scripted Substitute + 分层 Contract Suite + 单次人工 RC Smoke
 
 项目实现一个与生产 Adapter 遵守同一 Model Runtime Port 的 `ScriptedModelRuntime`。它按人类可读 `scenario_id`、Profile、Schema Version 与 Call Ordinal 校验请求并返回预先声明的 Provider-neutral Result / Error；不解析 Prompt 来猜测答案，不模拟模型语言能力，也不包含真实 SDK 类型。Spike-001 的 Scripted Model 只提供场景设计证据，不复制其生产代码。
 
@@ -380,7 +386,7 @@ P-35A 把软件契约正确性、Adapter 映射和真实模型可用性分开验
 
 | Topic | Owner | RFC-006 boundary |
 |---|---|---|
-| Worker / Checkpoint / Resume / overall retry budget / business rerun | RFC-003 | 只定义单次 Model Call 与输出修复语义 |
+| Worker / Checkpoint / Resume / Workflow-Node-Skill-Run retry budget / business rerun | RFC-003 | RFC-006 只拥有单个 Model Operation 的 Model Call、Provider Transport Retry 与共享 Recovery Budget，不拥有 Workflow Rerun |
 | HTTP / Client status / Human Review public protocol | RFC-004 | 只产生稳定内部 Application / Runtime Error |
 | Source / Retrieval / permission and version filtering / Evidence Package | RFC-005 | 只消费已授权 Evidence Package，不扩大 Source Scope |
 | Logs / Traces / Metrics / alerts / final operational thresholds | RFC-007 | 只定义允许产生的 Model Call metadata 与 error fields |
@@ -395,9 +401,27 @@ P-35A 把软件契约正确性、Adapter 映射和真实模型可用性分开验
 - Anthropic：[Structured Outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)、[API Errors](https://platform.claude.com/docs/en/api/errors)、[API and Data Retention](https://platform.claude.com/docs/en/manage-claude/api-and-data-retention)
 - Google：[Structured Outputs](https://ai.google.dev/gemini-api/docs/structured-output)、[API Versions](https://ai.google.dev/gemini-api/docs/api-versions)、[Model Version Patterns](https://ai.google.dev/gemini-api/docs/models)
 
+## Final Consistency Review（PASS，2026-08-06）
+
+> **Review Status:** PASS · **Decision Conflict:** NONE FOUND · **Review is not RFC Acceptance or implementation authorization.**
+
+- **Decision completeness:** DQ-01～DQ-08 均有 Chosen Option、Rejected Alternatives、Trade-offs 与 Accepted Decision 来源；没有未决 RFC-006 子决策。
+- **Internal consistency:** Provider / Port、Structured Output、Normalization / Repair / Regeneration、Retry / Recovery、Version、Profile、Context、Secret / Payload / Telemetry、确定性测试与 Live Smoke 形成一致闭环。
+- **Accepted architecture alignment:** 与 RFC-001～003、DEC-011 / 033 / 039 / 041 / 048 / 052～054 及 ARP-10 一致；Application-owned Port、Adapter Secret、Business Transaction、Current Truth、Validator、Cancellation 与幂等边界未被绕过。
+- **Cross-RFC ownership:** RFC-003 继续拥有 Workflow / Node / Skill / Run 级 Retry、Resume 与业务 Rerun；RFC-004 / 005 / 007 分别拥有公共协议、Retrieval / Permission 与运维 Observability；RFC-006 只拥有单个 Model Operation 及其调用、输出、数据和验证边界。
+- **Proportional validation:** 只保留代表性失败分支、断网三层 Contract Tests 与单次人工 RC Smoke；未新增 Hash / SHA-256、泛化安全层、低概率 Case 矩阵或机械 Rubric。
+- **External data honesty:** `store=false` 未被表述为 ZDR；标准 Abuse Monitoring 与 Prompt Cache 留存被记录为项目无法消除的 Provider 边界。
+- **Authorization boundary:** RFC Acceptance、SDK / Secret / Live Call、Implementation、Spike Execution 与 Goal Activation 仍为 `NOT GRANTED`。
+- **Independent review:** 独立审阅 Agent 按 correctness / readability / architecture / security / performance-complexity 五轴复核实际文件；Critical = 0、Required = 0、Optional = 0，最终 PASS。
+- **Verification:** 1,512 个本地 Markdown 链接、0 个损坏；`git diff --check`、Format、Lint、Type、Import Contracts、Architecture、Unit、Contract、非 Live / 非 Slow Suite、Lockfile、Package Build 与 Dependency Audit 均通过。
+
+## User Acceptance Gate（PENDING）
+
+RFC-006 已具备请求整体接受的条件，但只有用户明确回复“接受 RFC-006 整体”后，才能把状态从 `IN REVIEW` 改为 `ACCEPTED`。PR Merge 不能替代该决定。
+
 ## Acceptance and Authorization Boundary
 
-每组 DQ 需要用户明确接受后才能归档为 Accepted Decision。全部 DQ 闭合后仍须执行 RFC-006 Final Consistency Review，并由用户另行明确接受 RFC-006 整体。
+P-28A～P-35A 均已由用户明确接受并归档为 DEC-052～054，八个 DQ 已闭合且 Final Consistency Review 已通过。仍须由用户另行明确接受 RFC-006 整体。
 
 即使 RFC-006 整体被接受，也只代表架构决策成立；以下事项仍保持未授权，直到完整策划包展示并且用户明确批准“进入 Goal 执行阶段”：
 

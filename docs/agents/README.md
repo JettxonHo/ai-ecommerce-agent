@@ -2,7 +2,7 @@
 
 本目录是 Current Truth Layer 的一部分，存放 AI Ecommerce Agent 项目中各 Agent 的规格说明。
 
-> **当前状态：** Spike-001 = **COMPLETED** · RFC-001～RFC-003 = **ACCEPTED** · RFC-006 = **DRAFTING（DQ-01～06 Accepted Input / DEC-052～053；DQ-07～08 Proposed）** · FND-001～003 = **COMPLETED** · Architecture Readiness / Development Status = **CONDITIONALLY READY（仅策划与治理）**。
+> **当前状态：** Spike-001 = **COMPLETED** · RFC-001～RFC-003 = **ACCEPTED** · RFC-006 = **IN REVIEW（DQ-01～08 Accepted Input / DEC-052～054；Final Review PASS / overall pending）** · FND-001～003 = **COMPLETED** · Architecture Readiness / Development Status = **CONDITIONALLY READY（仅策划与治理）**。
 > **授权范围：** 产品与 Agent 规格闭合、RFC-004～007 / Frontend Architecture 策划、Readiness Artifact 与 TS-01～TS-05 Charter、Implementation / Testing / Goal Planning；TS-01～TS-05 执行未授权，已完成的 Spike-001 不在本禁令所指范围内。
 > **禁止范围：** Business / Production Implementation、实际 Goal 启动、TS-01～TS-05 执行、Coding Agent 临场选择生产数据库 / ORM / Checkpointer / API / Retrieval / LLM Runtime / Observability 或将 Spike 代码迁移为生产模块。
 > **当前开发协作模型：** Sol/xhigh = `ORCHESTRATOR_REVIEWER`；Luna/max = 首选 `IMPLEMENTER`；Terra/xhigh = `AUXILIARY_IMPLEMENTER` 与 Luna 不可用时的显式回退。实现 Agent 不得最终批准或合并自己的 PR，详见 [DEC-043](../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md)。
@@ -665,7 +665,7 @@ User Retains:
 
 - **Ecommerce Strategy Agent（概念产品入口）：** 一个统一的用户侧 Agent，由确定性 Workflow Controller 编排；MVP 不采用 Multi-Agent 或 LLM Supervisor 主架构。
 - **内部能力：** 4 个 Core Skills（Product Intake & Fact Extraction、Customer Insight Analysis、Product Positioning、Marketing Brief Generation）与 1 个 Xiaohongshu Brief Mapping Adapter。Skill / Adapter 不是独立自治 Agent。
-- **实现状态：** 概念职责和 Contracts 已 Accepted，生产业务实现尚未开始；DEC-052 / 053 已冻结 OpenAI Responses API / `gpt-5.6-terra`、窄型同步 Model Runtime Port、项目 Schema / Domain Validator 权威、有界 Recovery、可读 Version Tuple、五个固定 Profile 与确定性 Context Assembly。最终公共 Schema、RFC-006 DQ-07～08 与精确 Token / Timeout 仍待后续 Gate 和实施证据。
+- **实现状态：** 概念职责和 Contracts 已 Accepted，生产业务实现尚未开始；DEC-052～054 已冻结 OpenAI Responses API / `gpt-5.6-terra`、窄型同步 Port、项目 Schema / Domain Validator、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute 与单次人工 RC Smoke。最终公共 Schema、RFC-006 整体接受与精确 Token / Timeout 仍待后续 Gate 和实施证据。
 - **开发 Agent 角色：** Sol/xhigh 负责主控、任务合同、调度与独立 Review；Luna/max 是 Goal 激活后的首选实现 Agent；Terra/xhigh 可承担辅助工作并在 Luna 不可用时显式回退。实际模型必须记录，回退不得改变范围、测试、验收或 Review 独立性。
 
 ---

@@ -70,7 +70,7 @@
 - Persona / JTBD：复合 Persona 结构与基线假设已确认；画像具体取值和真实证据待 Beta 前访谈。
 - 演示成功标准：行为与人工可用性边界、三个固定资料包 + 一个变更脚本、必要行为门禁、人工 `PASS / FAIL` 与 Release Candidate Live Smoke 已确认（DEC-042 / DEC-048）；测试工具、Fixture 实例和最终 E2E 步骤待 Testing Strategy 补全。
 - Agent / Workflow：**已确认**为一个统一用户侧 Agent + LangGraph StateGraph 确定性工作流，不采用 Multi-Agent 主架构或 LLM Supervisor（DEC-021 / DEC-023）。
-- Retrieval / Skills：**已确认**按需混合 Retrieval 概念边界、4 个 Core Skills 与 1 个 Xiaohongshu Adapter（DEC-014 / DEC-020 / DEC-026～032）；单一 OpenAI Provider / `gpt-5.6-terra`、窄型同步 Model Runtime Port、Structured Output Authority、有界 Recovery、可读版本元组与确定性 Skill Profile 已由 DEC-052 / 053 冻结。索引仍待 RFC-005；Secret / Payload / Telemetry、确定性测试替身、Live Smoke 和实现仍待 RFC-006 后续 Decision Gate。
+- Retrieval / Skills：**已确认**按需混合 Retrieval 概念边界、4 个 Core Skills 与 1 个 Xiaohongshu Adapter（DEC-014 / DEC-020 / DEC-026～032）；单一 OpenAI Provider / `gpt-5.6-terra`、窄型同步 Port、Structured Output、有界 Recovery、可读版本元组、确定性 Profile、Adapter Secret / Payload Allowlist、同 Port 测试替身与单次人工 RC Smoke 已由 DEC-052～054 冻结。索引仍待 RFC-005；RFC-006 整体接受和实现仍待后续 Gate。
 - 平台范围：**已确认**核心中立 + 小红书 Brief 映射；其他平台、完整平台正文与自动发布不进入首个 Goal（DEC-004 / DEC-031 / DEC-041）。
 
 这些问题的讨论与提案记录在 [../sessions/](../sessions/)；确认后的决定记录在 [../decisions/](../decisions/) 并同步回本文件。

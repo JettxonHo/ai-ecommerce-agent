@@ -24,6 +24,8 @@ Accepted
 
 Application 定义项目自有、typed、Provider-neutral、同步的 Model Runtime Port；`platform/model_runtime` 提供唯一已接受 Provider 的 Infrastructure Adapter；Composition Root 创建并注入 Client / Adapter。Skill Application Service 只依赖 Port，不依赖 OpenAI SDK。
 
+> **DEC-054 Amendment（2026-08-06）：** Composition Root 仍拥有 Adapter 生命周期与注入职责，但不直接解析 Secret 或构造 OpenAI Client。它调用 Infrastructure Adapter Factory；Factory 在 Adapter 边界解析 `credential_ref`、创建 Client / Adapter，并只把已构造的 Adapter 返回给 Composition Root。
+
 Port 的概念输入只包含 `ModelCallRequest`、`StructuredOutputSpec`、`ModelExecutionProfile`、调用身份与受控上下文；概念结果只包含 Provider-neutral Output Envelope、Provider Call Metadata 与稳定内部 Error。SDK Client、SDK 类型、Credential 与原始 Response 对象只存在于 Infrastructure Adapter。
 
 该 Port 只抽象首个 MVP 实际需要的语义，不承诺 Provider 可无成本替换，不实现 Provider Registry、Gateway、路由或 fallback。
@@ -43,6 +45,8 @@ Provider Response
   -> Skill Domain Validator
   -> Candidate Result
 ```
+
+> **DEC-053 Amendment（2026-08-06）：** 上述历史链中的 Normalization 执行语义以后续决定为准：Parse / Project Schema 失败时只允许语义不变 Normalization，随后重新 Parse / Validate；仍失败才可使用共享的唯一 Model-assisted Recovery。Skill Domain Validator 只在结构通过后执行，且其 Candidate Regeneration 与 incomplete / repair 共用同一 Recovery Budget。
 
 Schema 合规只代表结构有效，不代表事实、证据、战略或业务语义正确。Unknown Field 默认拒绝；禁止隐式弱类型转换、生成不存在的 Source / Fragment / Fact ID，或绕过 Skill Validator。`refusal`、`incomplete` 与无内容结果是显式非成功分支，不能伪装成合法 Schema 对象。修复、重新生成、Retry、取消和调用身份仍由 RFC-006 DQ-04 决定。
 
@@ -78,16 +82,18 @@ OpenAI Responses API、官方 Python SDK 与项目的 sync-first Python 后端�
 - 首个 MVP 存在单 Provider 依赖，Provider 不可用时没有自动容灾；
 - 需要维护少量项目自有请求、响应、元数据和错误类型；
 - Provider 支持的 JSON Schema 子集、账号权限、模型稳定性、质量、延迟与成本仍须以实施时证据验证；
-- DQ-04～DQ-08 未闭合前，错误修复、版本、Profile、Secret / Payload / Telemetry 和测试 / Smoke 细节不得由实现 Agent 临场决定。
+- 本决定形成时 DQ-04～DQ-08 尚未闭合；后续由 DEC-053 / 054 闭合，仍不得由实现 Agent 绕过最新 Accepted Decision 临场决定。
 
 ## Amendments and Relationships
 
 - **Conforms to [DEC-011](dec-011-deterministic-workflow-with-constrained-llm-reasoning.md)：** LLM 只生成 Candidate / Inference / Hypothesis / Draft，不能直接写 Business Current Truth。
 - **Complements [DEC-033](dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)：** 本决定冻结 Structured Output 分层；具体有界修复、重试、取消和错误处置仍由 RFC-006 DQ-04 与 DEC-033 共同约束。
+- **Amended by [DEC-053](dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md)：** 收敛 Normalization / Repair / Domain Validator / Regeneration 顺序与共享 Recovery Budget。
 - **Conforms to [DEC-039](dec-039-proportional-validation-and-review-governance.md)：** 不新增 Hash / SHA-256，不堆叠低概率防御变体，不以机械评分接受模型结果。
 - **Conforms to [RFC-001](../rfcs/rfc-001-repository-and-application-architecture.md)：** 遵守 Application-owned Port、Infrastructure Adapter、Composition Root、sync-first 与 Provider 类型隔离。
 - **Conforms to [RFC-002](../rfcs/rfc-002-persistence-and-transaction-architecture.md)：** Provider Call 不跨 Business Transaction，Secret 与外部数据遵守既有边界。
-- **Input to [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** 接受 DQ-01～DQ-03；RFC-006 整体仍为 `DRAFTING`。
+- **Amended by [DEC-054](dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md)：** Composition Root 只调用 Infrastructure Adapter Factory 并管理返回 Adapter 的生命周期；Secret 解析与 OpenAI Client 构造收敛在 Adapter 边界。
+- **Input to [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** 接受 DQ-01～DQ-03；DQ-01～DQ-08 后续均已闭合且 Final Consistency Review 已通过，RFC-006 当前为 `IN REVIEW`，整体仍待用户接受。
 
 ## Authorization Boundary
 
@@ -97,7 +103,7 @@ OpenAI Responses API、官方 Python SDK 与项目的 sync-first Python 后端�
 - 不授权安装或升级 OpenAI SDK、读取真实 Secret、调用真实模型或执行 Live Smoke；
 - 不授权创建 Model Runtime、Provider Adapter、Prompt、Prompt Registry、Schema Runtime 或测试替身实现；
 - 不授权执行 TS-01～TS-05、业务实现、生产实现或长期 Goal；
-- DQ-04～DQ-08、Final Consistency Review 与用户 RFC 整体接受仍是后续 Gate。
+- 本决定形成时 DQ-04～DQ-08 是后续 Gate；它们后由 DEC-053 / 054 闭合。Final Consistency Review 与用户 RFC 整体接受仍是后续 Gate。
 
 ## Accepted From
 
