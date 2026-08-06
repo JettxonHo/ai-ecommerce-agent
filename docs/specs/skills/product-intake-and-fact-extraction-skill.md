@@ -1,6 +1,6 @@
 # Product Intake & Fact Extraction Skill — 概念 Skill Specification
 
-> **Status: CONCEPTUAL — 首个核心业务 Skill Contract 已由 DEC-026 确认（概念层）；最终 Fact Schema / 字段 / Python 类型 / Prompt / 代码 / Parser / OCR / 单位库 / 前端表单尚未确认。**
+> **Status: CONCEPTUAL — 首个核心业务 Skill Contract 已由 DEC-026 确认（概念层），产品门禁、默认文件限制与冲突分级已由 DEC-045 确认；最终 Fact Schema / 公共字段 / Python 类型 / Prompt / 代码 / Parser / 单位库 / 前端表单尚未确认。**
 > 本文件是 Current Truth Layer 的一部分，记录**概念层 Skill Contract**。其内容只能来自用户明确接受的 Decision（[DEC-026](../../decisions/dec-026-product-intake-and-fact-extraction-skill-contract.md)）。
 > 所有结构名 / 字段名 / 枚举值均为**概念示意，非最终数据契约 / 最终实现**。
 
@@ -9,6 +9,7 @@
 ## 0. 来源与范围
 
 - 来源决定：[DEC-026 — Product Intake & Fact Extraction Skill 采用分层输入完整度、零无来源事实与冲突暂停契约](../../decisions/dec-026-product-intake-and-fact-extraction-skill-contract.md)（Accepted，Skill Contract / Reliability Architecture，2026-07-28）。Amends [DEC-005](../../decisions/dec-005-layered-mvp-inputs.md)。
+- 产品门禁：[DEC-045](../../decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md)（Accepted，2026-08-06）将本规格的 Minimum Runnable Input 明确为 Fact Stage 门禁，并冻结默认文件限制与阻断 / 非阻断冲突行为；不改变 DEC-026 的最低事实条件。
 - 承接：[DEC-005](../../decisions/dec-005-layered-mvp-inputs.md)（分层输入）、[DEC-008](../../decisions/dec-008-tiered-evidence-and-traceable-conclusions.md)（五类 Evidence Class）、[DEC-009](../../decisions/dec-009-stage-level-invalidation-and-partial-rerun.md)（阶段级失效）、[DEC-015](../../decisions/dec-015-contract-based-reusable-business-skills.md)（Skill 契约）、[DEC-020](../../decisions/dec-020-mvp-four-core-skills-and-xiaohongshu-adapter.md)（MVP 四 Core Skills）、[DEC-024](../../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)（版本化 Domain State）、[DEC-025](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)（来源与证据架构）。
 - 本规格**仅记录概念层 Skill Contract**；与本 Skill 相关的 Evidence / Fragment / Evidence Link / Source Version 等概念定义以 [DEC-025 概念规格](../evidence/source-and-evidence-specification.md) 与 [DEC-024 工作流状态规格](../workflow/workflow-state-specification.md) 为准。
 
@@ -73,6 +74,8 @@ Source and Permission Validation
 ## 4. Minimum Runnable Input（最低可运行输入）
 
 一个任务要完成 Fact Stage，至少需要满足以下五项条件。
+
+Task 创建在此之前完成：名称 / 临时名称、品类和推广目标用于创建稳定 Task；价格与商家当前卖点不是全局硬必填。用户在结构化表单中的手动输入可以构成下述 current-product Source，不强制上传文件（DEC-045）。
 
 ### 4.1 Product Identity
 
@@ -291,7 +294,7 @@ FactItem
 
 ## 13. Conflict Handling（冲突处理）
 
-以下冲突**不得**由模型自行解决：
+以下冲突在涉及当前商品身份或形成诚实事实层所需的关键事实时，**不得**由模型自行解决：
 
 | 冲突类型 | 示例 |
 |----------|------|
@@ -301,7 +304,9 @@ FactItem
 | Certification Conflict | 商品页面声明存在认证，但没有认证文件 / 认证已过期 / 认证对象与当前 SKU 不一致 |
 | Usage Restriction Conflict | 商品页面：可放入洗碗机 vs 说明书：不可放入洗碗机 |
 
-关键冲突必须创建正式 `SourceConflict`（承接 DEC-025）并触发 `waiting_input` 或 `paused`。MVP **不**建立复杂来源优先级，**不让**模型自行判断哪个来源更可信。
+阻断性冲突必须创建正式 `SourceConflict`（承接 DEC-025）并触发 `waiting_input` 或 `paused`，向用户展示冲突值、来源、受影响阶段和可执行动作。MVP **不**建立复杂来源优先级，**不让**模型自行判断哪个来源更可信。
+
+不影响商品身份、也不妨碍形成诚实基础事实层的证据差异不阻断 Fact Stage；它们进入 `source_conflicts[]` / `evidence_limitations[]`，并标明受影响结论。该分类按真实业务影响判断，不维护穷举式低概率冲突目录（DEC-039 / DEC-045）。
 
 ---
 
@@ -491,6 +496,7 @@ Fact Extraction Precision / Fact Extraction Recall / Unit Normalization Accuracy
 | TS-12 时间敏感事实 | 价格 / 促销 | 提取但记录 `observed_at` / `source_version_id` / `time_sensitive = true` | Time-sensitive Facts（§7） |
 | TS-13 技术失败 vs 业务不足 | Parser 内部异常 vs 资料不足 | Parser 异常 → `failed`；资料不足 → `waiting_input`（**不**误标为 failed） | Pause / Failure Boundary（§15 / §16） |
 | TS-14 幻觉 Fragment 拒绝 | LLM 输出不存在的 Fragment ID | Validator #15 拒绝写入 Facts Current Truth | Validator #2 / #15 + DEC-025 防幻觉 |
+| TS-15 非阻断证据差异 | 两个来源在不影响商品身份或基础事实层的辅助描述上不同 | Fact Stage 继续；差异进入 `source_conflicts[]` / `evidence_limitations[]` 并标明受影响结论 | Conflict Handling（§13）+ DEC-045 |
 
 ---
 
@@ -502,10 +508,10 @@ Fact Extraction Precision / Fact Extraction Recall / Unit Normalization Accuracy
 - Prompt；
 - 模型（数量 / 是否分模型 / 供应商）；
 - 文件格式实现；
-- PDF Parser / OCR / 图片识别；
+- 文本型 PDF Parser；OCR / 图片识别不进入首个 Goal（DEC-041）；
 - 单位库（Unit Library）；
 - 高风险声明规则；
-- 一次上传限制；
+- 默认文件限制的运行配置与公共错误映射（默认值已由 DEC-045 冻结）；
 - 错误代码；
 - 最终表单 UI；
 - 验证状态（Verification Status）最终枚举名称；

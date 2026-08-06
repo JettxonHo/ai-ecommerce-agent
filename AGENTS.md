@@ -9,8 +9,8 @@
 - **项目名称：** AI Ecommerce Agent
 - **当前阶段：** Pre-development Planning（产品规格闭合 / 架构 RFC / Readiness 规划 / Goal 文档固化）
 - **开发状态：** CONDITIONALLY READY — 只允许已授权的策划、RFC、Artifact 与治理文档工作；Business / Production Implementation 未授权。详见 [docs/handoffs/implementation-readiness.md](docs/handoffs/implementation-readiness.md)。
-- **已确认基础：** 主要用户为中小电商商家的商品运营与内容运营人员；核心任务为商品上新定位分析与 Marketing Brief；统一 Ecommerce Agent + 确定性 LangGraph StateGraph；4 个 Core Skills + 1 个小红书 Adapter；RFC-001 / RFC-002 与 FND-001 至 FND-003 已完成；Wave 1 Readiness Artifact 已按各自声明范围接受。
-- **待闭合事项：** 最终产品字段与交互、Frontend Architecture、RFC-003 至 RFC-007、公共 API / 状态 / 错误契约、完整 Readiness Artifact、TS-01 至 TS-05 Charter、测试策略与长期 Goal。
+- **已确认基础：** 主要用户为中小电商商家的商品运营与内容运营人员；核心任务为商品上新定位分析与 Marketing Brief；统一 Ecommerce Agent + 确定性 LangGraph StateGraph；4 个 Core Skills + 1 个小红书 Adapter；Task / Fact Stage 最低门禁、默认文件限制与分级冲突处理；RFC-001 / RFC-002 与 FND-001 至 FND-003 已完成；Wave 1 Readiness Artifact 已按各自声明范围接受。
+- **待闭合事项：** 输出与公共字段契约、详细交互、Frontend Architecture、RFC-003 至 RFC-007、公共 API / 状态 / 错误契约、完整 Readiness Artifact、TS-01 至 TS-05 Charter、测试策略与长期 Goal。
 - **当前 Gate：** 完整策划包与 Goal 文本展示并由用户接受前，不创建或启动实际 Goal，不编写业务代码，不执行新的 Technical Spike。
 
 ---

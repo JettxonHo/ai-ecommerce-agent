@@ -5,6 +5,7 @@
 - **Date:** 2026-07-28
 - **Related Session:** [../sessions/session-002-agent-workflow-reliability-and-technical-capabilities.md](../sessions/session-002-agent-workflow-reliability-and-technical-capabilities.md)（Session-002）
 - **Related Specification:** [../specs/skills/product-intake-and-fact-extraction-skill.md](../specs/skills/product-intake-and-fact-extraction-skill.md)
+- **Related Product Gate:** [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md)（将本决定的 Fact Stage Minimum Runnable Input 暴露为产品门禁，并区分阻断 / 非阻断冲突；不改变本 Skill Contract）
 - **Related RFC:** None
 - **Supersedes:** None
 - **Amends:** [DEC-005](dec-005-layered-mvp-inputs.md) by defining the minimum runnable input contract in more detail.
@@ -94,6 +95,8 @@ Source and Permission Validation
 ## Minimum Runnable Input
 
 一个任务要完成 Fact Stage，至少需要满足以下条件。
+
+> **Product-gate clarification:** DEC-045 后续确认：名称 / 临时名称、品类与推广目标先用于创建 Task；进入本 Fact Stage 仍须满足以下条件。结构化表单中的手动输入可构成当前商品来源，不强制上传文件；价格与商家当前卖点不是全局硬必填。
 
 ### 1. Product Identity
 

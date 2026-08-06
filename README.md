@@ -9,9 +9,9 @@
 
 AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据驱动商品上新策略工作台**，将用户提供的商品与市场资料转化为可审核、可追溯的商品定位分析、平台中立 Marketing Brief 与小红书 Brief 映射。
 
-首个交付目标是**本地可复现、受控单工作区的端到端演示 MVP**。产品使用带阶段导航、当前工作区和可收起证据 / 上下文面板的单任务工作台；聊天记录不作为业务 Current Truth。最低可运行输入通过后即可启动，真实阻塞进入 Needs Input；资料或上游内容变化先展示影响范围，由用户确认后局部重跑。
+首个交付目标是**本地可复现、受控单工作区的端到端演示 MVP**。产品使用带阶段导航、当前工作区和可收起证据 / 上下文面板的单任务工作台；聊天记录不作为业务 Current Truth。名称 / 品类 / 推广目标用于创建任务，满足 DEC-026 的最小事实资料后运行 Fact Stage；真实阻塞进入 Needs Input，非阻断差异继续但显式说明限制。资料或上游内容变化先展示影响范围，由用户确认后局部重跑。
 
-权威定位、范围和交互边界见 [DEC-042](docs/decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md)、[DEC-041](docs/decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md) 与 [DEC-044](docs/decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)。最终字段、视觉布局、Frontend Architecture、Provider 与 RFC-003～007 仍待后续 Decision Gate，不得从本简介自行推断。
+权威定位、范围和交互边界见 [DEC-042](docs/decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md)、[DEC-041](docs/decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)、[DEC-044](docs/decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) 与 [DEC-045](docs/decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md)。公共字段类型、视觉布局、Frontend Architecture、Provider 与 RFC-003～007 仍待后续 Decision Gate，不得从本简介自行推断。
 
 ---
 
@@ -31,7 +31,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 当前策划缺口
 
-- 任务工作台的最终字段、详细控件 / 视觉布局、引用展示和 Persona / JTBD 的后续研究证据；
+- 任务工作台的公共字段类型、详细控件 / 视觉布局、引用展示和 Persona / JTBD 的后续研究证据；Task / Fact Stage 最低门禁、默认文件限制与冲突分级已由 DEC-045 冻结；
 - Frontend Architecture；
 - RFC-003 LangGraph Runtime、RFC-004 API / Human Review、RFC-005 Source / Retrieval、RFC-006 LLM Runtime、RFC-007 Observability；
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；

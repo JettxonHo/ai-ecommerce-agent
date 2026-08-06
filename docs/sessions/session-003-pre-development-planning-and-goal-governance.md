@@ -97,6 +97,7 @@
 - [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) — 确认证据驱动商品上新策略工作台定位、复合 Persona 假设与行为型演示成功边界（用户于 2026-08-06 接受 P-01A / P-02A / P-03A）。
 - [DEC-043](../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) — 采用 Sol 主控、Luna 实现、Terra 辅助回退的多 Agent 开发编排（用户于 2026-08-06 确认；Amends DEC-040）。
 - [DEC-044](../decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) — 采用单任务工作台、两级输入门禁与确认式局部重跑（用户于 2026-08-06 接受 P-04A / P-05A / P-06A；Amends DEC-005 / 009 / 041）。
+- [DEC-045](../decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md) — 冻结最小输入、演示文件限制与分级冲突处理（用户于 2026-08-06 接受 P-07A / P-08A / P-09A；Amends DEC-005 / DEC-044，不改变 DEC-026）。
 
 ## Rejected Approaches
 
@@ -119,7 +120,7 @@
 
 ## Documentation Updates
 
-- 新增 DEC-039～DEC-044 并更新 Decision Log。
+- 新增 DEC-039～DEC-045 并更新 Decision Log。
 - 更新 AGENTS.md 与 Collaboration Model。
 - 后续独立 PR 同步 README、Implementation Readiness、RFC Register、Architecture / Agent 入口、Foundation、Traceability 与本地链接。
 
@@ -205,3 +206,37 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - Issue #36 / PR #37 负责 DEC-044、被修订 Decision、Product Current Truth、Readiness、Traceability 与本 Session 的一致性归档。
 - 本轮不冻结前端框架或公共 API，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。
+
+## Decision Round — Minimum Input, File Limits and Conflict Handling（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-07A`：Task 创建与 Fact Stage 使用不同门禁。Task 创建需商品名称 / 临时名称、品类和推广目标；Fact Stage 沿用 DEC-026 的核心用途、当前商品来源、有来源核心属性与无阻断性身份冲突。价格和商家当前卖点不作为全局硬必填。
+- 用户明确接受 `P-08A`：演示默认上限为每任务 20 文件、10 MB / 文件、文本型 PDF 100 页、评论 CSV 10,000 行；限制可配置，但默认值属于契约。失败文件单独拒绝，已接受文件保持有效。
+- 用户明确接受 `P-09A`：商品身份和形成诚实事实层必需的关键事实冲突进入 Needs Input；非阻断性证据差异继续处理并显示资料限制和受影响结论；模型不得静默选择阻断性冲突值。
+
+### Domain Clarification
+
+- Task 创建门禁只创建稳定 `task_id` 和工作台上下文，不代表 Fact Stage 已可运行。
+- 结构化表单中的手动输入可以构成当前商品来源，不强制上传文件；竞品来源仍不能替代当前商品来源。
+- DEC-045 修订 DEC-005 的旧最低字段清单，具体化 DEC-044 的两级门禁，但不改变 DEC-026 的 Fact Stage Minimum Runnable Input。
+- `Needs Input` 仍是用户可见语言；正式 API / 数据库状态枚举、字段名、错误代码与前端控件由 RFC-003 / 004 和 Frontend Architecture 冻结。
+
+### Alternatives and Trade-offs
+
+- 把 DEC-005 的全部旧字段设为硬必填能获得更齐的表单，但价格 / 当前卖点并非所有任务都成立，会造成机械阻断；未采用。
+- 只用名称 / 品类 / 目标运行全部流程摩擦最低，但无法建立有来源的事实层；三项只用于创建 Task。
+- 更保守的 10 文件 / 5 MB / 50 页 / 5,000 行资源压力较低，但缺少收紧证据且限制演示资料；未采用。
+- 完全不设产品限制规则最少，但错误反馈和可复现性会依赖解析器偶然行为；未采用。
+- 所有冲突一律阻断规则简单但会过度防御；模型自动选择虽不中断，却破坏证据与用户判断权；均未采用。
+
+### Remaining Boundaries
+
+- 尚未确认公共字段名 / 数据类型、API / 数据库状态与错误枚举、前端控件和具体补充问题文案。
+- 尚未确认四层 Brief、Review Package、Approved Strategy、Marketing Brief 与 Xiaohongshu Brief 的最终字段、版本和 revision 规则。
+- 文件默认值已冻结；生产部署容量、性能预算与 Retention / Deletion 仍由后续 RFC、Readiness Artifact 和 Testing Strategy 处理，不从演示上限外推。
+
+### Archive Scope
+
+- Issue #38 / PR #39 负责 DEC-045、被修订 Decision、Product Current Truth、Readiness、Traceability 与本 Session 的一致性归档。
+- 本轮不冻结公共 Schema、前端框架或 API 枚举，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。
