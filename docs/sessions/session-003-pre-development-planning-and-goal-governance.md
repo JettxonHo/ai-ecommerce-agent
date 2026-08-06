@@ -362,5 +362,5 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 ### Archive Scope
 
-- Issue #44 负责 DEC-048、被修订 Decision、Testing Strategy、Product Current Truth、Readiness、Traceability 与本 Session 的一致性归档；实际 PR 在创建后回填。
+- Issue #44 / PR #45 负责 DEC-048、被修订 Decision、Testing Strategy、Product Current Truth、Readiness、Traceability 与本 Session 的一致性归档。
 - 本轮不创建实际 Fixture、不选择测试框架 / Provider、不冻结 API / Schema / 前端技术，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。
