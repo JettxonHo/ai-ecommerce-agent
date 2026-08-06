@@ -1,8 +1,8 @@
 # Xiaohongshu Brief Mapping Adapter — 概念 Specification
 
 > **Status: PRODUCT SEMANTICS ACCEPTED / IMPLEMENTATION CONTRACT CONCEPTUAL**
-> 来源决定：[DEC-031 — Xiaohongshu Brief Mapping Adapter 采用 Brief 锁定、版本化平台政策快照、真实体验边界与方向化输出契约](../../decisions/dec-031-xiaohongshu-brief-mapping-adapter-contract.md)与 [DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md)（均 Accepted）。
-> 本文件的六个产品语义组与不可变正式版本行为已确认；字段名、类型、枚举、Schema、阈值、算法、Prompt、模型仍是概念，不是最终实现契约。
+> 来源决定：[DEC-031 — Xiaohongshu Brief Mapping Adapter 采用 Brief 锁定、版本化平台政策快照、真实体验边界与方向化输出契约](../../decisions/dec-031-xiaohongshu-brief-mapping-adapter-contract.md)、[DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md)与 [DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)（均 Accepted）。
+> 本文件的六个产品语义组、不可变正式版本、语义组差异和“Xiaohongshu Brief 自身编辑不反向失效上游”行为已确认；字段名、类型、枚举、Schema、Diff 算法、阈值、Prompt 与模型仍是概念，不是最终实现契约。
 > Development Status: **NOT READY**。
 
 ---

@@ -1,7 +1,7 @@
 # Human Review and Approved Strategy Contract（概念 Workflow Spec）
 
 > **Status:** PRODUCT SEMANTICS ACCEPTED / IMPLEMENTATION CONTRACT CONCEPTUAL（产品语义已确认；最终 Schema / 字段名 / 数据库表 / API / Review UI / LangGraph Interrupt Payload / 并发实现 / Transaction 实现仍未确认）
-> **来源 Decision：** [DEC-029 — Human Review 采用版本化审核包、结构化用户决策与事务化 Approved Strategy 契约](../../decisions/dec-029-human-review-and-approved-strategy-contract.md) 与 [DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md)（均 Accepted）
+> **来源 Decision：** [DEC-029 — Human Review 采用版本化审核包、结构化用户决策与事务化 Approved Strategy 契约](../../decisions/dec-029-human-review-and-approved-strategy-contract.md)、[DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md) 与 [DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)（均 Accepted）
 > **承接：** DEC-009（阶段失效）/ DEC-012（阶段状态 + 结构化条目）/ DEC-013（任务级持久化与 Resume）/ DEC-020（核心工作流单审核 Gate）/ DEC-023（LangGraph Interrupt / Resume）/ DEC-024（版本化 Domain Objects + Current Truth Pointer + 结构化 ReviewState）/ DEC-025（Proof Point → Fact → Evidence Link → Fragment → Source Version）/ DEC-028（上游 Positioning Candidates）
 > **本文件是 Current Truth Layer 的一部分，但当前仅为概念规格。** 所有字段名 / 枚举 / 概念结构均为**概念示意，非最终数据契约**。
 
@@ -449,6 +449,16 @@ Model Recommendation 被选择比例 / 推荐候选的用户修改量 / 用户�
 
 ---
 
+## §20A Product Interaction Projection（DEC-047）
+
+- Review 条目显示五类结论标记，并从当前条目按需展开 Source Version、真实定位、依据关系、限制和冲突。
+- Review Draft 与正式对象的差异至少按语义组显示修改前后、模型 / 用户来源和相关版本。
+- 明确结构化业务语义修改按重要修改处理；展示性润色不触发上游重跑；歧义自由文本由用户确认一次编辑意图。
+- 陈旧 revision 恢复路径须支持刷新、比较后继续；LLM 不替用户决定编辑影响。
+- 最终 Diff 组件、自动保存频率、传输与并发实现仍未确认。
+
+---
+
 ## §21 Contract Summary
 
 ```text
@@ -486,7 +496,7 @@ Hard Rules:
 
 ## §22 Open Questions（记录而非虚构）
 
-最终 Review / Approved Strategy 公共 Schema、字段名、类型与逐字段必填表达 / Review UI / Draft 自动保存频率 / Patch 或完整 Snapshot 策略 / revision 的传输和数据库并发实现 / 数据库事务实现 / LangGraph Interrupt Payload / API / 审核权限 / 多人协作审核 / 电子签名 / 审批链 / Review Status 最终枚举名 / Review Actions 最终字段 / Hypothesis Decision 最终字段 / Proof Point Decision 最终字段 / Evidence Limitation Decision 最终字段 / Audit Record 最终 Schema / Withdrawal Record 最终 Schema / 具体错误代码 / Golden Dataset 最终数据与阈值。
+最终 Review / Approved Strategy 公共 Schema、字段名、类型与逐字段必填表达 / Review UI 组件与 Diff 算法 / Draft 自动保存频率 / Patch 或完整 Snapshot 策略 / revision 的传输和数据库并发实现 / 数据库事务实现 / LangGraph Interrupt Payload / API / 审核权限 / 多人协作审核 / 电子签名 / 审批链 / Review Status 最终枚举名 / Review Actions 最终字段 / Hypothesis Decision 最终字段 / Proof Point Decision 最终字段 / Evidence Limitation Decision 最终字段 / Audit Record 最终 Schema / Withdrawal Record 最终 Schema / 具体错误代码 / Golden Dataset 最终数据与阈值。
 
 ---
 

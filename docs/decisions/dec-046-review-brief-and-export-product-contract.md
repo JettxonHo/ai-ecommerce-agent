@@ -6,7 +6,9 @@ Product / Review Contract / Output Contract / Versioning / Export
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-047
+
+> **Current amendment:** [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 补充正式对象差异展示、编辑意图和导出前确认交互；本决定的产品语义组、Domain Version、Draft revision 与导出快照内容保持有效。
 
 ## Decision
 
@@ -175,6 +177,10 @@ None.
 - DEC-041：受控单工作区、输入格式和非范围边界保持不变。
 - DEC-044：单任务工作台、失效预览、用户确认后局部重跑和过期审核拒绝保持不变。
 
+## Amended By
+
+- [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)：补充语义组差异、编辑影响与导出前确认交互，不改变版本和快照契约。
+
 ## Decision Boundary
 
 **本决定已经确认：**
@@ -188,6 +194,8 @@ None.
 - 不使用 Hash 或 SHA-256 作为本产品契约要求。
 
 **本决定尚未确认：**
+
+> 以下为本决定接受时的边界；版本差异与导出前确认的产品语义后来由 DEC-047 解决。最终组件、Diff 算法、导出格式和传输实现仍未确认。
 
 - 最终 JSON / OpenAPI / 数据库字段名、类型、枚举和必填表达；
 - API 路径、请求 / 响应结构、错误代码和状态映射；

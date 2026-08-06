@@ -1,11 +1,12 @@
 # PRD（产品需求文档）
 
-> **Status: PARTIAL — 产品定位、复合 Persona / JTBD 假设、行为型成功边界、工作台、输入、冲突、审核 / Brief 产品语义、版本 / revision / 导出行为与确认式局部重跑已确认；最终公共 Schema、详细控件、工作流实现、Fixture 与阈值仍待确认**
+> **Status: PARTIAL — 产品定位、Persona / JTBD 假设、行为型成功边界、工作台、输入、冲突、审核 / Brief / 版本，以及证据、编辑、进度、恢复与导出交互已确认；最终公共 Schema、视觉组件、工作流实现、Fixture 与阈值仍待确认**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
-> 当前已确认：产品设计原则（DEC-001）、首要用户与核心任务（DEC-002 / 003）、平台与输入输出范围（DEC-004～006）、Human Review、证据与失效规则（DEC-007～009）、三维评价框架（DEC-010）、本地演示包络（DEC-041）、产品定位与行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制和冲突分级（DEC-045），以及审核、Brief、版本、revision 与导出产品契约（DEC-046）。
+> 当前已确认：产品设计原则（DEC-001）、首要用户与核心任务（DEC-002 / 003）、平台与输入输出范围（DEC-004～006）、Human Review、证据与失效规则（DEC-007～009）、三维评价框架（DEC-010）、本地演示包络（DEC-041）、产品定位与行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制和冲突分级（DEC-045）、审核 / Brief / 版本 / 导出产品契约（DEC-046），以及证据披露、编辑意图、阶段进度和恢复交互（DEC-047）。
 > **DEC-041 同步：** 首个交付为本地可复现、受控单工作区的引导式任务工作台；输入限结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV，不做 OCR、图片理解、链接抓取或主动联网研究；完整小红书正文、图片 / 视频生成和自动发布均不在首个 Goal。
 > **DEC-044 同步：** 工作台采用阶段导航 + 当前工作区 + 可收起证据 / 上下文面板；最低可运行输入通过后即可启动，真实阻塞进入 Needs Input；变更先展示失效范围，由用户确认后局部重跑，旧 Review Package 不得提交。
 > **DEC-046 同步：** Review Package / Approved Strategy / Marketing Brief / Xiaohongshu Brief 的产品语义组已冻结；正式对象采用不可变 Domain Version，Review Draft 使用单调递增 revision，导出冻结 Current Truth 快照。最终公共字段与实现仍由 RFC-004 / 006 冻结。
+> **DEC-047 同步：** 五类标记从当前条目渐进展开证据；语义组差异和编辑意图决定既有阶段级失效；阶段时间线不使用虚构百分比，错误按恢复动作组织，导出前确认 Current Truth 版本和限制摘要。最终组件、状态、传输与文件格式仍待 Frontend Architecture / RFC。
 > **DEC-045 同步：** 名称 / 临时名称、品类和推广目标用于创建 Task；Fact Stage 还需核心用途、至少一个当前商品来源、至少一个有来源的核心属性且无阻断性身份冲突。默认每任务 20 文件、10 MB / 文件、文本 PDF 100 页、评论 CSV 10,000 行；单文件失败不回滚已接受文件。
 
 ---
@@ -102,7 +103,7 @@
 - **执行层：** 将分析转化为结构化 Brief（内容目标 / 受众 / 核心信息 / 内容角度 / 支撑证据 / 行动引导 / 平台模板映射 / 小红书种草 Brief）。
 - **小红书定位：** 小红书种草 Brief 是执行层的一种**平台映射**（与 DEC-004 一致）；**完整小红书标题与正文暂不属于 MVP 核心交付物**。
 
-> 注：以上为输出**四层主结构、追溯原则与小红书 Brief 映射边界**。DEC-046 已冻结 Review Package / Approved Strategy 的决策导向分组、平台中立 Marketing Brief 与 Xiaohongshu Brief 各六组产品语义；分组内最终公共字段名、类型、逐字段必填表达、外部表示和引用 UI 仍由后续规格与 RFC 冻结。完整小红书正文、图片 / 视频生成与自动发布不进入首个 Goal。
+> 注：以上为输出**四层主结构、追溯原则与小红书 Brief 映射边界**。DEC-046 已冻结 Review Package / Approved Strategy 的决策导向分组、平台中立 Marketing Brief 与 Xiaohongshu Brief 各六组产品语义；DEC-047 已冻结渐进式证据披露和非数字置信度边界。最终公共字段、类型、逐字段必填表达、组件和外部表示仍由后续规格与 RFC 冻结。完整小红书正文、图片 / 视频生成与自动发布不进入首个 Goal。
 
 ### 审核、Brief 与导出产品契约（DEC-046，Accepted，2026-08-06）
 
@@ -117,6 +118,17 @@
 
 这些分组是稳定产品语义，不等于最终 JSON / OpenAPI / 数据库字段。无适用内容时不得为满足结构而制造事实、证据、假设或风险。
 
+### 证据、编辑、进度与恢复交互（DEC-047，Accepted，2026-08-06）
+
+> 来源：[DEC-047](../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)
+
+- **渐进式证据：** 决策相关条目显示五类结论标记和查看依据入口；在当前工作台打开证据卡片或可收起面板，展示来源标签、Source Version、真实可用定位、支持关系、限制与冲突。无可靠定位时不得伪造，不使用未经校准数字置信度或机械覆盖总分。
+- **结构化差异：** 审核和正式 Brief 至少按语义组显示修改前后、模型 / 用户来源和相关版本；最终行内、并排或摘要式组件不在本决定中冻结。
+- **编辑影响：** 明确上游业务语义修改直接视为重要修改；纯错字、标点、格式或同义润色可以标记为展示性润色；歧义自由文本由用户一次确认编辑意图，不由 LLM 分类器作最终 Gate。
+- **阶段进度：** 展示当前 / 已完成 / 待处理阶段、最近更新时间、等待原因和下一步动作，不显示无可靠基础的百分比。
+- **错误与恢复：** 说明原因、受影响阶段、最近有效结果和匹配动作；支持补料继续、恢复、重试当前阶段、失效预览 / 确认重跑、刷新比较陈旧 Draft、取消或返回最后有效结果。失效结果不得恢复为 Current Truth。
+- **导出确认：** 导出前展示将冻结的当前对象版本、必要上游引用、Hypotheses / Limitations / Risks 摘要；失效结果不可作为当前结果导出。
+
 ### MVP 人机协作审核机制（DEC-007，Accepted，2026-07-27）
 
 > 来源：[DEC-007](../decisions/dec-007-single-review-node-and-exception-pauses.md)
@@ -126,7 +138,7 @@
 - **用户最终判断权：** 运营人员保留对商品事实、目标人群、商品定位、卖点优先级、对外传播边界、最终 Brief 的最终判断权；Agent 负责整理 / 提取 / 分析 / 暴露假设 / 建议 / 生成结构化交付物，**不替代**用户最终确认。
 - **未采用方案（保留为备选，非永久禁止）：** 完全自动生成（无审核节点）、每层分别审核确认。
 
-> 注：单一强制 Human Review、异常暂停、用户最终判断权、LangGraph StateGraph、任务级持久化和确认式局部重跑均已确认；该审核节点不可在常规成功路径中跳过。Review Package 是不可变快照；Review Draft 每次成功保存递增 revision，陈旧保存 / 提交被拒绝；Approved Strategy 提交后形成不可变 Domain Version。多人协作不进入受控单工作区首个 Goal；具体 Interrupt / Checkpoint、并发传输机制、审核控件、自动保存频率和版本差异展示仍待 RFC-003 / 004 与 Frontend Architecture。
+> 注：单一强制 Human Review、异常暂停、用户最终判断权、LangGraph StateGraph、任务级持久化和确认式局部重跑均已确认；该审核节点不可在常规成功路径中跳过。Review Package 是不可变快照；Review Draft 每次成功保存递增 revision，陈旧保存 / 提交被拒绝；Approved Strategy 提交后形成不可变 Domain Version。DEC-047 已冻结语义组差异和编辑影响判断；多人协作不进入首个 Goal。具体 Interrupt / Checkpoint、并发传输、自动保存频率和视觉组件仍待 RFC-003 / 004 与 Frontend Architecture。
 
 ### MVP 分级证据与结论可追溯（DEC-008，Accepted，2026-07-27）
 
@@ -142,7 +154,7 @@
 - **修改产生依赖影响：** 用户在审核节点修改事实或关键洞察后，依赖该内容的下游策略与执行 Brief **不应继续被视为有效**。系统展示失效预览，用户确认后从最早受影响阶段局部重跑（DEC-044）。
 - **未采用方案（保留为备选，非永久禁止）：** 只展示最终结论、所有结论强制逐条原文引用。
 
-> 注：五类结论标记、版本化 Source / Fragment / Evidence Link、按需混合 Retrieval、阶段级局部重跑、LangGraph State 与 PostgreSQL Current Truth 边界均已确认；网页抓取与主动联网研究不进入首个 Goal。仍待策划的是引用 UI、是否展示非模型化的证据覆盖信息、最终来源公共 Schema、Retrieval Backend、生产 Checkpointer 和来源处理细节（RFC-003 / 005）。
+> 注：五类结论标记、渐进式证据披露、非数字置信度边界、版本化 Source / Fragment / Evidence Link、按需混合 Retrieval、阶段级局部重跑、LangGraph State 与 PostgreSQL Current Truth 边界均已确认；网页抓取与主动联网研究不进入首个 Goal。最终组件、来源公共 Schema、权限过滤、Retrieval Backend、生产 Checkpointer 和来源处理细节仍待 Frontend Architecture / RFC-003 / 005。
 
 ### MVP 阶段级失效与局部重跑（DEC-009，Accepted，2026-07-27）
 
@@ -154,13 +166,13 @@
   - 修改**洞察层** → 策略 / 执行层失效并重生成（事实层不变）；
   - 修改**策略层** → 执行层失效并重生成（事实 / 洞察不变）；
   - 直接编辑**执行层** Brief → 保存编辑，**默认不触发上游重跑**（视为最终业务调整）。
-- **重要 vs 非重要修改：** 价格 / 核心参数 / 功能 / 目标用户 / 需求 / 卖点优先级 / 定位 / 传播边界等业务修改触发下游失效；错别字 / 标点 / 润色 / 格式等不改变含义的修改可不触发下游失效（具体确定性识别方式未定）。
-- **失效内容：** 不得继续显示为有效、不得进入最终 Brief、不得作为后续生成依据；旧版本按版本化领域状态保留，但历史 / 差异 UI 仍待冻结。
+- **重要 vs 非重要修改：** 明确改变 Fact / Insight / Approved Strategy 等结构化业务语义的修改直接触发既有下游失效；纯错字 / 标点 / 格式 / 同义润色可标记为展示性润色；歧义自由文本由用户确认一次编辑意图。LLM 不作为影响判断的最终 Gate。
+- **失效内容：** 不得继续显示为有效、不得进入最终 Brief、不得作为后续生成依据；旧版本按版本化领域状态保留，并至少按语义组展示修改前后、修改来源与相关版本。
 - **确认式局部重跑（DEC-044）：** 变更保存后先展示变更来源、将失效 / 保留的阶段与建议重跑起点；用户确认后才启动新的局部生成。取消或暂不确认不恢复旧下游结果的有效性。
 - **重跑后复核：** 重跑内容须由用户重新查看；若影响 Human Review 输入，则旧 Package 标记 `superseded`、旧提交被拒绝，并创建新 Package 进入同一审核 Gate。
 - **未采用方案（保留为备选，非永久禁止）：** 全量重跑、只改直接字段不更新下游；字段级依赖图暂缓到后续版本。
 
-> 注：阶段级失效、用户确认后局部重跑、过期审核拒绝、LangGraph StateGraph、PostgreSQL Current Truth 与一个统一用户侧 Agent 均已确认；字段级依赖图不进入首个 Goal。仍待策划的是生产 Checkpointer / Interrupt 对账、重要修改识别、版本历史 / 差异呈现、公共 API 状态映射和具体节点实现（RFC-003 / 004 / Frontend Architecture）。
+> 注：阶段级失效、编辑影响识别、语义组差异、用户确认后局部重跑、过期审核拒绝、LangGraph StateGraph、PostgreSQL Current Truth 与一个统一用户侧 Agent 均已确认；字段级依赖图不进入首个 Goal。生产 Checkpointer / Interrupt 对账、Diff 算法、公共 API 状态映射和具体节点实现仍待 RFC-003 / 004 / Frontend Architecture。
 
 ### MVP 三维评价框架（DEC-010，Accepted，2026-07-27）
 
@@ -190,7 +202,7 @@
 ## 当前状态
 
 - 项目处于 **Pre-development Planning（正式开发前策划）阶段**；业务实现与长期 Goal 均未启动。
-- 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、两级输入门禁、确认式局部重跑、审核 / Brief 产品语义、版本 / revision / 导出行为、三维评价和行为型演示成功边界（DEC-001～010 / DEC-041 / DEC-042 / DEC-044～046）；最终公共字段、详细控件 / 引用 UI、工作流与数据实现、Fixture 与阈值仍待确认。
+- 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、输入门禁、确认式局部重跑、审核 / Brief 产品语义、版本 / revision / 导出行为，以及证据 / 编辑 / 进度 / 恢复 / 导出确认交互（DEC-001～010 / DEC-041 / DEC-042 / DEC-044～047）；最终公共字段、视觉组件、工作流与数据实现、Fixture 与阈值仍待确认。
 - 其余具体内容，必须等到对应 Proposed Decision 被用户明确接受并记为 Accepted Decision（见 [../decisions/](../decisions/)）后，才能写入。
 
 ---
@@ -205,10 +217,10 @@
 - 功能范围（与 [mvp-scope.md](mvp-scope.md) 保持一致）—— **核心任务 + 平台范围 + 输入分层 + 四层输出主结构已确认**；具体 In / Out of Scope 见 [mvp-scope.md](mvp-scope.md)
 - 平台范围 —— **已确认**（DEC-004）；模板字段与适配层技术待确认
 - 输入设计 —— **分层原则、允许格式、Task / Fact Stage 最低门禁、默认文件限制、分级冲突与 Needs Input 交互语言已确认**（DEC-005 / 041 / 044 / 045）；公共字段类型、补充问题与状态映射待确认
-- 输出设计 —— **四层主结构 + Review / Approved Strategy / Marketing Brief / Xiaohongshu Brief 产品语义组 + 不可变版本与导出快照已确认**（DEC-006 / 046）；最终公共字段、输出格式、引用 UI 与置信度表达待确认
-- 人机协作 —— **单一关键审核节点 + 异常暂停 + 用户最终判断权 + 过期 Package / revision 拒绝已确认**（DEC-007 / 029 / 044 / 046）；审核控件、自动保存频率、并发实现与工作流技术实现待确认
-- 输出可靠性 —— **五类结论标记、可追溯、版本化 Source / Evidence 与按需混合 Retrieval 概念边界已确认**；引用 UI、证据覆盖呈现、最终公共 Schema、Retrieval Backend 与索引方案待确认
-- 失效与重跑 —— **阶段级失效 + 失效预览 + 用户确认后局部重跑 + 受影响内容重新审核已确认**；字段级依赖图不进入首个 Goal；生产 Checkpointer、重要修改识别、公共状态映射与版本差异 UI 待确认
+- 输出设计 —— **四层主结构 + Review / Approved Strategy / Marketing Brief / Xiaohongshu Brief 产品语义组 + 不可变版本、导出快照与导出确认已确认**（DEC-006 / 046 / 047）；最终公共字段、输出 / 文件格式与视觉组件待确认
+- 人机协作 —— **单一关键审核节点 + 异常暂停 + 用户最终判断权 + 过期 Package / revision 拒绝 + 行动导向恢复已确认**（DEC-007 / 029 / 044 / 046 / 047）；自动保存频率、并发实现与工作流技术实现待确认
+- 输出可靠性 —— **五类结论标记、渐进式证据、非数字置信度、可追溯、版本化 Source / Evidence 与按需混合 Retrieval 已确认**；最终组件、公共 Schema、Retrieval Backend 与索引方案待确认
+- 失效与重跑 —— **阶段级失效 + 编辑意图 + 语义组差异 + 失效预览 + 用户确认后局部重跑已确认**；字段级依赖图不进入首个 Goal；生产 Checkpointer、Diff 算法和公共状态映射待确认
 - 评价框架 —— **三维评价 + 六项优先指标已确认**（DEC-010）；指标公式 / 阈值 / 测试集 / 人数 / 埋点 / Dashboard 待确认
 - 非目标 —— 见 [mvp-scope.md](mvp-scope.md)「Out of Scope」
 - 关键体验与流程（与 [user-flows.md](user-flows.md) 保持一致）—— **高层流程已确认**（DEC-003 / 004 / 005）；具体步骤待 [user-flows.md](user-flows.md)
@@ -224,10 +236,10 @@
 - 要解决的核心业务问题：**已确认**（DEC-003）。
 - 平台范围：**已确认**（DEC-004）；小红书模板字段与适配层技术实现待确认。
 - 输入设计：**分层原则、首个演示允许格式、Task / Fact Stage 最低门禁、默认文件限制、分级冲突与 Needs Input 交互语言已确认**（DEC-005 / DEC-041 / DEC-044 / DEC-045）；公共字段类型、长期知识库 / 向量索引、具体补充问题与状态 / 错误映射待确认。
-- 通用营销 Brief 的输出结构：**四层主结构与 Review / Approved Strategy / Marketing Brief / Xiaohongshu Brief 产品语义组已确认**（DEC-006 / DEC-046）；最终公共 Schema、输出格式、引用形式与置信度表达仍待确认。
-- 人机协作 / 审核节点：**单一关键审核、异常暂停、用户最终判断权、不可变 Review Package、Draft revision 与陈旧提交拒绝已确认**（DEC-007 / DEC-029 / DEC-044 / DEC-046）；审核控件、自动保存频率、并发实现、具体异常规则与工作流技术实现仍待确认。
-- 输出可靠性 / 可追溯：**五类结论标记、可追溯、版本化 Source / Evidence 与按需混合 Retrieval 概念边界已确认**；引用 UI、证据覆盖呈现、最终公共 Schema、Retrieval Backend 与索引方案仍待确认。
-- 失效与局部重跑：**阶段级失效、影响预览、用户确认后局部重跑、过期审核拒绝与 LangGraph StateGraph 已确认**；生产 Checkpointer、重要 / 非重要修改识别、公共状态映射和版本差异 UI 待确认，字段级依赖图不进入首个 Goal。
+- 通用营销 Brief 的输出结构：**四层主结构、四类审核 / Brief 产品语义组、渐进式证据、不可变版本与导出确认已确认**（DEC-006 / DEC-046 / DEC-047）；最终公共 Schema、输出 / 文件格式和视觉组件仍待确认。
+- 人机协作 / 审核节点：**单一关键审核、异常暂停、用户最终判断权、不可变 Review Package、Draft revision、陈旧提交拒绝和行动导向恢复已确认**（DEC-007 / DEC-029 / DEC-044 / DEC-046 / DEC-047）；自动保存频率、并发实现、具体异常规则和工作流技术实现仍待确认。
+- 输出可靠性 / 可追溯：**五类结论标记、渐进式证据、非数字置信度、版本化 Source / Evidence 与按需混合 Retrieval 已确认**；最终组件、公共 Schema、Retrieval Backend 与索引方案仍待确认。
+- 失效与局部重跑：**阶段级失效、编辑意图、语义组差异、影响预览、用户确认后局部重跑和过期审核拒绝已确认**；生产 Checkpointer、Diff 算法和公共状态映射待确认，字段级依赖图不进入首个 Goal。
 - 完整小红书标题 / 正文、图片 / 视频生成与自动发布：**不进入首个 Goal**（DEC-041）。
 - 产品价值与评估指标（Question-003）：**框架层已确认**（DEC-010：三维评价 + 六项优先指标，不以流畅度 / 销量为唯一标准）；指标公式 / 阈值 / 测试集 / 人数 / 埋点 / Dashboard 待确认。
 - Agent、Retrieval / Evidence、Skill 的职责边界：**概念层已确认**（DEC-020～033）；生产 Runtime 与具体 Provider / Backend 仍待 RFC-003～007。

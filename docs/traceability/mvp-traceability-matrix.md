@@ -36,6 +36,7 @@
 | Single-task workbench, two-level input gate, Needs Input and confirmed partial rerun | DEC-044 | [User Flows](../product/user-flows.md) | — | DEC-044 + Issue #36 | RFC-003, RFC-004, RFC-005 | _(placeholder)_ | Browser E2E + state / stale-review contract tests _(planned)_ |
 | Task / Fact Stage minimum gates, demo file limits and classified conflict handling | DEC-045 | [PRD](../product/prd.md) | — | DEC-045 + Issue #38 / PR #39 | RFC-003, RFC-004, RFC-005 | _(placeholder)_ | Input contract + partial file acceptance + conflict behavior tests _(planned)_ |
 | Review / Brief semantic groups, immutable domain versions, draft revision and export snapshot | DEC-046 | [PRD](../product/prd.md) | — | DEC-046 + Issue #40 / PR #41 | RFC-004, RFC-006 | _(placeholder)_ | Semantic contract + stale-revision + export snapshot tests _(planned)_ |
+| Progressive evidence, edit intent, stage progress, actionable recovery and export confirmation | DEC-047 | [User Flows](../product/user-flows.md) | — | DEC-047 + Issue #42 | RFC-003, RFC-004, RFC-005, RFC-007 | _(placeholder)_ | Browser evidence / edit / recovery / export interaction E2E _(planned)_ |
 | RFC Planning and Dependency Order | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
@@ -70,9 +71,9 @@
 | Versioned Domain State + Compact State | DEC-024 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-01, spike-06 | test_transaction_idempotency | RFC-002 | _(placeholder)_ | _(placeholder)_ |
 | 三类存储分离；Checkpoint≠Current Truth | DEC-024, DEC-033 | [Runtime Failure / Recovery](../specs/runtime/workflow-runtime-failure-recovery-retry-and-observability.md) | spike-01, spike-08 | test_skeleton::test_three_stores_are_separate | RFC-002, RFC-003 | _(placeholder)_ | _(placeholder)_ |
 | 原子提交 + 幂等 + 回滚 | DEC-029, DEC-033 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | spike-04, spike-06, Recovery | test_transaction_idempotency::spike04 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
-| 阶段级失效、影响预览与确认式部分重跑 | DEC-009, DEC-044 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-05 | test_review_safety::spike05（pos_count==1） | RFC-002, RFC-003, RFC-004 | _(placeholder)_ | Invalidation preview + user confirmation + affected-stage rerun _(planned)_ |
+| 阶段级失效、编辑意图、语义组差异、影响预览与确认式部分重跑 | DEC-009, DEC-044, DEC-047 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-05 | test_review_safety::spike05（pos_count==1）+ DEC-047 | RFC-002, RFC-003, RFC-004 | _(placeholder)_ | Material / presentation edit + invalidation preview + affected-stage rerun _(planned)_ |
 | 不可变正式对象 + Review Draft revision | DEC-024, DEC-029, DEC-046 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | — | DEC-046 | RFC-002, RFC-004 | _(placeholder)_ | Immutable versions + stale revision save/submit _(planned)_ |
-| Current Truth 导出快照 | DEC-046 | [PRD](../product/prd.md) | — | DEC-046 | RFC-004 | _(placeholder)_ | Export object/upstream/limitation snapshot consistency _(planned)_ |
+| Current Truth 导出快照与导出前确认 | DEC-046, DEC-047 | [PRD](../product/prd.md) | — | DEC-046 / DEC-047 | RFC-004 | _(placeholder)_ | Export current-version confirmation + snapshot consistency _(planned)_ |
 
 ### C. Human Review 与 Approved Strategy
 
@@ -82,6 +83,7 @@
 | No Stale Review Package Submission | DEC-029 | 同上 | spike-07 | test_review_safety::spike07（StaleReviewError） | RFC-004 | _(placeholder)_ | _(placeholder)_ |
 | Duplicate Submit 幂等 | DEC-029 | 同上 | spike-06 | test_review_safety::spike06 | RFC-002, RFC-004 | _(placeholder)_ | _(placeholder)_ |
 | Review Package / Approved Strategy 产品语义组 | DEC-029, DEC-046 | 同上 | — | DEC-046 | RFC-004 | _(placeholder)_ | Semantic groups + no fabricated empty-group content _(planned)_ |
+| Review semantic-group diff + edit-intent confirmation + stale draft recovery | DEC-047 | 同上 | — | DEC-047 | RFC-004 | _(placeholder)_ | Model/user diff + ambiguous edit intent + refresh/compare recovery _(planned)_ |
 
 ### D. 检索与证据
 
@@ -89,7 +91,7 @@
 |---|---|---|---|---|---|---|---|
 | On-demand Hybrid RAG + 分层数据访问 | DEC-014, DEC-032 | [Hybrid Retrieval](../specs/runtime/hybrid-retrieval-and-evidence-runtime.md) | spike-09 | test_failure_recovery::spike09（degraded 不伪造） | RFC-005 | _(placeholder)_ | _(placeholder)_ |
 | Versioned Sources / Fragments / Evidence Links | DEC-025 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | spike-01 | commit.py evidence_links + business_audit | RFC-005 | _(placeholder)_ | _(placeholder)_ |
-| 分层证据 + 可追溯结论 | DEC-008 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | — | runtime-evidence.md | RFC-005 | _(placeholder)_ | _(placeholder)_ |
+| 分层证据 + 可追溯结论 + 渐进式证据披露 | DEC-008, DEC-047 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | — | runtime-evidence.md + DEC-047 | RFC-004, RFC-005 | _(placeholder)_ | Five-class badge + truthful locator + no fabricated confidence _(planned)_ |
 
 ### E. 运行时可靠性（失败/恢复/重试/可观测）
 
@@ -99,6 +101,7 @@
 | Invalid Structured Output 不重试 | DEC-033 | 同上 | spike-03 | test_failure_recovery::spike03 | RFC-006, RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | 取消无部分写入 | DEC-033 | 同上 | spike-10 | test_failure_recovery::spike10 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
 | Manual Recovery 不重复 | DEC-033 | 同上 | Recovery Case | test_failure_recovery::recovery_case | RFC-002 | _(placeholder)_ | _(placeholder)_ |
+| 阶段时间线 + 行动导向错误与恢复 | DEC-033, DEC-047 | 同上 | — | DEC-047 | RFC-003, RFC-004, RFC-007 | _(placeholder)_ | No fake percentage + state-appropriate recovery actions _(planned)_ |
 | 运行身份分层 + Trace 关联 | DEC-033 | 同上 | Trace Correlation | test_observability::correlation | RFC-007 | _(placeholder)_ | _(placeholder)_ |
 
 ### F. 核心 Skill 契约（生产实现待 RFC）
@@ -108,7 +111,7 @@
 | Product Intake & Fact Extraction Skill | DEC-026 | [Product Intake](../specs/skills/product-intake-and-fact-extraction-skill.md) | spike-01（骨架） | graph.py extract_facts（临时） | RFC-006 | _(placeholder)_ | _(placeholder)_ |
 | Customer Insight Analysis Skill | DEC-027 | [Customer Insight](../specs/skills/customer-insight-analysis-skill.md) | spike-01（骨架） | graph.py analyze_insights（临时） | RFC-005, RFC-006 | _(placeholder)_ | _(placeholder)_ |
 | Product Positioning Skill | DEC-028 | [Product Positioning](../specs/skills/product-positioning-skill.md) | spike-01（骨架） | graph.py generate_positioning（临时） | RFC-006 | _(placeholder)_ | _(placeholder)_ |
-| Marketing Brief Generation Skill + 六组产品语义 | DEC-030, DEC-046 | [Marketing Brief](../specs/skills/marketing-brief-generation-skill.md) | spike-01（骨架） | graph.py generate_marketing_brief（临时）+ DEC-046 | RFC-004, RFC-006 | _(placeholder)_ | Six-group contract + strategy-lock versioning _(planned)_ |
+| Marketing Brief Generation Skill + 六组产品语义 + 下游失效 | DEC-030, DEC-046, DEC-047 | [Marketing Brief](../specs/skills/marketing-brief-generation-skill.md) | spike-01（骨架） | graph.py generate_marketing_brief（临时）+ DEC-046 / 047 | RFC-004, RFC-006 | _(placeholder)_ | Six-group contract + strategy-lock versioning + XHS invalidation _(planned)_ |
 | 四层结构化 Marketing Brief | DEC-006 | [Marketing Brief](../specs/skills/marketing-brief-generation-skill.md) | — | DEC-006 | RFC-006 | _(placeholder)_ | _(placeholder)_ |
 
 ### G. 平台 Adapter
@@ -116,7 +119,7 @@
 | Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
 |---|---|---|---|---|---|---|---|
 | 平台中立核心 + Xiaohongshu Demo | DEC-004 | [Integration Boundaries](../architecture/integration-boundaries.md) | — | DEC-004 | RFC-004 | _(placeholder)_ | _(placeholder)_ |
-| Xiaohongshu Brief Mapping Adapter + 六组产品语义 | DEC-031, DEC-046 | [Xiaohongshu Adapter](../specs/adapters/xiaohongshu-brief-mapping-adapter.md) | — | DEC-031 spec + DEC-046 | RFC-004, RFC-006 | _(placeholder)_ | Six-group mapping + brief-lock versioning _(planned)_ |
+| Xiaohongshu Brief Mapping Adapter + 六组产品语义 + 自身编辑边界 | DEC-031, DEC-046, DEC-047 | [Xiaohongshu Adapter](../specs/adapters/xiaohongshu-brief-mapping-adapter.md) | — | DEC-031 spec + DEC-046 / 047 | RFC-004, RFC-006 | _(placeholder)_ | Six-group mapping + brief-lock versioning + no upstream invalidation _(planned)_ |
 
 ---
 
