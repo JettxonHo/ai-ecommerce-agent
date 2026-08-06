@@ -66,4 +66,4 @@
 
 ## 索引
 
-见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 [DEC-046](dec-046-review-brief-and-export-product-contract.md)；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。
+见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。

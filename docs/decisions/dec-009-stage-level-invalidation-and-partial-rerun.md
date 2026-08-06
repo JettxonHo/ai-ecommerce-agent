@@ -6,9 +6,9 @@ Product
 
 ## Status
 
-Accepted — Amended by DEC-044
+Accepted — Amended by DEC-044 / DEC-047
 
-> **Current amendment:** [DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) 保留本决定的阶段级失效范围，并确认“展示失效预览 → 用户确认 → 局部重跑 → 受影响内容重新审核”的产品交互。以下原文保留为 2026-07-27 的历史决定。
+> **Current amendments:** [DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) 保留本决定的阶段级失效范围，并确认“展示失效预览 → 用户确认 → 局部重跑 → 受影响内容重新审核”；[DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 冻结重要 / 非重要修改的产品识别方式与语义组差异。以下原文保留为 2026-07-27 的历史决定。
 
 ## Decision
 
@@ -208,7 +208,8 @@ None
 
 ## Amended By
 
-[DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)
+- [DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)
+- [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)
 
 ## Decision Boundary
 
@@ -224,7 +225,7 @@ None
 
 **本决定尚未确认：**
 
-> 以下为本决定接受时的边界；“自动或手动重跑”与“再次审核”后来由 DEC-044 解决为失效预览、用户确认后局部重跑，以及审核输入变化时创建新 Review Package。其余项目仍未确认。
+> 以下为本决定接受时的边界；“自动或手动重跑”与“再次审核”后来由 DEC-044 解决，重要修改识别与修改前后差异后来由 DEC-047 解决。其余项目仍未确认。
 
 - 是否采用 LangGraph；
 - 工作流节点的具体划分；

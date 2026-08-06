@@ -6,7 +6,9 @@ Product
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-047
+
+> **Current amendment:** [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 冻结五类标记的渐进式证据展示、真实可用定位和非数字置信度边界；本决定以下原文保留为 2026-07-27 的可靠性原则记录。
 
 ## Decision
 
@@ -239,6 +241,10 @@ None
 
 None
 
+## Amended By
+
+[DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)
+
 ## Decision Boundary
 
 **本决定已经确认：**
@@ -253,6 +259,8 @@ None
 - 不得伪造来源。
 
 **本决定尚未确认：**
+
+> 以下为本决定接受时的边界；引用交互和置信度产品表达后来由 DEC-047 解决为上下文入口、证据卡片 / 可收起面板，以及不使用未经校准数字置信度。公共来源结构、权限与技术实现仍未确认。
 
 - 引用的具体 UI；
 - 是否显示置信度数值；

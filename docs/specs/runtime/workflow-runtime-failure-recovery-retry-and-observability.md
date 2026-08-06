@@ -1,7 +1,7 @@
 # Workflow Runtime Failure Recovery, Retry and Observability — 概念 Specification
 
 > **Status: CONCEPTUAL（概念）**
-> 来源决定：[DEC-033 — Workflow Runtime 采用分层运行记录、分类故障处置、有界重试、安全恢复、事务幂等与端到端可观测性契约](../../decisions/dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)（Accepted，Runtime Architecture / Reliability Architecture / Observability Architecture，2026-07-29）。Amends DEC-023 / DEC-024 / DEC-029。
+> 来源决定：[DEC-033 — Workflow Runtime 采用分层运行记录、分类故障处置、有界重试、安全恢复、事务幂等与端到端可观测性契约](../../decisions/dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md) 与 [DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)（均 Accepted；DEC-047 只冻结产品投影，不改变 DEC-033 Runtime 边界）。
 > 本文件是 DEC-033 的**概念结构化记录**，**不是最终实现契约**。所有字段名、枚举、Schema、阈值、算法、Provider、技术选型均未确认。
 > Development Status: **NOT READY**。
 
@@ -507,7 +507,13 @@ Trace 须能回答：哪步最慢 / 哪步重试 / 哪个模型调用失败 / �
 
 ## §39 User-visible Error Experience
 
-用户不应只看到 `Something went wrong`。推荐结构：`What happened` / `Whether current data is safe` / `Whether automatic retry occurred` / `Whether fallback was used` / `What the user needs to do` / `Whether the workflow can continue`。不得暴露内部异常堆栈、连接信息或敏感 Provider 请求。
+用户不应只看到 `Something went wrong`。依据 DEC-047，产品至少显示：发生了什么 / 受影响阶段 / 最近有效业务结果是否仍可用 / 用户下一步动作。按情形提供补充资料后继续、恢复未完成运行、重试当前阶段、失效预览与确认重跑、刷新比较陈旧 Draft、取消或返回最后有效结果。不得把失效或部分提交结果标成 Current Truth，也不得暴露内部异常堆栈、连接信息、Secret 或敏感 Provider 请求。
+
+技术详情可以按需显示错误类别和关联标识。最终错误代码、状态映射和关联标识格式仍待 RFC-004 / RFC-007。
+
+### §39.1 User-visible Progress Projection
+
+产品使用阶段时间线显示当前、已完成和待处理阶段、最近更新时间、等待原因与下一项动作，不显示无可靠计算基础的百分比。以上为 Interaction State 投影，不是最终 API 状态枚举；轮询、SSE、WebSocket 或其他进度传输由 Frontend Architecture / RFC-003 / RFC-004 冻结。
 
 ---
 

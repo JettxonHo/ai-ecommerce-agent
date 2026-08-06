@@ -1,7 +1,7 @@
 # Workflow State Specification（工作流状态规格 — 概念）
 
 > **Status: CONCEPTUAL — 仅记录概念 Schema、状态、版本与边界。**
-> **本文件是 Current Truth Layer 的一部分。** 其内容只能来自用户明确接受的 Decision（来源：[DEC-024](../../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)；Review Draft revision、正式输出不可变版本与导出快照行为由 [DEC-046](../../decisions/dec-046-review-brief-and-export-product-contract.md) 修订）。
+> **本文件是 Current Truth Layer 的一部分。** 其内容只能来自用户明确接受的 Decision（来源：[DEC-024](../../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)；Review Draft revision、正式输出不可变版本与导出快照行为由 [DEC-046](../../decisions/dec-046-review-brief-and-export-product-contract.md) 修订；证据详情、编辑意图、阶段进度、恢复动作与导出确认的 Interaction State 投影由 [DEC-047](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 修订）。
 > 本文件**不**包含：最终数据库 Schema、Migration、LangGraph State Python 代码、Pydantic Models、TypedDict、Reducer、Checkpointer、API、正式业务 Graph。所有结构名为**概念示意，非最终数据契约 / 最终实现**。
 
 ---

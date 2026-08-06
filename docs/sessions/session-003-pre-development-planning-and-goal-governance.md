@@ -6,7 +6,7 @@
 - Date: 2026-08-06
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-046
+- Related Decisions: DEC-039～DEC-047
 
 ## Context
 
@@ -99,6 +99,7 @@
 - [DEC-044](../decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) — 采用单任务工作台、两级输入门禁与确认式局部重跑（用户于 2026-08-06 接受 P-04A / P-05A / P-06A；Amends DEC-005 / 009 / 041）。
 - [DEC-045](../decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md) — 冻结最小输入、演示文件限制与分级冲突处理（用户于 2026-08-06 接受 P-07A / P-08A / P-09A；Amends DEC-005 / DEC-044，不改变 DEC-026）。
 - [DEC-046](../decisions/dec-046-review-brief-and-export-product-contract.md) — 冻结审核、Brief、版本、revision 与导出的产品契约（用户于 2026-08-06 接受 P-10A / P-11A / P-12A；Amends DEC-006 / 024 / 029 / 030 / 031）。
+- [DEC-047](../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) — 采用渐进式证据披露、结构化编辑意图与行动导向恢复交互（用户于 2026-08-06 接受 P-13A / P-14A / P-15A；Amends DEC-007 / 008 / 009 / 044 / 046）。
 
 ## Rejected Approaches
 
@@ -109,8 +110,8 @@
 
 ## Open Questions
 
-- 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；任务工作台信息架构、输入门禁和重跑触发已由 DEC-044 解决；审核 / Brief 产品语义和版本 / revision / 导出行为已由 DEC-046 解决；最终公共 Schema、详细控件、Fixture 与必要阈值仍开放。
-- Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、引用 / 差异 UI 与导出格式。
+- 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决。最终公共 Schema、视觉组件、Fixture 与必要阈值仍开放。
+- Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、Diff 算法、状态 / 错误映射与导出文件格式。
 - RFC-003 至 RFC-007 与 Frontend Architecture 的具体技术选择。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
 - Luna 不可用时的路由已由 DEC-043 解决为 Terra 显式回退或外部 Luna 任务包；每个实际 Issue 仍需记录所用模型与独立 Reviewer。
@@ -269,6 +270,8 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 ### Remaining Boundaries
 
+> 以下为 DEC-046 归档当时的开放边界；其中引用、差异、编辑影响、进度、错误、恢复与导出确认后来由 DEC-047 部分解决。最终实现项继续开放。
+
 - 产品语义组和版本行为已确认；最终 JSON / OpenAPI / 数据库字段、类型、枚举、逐字段必填表达和错误代码仍待 RFC-004 / 006。
 - Draft 自动保存频率、Patch / Snapshot 存储、revision 传输与数据库并发机制、版本差异 UI、导出文件格式和下载交互仍待 Frontend Architecture / RFC-004。
 - 引用卡片、证据覆盖、编辑粒度、进度 / 错误 / 恢复的详细交互仍待后续产品 Decision Gate。
@@ -277,3 +280,42 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - Issue #40 / PR #41 负责 DEC-046、被修订 Decision、Product Current Truth、Readiness、Traceability 与本 Session 的一致性归档。
 - 本轮不冻结公共 Schema、前端框架、API 路径、数据库表、Prompt 或 Provider，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。
+
+## Decision Round — Evidence, Editing, Progress and Recovery Interactions（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-13A`：在当前任务上下文中使用五类标记、证据卡片或可收起面板渐进展示依据；不要求每句话密集引用，不显示未经校准数字置信度。
+- 用户明确接受 `P-14A`：审核与正式 Brief 使用结构化语义组编辑和差异；明确业务修改按既有阶段级规则失效，展示性润色不触发上游重跑，歧义自由文本由用户确认一次编辑意图。
+- 用户明确接受 `P-15A`：长任务使用阶段时间线、最近更新时间、等待原因和下一步动作；错误按业务恢复动作组织；导出前确认当前对象版本和限制摘要。
+
+### Domain Clarification
+
+- Evidence Detail 展示 Source Label、Source Version、真实可用定位、支持关系、Evidence Limitation 与 Conflict；没有可靠页码、CSV 行或文本段落时不得伪造定位。
+- 直接证据可显示短摘录，综合 Insight / Strategy 可显示忠实摘要和主要依据关系；证据覆盖总分或 Rubric 不作自动接受器。
+- 语义组差异至少表达修改前后、模型 / 用户来源和对象版本；最终使用行内、并排或摘要式组件仍待 Frontend Architecture。
+- Marketing Brief 业务编辑创建新版本并使当前 Xiaohongshu Brief 失效；Xiaohongshu Brief 自身编辑不反向使 Approved Strategy 或 Marketing Brief 失效。
+- LLM 可以解释差异，但不作为重要 / 非重要修改的最终分类 Gate；MVP 不建设字段级依赖图。
+- 阶段进度是产品交互语义，不冻结 API / 数据库状态；轮询、SSE、WebSocket 或其他传输方式仍待 Frontend Architecture / RFC。
+- 返回最后有效结果不改变对象有效性；失效或部分提交结果不得恢复为 Current Truth 或作为当前结果导出。
+
+### Alternatives and Trade-offs
+
+- 所有结论密集内联引用可见性高，但界面拥挤并容易把综合判断机械化为逐句引用；未采用。
+- 独立证据页面实现表面简单，但会切断结论与当前审核上下文；不作为主要交互。
+- 由模型自动判断编辑影响可减少一次确认，但不可预测且难形成确定性测试；不作为最终 Gate。
+- 所有编辑一律触发失效规则最简单，却会让错别字与格式调整产生无意义重跑；未采用。
+- 技术日志和百分比主导包含更多内部信息，但目标用户不应理解 Runtime，且无可靠计算基础的百分比会误导；未采用。
+- 仅用 Spinner / Toast 成本最低，但不能支撑长任务、Needs Input、Review、恢复与重跑；未采用。
+
+### Remaining Boundaries
+
+- 最终组件、布局、视觉样式、Diff 算法、逐字段编辑控件和自动保存频率。
+- 最终 Source / Locator / Evidence、进度、状态、错误与恢复公共 Schema；轮询 / SSE / WebSocket 等传输方式。
+- 导出文件格式、模板、下载协议与视觉布局。
+- 代表性 Fixture、必要阈值和最终浏览器 E2E 步骤。
+
+### Archive Scope
+
+- Issue #42 / PR #43 负责 DEC-047、被修订 Decision、Product Current Truth、相关概念规格、Readiness、Traceability 与本 Session 的一致性归档。
+- 本轮不冻结公共 Schema、前端框架、API 路径、数据库表、传输协议、Diff 算法、导出格式、Prompt 或 Provider，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。

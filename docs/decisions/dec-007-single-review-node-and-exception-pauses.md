@@ -6,7 +6,9 @@ Product
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-047
+
+> **Current amendment:** [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 冻结异常暂停后的用户可见原因、业务影响和行动导向恢复交互；本决定以下原文保留为 2026-07-27 的原则层历史记录。
 
 ## Decision
 
@@ -157,6 +159,10 @@ None
 
 None
 
+## Amended By
+
+[DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)
+
 ## Decision Boundary
 
 **本决定已经确认：**
@@ -169,6 +175,8 @@ None
 - 用户保留最终业务判断权。
 
 **本决定尚未确认：**
+
+> 以下为本决定接受时的边界；审核产品语义后来由 DEC-029 / DEC-046 细化，异常暂停后的进度、错误与恢复交互由 DEC-047 解决。其余技术实现仍未确认。
 
 - 是否采用 LangGraph；
 - 是否使用 LangGraph Interrupt；

@@ -6,9 +6,9 @@ Product / Interaction / Input Gate / Versioning / Rerun
 
 ## Status
 
-Accepted — Amended by DEC-045
+Accepted — Amended by DEC-045 / DEC-047
 
-> **Current amendment:** [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md) 冻结 Task 创建门禁、Fact Stage 最低条件、演示默认文件限制与分级冲突处理。以下两级门禁原文保留为本决定的原则层记录。
+> **Current amendments:** [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md) 冻结 Task 创建门禁、Fact Stage 最低条件、演示默认文件限制与分级冲突处理；[DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 具体化渐进式证据、编辑影响、阶段进度和行动导向恢复。以下原文保留为本决定的原则层记录。
 
 ## Decision
 
@@ -125,6 +125,7 @@ None.
 ## Amended By
 
 - [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md)：补全 Task / Fact Stage 门禁、默认文件限制与分级冲突行为。
+- [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)：补全证据披露、修改影响识别、进度、错误、恢复与导出确认交互。
 
 ## Notes
 

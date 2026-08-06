@@ -1,8 +1,8 @@
 # Source and Evidence Specification（来源与证据规格 — 概念）
 
 > **Status: CONCEPTUAL — 仅记录概念 Schema、来源类型、状态、Evidence 关系与边界。**
-> **本文件是 Current Truth Layer 的一部分。** 其内容只能来自用户明确接受的 Decision（来源：[DEC-025](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)）。
-> 本文件**不**包含：最终数据库表、Parser 代码、OCR、RAG 代码、Embedding、Vector Store、Web Scraper、Review Importer、Evidence UI、正式 API。所有结构名为**概念示意，非最终数据契约 / 最终实现**。
+> **本文件是 Current Truth Layer 的一部分。** 其数据结构内容来自 [DEC-025](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)，产品展示投影来自 [DEC-047](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)（均 Accepted）。
+> 本文件**不**包含：最终数据库表、Parser 代码、OCR、RAG 代码、Embedding、Vector Store、Web Scraper、Review Importer、最终 Evidence UI、正式 API。所有结构名为**概念示意，非最终数据契约 / 最终实现**。
 
 ---
 
@@ -577,7 +577,18 @@ New Source Version
 
 ---
 
-## 26. 明确不包含（Out of Scope）
+## 26. Product Presentation Projection（DEC-047）
+
+- 决策相关条目显示五类结论类型，并从当前条目打开证据卡片或可收起面板。
+- 展示 Source Label、Source Version、真实可用 Locator、支持关系、Evidence Limitation 与 Conflict；无可靠定位时不得伪造。
+- 直接证据可显示短摘录，综合判断可显示忠实摘要和主要依据，不强制逐句引用。
+- 不显示未经校准数字置信度或机械证据覆盖总分。
+
+本节只定义业务数据向用户交互的投影要求；最终组件、Locator Schema、权限映射与 Evidence API 仍待 Frontend Architecture / RFC-004 / RFC-005。
+
+---
+
+## 27. 明确不包含（Out of Scope）
 
 本规格**不**包含以下内容（来源：DEC-025 归档要求）：
 
@@ -589,7 +600,7 @@ New Source Version
 - Vector Store；
 - Web Scraper；
 - Review Importer；
-- Evidence UI；
+- 最终 Evidence UI 组件与视觉布局；
 - 正式 API。
 
 以下选型**仍未确认**（不得在本规格中擅自选择）：PostgreSQL / MongoDB / Elasticsearch / pgvector / Pinecone / Weaviate / Chroma / Embedding 模型 / Reranker / PDF Parser / OCR Provider。
