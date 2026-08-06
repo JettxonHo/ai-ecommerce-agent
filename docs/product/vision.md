@@ -1,8 +1,8 @@
 # Product Vision
 
-> **Status: PARTIAL — 已确认总体导向（DEC-001）、首要用户（DEC-002）、核心任务（DEC-003）与平台范围（DEC-004）；差异化价值与技术选型仍待确认**
+> **Status: ACTIVE PRE-DEVELOPMENT PRODUCT VISION — 高层产品与架构方向已确认，最终定位句、JTBD / Persona 假设和演示成功标准仍待策划**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
-> 当前已确认：项目总体导向（DEC-001）、MVP 首要用户（DEC-002）、MVP 核心任务（DEC-003）、平台范围与首个演示场景（DEC-004）；其余愿景要素仍待讨论。
+> 当前已确认：项目总体导向（DEC-001）、MVP 首要用户（DEC-002）、MVP 核心任务（DEC-003）、平台范围与首个演示场景（DEC-004），以及受控单工作区、本地端到端演示和引导式任务工作台交付边界（DEC-041）。
 
 ---
 
@@ -39,14 +39,14 @@
 - **首个演示场景：** MVP 在演示与作品集案例中选择 **小红书商品种草** 作为首个具体展示场景。
 - **产品逻辑边界：** 通用层（通用定位与营销 Brief）为核心；平台适配层负责将通用 Brief 映射为平台表达（首个＝小红书种草模板）。小红书模板是通用 Brief 的一种适配方式，**不是**唯一输出形态。
 
-> 注：已确认总体导向、首要用户、核心任务与平台范围；**未**确认差异化价值、技术选型（LangGraph/RAG/Skill/Multi-Agent）、输入资料、Brief 字段、小红书模板字段与适配层技术实现（见下方「待讨论的开放问题」与 [mvp-scope.md](mvp-scope.md)）。
+> 注：统一单 Agent、LangGraph StateGraph、按需混合 Retrieval、4 个 Core Skills、Xiaohongshu Adapter 与 PostgreSQL 持久化均已确认；仍待策划的是最终产品定位表述、JTBD / Persona 假设、输入与 Brief 最终字段、工作台交互以及 RFC-003～007 / Frontend Architecture 的实现细节（见下方「待讨论的开放问题」与 [mvp-scope.md](mvp-scope.md)）。
 
 ---
 
 ## 当前状态
 
-- 项目处于 **Product Discovery 阶段**。
-- 已确认总体导向（DEC-001）、首要用户（DEC-002）、核心任务（DEC-003）与平台范围（DEC-004）；差异化价值与技术选型仍待确认。
+- 项目处于 **Pre-development Planning（正式开发前策划）阶段**；业务实现与长期 Goal 均未启动。
+- 已确认总体导向、首要用户、核心任务、平台范围、Agent / Workflow / Retrieval 概念架构、生产持久化基础与本地演示包络；最终产品表述、用户研究假设和交互 / 契约细节仍待策划。
 - 其余具体内容，必须等到对应 Proposed Decision 被用户明确接受并记为 Accepted Decision（见 [../decisions/](../decisions/)）后，才能写入。
 
 ---
@@ -59,10 +59,10 @@
 - 商家端 / 消费者端：**已确认商家端**（DEC-002）。
 - 要解决的核心业务问题：**已确认**（DEC-003）。
 - 最终产品定位：**已基本明确**（用户 DEC-002 + 任务 DEC-003 + 平台 DEC-004）；正式产品名称 / 定位表述未单独作为决定接受。
-- 产品的差异化价值：尚未确认。
-- 单 Agent 还是 Multi-Agent：尚未确认。
-- 是否采用 LangGraph？RAG 与 Skill 的具体定位：尚未确认。
-- 平台范围：**已确认**（DEC-004：核心中立 + 小红书首个演示）；其他平台支持、小红书模板字段与适配层技术实现仍待讨论。
+- 产品的差异化价值、最终定位句与演示成功标准：待本轮产品策划确认。
+- Agent / Workflow：**已确认**为一个统一用户侧 Agent + LangGraph StateGraph 确定性工作流，不采用 Multi-Agent 主架构或 LLM Supervisor（DEC-021 / DEC-023）。
+- Retrieval / Skills：**已确认**按需混合 Retrieval 概念边界、4 个 Core Skills 与 1 个 Xiaohongshu Adapter（DEC-014 / DEC-020 / DEC-026～032）；具体 Provider、索引、Prompt 与实现仍待 RFC-005 / 006。
+- 平台范围：**已确认**核心中立 + 小红书 Brief 映射；其他平台、完整平台正文与自动发布不进入首个 Goal（DEC-004 / DEC-031 / DEC-041）。
 
 这些问题的讨论与提案记录在 [../sessions/](../sessions/)；确认后的决定记录在 [../decisions/](../decisions/) 并同步回本文件。
 

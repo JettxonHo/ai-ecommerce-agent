@@ -2,7 +2,7 @@
 
 > **Type:** Governance Specification  
 > **Status:** Accepted  
-> **Governance Source:** [DEC-038 — RFC Planning and Dependency Order](../decisions/dec-038-rfc-planning-and-dependency-order.md)  
+> **Governance Source:** [DEC-038 — RFC Planning and Dependency Order](../../decisions/dec-038-rfc-planning-and-dependency-order.md)
 > **Related DEC:** DEC-034 through DEC-037  
 
 ---

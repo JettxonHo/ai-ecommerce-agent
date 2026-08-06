@@ -3,7 +3,7 @@
 > **Status: S6 — EXECUTION COMPLETE · 建议见 `spike-report.md`**
 > **治理来源：** DEC-034 · DEC-035 · DEC-036 · DEC-037
 > **Spike Issue：** [#1](https://github.com/JettxonHo/ai-ecommerce-agent/issues/1) · **Draft PR：** [#2](https://github.com/JettxonHo/ai-ecommerce-agent/pull/2) · **Branch：** `spike/001-langgraph-runtime-recovery`
-> **代码工作区：** [`../../../../spikes/spike-001-langgraph-runtime-and-recovery/`](../../../../spikes/spike-001-langgraph-runtime-and-recovery/)
+> **代码工作区：** [`../../../spikes/spike-001-langgraph-runtime-and-recovery/`](../../../spikes/spike-001-langgraph-runtime-and-recovery/)
 
 本文说明 Spike-001 的实现结构、关键设计决策与对应 DEC 契约。这是**临时、可抛弃**的验证代码，**不是**生产实现。
 

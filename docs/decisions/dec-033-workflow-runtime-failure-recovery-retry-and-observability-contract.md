@@ -784,14 +784,14 @@ Retry 次数；Timeout 秒数；Backoff 参数；Circuit Breaker 阈值；Queue 
 
 ## Related Decisions
 
-- [DEC-007 — Mandatory Human Review](dec-007-mandatory-human-review.md)
-- [DEC-009 — Stage Invalidation](dec-009-stage-invalidation-and-partial-rerun.md)
-- [DEC-011 — Deterministic Workflow Control](dec-011-deterministic-workflow-control.md)
-- [DEC-012 — Structured Workflow State](dec-012-structured-workflow-state.md)
-- [DEC-013 — Task-level Persistence](dec-013-task-level-persistence-and-cross-session-resume.md)
-- [DEC-023 — LangGraph StateGraph](dec-023-workflow-framework-and-primary-modeling-approach.md)
-- [DEC-024 — Versioned Domain State](dec-024-versioned-domain-state-and-workflow-runtime-boundary.md)
-- [DEC-025 — Source and Evidence Architecture](dec-025-source-and-evidence-architecture.md)
+- [DEC-007 — Mandatory Human Review](dec-007-single-review-node-and-exception-pauses.md)
+- [DEC-009 — Stage Invalidation](dec-009-stage-level-invalidation-and-partial-rerun.md)
+- [DEC-011 — Deterministic Workflow Control](dec-011-deterministic-workflow-with-constrained-llm-reasoning.md)
+- [DEC-012 — Structured Workflow State](dec-012-stage-state-and-structured-business-items.md)
+- [DEC-013 — Task-level Persistence](dec-013-task-level-persistent-state-and-cross-session-resume.md)
+- [DEC-023 — LangGraph StateGraph](dec-023-select-langgraph-stategraph-for-mvp-workflow.md)
+- [DEC-024 — Versioned Domain State](dec-024-versioned-domain-state-and-compact-langgraph-state.md)
+- [DEC-025 — Source and Evidence Architecture](dec-025-versioned-sources-fragments-and-evidence-links.md)
 - [DEC-029 — Human Review and Approved Strategy](dec-029-human-review-and-approved-strategy-contract.md)
 - [DEC-032 — Hybrid Retrieval and Evidence Runtime](dec-032-hybrid-retrieval-and-evidence-runtime-architecture.md)
 
