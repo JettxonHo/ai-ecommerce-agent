@@ -14,6 +14,7 @@
 - [x] 首要目标用户、复合 Persona 策划方式与 JTBD 基线假设已确认；真实访谈是 Beta 前门禁（DEC-002 / DEC-042）
 - [x] 核心问题已确认
 - [x] MVP 高层范围与非范围已确认
+- [x] 单任务工作台、两级输入门禁、Needs Input、失效预览与用户确认后局部重跑已确认（DEC-044）
 - [x] 关键 Agent、Workflow、Human Review 与 Skill 边界已确认
 - [x] Retrieval / Evidence 与 Skill 的概念职责已确认
 - [x] 外部 Skill 供体的 Adapt / Reference 策略已确认
@@ -39,6 +40,7 @@
 - **RFC:** RFC-001 / RFC-002 = ACCEPTED；RFC-003～RFC-007 = PROPOSED
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
+- **产品交互:** 单任务工作台信息架构、两级输入门禁与确认式局部重跑 = ACCEPTED（DEC-044）；最终字段、详细控件与公共状态映射仍待策划
 - **允许工作:** 产品规格、Architecture RFC、Readiness Artifact / Spike Charter 规划、测试策略、开发计划、Goal 文档与一致性 Review
 - **禁止工作:** Business / Production Implementation、TS-01～TS-05 执行、公开部署、实际 Goal 启动
 - **用户 Goal 指令:** 未下达

@@ -6,7 +6,9 @@ Product
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-044
+
+> **Current amendment:** [DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) 保留本决定的阶段级失效范围，并确认“展示失效预览 → 用户确认 → 局部重跑 → 受影响内容重新审核”的产品交互。以下原文保留为 2026-07-27 的历史决定。
 
 ## Decision
 
@@ -204,6 +206,10 @@ None
 
 None
 
+## Amended By
+
+[DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)
+
 ## Decision Boundary
 
 **本决定已经确认：**
@@ -217,6 +223,8 @@ None
 - MVP 暂不实现精细字段级依赖图。
 
 **本决定尚未确认：**
+
+> 以下为本决定接受时的边界；“自动或手动重跑”与“再次审核”后来由 DEC-044 解决为失效预览、用户确认后局部重跑，以及审核输入变化时创建新 Review Package。其余项目仍未确认。
 
 - 是否采用 LangGraph；
 - 工作流节点的具体划分；
@@ -237,5 +245,5 @@ None
 - **精细字段级依赖图暂缓到后续版本**（不进入 MVP），作为后续扩展保留（见 Session-001「Deferred Topics」）。
 - 与 [DEC-006](dec-006-four-layer-structured-marketing-brief.md)（四层结构）、[DEC-007](dec-007-single-review-node-and-exception-pauses.md)（审核节点 + 异常暂停）、[DEC-008](dec-008-tiered-evidence-and-traceable-conclusions.md)（修改产生依赖影响 Principle 6）协同：阶段级失效是 DEC-008「修改产生依赖影响」原则的具体执行机制，与 DEC-007「修改后重跑」同源。
 - **架构 RFC 业务约束：** 本决定与 DEC-007（工作流暂停 / 恢复）、DEC-008（结论 / 依据 / 依赖关系存储与失效）共同构成后续架构 RFC 的业务约束。当前**不创建 RFC**；后续进入「工作流状态、暂停恢复与技术实现方案比较」时，以 DEC-007 / DEC-008 / DEC-009 作为业务约束。
-- 本决定确认的是**阶段级失效与局部重跑规则**，不构成对 LangGraph / Checkpoint / Interrupt / 状态数据库 / 自动重跑交互 / 版本历史 / 字段级依赖图 / 具体前端界面 / Agent 或节点数量的确认（见 Decision Boundary）。
+- 本决定确认的是**阶段级失效与局部重跑规则**；自动重跑交互后来由 DEC-044 修订为失效预览与用户确认后的局部重跑。LangGraph / Checkpoint / Interrupt / 状态数据库 / 完整版本历史 / 字段级依赖图 / 像素级前端界面 / Agent 或节点数量仍不由本决定确认（见 Decision Boundary）。
 - 已同步至 [../product/prd.md](../product/prd.md)、[../product/mvp-scope.md](../product/mvp-scope.md)、[../product/user-flows.md](../product/user-flows.md)。Agent 与 Architecture 规格未更新（工作流节点划分、Checkpoint、失效状态数据结构等技术实现尚未确认）。
