@@ -41,6 +41,9 @@
 | Dedicated PostgreSQL Checkpoint Database, sync durability, reentrant nodes and Current-Truth-first reconciliation | DEC-049 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | spike-05, spike-08 | DEC-049 + Issue #46 / PR #47 | RFC-003（ACCEPTED） | _(placeholder)_ | TS-03 isolation / reconciliation + interrupt / resume + duplicate-safe replay _(planned)_ |
 | PostgreSQL Durable Work Intent dispatch, fenced worker ownership and cooperative cancellation | DEC-050 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | — | DEC-050 + Issue #46 / PR #47 | RFC-003（ACCEPTED） | _(placeholder)_ | TS-01 multi-worker claim / takeover / stale commit rejection + cancellation commit fence _(planned)_ |
 | Explicit runtime compatibility, deterministic Safe Resume and forward-recovery evidence | DEC-051 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | — | DEC-051 + Issue #46 / PR #47 | RFC-003（ACCEPTED） | _(placeholder)_ | TS-01 / TS-03 compatibility + seven-action recovery + migration / forward repair _(planned)_ |
+| Single OpenAI Responses provider, narrow sync Model Runtime Port and project-authoritative Structured Output validation | DEC-052 | [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) | spike-03（test-design evidence only） | DEC-052 + Issue #48 / PR #49 | RFC-006（ACCEPTED） | _(placeholder)_ | Port contract + SDK isolation + strict output / project schema / domain-validator order _(planned)_ |
+| Bounded Model Recovery, readable Version Tuple and five deterministic invocation profiles | DEC-053 | [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) | spike-03（test-design evidence only） | DEC-053 + Issue #48 / PR #49 | RFC-006（ACCEPTED） | _(placeholder)_ | Retry / recovery budget + version snapshot + profile / context contract _(planned)_ |
+| Adapter Secret / Payload allowlist, deterministic model substitute and one manual RC smoke | DEC-054 | [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) | spike-03（test-design evidence only） | DEC-054 + Issue #48 / PR #49 | RFC-006（ACCEPTED） | _(placeholder)_ | Secret boundary + payload-free ledger / telemetry + offline contract layers + opt-in live smoke _(planned)_ |
 | RFC Planning and Dependency Order | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
@@ -104,7 +107,7 @@
 | Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
 |---|---|---|---|---|---|---|---|
 | 有界重试（仅 transient）+ 预算耗尽 | DEC-033 | [Runtime Failure / Recovery](../specs/runtime/workflow-runtime-failure-recovery-retry-and-observability.md) | spike-02, spike-11 | test_failure_recovery::spike02/spike11 | RFC-007 | _(placeholder)_ | _(placeholder)_ |
-| Invalid Structured Output 不重试 | DEC-033 | 同上 | spike-03 | test_failure_recovery::spike03 | RFC-006, RFC-007 | _(placeholder)_ | _(placeholder)_ |
+| Invalid Structured Output 不做基础设施盲重试；只按有界预算执行 Normalization → re-parse / validate → 最多一次 Constrained Repair | DEC-033, DEC-053 | 同上 | spike-03 | test_failure_recovery::spike03 | RFC-006, RFC-007 | _(placeholder)_ | Structured-output recovery order + shared budget _(planned)_ |
 | 取消无部分写入 | DEC-033 | 同上 | spike-10 | test_failure_recovery::spike10 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
 | Manual Recovery 不重复 | DEC-033 | 同上 | Recovery Case | test_failure_recovery::recovery_case | RFC-002 | _(placeholder)_ | _(placeholder)_ |
 | 阶段时间线 + 行动导向错误与恢复 | DEC-033, DEC-047 | 同上 | — | DEC-047 | RFC-003, RFC-004, RFC-007 | _(placeholder)_ | No fake percentage + state-appropriate recovery actions _(planned)_ |
@@ -139,8 +142,8 @@
 
 ```text
 Spike-001 = COMPLETED
-RFC-001 / RFC-002 / RFC-003 = ACCEPTED
-RFC-004 through RFC-007 = PROPOSED
+RFC-001 / RFC-002 / RFC-003 / RFC-006 = ACCEPTED
+RFC-004 / RFC-005 / RFC-007 = PROPOSED
 FND-001 / FND-002 / FND-003 = COMPLETED
 
 ARP-01 / ARP-04 / ARP-10 = ACCEPTED (full declared scope)

@@ -4,7 +4,7 @@
 
 > **当前阶段：** RFC Planning and Dependency Order（DEC-038 已接受）。  
 > **状态：** Architecture Readiness = `CONDITIONALLY READY` · Development Status = `CONDITIONALLY READY`。  
-> **当前状态：** [RFC-003: LangGraph Runtime and Checkpoint Architecture](rfc-003-langgraph-runtime-and-checkpoint-architecture.md) 已于 2026-08-06 被用户明确整体接受；下一策划议题为 RFC-006 LLM Runtime and Structured Output，尚未启动其 Issue / Branch / PR。
+> **当前状态：** [RFC-003: LangGraph Runtime and Checkpoint Architecture](rfc-003-langgraph-runtime-and-checkpoint-architecture.md) 与 [RFC-006: LLM Runtime and Structured Output](rfc-006-llm-runtime-and-structured-output.md) 均已于 2026-08-06 被用户明确整体接受；Implementation、Spike Execution 与 Goal Activation 仍未授权。
 
 ---
 
@@ -87,7 +87,7 @@ Merge RFC PR
 | RFC-003 | LangGraph Runtime and Checkpoint Architecture | Wave 2 | `ACCEPTED` |
 | RFC-004 | API and Human Review Protocol | Wave 3 | `PROPOSED` |
 | RFC-005 | Source Processing and Retrieval Architecture | Wave 3 | `PROPOSED` |
-| RFC-006 | LLM Runtime and Structured Output | Wave 2 | `PROPOSED` |
+| RFC-006 | LLM Runtime and Structured Output | Wave 2 | `ACCEPTED`（2026-08-06 用户明确整体接受） |
 | RFC-007 | Observability and Runtime Operations | Wave 4 | `PROPOSED` |
 
 完整清单与依赖关系见 [rfc-register.md](rfc-register.md)。
@@ -271,5 +271,5 @@ RFC Agent 不得：
 | RFC-003 | LangGraph Runtime and Checkpoint Architecture | Wave 2 | [`ACCEPTED`](rfc-003-langgraph-runtime-and-checkpoint-architecture.md) |
 | RFC-004 | API and Human Review Protocol | Wave 3 | `PROPOSED` |
 | RFC-005 | Source Processing and Retrieval Architecture | Wave 3 | `PROPOSED` |
-| RFC-006 | LLM Runtime and Structured Output | Wave 2 | `PROPOSED` |
+| RFC-006 | [LLM Runtime and Structured Output](rfc-006-llm-runtime-and-structured-output.md) | Wave 2 | `ACCEPTED`（2026-08-06 用户明确整体接受） |
 | RFC-007 | Observability and Runtime Operations | Wave 4 | `PROPOSED` |

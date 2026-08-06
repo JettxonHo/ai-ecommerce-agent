@@ -492,3 +492,167 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - RFC Acceptance 不等于实现授权；Implementation、Spike Execution 与 Goal Activation 继续为 `NOT GRANTED`。
 - 本次不安装生产 Checkpointer，不创建 Checkpoint Database、Runtime Registry、Worker、Graph、API、迁移或 Compatibility Matrix 实例，不执行 TS-01～TS-05，也不创建或激活长期 Goal。
 - 下一策划议题为 RFC-006；之后依次闭合 Frontend Architecture、RFC-004 / 005 / 007、Readiness 规划包、Testing Strategy、Development Plan 与 Goal 文本。
+
+## Proposal Round — RFC-006 Provider, Model Runtime Port and Structured Output（2026-08-06）
+
+### Context and Investigation
+
+- RFC-003 合并后，按既定依赖顺序创建 RFC-006 Issue #48、独立分支、RFC 正文与 Draft PR #49；当前只授权策划和文档，不授权 Provider 接入、模型调用、Spike、业务实现或 Goal 激活。
+- 仓库调查确认 RFC-006 之前只有 RFC Register 登记，没有生产 Model Runtime、Provider Adapter 或 Prompt Registry；Spike-001 的 `ScriptedModelProvider` 只可作为测试设计参考，禁止迁入生产。
+- 官方资料调查覆盖 OpenAI、Anthropic 与 Google 的 Structured Output、模型 / API 版本、错误和数据处理边界。时效性能力只作为 2026-08-06 Proposal 证据；实施时仍须复核账号访问、官方兼容性与固定验收包结果。
+- RFC-006 被拆成 8 个 DQ：Provider / Model / SDK；Model Runtime Port / DI；Structured Output；Failure / Repair / Retry / Cancellation；版本；Skill Profiles / Context；Secret / Payload / Telemetry；Deterministic Substitute / Live Smoke。
+
+### Proposed Decisions
+
+- `P-28A`（推荐）：首个 Goal 采用 OpenAI Responses API + `gpt-5.6-terra` + 官方 Python SDK，只实现一个真实 Provider Adapter，不开放 Provider-hosted Tools；这是基于当前官方能力与项目边界的适配度推断，不是三家模型质量 Benchmark 结论。
+- `P-29A`（推荐）：Application 定义窄型、typed、Provider-neutral 同步 Model Runtime Port，`platform/model_runtime` 实现单一已接受 Provider Adapter，Composition Root 注入；不建设多 Provider Gateway。
+- `P-30A`（推荐）：Provider-native Strict Structured Output + 项目权威 Pydantic / JSON Schema + Skill Domain Validator；严格遵守 `Parse → Project Schema Validation → Deterministic Normalization → Domain Validator`，refusal / incomplete 为显式非成功分支。
+
+完整的 B / C 备选、优缺点、官方证据和停止条件见 [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)。
+
+### Decision and Authorization Status
+
+- `P-28 / P-29 / P-30 = PROPOSED`；用户尚未接受任何选项。
+- RFC-006 Status = `DRAFTING`；RFC Acceptance、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
+- 在用户裁决前，不安装 Provider SDK、不读取 Secret、不调用模型、不创建 Prompt Runtime / Registry、不执行 Live Smoke，也不把推荐方案写成 Current Truth。
+
+## Decision Round — RFC-006 Provider, Model Runtime Port and Structured Output（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-28A`：首个 Goal 只实现 OpenAI Responses API + 官方 Python SDK + `gpt-5.6-terra` 的单一真实 Provider Adapter，不开放 Provider-hosted Tools，也不建设多 Provider 路由或容灾。
+- 用户明确接受 `P-29A`：Application 定义项目自有、typed、Provider-neutral 的窄型同步 Model Runtime Port，`platform/model_runtime` 实现单一 OpenAI Infrastructure Adapter，由 Composition Root 注入；Skill 不依赖 Provider SDK。
+- 用户明确接受 `P-30A`：每次模型调用使用 Provider-native Strict Structured Output，但项目 Pydantic / JSON Schema 与 Skill Domain Validator 保持权威；refusal / incomplete / 无内容是显式非成功分支。
+
+### Acceptance Clarification
+
+- 这是基于当前官方能力与项目架构适配度的选择，不是 OpenAI / Anthropic / Google 三家模型质量 Benchmark 结论。
+- 实施时记录已验证的 SDK / API / Model ID 组合；账号访问、Structured Output 兼容、固定验收包质量、延迟与成本仍须用实施证据验证。
+- 若真实 Adapter 被账号、兼容性或阻塞性质量问题卡住，不得静默更换 Provider 或模型，须暂停并提交 RFC Amendment。
+- Port 只抽象首个 MVP 需要的语义，不承诺无成本换 Provider，也不建设通用 Gateway。
+- Structured Output 固定顺序为 Provider 分类 → Parse → 项目 Schema → 语义保持的确定性 Normalization → Skill Domain Validator → Candidate Result；结构有效不代表业务正确。
+
+### Accepted Result
+
+- [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) 归档 P-28A / P-29A / P-30A。
+- [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) 的 DQ-01～DQ-03 变为 `ACCEPTED INPUT`；RFC 整体仍为 `DRAFTING`。
+- Issue #48 / Draft PR #49 继续承载同一 RFC；不另建重复 Issue、Branch 或 PR。
+
+### Remaining Decisions and Authorization Boundary
+
+- DQ-04～DQ-08（P-31～P-35）仍未闭合；错误 / 修复 / Retry / 取消、版本、Skill Profiles、Secret / Payload / Telemetry、确定性替身与 Live Smoke 仍不得由实现 Agent 临场决定。
+- RFC Acceptance、SDK 安装、Secret 读取、真实模型调用、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
+- 本轮只归档用户决定并同步 Current Truth；不编写业务代码、不执行 TS-01～TS-05、不创建或激活长期 Goal。
+
+## Proposal Round — RFC-006 Failure, Versioning and Skill Profiles（2026-08-06）
+
+### Official Evidence and Constraint Check
+
+- OpenAI 官方错误文档与 Python SDK 说明：SDK 默认会对连接错误、408、409、429 和 5xx 做有限重试，Timeout 也可能被重试；若项目再叠加 Model Runtime / Workflow Retry，会形成难以解释的嵌套预算。
+- Responses Cancel API 仅能取消 `background=true` 的 Response；本项目已接受同步窄型 Port，因此不能假设 Provider 支持同步调用的中途取消，必须依赖调用前后检查、受控 Timeout 与晚到结果丢弃。
+- Structured Outputs 官方示例将 `incomplete`、`refusal` 与无可解析内容作为独立非成功分支，支持 P-31 将传输失败、拒绝、不完整输出和 Candidate 校验失败分层处理。
+- GPT-5.6 Terra 官方模型说明支持 `low / medium / high` 等 Reasoning Effort；P-33 只为真实 Stage 差异建立五个命名 Profile，不开放工具或动态模型路由。
+
+### Proposed Decisions
+
+- `P-31A`（推荐）：关闭 SDK 隐式重试；一个 Model Operation 最多 2 个 Model Call（初始 + 一次共享的 Model-assisted Recovery），两者共享最多 1 次额外传输重试，故最多 3 次 Provider Attempt；Parse / Schema 失败只对语义不变表达问题先做 Normalization 并重验，Domain Validator 失败不重复 Normalization；Incomplete Recovery、Constrained Repair 与 Candidate Regeneration 共享唯一 Recovery；Refusal 不重试；同步取消采用前后检查 + Timeout + 丢弃晚到结果；稳定 `model_call_id` / `provider_attempt_id` 并记录 Provider IDs。
+- `P-32A`（推荐）：使用项目自有、可读的 Model Runtime Version Tuple，记录 Provider / API / SDK / configured+resolved Model / Prompt / Schema / Skill Contract / Validator / Profile / Context Assembly 版本；每次调用固化快照，不使用 Hash / SHA-256，不引入外部 Prompt Management SaaS。
+- `P-33A`（推荐）：五个命名 Profile，初始 Reasoning 分别为 Fact=`low`、Insight=`medium`、Positioning=`high`、Marketing Brief=`medium`、Xiaohongshu Mapping=`low`；全部禁用 Provider-hosted Tools；Context 由 Application / Retrieval Runtime 按权威版本与 Evidence Package 确定性装配。
+
+完整的 B / C 备选、优缺点、调用身份、上下文优先级、停止条件和官方链接见 [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)。
+
+### Decision and Authorization Status
+
+- `P-31 / P-32 / P-33 = PROPOSED`；用户尚未接受任何选项。
+- RFC-006 仍为 `DRAFTING`；P-34 / P-35 尚未提出，RFC Acceptance、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
+- 在用户裁决前，不把 Reasoning Profile、Retry 次数、版本 Tuple 或 Context Assembly 写成实现事实，也不安装 SDK、读取 Secret、调用模型或执行 Live Smoke。
+
+## Decision Round — RFC-006 Failure, Versioning and Skill Profiles（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-31A`：关闭 SDK 隐式重试；单个 Model Operation 最多 2 个 Model Call、共享 1 次额外传输重试、最多 3 次 Provider Attempt；唯一 Model-assisted Recovery 覆盖 incomplete / repair / regeneration；同步取消使用前后检查、Timeout 与晚到结果丢弃。
+- 用户明确接受 `P-32A`：使用项目自有可读 Version Tuple，按调用固化 Provider / API / SDK / Model / Prompt / Schema / Skill Contract / Validator / Profile / Context Assembly 版本，不使用 Hash / SHA-256 或外部 Prompt Management SaaS。
+- 用户明确接受 `P-33A`：五个固定命名 Profile，Reasoning 初始档位为 Fact=`low`、Insight=`medium`、Positioning=`high`、Marketing Brief=`medium`、Xiaohongshu Mapping=`low`；无 Provider-hosted Tools；Context 由 Application / Retrieval Runtime 确定性装配。
+
+### Accepted Result
+
+- [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) 归档 P-31A / P-32A / P-33A。
+- [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) 的 DQ-01～DQ-06 均为 `ACCEPTED INPUT`；RFC 整体仍为 `DRAFTING`。
+- 精确 Token / Timeout 仍需实施授权后的固定资料包校准与独立 Review，不得由实现 Agent 临场自由选择。
+
+### Authorization Boundary
+
+- DQ-07～DQ-08（P-34 / P-35）、RFC Final Consistency Review 与 RFC 整体接受仍未闭合。
+- RFC Acceptance、SDK 安装、Secret 读取、真实模型调用、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
+- 本轮只归档用户决定并同步 Current Truth；不编写业务代码、不执行 TS-01～TS-05、不创建或激活长期 Goal。
+
+## Proposal Round — RFC-006 Secret, Payload, Test Substitute and Live Smoke（2026-08-06）
+
+### Official Evidence and Constraint Check
+
+- OpenAI 官方 Production Best Practices 建议 API Key 不进入代码或公开仓库，而通过环境变量或 Secret Management Service 暴露给应用；项目 ARP-10 已进一步要求 Secret Value 只在 Adapter 内存短暂存在、任何持久化平面只允许无明文 Reference。
+- OpenAI Data Controls 说明 API 数据默认不用于训练；Responses 默认或 `store=true` 时具有至少 30 天 Response Object Application State，标准 API Abuse Monitoring Logs 默认最多保留 30 天；未启用 ZDR 时，受支持模型还使用最长约 24 小时的加密 Prompt Cache Application State。`store=false` 不等于 Zero Data Retention，也不关闭这些外部留存边界。
+- OpenAI Evaluation Best Practices 强调代表性、任务特定测试并结合人工判断；同时官方 Evals Platform 已进入弃用时间线。项目使用本地固定验收包与人工 `PASS / FAIL`，不依赖 Provider Evals 平台，也不把 Rubric 机械化。
+- 仓库已有非 `live` 测试默认断网、`live` 显式 opt-in、`.env*` 忽略与 Secret Detection Required Check；P-35 直接复用，不建设第二套泛化测试安全层。
+
+### Proposed Decisions
+
+- `P-34A`（推荐）：Bootstrap 只选择固定 Credential Reference，Infrastructure Adapter 在自身边界把它解析为 `OPENAI_API_KEY` 进程环境并创建 Client；应用不加载 `.env`、不建设 Vault；Responses 显式 `store=false`，同时如实记录 Abuse Monitoring 与 Prompt Cache 的外部留存；Provider Ledger 只保存身份 / Version / Usage / Latency / Disposition；通过的 Provider-neutral Candidate 按业务生命周期保存，失败候选按 DEC-033 保存最小 Diagnostic Candidate；不持久化 Rendered Prompt、完整 Context、原始 Response 或 SDK Object；Logs / Traces 只含允许 Metadata。
+- `P-35A`（推荐）：实现同 Port 的 `ScriptedModelRuntime`、断网 Port / Adapter / Workflow 三层 Contract Tests，并只覆盖已接受的代表性失败分支；Release Candidate 在显式 `live` + `RUN_LIVE_MODEL_SMOKE=1` + Secret 条件下人工执行一次 `fixture-sufficient-v1` 完整闭环，记录最小证据与人工 `PASS / FAIL`，不进入普通 PR Gate、不依赖 Provider Evals 平台。
+
+完整 B / C 备选、数据分类、持久化允许清单、测试分层、Live Smoke 证据和停止条件见 [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)。
+
+### Decision and Authorization Status
+
+- `P-34 / P-35 = PROPOSED`；用户尚未接受任何选项。
+- RFC-006 仍为 `DRAFTING`；全部 DQ 只有在 P-34 / P-35 被用户接受后才闭合，随后还须 Final Consistency Review 与单独的 RFC Overall Acceptance。
+- 在用户裁决前，不把 Secret Resolution、`store=false`、Payload Persistence、Scripted Substitute 或 Live Smoke 流程写成实现事实，也不安装 SDK、读取 Secret、调用模型或执行 Live Smoke。
+
+## Decision Round — RFC-006 Secret, Payload, Test Substitute and Live Smoke（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-34A`：Bootstrap 只选择固定 Credential Reference，Infrastructure Adapter 在自身边界解析进程环境并创建 Client；Responses 显式 `store=false`；项目只保存最小 Provider Ledger、Provider-neutral Candidate / Diagnostic Candidate 与 Payload-free Telemetry，不持久化完整 Prompt、Context 或原始响应，并诚实记录 Provider 外部留存。
+- 用户明确接受 `P-35A`：使用同 Port `ScriptedModelRuntime`、断网三层 Contract Tests 与代表性失败分支；Release Candidate 只在显式 `live` / `RUN_LIVE_MODEL_SMOKE=1` / Secret / 已接受版本同时满足时，人工执行一次 `fixture-sufficient-v1` 完整闭环，不使用机械总分或额外 Live Edge-case Matrix。
+
+### Accepted Result
+
+- [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) 归档 P-34A / P-35A。
+- [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) 的 DQ-01～DQ-08 已全部闭合。
+- RFC-006 仍为 `DRAFTING`；下一 Gate 是 Final Consistency Review，之后才可请求用户单独接受 RFC 整体。
+
+### Authorization Boundary
+
+- RFC Acceptance、SDK 安装、Secret 读取、真实模型调用、Live Smoke、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
+- 本轮只归档用户决定、同步 Current Truth 并执行 RFC Final Consistency Review；不编写业务代码、不执行 TS-01～TS-05、不创建或激活长期 Goal。
+
+## Final Consistency Review — RFC-006（2026-08-06）
+
+### Review Result
+
+- RFC-006 的 DQ-01～DQ-08 已由 DEC-052～054 全部闭合，输入完整性检查通过。
+- Provider / Port / Structured Output、Recovery / Version / Profiles、Secret / Payload / Tests 三组决定内部一致，DEC-053 / 054 对 DEC-052 的修订关系已双向记录。
+- RFC-001 的 Application-owned Port / Infrastructure Adapter、RFC-002 的短事务边界与 RFC-003 的 Workflow / Run 恢复职责均未被越界；Model Operation Retry 与 Workflow Retry / Rerun 已明确分层。
+- 适度校验约束保持有效：未新增 Hash / SHA-256、泛化安全平台、低概率 Case 矩阵或机械 Rubric。
+- Provider 外部留存、`store=false`、非 ZDR 边界与人工 Live Smoke 均被如实记录；SDK、Secret、真实调用与实现仍未授权。
+- 独立五轴 Review 结果为 `PASS`：Critical = 0、Required = 0、Optional = 0；本地 Markdown 链接检查为 1512 / 1512 通过。
+
+### Gate Result
+
+- RFC-006 Status 从 `DRAFTING` 进入 `IN REVIEW`；Final Consistency Review = `PASS`。
+- 下一且唯一的 RFC Gate 是用户明确接受 RFC-006 整体；PR 合并本身不能替代整体接受。
+- RFC Overall Acceptance、SDK 安装、Secret 读取、真实模型调用、Live Smoke、Implementation、Spike Execution 与 Goal Activation 仍为 `NOT GRANTED`。
+
+## Final Decision — RFC-006 Overall Acceptance（2026-08-06）
+
+### User Acceptance
+
+- 用户在 RFC-006 Final Consistency Review、独立五轴 Review 与最新 Required Checks 结果展示后，明确回复「接受 RFC-006 整体」。
+- RFC-006 Status 由 `IN REVIEW` 变为 `ACCEPTED`；DQ-01～DQ-08 及 DEC-052～054 共同构成正式 LLM Runtime and Structured Output 架构基线。
+
+### Authorization Boundary
+
+- RFC Acceptance 不等于实现授权；SDK Installation、Secret Read、Live Model Call、Implementation、Spike Execution 与 Goal Activation 继续为 `NOT GRANTED`。
+- 本次不安装或升级 Provider SDK，不读取真实 Secret，不调用真实模型或执行 Live Smoke，不创建 Model Runtime、Provider Adapter、Prompt、Fixture 或测试 Harness，不执行 TS-01～TS-05，也不创建或激活长期 Goal。
+- 下一策划议题按既定依赖顺序为 Frontend Architecture；之后继续闭合 RFC-004 / 005 / 007、Readiness 规划包、Testing Strategy、Development Plan 与 Goal 文本。

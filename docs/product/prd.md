@@ -251,7 +251,7 @@ DEC-048 已冻结三个固定资料包 + 一个变更脚本、必要行为门禁
 - 失效与局部重跑：**阶段级失效、编辑意图、语义组差异、影响预览、用户确认后局部重跑、过期审核拒绝，以及生产 Checkpointer 拓扑、同步持久性、Current-Truth-first 对账、Workflow / State Compatibility 与七动作 Safe Resume Matrix 已确认**；Diff 算法、最终公共字段和公共状态映射待确认，字段级依赖图不进入首个 Goal。
 - 完整小红书标题 / 正文、图片 / 视频生成与自动发布：**不进入首个 Goal**（DEC-041）。
 - 产品价值与评估指标（Question-003）：三维评价 + 六项优先指标由 DEC-010 确认；首个演示的固定验收包、行为门禁与非机械人工判断由 DEC-048 确认。真实用户指标公式 / 阈值、人数、埋点与 Dashboard 待 Beta 规划。
-- Agent、Retrieval / Evidence、Skill 的职责边界：**概念层已确认**（DEC-020～033）；Workflow Runtime 已由 RFC-003 接受，具体 API / Retrieval / LLM / Observability Provider 与 Backend 仍待 RFC-004～007。
+- Agent、Retrieval / Evidence、Skill 的职责边界：**概念层已确认**（DEC-020～033）；Workflow Runtime 已由 RFC-003 接受，LLM Runtime 已由 RFC-006 接受，具体 API / Retrieval / Observability Provider 与 Backend 仍待 RFC-004 / 005 / 007。
 - 演示成功边界：行为与人工可用性标准由 DEC-042 确认；固定验收包、必要行为门禁、人工 `PASS / FAIL` 和 Live Smoke 边界由 DEC-048 确认；测试工具、Fixture 实例和最终 E2E 步骤待 Testing Strategy 补全。
 
 讨论与提案记录在 [../sessions/](../sessions/)；确认后的决定记录在 [../decisions/](../decisions/) 并同步回本文件。
