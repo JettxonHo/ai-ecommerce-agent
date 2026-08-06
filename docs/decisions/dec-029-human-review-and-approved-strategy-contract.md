@@ -1,13 +1,16 @@
 # DEC-029：Human Review 采用版本化审核包、结构化用户决策与事务化 Approved Strategy 契约
 
 > **Type:** Workflow Contract / Human-in-the-loop Architecture
-> **Status:** Accepted
+> **Status:** Accepted — Amended by DEC-046
 > **Date:** 2026-07-28
 > **Related Session:** [Session-002 — Agent 工作流、可靠性架构与技术能力需求](../sessions/session-002-agent-workflow-reliability-and-technical-capabilities.md)
 > **Related Specification:** [../specs/workflow/human-review-and-approved-strategy-contract.md](../specs/workflow/human-review-and-approved-strategy-contract.md)（概念 Workflow Spec，仅概念）
 > **Related RFC:** None
 > **Supersedes:** None
 > **Amends:** [DEC-007](dec-007-single-review-node-and-exception-pauses.md) by defining the mandatory Human Review node and [DEC-024](dec-024-versioned-domain-state-and-compact-langgraph-state.md) by defining the Approved Strategy Current Truth transition（在 DEC-007「单一关键审核节点 + 异常暂停」与 DEC-024「版本化领域状态 + Current Truth Version Pointers」基础上，正式定义强制 Human Review 节点的结构化执行契约，**不推翻** DEC-007 与 DEC-024 的既有结论）。
+> **Amended By:** [DEC-046](dec-046-review-brief-and-export-product-contract.md)（冻结 Review Package / Approved Strategy 产品语义组，并选择单调递增 Review Draft revision；不改变强制审核、事务提交和过期 Package 拒绝）
+
+> **Current amendment:** DEC-046 将下文历史概念中的 `draft_version` 修订为 Review Draft `revision` 产品语义；旧字段示例保留为 2026-07-28 的历史决定，最终公共字段名与并发实现仍由 RFC-004 冻结。
 
 ---
 
@@ -1066,13 +1069,16 @@ Product Positioning 是战略推断，不存在模型可以自动证明的唯一
 - 确定性 Validator 是创建 Approved Strategy 的必要 Gate；
 - Approved Strategy 是 Marketing Brief 唯一正式战略输入。
 
-本决定尚未确认：
+本决定原本尚未确认、现由 DEC-046 部分闭合：
 
-- 最终 Review Schema；
-- 最终 Approved Strategy Schema；
-- 最终字段名称；
+- Review Package / Approved Strategy 的产品语义组已冻结；
+- Review Draft 采用单调递增 revision，陈旧保存 / 提交必须拒绝；
+
+仍未确认：
+
+- 最终 Review / Approved Strategy 公共 Schema、字段名、类型与逐字段必填表达；
 - Review UI；
-- Draft 自动保存频率；
+- Draft 自动保存频率、传输字段名与并发实现机制；
 - Patch 或完整 Snapshot；
 - 并发锁实现；
 - 数据库事务实现；

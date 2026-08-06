@@ -1,7 +1,7 @@
 # Human Review and Approved Strategy Contract（概念 Workflow Spec）
 
-> **Status:** CONCEPTUAL（仅概念，非最终实现；最终 Schema / 字段名 / 数据库表 / API / Review UI / LangGraph Interrupt Payload / 并发锁实现 / Transaction 实现均未确认）
-> **来源 Decision：** [DEC-029 — Human Review 采用版本化审核包、结构化用户决策与事务化 Approved Strategy 契约](../../decisions/dec-029-human-review-and-approved-strategy-contract.md)（Accepted，Workflow Contract / Human-in-the-loop Architecture，2026-07-28）
+> **Status:** PRODUCT SEMANTICS ACCEPTED / IMPLEMENTATION CONTRACT CONCEPTUAL（产品语义已确认；最终 Schema / 字段名 / 数据库表 / API / Review UI / LangGraph Interrupt Payload / 并发实现 / Transaction 实现仍未确认）
+> **来源 Decision：** [DEC-029 — Human Review 采用版本化审核包、结构化用户决策与事务化 Approved Strategy 契约](../../decisions/dec-029-human-review-and-approved-strategy-contract.md) 与 [DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md)（均 Accepted）
 > **承接：** DEC-009（阶段失效）/ DEC-012（阶段状态 + 结构化条目）/ DEC-013（任务级持久化与 Resume）/ DEC-020（核心工作流单审核 Gate）/ DEC-023（LangGraph Interrupt / Resume）/ DEC-024（版本化 Domain Objects + Current Truth Pointer + 结构化 ReviewState）/ DEC-025（Proof Point → Fact → Evidence Link → Fragment → Source Version）/ DEC-028（上游 Positioning Candidates）
 > **本文件是 Current Truth Layer 的一部分，但当前仅为概念规格。** 所有字段名 / 枚举 / 概念结构均为**概念示意，非最终数据契约**。
 
@@ -50,7 +50,7 @@ Human Review 让用户承担以下战略判断（非模型可代劳）：
 
 ## §2 Review Package
 
-Review Package 是某次审核使用的**固定输入快照**（不可在审核进行中后台静默替换）。
+Review Package 是某次审核使用的**固定输入快照**（不可在审核进行中后台静默替换）。DEC-046 冻结其产品语义组为：版本上下文 / Positioning Candidates / 关键 Facts 与 Insights / Hypotheses / Evidence Limitations / Conflicts 与 Strategic Risks / Model Recommendation。以下字段仅说明这些语义的概念展开，不是最终公共 Schema；不要求为凑齐分组而制造不存在的内容。
 
 概念结构：
 
@@ -169,7 +169,7 @@ Strategy Draft 是用户审核过程中的**临时工作内容**，不属于业�
 StrategyDraft
 ├── draft_id
 ├── review_id
-├── draft_version
+├── revision
 ├── based_on_candidate_ids[]
 ├── selected_content
 ├── user_edits[]
@@ -181,13 +181,15 @@ StrategyDraft
 └── status
 ```
 
-Strategy Draft：不属于业务 Current Truth / 不允许下游使用 / 可以多次修改 / 可以自动保存 / 必须记录版本 / 提交前必须通过 Validator。**Draft 自动保存频率尚未确认。**
+Strategy Draft：不属于业务 Current Truth / 不允许下游使用 / 可以多次修改 / 可以自动保存 / 必须记录单调递增 revision / 提交前必须通过 Validator。每次成功保存产生更高 revision；基于旧 revision 的保存或提交必须拒绝。**Draft 自动保存频率、传输字段名和并发实现仍未确认。**
 
 ---
 
 ## §7 Approved Strategy
 
 Approved Strategy 是用户明确提交并通过校验后生成的**正式版本化业务对象**（版本化 Domain Object，承接 DEC-024）。
+
+DEC-046 冻结其产品语义组为：目标与情境 / 定位 / 说服结构 / 假设决策 / 证据与风险 / 审核与版本元数据。以下字段为概念展开，最终公共 Schema 由 RFC-004 冻结。
 
 概念结构：
 
@@ -275,7 +277,7 @@ Proof Point → Fact → Evidence Link → Fragment → Source Version
 
 ```text
  1. Receive submission with idempotency key
- 2. Lock or verify current Review Draft version
+ 2. Lock or verify current Review Draft revision
  3. Validate Review Package status
  4. Validate upstream versions
  5. Validate mandatory review items
@@ -300,17 +302,17 @@ Proof Point → Fact → Evidence Link → Fragment → Source Version
 
 ## §12 Idempotency
 
-提交请求必须至少携带 `review_id` / `package_version` / `draft_version` / `idempotency_key`。
+提交请求必须至少表达 `review_id` / `package_version` / `revision` / `idempotency_key` 的语义；最终字段名由 RFC-004 冻结。
 
 **Duplicate Submission：** 相同 `idempotency_key` 重复提交时，返回第一次成功生成的 Approved Strategy，不创建第二个版本，不重复推进 Workflow。
 
-**Stale Submission：** 若提交使用的 Package Version / Draft Version / Facts Version / Insights Version / Positioning Version 已经过期，则必须拒绝。
+**Stale Submission：** 若提交使用的 Package Version / Draft Revision / Facts Version / Insights Version / Positioning Version 已经过期，则必须拒绝。
 
 ---
 
 ## §13 Concurrency
 
-多个标签页或客户端同时编辑时，**不得静默覆盖较新的 Draft**。具体采用 Optimistic Lock / Revision Number / ETag / Database Lock，**尚未确认**。
+多个标签页或客户端同时编辑时，**不得静默覆盖较新的 Draft**。产品行为已冻结为单调递增 revision 与陈旧保存 / 提交拒绝；具体采用请求头、ETag、数据库锁或其他并发机制，**尚未确认**。
 
 ---
 
@@ -334,7 +336,7 @@ Proof Point → Fact → Evidence Link → Fragment → Source Version
 
 ## §15 Review History and Audit
 
-系统必须保留：原始 Positioning Candidates / Model Recommendation / 用户选择 / 用户编辑 / Merge 来源 / 被拒绝候选 / Hypothesis Decisions / Proof Point Decisions / Evidence Limitation Decisions / Request More Information / Draft Versions / Submission / Approved Strategy Versions / Withdrawal / 审核时间 / 用户备注 / 失败校验记录。
+系统必须保留：原始 Positioning Candidates / Model Recommendation / 用户选择 / 用户编辑 / Merge 来源 / 被拒绝候选 / Hypothesis Decisions / Proof Point Decisions / Evidence Limitation Decisions / Request More Information / Draft Revisions / Submission / Approved Strategy Versions / Withdrawal / 审核时间 / 用户备注 / 失败校验记录。
 
 审核历史用于：业务审计 / 人机协作分析 / 模型质量评估 / Prompt 回归 / 用户修改量统计 / 决策复盘 / Approved Strategy 版本追踪。
 
@@ -384,7 +386,7 @@ Approved Strategy 创建前，至少检查 **25 项**：
 20. Merge 内容不存在明显逻辑冲突；
 21. Fact、Insight 与 Proof Point 引用仍有效；
 22. Source Versions 当前可用；
-23. Draft Version 未过期；
+23. Draft Revision 未过期；
 24. 提交满足幂等要求；
 25. Approved Strategy 尚未被重复创建。
 
@@ -484,7 +486,7 @@ Hard Rules:
 
 ## §22 Open Questions（记录而非虚构）
 
-最终 Review Schema / 最终 Approved Strategy Schema / 最终字段名称 / Review UI / Draft 自动保存频率 / Patch 或完整 Snapshot 策略 / 并发锁实现（Optimistic Lock / Revision Number / ETag / Database Lock）/ 数据库事务实现 / LangGraph Interrupt Payload / API / 审核权限 / 多人协作审核 / 电子签名 / 审批链 / Review Status 最终枚举名 / Review Actions 最终字段 / Hypothesis Decision 最终字段 / Proof Point Decision 最终字段 / Evidence Limitation Decision 最终字段 / Audit Record 最终 Schema / Withdrawal Record 最终 Schema / 具体错误代码 / Golden Dataset 最终数据与阈值。
+最终 Review / Approved Strategy 公共 Schema、字段名、类型与逐字段必填表达 / Review UI / Draft 自动保存频率 / Patch 或完整 Snapshot 策略 / revision 的传输和数据库并发实现 / 数据库事务实现 / LangGraph Interrupt Payload / API / 审核权限 / 多人协作审核 / 电子签名 / 审批链 / Review Status 最终枚举名 / Review Actions 最终字段 / Hypothesis Decision 最终字段 / Proof Point Decision 最终字段 / Evidence Limitation Decision 最终字段 / Audit Record 最终 Schema / Withdrawal Record 最终 Schema / 具体错误代码 / Golden Dataset 最终数据与阈值。
 
 ---
 

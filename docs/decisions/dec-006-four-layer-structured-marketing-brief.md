@@ -6,7 +6,9 @@ Product
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-030 / DEC-046
+
+> **Current amendment:** DEC-030 定义平台中立 Marketing Brief 的概念执行契约；[DEC-046](dec-046-review-brief-and-export-product-contract.md) 进一步冻结审核、Approved Strategy、Marketing Brief、Xiaohongshu Brief 与导出的产品语义和版本行为，但不把概念字段直接提升为最终公共 Schema。以下四层主结构保持有效。
 
 ## Decision
 
@@ -155,6 +157,11 @@ None
 
 None
 
+## Amended By
+
+- [DEC-030](dec-030-marketing-brief-generation-skill-contract.md)
+- [DEC-046](dec-046-review-brief-and-export-product-contract.md)
+
 ## Decision Boundary
 
 **本决定已经确认：**
@@ -165,10 +172,14 @@ None
 - 小红书 Brief 是执行层的一种平台映射；
 - 完整小红书标题和正文暂不属于核心交付物。
 
-**本决定尚未确认：**
+**本决定原本尚未确认、现由后续决定部分闭合：**
 
-- 四层的最终字段；
-- 哪些字段必填；
+- 策略审核、Approved Strategy、Marketing Brief 与 Xiaohongshu Brief 的产品语义组和版本行为：由 DEC-046 冻结；
+
+**仍未确认：**
+
+- 最终公共字段名、类型与 API / 数据库 Schema；
+- 语义组内最终逐字段必填表达；
 - 输出使用 Markdown、JSON、表格还是其他格式；
 - 引用的具体显示形式；
 - 置信度计算方式；

@@ -1,10 +1,11 @@
 # PRD（产品需求文档）
 
-> **Status: PARTIAL — 产品定位、复合 Persona / JTBD 假设、行为型成功边界、工作台、最小输入、文件限制、冲突分级与确认式局部重跑已确认；输出 / 公共字段、详细控件、工作流实现、Fixture 与阈值仍待确认**
+> **Status: PARTIAL — 产品定位、复合 Persona / JTBD 假设、行为型成功边界、工作台、输入、冲突、审核 / Brief 产品语义、版本 / revision / 导出行为与确认式局部重跑已确认；最终公共 Schema、详细控件、工作流实现、Fixture 与阈值仍待确认**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
-> 当前已确认：产品设计原则（DEC-001）、首要用户与核心任务（DEC-002 / 003）、平台与输入输出范围（DEC-004～006）、Human Review、证据与失效规则（DEC-007～009）、三维评价框架（DEC-010）、本地演示包络（DEC-041）、产品定位与行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044），以及最小输入、文件限制和冲突分级（DEC-045）。
+> 当前已确认：产品设计原则（DEC-001）、首要用户与核心任务（DEC-002 / 003）、平台与输入输出范围（DEC-004～006）、Human Review、证据与失效规则（DEC-007～009）、三维评价框架（DEC-010）、本地演示包络（DEC-041）、产品定位与行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制和冲突分级（DEC-045），以及审核、Brief、版本、revision 与导出产品契约（DEC-046）。
 > **DEC-041 同步：** 首个交付为本地可复现、受控单工作区的引导式任务工作台；输入限结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV，不做 OCR、图片理解、链接抓取或主动联网研究；完整小红书正文、图片 / 视频生成和自动发布均不在首个 Goal。
 > **DEC-044 同步：** 工作台采用阶段导航 + 当前工作区 + 可收起证据 / 上下文面板；最低可运行输入通过后即可启动，真实阻塞进入 Needs Input；变更先展示失效范围，由用户确认后局部重跑，旧 Review Package 不得提交。
+> **DEC-046 同步：** Review Package / Approved Strategy / Marketing Brief / Xiaohongshu Brief 的产品语义组已冻结；正式对象采用不可变 Domain Version，Review Draft 使用单调递增 revision，导出冻结 Current Truth 快照。最终公共字段与实现仍由 RFC-004 / 006 冻结。
 > **DEC-045 同步：** 名称 / 临时名称、品类和推广目标用于创建 Task；Fact Stage 还需核心用途、至少一个当前商品来源、至少一个有来源的核心属性且无阻断性身份冲突。默认每任务 20 文件、10 MB / 文件、文本 PDF 100 页、评论 CSV 10,000 行；单文件失败不回滚已接受文件。
 
 ---
@@ -101,7 +102,20 @@
 - **执行层：** 将分析转化为结构化 Brief（内容目标 / 受众 / 核心信息 / 内容角度 / 支撑证据 / 行动引导 / 平台模板映射 / 小红书种草 Brief）。
 - **小红书定位：** 小红书种草 Brief 是执行层的一种**平台映射**（与 DEC-004 一致）；**完整小红书标题与正文暂不属于 MVP 核心交付物**。
 
-> 注：以上为输出**四层主结构、追溯原则与小红书 Brief 映射边界**。完整小红书正文、图片 / 视频生成与自动发布已明确不进入首个 Goal（DEC-041）；单一 Human Review、Agent / Retrieval / Skill 概念边界和 PostgreSQL 持久化基础均已确认。仍待策划的是各层最终字段 / 必填规则、外部表示、引用 UI、编辑粒度、版本规则，以及 RFC-003～006 的具体运行时与接口实现。
+> 注：以上为输出**四层主结构、追溯原则与小红书 Brief 映射边界**。DEC-046 已冻结 Review Package / Approved Strategy 的决策导向分组、平台中立 Marketing Brief 与 Xiaohongshu Brief 各六组产品语义；分组内最终公共字段名、类型、逐字段必填表达、外部表示和引用 UI 仍由后续规格与 RFC 冻结。完整小红书正文、图片 / 视频生成与自动发布不进入首个 Goal。
+
+### 审核、Brief 与导出产品契约（DEC-046，Accepted，2026-08-06）
+
+> 来源：[DEC-046](../decisions/dec-046-review-brief-and-export-product-contract.md)
+
+- **Review Package：** 版本上下文 / Positioning Candidates / 关键 Facts 与 Insights / Hypotheses / Evidence Limitations / Conflicts 与 Strategic Risks / Model Recommendation。
+- **Approved Strategy：** 目标与情境 / 定位 / 说服结构 / 假设决策 / 证据与风险 / 审核与版本元数据。
+- **Marketing Brief：** Objective and Audience / Message Architecture / Reasons to Believe and Evidence / Execution Direction / Constraints and Honesty / Version and Workflow Context。
+- **Xiaohongshu Brief：** Platform and Campaign Context / Note Format and Content Mode / Creative Structure Directions / Discovery and Action Directions / Evidence and Platform Constraints / Workflow and Version Context。
+- **版本行为：** Review Package 是带 Package Version 的不可变输入快照；Approved Strategy、Marketing Brief 与 Xiaohongshu Brief 是不可变 Domain Version，用户业务编辑或重跑创建新版本。Task 通过 Current Truth Pointer 标明当前有效结果。Review Draft 仅使用单调递增 revision，陈旧保存 / 提交拒绝，不能被下游读取。
+- **导出：** 冻结发起导出时的当前有效对象版本、必要上游与证据引用、Hypotheses / Limitations / Risks、Task 上下文和导出时间；导出不改变 Current Truth，也不新增 Hash / SHA-256 要求。
+
+这些分组是稳定产品语义，不等于最终 JSON / OpenAPI / 数据库字段。无适用内容时不得为满足结构而制造事实、证据、假设或风险。
 
 ### MVP 人机协作审核机制（DEC-007，Accepted，2026-07-27）
 
@@ -112,7 +126,7 @@
 - **用户最终判断权：** 运营人员保留对商品事实、目标人群、商品定位、卖点优先级、对外传播边界、最终 Brief 的最终判断权；Agent 负责整理 / 提取 / 分析 / 暴露假设 / 建议 / 生成结构化交付物，**不替代**用户最终确认。
 - **未采用方案（保留为备选，非永久禁止）：** 完全自动生成（无审核节点）、每层分别审核确认。
 
-> 注：单一强制 Human Review、异常暂停、用户最终判断权、LangGraph StateGraph、任务级持久化和确认式局部重跑均已确认；该审核节点不可在常规成功路径中跳过。上游版本变化后旧 Review Package 自动过期并拒绝提交，受影响内容重跑后进入同一 Human Review Gate。多人协作不进入受控单工作区首个 Goal；具体 Interrupt / Checkpoint、审核控件、草稿编辑粒度和版本差异展示仍待 RFC-003 / 004 与 Frontend Architecture。
+> 注：单一强制 Human Review、异常暂停、用户最终判断权、LangGraph StateGraph、任务级持久化和确认式局部重跑均已确认；该审核节点不可在常规成功路径中跳过。Review Package 是不可变快照；Review Draft 每次成功保存递增 revision，陈旧保存 / 提交被拒绝；Approved Strategy 提交后形成不可变 Domain Version。多人协作不进入受控单工作区首个 Goal；具体 Interrupt / Checkpoint、并发传输机制、审核控件、自动保存频率和版本差异展示仍待 RFC-003 / 004 与 Frontend Architecture。
 
 ### MVP 分级证据与结论可追溯（DEC-008，Accepted，2026-07-27）
 
@@ -176,7 +190,7 @@
 ## 当前状态
 
 - 项目处于 **Pre-development Planning（正式开发前策划）阶段**；业务实现与长期 Goal 均未启动。
-- 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、两级输入门禁、确认式局部重跑、三维评价和行为型演示成功边界（DEC-001～010 / DEC-041 / DEC-042 / DEC-044）；输出字段、详细控件 / 引用 UI、工作流与数据实现、Fixture 与阈值仍待确认。
+- 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、两级输入门禁、确认式局部重跑、审核 / Brief 产品语义、版本 / revision / 导出行为、三维评价和行为型演示成功边界（DEC-001～010 / DEC-041 / DEC-042 / DEC-044～046）；最终公共字段、详细控件 / 引用 UI、工作流与数据实现、Fixture 与阈值仍待确认。
 - 其余具体内容，必须等到对应 Proposed Decision 被用户明确接受并记为 Accepted Decision（见 [../decisions/](../decisions/)）后，才能写入。
 
 ---
@@ -191,8 +205,8 @@
 - 功能范围（与 [mvp-scope.md](mvp-scope.md) 保持一致）—— **核心任务 + 平台范围 + 输入分层 + 四层输出主结构已确认**；具体 In / Out of Scope 见 [mvp-scope.md](mvp-scope.md)
 - 平台范围 —— **已确认**（DEC-004）；模板字段与适配层技术待确认
 - 输入设计 —— **分层原则、允许格式、Task / Fact Stage 最低门禁、默认文件限制、分级冲突与 Needs Input 交互语言已确认**（DEC-005 / 041 / 044 / 045）；公共字段类型、补充问题与状态映射待确认
-- 输出设计 —— **四层主结构已确认**（DEC-006：事实 / 洞察 / 策略 / 执行）；各层字段 / 必填 / 输出格式 / 引用 / 置信度待确认
-- 人机协作 —— **单一关键审核节点 + 异常暂停 + 用户最终判断权 + 过期审核拒绝已确认**（DEC-007 / 029 / 044）；审核控件 / 编辑粒度 / 工作流技术实现待确认
+- 输出设计 —— **四层主结构 + Review / Approved Strategy / Marketing Brief / Xiaohongshu Brief 产品语义组 + 不可变版本与导出快照已确认**（DEC-006 / 046）；最终公共字段、输出格式、引用 UI 与置信度表达待确认
+- 人机协作 —— **单一关键审核节点 + 异常暂停 + 用户最终判断权 + 过期 Package / revision 拒绝已确认**（DEC-007 / 029 / 044 / 046）；审核控件、自动保存频率、并发实现与工作流技术实现待确认
 - 输出可靠性 —— **五类结论标记、可追溯、版本化 Source / Evidence 与按需混合 Retrieval 概念边界已确认**；引用 UI、证据覆盖呈现、最终公共 Schema、Retrieval Backend 与索引方案待确认
 - 失效与重跑 —— **阶段级失效 + 失效预览 + 用户确认后局部重跑 + 受影响内容重新审核已确认**；字段级依赖图不进入首个 Goal；生产 Checkpointer、重要修改识别、公共状态映射与版本差异 UI 待确认
 - 评价框架 —— **三维评价 + 六项优先指标已确认**（DEC-010）；指标公式 / 阈值 / 测试集 / 人数 / 埋点 / Dashboard 待确认
@@ -210,8 +224,8 @@
 - 要解决的核心业务问题：**已确认**（DEC-003）。
 - 平台范围：**已确认**（DEC-004）；小红书模板字段与适配层技术实现待确认。
 - 输入设计：**分层原则、首个演示允许格式、Task / Fact Stage 最低门禁、默认文件限制、分级冲突与 Needs Input 交互语言已确认**（DEC-005 / DEC-041 / DEC-044 / DEC-045）；公共字段类型、长期知识库 / 向量索引、具体补充问题与状态 / 错误映射待确认。
-- 通用营销 Brief 的输出结构：**四层主结构已确认**（DEC-006：事实 / 洞察 / 策略 / 执行）；各层字段 / 必填 / 输出格式 / 引用形式 / 置信度仍待确认。
-- 人机协作 / 审核节点：**单一关键审核、异常暂停、用户最终判断权与过期审核拒绝已确认**（DEC-007 / DEC-029 / DEC-044）；审核控件 / 编辑粒度 / 具体异常规则 / 工作流技术实现仍待确认。
+- 通用营销 Brief 的输出结构：**四层主结构与 Review / Approved Strategy / Marketing Brief / Xiaohongshu Brief 产品语义组已确认**（DEC-006 / DEC-046）；最终公共 Schema、输出格式、引用形式与置信度表达仍待确认。
+- 人机协作 / 审核节点：**单一关键审核、异常暂停、用户最终判断权、不可变 Review Package、Draft revision 与陈旧提交拒绝已确认**（DEC-007 / DEC-029 / DEC-044 / DEC-046）；审核控件、自动保存频率、并发实现、具体异常规则与工作流技术实现仍待确认。
 - 输出可靠性 / 可追溯：**五类结论标记、可追溯、版本化 Source / Evidence 与按需混合 Retrieval 概念边界已确认**；引用 UI、证据覆盖呈现、最终公共 Schema、Retrieval Backend 与索引方案仍待确认。
 - 失效与局部重跑：**阶段级失效、影响预览、用户确认后局部重跑、过期审核拒绝与 LangGraph StateGraph 已确认**；生产 Checkpointer、重要 / 非重要修改识别、公共状态映射和版本差异 UI 待确认，字段级依赖图不进入首个 Goal。
 - 完整小红书标题 / 正文、图片 / 视频生成与自动发布：**不进入首个 Goal**（DEC-041）。

@@ -1,8 +1,8 @@
 # Xiaohongshu Brief Mapping Adapter — 概念 Specification
 
-> **Status: CONCEPTUAL（概念）**
-> 来源决定：[DEC-031 — Xiaohongshu Brief Mapping Adapter 采用 Brief 锁定、版本化平台政策快照、真实体验边界与方向化输出契约](../../decisions/dec-031-xiaohongshu-brief-mapping-adapter-contract.md)（Accepted，Platform Adapter Contract / Platform Architecture，2026-07-29）。Amends DEC-004 + DEC-020。
-> 本文件是 DEC-031 的**概念结构化记录**，**不是最终实现契约**。所有字段名、枚举、Schema、阈值、算法、Prompt、模型均未确认。
+> **Status: PRODUCT SEMANTICS ACCEPTED / IMPLEMENTATION CONTRACT CONCEPTUAL**
+> 来源决定：[DEC-031 — Xiaohongshu Brief Mapping Adapter 采用 Brief 锁定、版本化平台政策快照、真实体验边界与方向化输出契约](../../decisions/dec-031-xiaohongshu-brief-mapping-adapter-contract.md)与 [DEC-046 — 冻结审核、Brief 与导出的产品语义和版本行为](../../decisions/dec-046-review-brief-and-export-product-contract.md)（均 Accepted）。
+> 本文件的六个产品语义组与不可变正式版本行为已确认；字段名、类型、枚举、Schema、阈值、算法、Prompt、模型仍是概念，不是最终实现契约。
 > Development Status: **NOT READY**。
 
 ---
@@ -466,20 +466,19 @@ commercial_disclosure_notes
 
 ## §24 Xiaohongshu Execution Brief Concept
 
-小红书 Execution Brief 概念上分为六组：
+Xiaohongshu Brief 固定为六个产品语义组。下列字段仅为概念展开，不是最终公共 Schema；Adapter 不得为满足结构而重新制定战略或制造证据。
 
-**1. Platform Context**
+**1. Platform and Campaign Context**
 
 ```text
 platform
-platform_policy_snapshot_id
 account_type
 commercial_context
 campaign_objective
 available_asset_types[]
 ```
 
-**2. Note Strategy**
+**2. Note Format and Content Mode**
 
 ```text
 recommended_note_format
@@ -489,7 +488,7 @@ platform_objective
 source_content_angle_ids[]
 ```
 
-**3. Content Architecture**
+**3. Creative Structure Directions**
 
 ```text
 title_directions[]
@@ -500,7 +499,7 @@ proof_placement[]
 fit_boundary
 ```
 
-**4. Discovery and Interaction**
+**4. Discovery and Action Directions**
 
 ```text
 search_intent
@@ -510,7 +509,7 @@ CTA_mapping
 interaction_prompt_direction
 ```
 
-**5. Evidence and Guardrails**
+**5. Evidence and Platform Constraints**
 
 ```text
 proof_points[]
@@ -523,9 +522,13 @@ platform_risk_notes[]
 review_route_notes[]
 ```
 
-**6. Workflow Decision**
+**6. Workflow and Version Context**
 
 ```text
+xiaohongshu_brief_version_id
+marketing_brief_version_id
+approved_strategy_version_id
+platform_policy_snapshot_id
 stage_decision:
 - valid
 - valid_with_limitations
@@ -670,7 +673,7 @@ Competitor Misattribution Rate = 0%
 
 ## §31 Open Questions（记录而非虚构）
 
-- 最终 Xiaohongshu Execution Brief Schema 与字段名；
+- 最终 Xiaohongshu Brief 公共 Schema、字段名、类型与逐字段必填表达；
 - Platform Policy Snapshot 的采集、版本管理与同步机制；
 - Platform Policy Snapshot 的存储与可用性判断；
 - Account and Campaign Context 最终结构与字段；
