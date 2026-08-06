@@ -497,7 +497,7 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 ### Context and Investigation
 
-- RFC-003 合并后，按既定依赖顺序创建 RFC-006 Issue #48、独立分支与 RFC 正文；当前只授权策划和文档，不授权 Provider 接入、模型调用、Spike、业务实现或 Goal 激活。
+- RFC-003 合并后，按既定依赖顺序创建 RFC-006 Issue #48、独立分支、RFC 正文与 Draft PR #49；当前只授权策划和文档，不授权 Provider 接入、模型调用、Spike、业务实现或 Goal 激活。
 - 仓库调查确认 RFC-006 之前只有 RFC Register 登记，没有生产 Model Runtime、Provider Adapter 或 Prompt Registry；Spike-001 的 `ScriptedModelProvider` 只可作为测试设计参考，禁止迁入生产。
 - 官方资料调查覆盖 OpenAI、Anthropic 与 Google 的 Structured Output、模型 / API 版本、错误和数据处理边界。时效性能力只作为 2026-08-06 Proposal 证据；实施时仍须复核账号访问、官方兼容性与固定验收包结果。
 - RFC-006 被拆成 8 个 DQ：Provider / Model / SDK；Model Runtime Port / DI；Structured Output；Failure / Repair / Retry / Cancellation；版本；Skill Profiles / Context；Secret / Payload / Telemetry；Deterministic Substitute / Live Smoke。
