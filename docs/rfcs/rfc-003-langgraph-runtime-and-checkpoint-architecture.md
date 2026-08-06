@@ -5,7 +5,7 @@
 - **Status:** DRAFTING
 - **Date:** 2026-08-06
 - **Issue:** [#46](https://github.com/JettxonHo/ai-ecommerce-agent/issues/46)
-- **Draft PR:** Pending
+- **Draft PR:** [#47](https://github.com/JettxonHo/ai-ecommerce-agent/pull/47)
 - **RFC Acceptance:** NOT GRANTED
 - **Implementation Authorization:** NOT GRANTED
 - **Spike Execution Authorization:** NOT GRANTED

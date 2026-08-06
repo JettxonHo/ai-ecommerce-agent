@@ -170,5 +170,5 @@ None.
 ## Notes
 
 - 用户于 2026-08-06 明确接受 `P-19A`、`P-20A` 与 `P-21A`。
-- Issue #46 / RFC-003 Draft PR 负责本决定与 Current Truth 的一致性归档。
+- Issue #46 / PR #47 负责本决定与 Current Truth 的一致性归档。
 - 本决定不接受 RFC-003 整体，不授权 Spike、依赖安装、数据库创建 / 迁移、业务实现或 Goal 激活。

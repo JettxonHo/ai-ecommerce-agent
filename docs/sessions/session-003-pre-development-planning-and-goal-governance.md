@@ -387,7 +387,7 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - [DEC-049](../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) 归档上述三项决定。
 - [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) 从 `PROPOSED` 进入 `DRAFTING`，但整体 Acceptance 仍为 `NOT GRANTED`。
-- Issue #46 / 分支 `codex/rfc-003-runtime-checkpoint` 承载 RFC-003；Draft PR 合并不接受 RFC、不授权 TS-03、迁移、业务实现或 Goal。
+- Issue #46 / PR #47 / 分支 `codex/rfc-003-runtime-checkpoint` 承载 RFC-003；Draft PR 合并不接受 RFC、不授权 TS-03、迁移、业务实现或 Goal。
 
 ### Proposed Next Decisions
 
@@ -399,5 +399,5 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 ### Archive Scope
 
-- Issue #46 / RFC-003 Draft PR 负责 DEC-049、RFC Draft、Architecture Current Truth、Readiness、Traceability、RFC Register 与本 Session 的一致性归档。
+- Issue #46 / PR #47 负责 DEC-049、RFC Draft、Architecture Current Truth、Readiness、Traceability、RFC Register 与本 Session 的一致性归档。
 - 本轮不安装 LangGraph Checkpointer、不创建 Checkpoint Database、不执行 setup / migration 或 Technical Spike、不实现 Worker / Graph / API / 业务能力，也不创建或激活长期 Goal。
