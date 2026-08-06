@@ -12,6 +12,8 @@ Accepted
 
 2026-08-06
 
+> **Follow-up:** [DEC-050](dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 在本决定的 Checkpoint / 对账边界之外冻结 Durable Dispatch、执行所有权与协作式取消；不改变本决定。
+
 ## Decision
 
 ### 生产 Checkpointer 与存储边界
@@ -108,7 +110,7 @@ LangGraph 会在 Replay、Retry 与 Interrupt Resume 中重新执行 Checkpoint 
 ## Impact
 
 - RFC-003 必须以 `PostgresSaver` 同步路径、独立 Checkpoint Database、可重入 Node 与 Current-Truth-first Reconciliation 为已接受输入。
-- RFC-003 仍须决定 Durable Dispatch、Worker Claim / Lease / Heartbeat、Cancellation、Compatibility / Upgrade 和验收测试；这些问题未关闭前，RFC-003 不能整体 Accepted。
+- RFC-003 在本决定接受时仍须决定 Durable Dispatch、Worker Claim / Lease / Heartbeat、Cancellation、Compatibility / Upgrade 和验收测试；其中 Durable Dispatch、Worker Ownership 与 Cancellation 后续已由 DEC-050 冻结，Compatibility / Upgrade 与验收证据仍开放，RFC-003 仍不能整体 Accepted。
 - RFC-004 的 Resume API 必须映射到 RFC-003 的合法恢复动作，不得让客户端 Checkpoint 身份直接授权业务写入。
 - RFC-007 必须观测 Checkpoint latency、Reconciliation outcome、stale / foreign / incompatible checkpoint 与恢复路径，但不得把 Checkpoint 内容当日志正文泄露。
 - Readiness 的 TS-03 / ARP-06 必须验证 Checkpoint isolation 与 reconciliation；本决定不授权执行该 Spike。
@@ -158,7 +160,7 @@ None.
 - compatible Resume 与 stale / foreign / incompatible 分流；
 - Time Travel 不等于 Business Restore。
 
-**本决定尚未确认：**
+**本决定尚未确认（截至 DEC-049 接受时的历史边界）：**
 
 - 精确 LangGraph / Checkpointer / PostgreSQL 兼容版本；
 - Durable Dispatch、Worker Claim、Lease / Heartbeat、Cancellation 与 Shutdown；
@@ -166,6 +168,8 @@ None.
 - Checkpoint retention、清理、备份与恢复运维；
 - 最终 Runtime Registry / Recovery Record / Checkpoint metadata Schema；
 - RFC-003 验收测试、TS-03 具体场景与性能阈值。
+
+> **Current truth update（DEC-050）：** 上述 Durable Dispatch、Worker Claim、Lease / Heartbeat 与 Cancellation 已由 [DEC-050](dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 冻结。精确版本、Compatibility、Safe Resume Matrix、迁移 / 回滚、Retention 和验收证据继续开放。
 
 ## Notes
 

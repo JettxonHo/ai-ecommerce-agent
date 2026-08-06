@@ -60,6 +60,7 @@
 | DEC-047 | 采用渐进式证据披露、结构化编辑意图与行动导向恢复交互 | Product / Interaction / Evidence / Editing / Recovery / Export | Amended by DEC-048 | 2026-08-06 | Session-003 | RFC-003 / RFC-004 / RFC-005 / RFC-007 | 证据、编辑、进度、恢复和导出确认语义保持有效；DEC-048 补全代表性验收包、必要行为门禁和 Markdown-first 用户导出。 |
 | DEC-048 | 采用小型代表性验收包、行为门禁与 Markdown-first 导出 | Product / Acceptance / Testing / Export | Accepted | 2026-08-06 | Session-003 | RFC-004 / RFC-006 | 接受 P-16A / P-17A / P-18A；三个固定资料包 + 一个变更脚本，确定性 PR 验证 + Release Candidate 单次 Live Smoke，行为硬门禁 + 非机械人工 `PASS / FAIL`，Marketing Brief / Xiaohongshu Brief 使用 UTF-8 Markdown 用户导出。Amends DEC-010 / 042 / 046 / 047。 |
 | DEC-049 | 采用独立 PostgreSQL Checkpoint 数据库、同步持久性与 Current-Truth-first 对账 | Workflow / Checkpoint / Recovery Architecture | Accepted | 2026-08-06 | Session-003 | RFC-003（Drafting） | 接受 P-19A / P-20A / P-21A；同 PostgreSQL Service + 独立 Checkpoint Database / Role / Credential / Pool；官方同步 PostgresSaver 与受控 setup / migration；`sync` durability、紧凑 State、可重入 Node、Prepare→Execute→Commit；stale / foreign / incompatible Checkpoint 不得写 Current Truth。Amends DEC-013 / 023 / 024 / 033；Issue #46 归档，不接受 RFC-003 整体，不授权 Spike、迁移、实现或 Goal。 |
+| DEC-050 | 采用 PostgreSQL Durable Dispatch、Fenced Worker Ownership 与协作式取消 | Workflow Runtime / Durable Dispatch / Worker Ownership / Cancellation | Accepted | 2026-08-06 | Session-003 | RFC-003（Drafting） | 接受 P-22A / P-23A / P-24A；Transactional Durable Work Intent + 短事务 Poll-and-claim，轮询是正确性基线；数据库权威 Lease / Heartbeat + 单调 Fencing Token；持久化协作式取消 / Supersession + Commit Fence。Amends DEC-013 / DEC-033，Complements DEC-049；不接受 RFC-003 整体，不授权 Worker、数据库、Spike、实现或 Goal。 |
 
 ---
 
@@ -70,6 +71,8 @@
 > **Product interaction amendment note：** DEC-005 的分层输入原则、DEC-009 的阶段级失效范围和 DEC-041 的演示包络保持有效；任务工作台与确认式重跑以 DEC-044 为准，最低输入、文件限制与冲突分级以 DEC-045 为准，证据披露、修改影响、进度、恢复和导出确认以 DEC-047 为准，代表性验收包、必要行为门禁和 Markdown-first 用户导出以 DEC-048 为准。DEC-024 / DEC-025 的版本边界、DEC-026 的 Fact Stage 最低条件与 DEC-029 的过期审核拒绝规则未被改变。
 
 > **Product output amendment note：** DEC-006 的四层主结构与 DEC-029～031 的 Human Review / Skill / Adapter 边界保持有效；产品语义组、Review Draft revision、正式对象不可变版本、Current Truth Pointer 与导出快照行为以 DEC-046 为准，差异和导出确认交互以 DEC-047 为准，用户导出格式以 DEC-048 的 Markdown-first 边界为准。最终 API / Schema / 并发机制、Markdown 模板和下载协议仍由 RFC-004 / RFC-006 / Frontend Architecture 冻结。
+
+> **Workflow runtime amendment note：** DEC-013 的任务级跨会话恢复与 DEC-033 的安全恢复 / 幂等契约保持有效；生产 Checkpoint 拓扑、`sync` durability、可重入 Node 和 Current-Truth-first Reconciliation 以 DEC-049 为准，Durable Work Intent 调度、Lease / fencing 所有权和协作式取消以 DEC-050 为准。RFC-003 的兼容、Safe Resume Action Matrix、迁移 / 回滚和验收证据仍待接受。
 
 - `Accepted` — 用户明确接受，当前有效。
 - `Rejected` — 被明确否决。

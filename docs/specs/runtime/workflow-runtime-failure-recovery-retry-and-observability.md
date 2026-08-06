@@ -1,8 +1,8 @@
 # Workflow Runtime Failure Recovery, Retry and Observability — 概念 Specification
 
 > **Status: CONCEPTUAL（概念）**
-> 来源决定：[DEC-033 — Workflow Runtime 采用分层运行记录、分类故障处置、有界重试、安全恢复、事务幂等与端到端可观测性契约](../../decisions/dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)、[DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 与 [DEC-049 — 独立 PostgreSQL Checkpoint、同步持久性与 Current-Truth-first 对账](../../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)（均 Accepted；DEC-047 只冻结产品投影，DEC-049 收敛 Checkpoint 技术与恢复边界）。
-> 本文件仍是**概念结构化记录**，**不是最终实现契约**。DEC-049 已确认的 Checkpointer 拓扑、`sync` durability、可重入 Node 与 Reconciliation 为 Current Truth；最终字段、枚举、Schema、阈值及 RFC-003 其余技术问题仍未确认。
+> 来源决定：[DEC-033 — Workflow Runtime 采用分层运行记录、分类故障处置、有界重试、安全恢复、事务幂等与端到端可观测性契约](../../decisions/dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)、[DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)、[DEC-049 — 独立 PostgreSQL Checkpoint、同步持久性与 Current-Truth-first 对账](../../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) 与 [DEC-050 — PostgreSQL Durable Dispatch、Fenced Worker Ownership 与协作式取消](../../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md)（均 Accepted；DEC-047 只冻结产品投影，DEC-049 / DEC-050 收敛 Workflow Runtime 技术与恢复边界）。
+> 本文件仍是**概念结构化记录**，**不是最终实现契约**。DEC-049 已确认 Checkpointer 拓扑、`sync` durability、可重入 Node 与 Reconciliation；DEC-050 已确认 Durable Work Intent 调度、Lease / fencing 所有权与协作式取消。Compatibility、Safe Resume Action Matrix、最终字段、枚举、Schema、阈值及 RFC-003 其余技术问题仍未确认。
 > Development Status: **CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY**。
 
 ---
@@ -354,7 +354,13 @@ Schema 合法但业务候选违反硬证据规则时，可有限 `candidate_rege
 
 ## §23 Cancellation
 
-支持取消当前 Workflow Run / Skill Run / 整个 Task，采用协作式 Cancellation。收到取消请求后：记录请求 → 停止调度新 Node → 传播到可取消调用 → 完成或回滚当前原子事务 → 持久化运行记录 → 标记对应层 cancelled → 保留已提交历史版本 → 不创建不完整 Current Truth。不得在事务中间强制终止并留下部分业务状态。
+支持取消当前 Workflow Run / Skill Run / 整个 Task，采用 DEC-050 的持久化协作式 Cancellation。收到取消或 Supersession 请求后：持久化 `cancellation_requested` / `superseded` → 停止调度新 Node → 在外部调用前后、Node 边界和 Commit 前检查 → 完成或回滚当前原子事务 → 持久化运行记录 → 保留已提交历史版本 → 不创建不完整 Current Truth。请求态不得直接标成终态；只有当前 Owner 确认已停止且无部分提交，或恢复流程证明旧 Lease 已失效且不存在可提交 Owner，才可标记对应层 cancelled。已经发出的 Provider 调用可以返回，但在取消、取代或 Ownership Loss 后必须丢弃结果。不得在事务中间强制终止并留下部分业务状态。
+
+### §23.1 Durable Dispatch and Worker Ownership
+
+Transactional Durable Work Intent 是内部可靠调度的权威来源。Worker 使用短 PostgreSQL 事务和 `FOR UPDATE SKIP LOCKED` 领取有界小批工作，记录 `holder_id` / `lease_expires_at` / 单调 `fencing_token` 后立即提交，外部执行不持有 Claim 或业务事务。轮询是正确性基线；`LISTEN / NOTIFY` 只可作 Wake-up 优化，不是可靠消息来源。
+
+Heartbeat、完成、释放和由该 Worker 执行产生的正式业务 Commit 必须验证当前 Holder + Token。Lease 过期后新 Worker 使用更高 Token 接管；旧 Worker 即使晚到也不得完成 Work Intent、创建 Domain Version 或移动 Current Truth Pointer。具体轮询、批大小、Lease / Heartbeat 和 Shutdown 参数由 TS-01 / RFC-007 按证据校准。
 
 ---
 
@@ -566,9 +572,8 @@ Observability 完整率目标（`= 100%`）：Runs with Trace ID / Skill Runs wi
 
 - Retry 次数、Timeout 秒数、Backoff 参数、Jitter 策略。
 - Circuit Breaker 阈值、算法、实现库。
-- Queue System / Worker Framework / Dead-letter Queue 技术是否采用。
+- Worker 的轮询、批大小、Lease / Heartbeat、最大并发与 Graceful Shutdown 参数；Dead-letter Queue 技术是否需要。
 - Logging / Tracing / Metrics / Alerting Provider；是否采用 OpenTelemetry。
-- Durable Dispatch、Worker Claim / Lease / Heartbeat、Cancellation 与 Shutdown。
 - Workflow Definition / State Schema / Serializer / Checkpointer 兼容矩阵、升级与 Rollback。
 - Runtime Registry / Recovery Record 最终 Schema 与 Safe Resume Action Matrix。
 - 数据保留周期、日志采样率、PII 脱敏实现。

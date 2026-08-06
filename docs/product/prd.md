@@ -155,7 +155,7 @@
 - **修改产生依赖影响：** 用户在审核节点修改事实或关键洞察后，依赖该内容的下游策略与执行 Brief **不应继续被视为有效**。系统展示失效预览，用户确认后从最早受影响阶段局部重跑（DEC-044）。
 - **未采用方案（保留为备选，非永久禁止）：** 只展示最终结论、所有结论强制逐条原文引用。
 
-> 注：五类结论标记、渐进式证据披露、非数字置信度边界、版本化 Source / Fragment / Evidence Link、按需混合 Retrieval、阶段级局部重跑、LangGraph State 与 PostgreSQL Current Truth 边界均已确认；DEC-049 已冻结生产 Checkpointer 拓扑、同步持久性和 Current-Truth-first 对账。网页抓取与主动联网研究不进入首个 Goal。最终组件、来源公共 Schema、权限过滤、Retrieval Backend、RFC-003 剩余 Worker / Compatibility 和来源处理细节仍待 Frontend Architecture / RFC-003 / 005。
+> 注：五类结论标记、渐进式证据披露、非数字置信度边界、版本化 Source / Fragment / Evidence Link、按需混合 Retrieval、阶段级局部重跑、LangGraph State 与 PostgreSQL Current Truth 边界均已确认；DEC-049 已冻结生产 Checkpointer、同步持久性和 Current-Truth-first 对账，DEC-050 已冻结 Durable Dispatch、Fenced Worker Ownership 与协作式取消。网页抓取与主动联网研究不进入首个 Goal。最终组件、来源公共 Schema、权限过滤、Retrieval Backend、RFC-003 剩余 Compatibility / Safe Resume / 验收证据和来源处理细节仍待 Frontend Architecture / RFC-003 / 005。
 
 ### MVP 阶段级失效与局部重跑（DEC-009，Accepted，2026-07-27）
 
@@ -173,7 +173,7 @@
 - **重跑后复核：** 重跑内容须由用户重新查看；若影响 Human Review 输入，则旧 Package 标记 `superseded`、旧提交被拒绝，并创建新 Package 进入同一审核 Gate。
 - **未采用方案（保留为备选，非永久禁止）：** 全量重跑、只改直接字段不更新下游；字段级依赖图暂缓到后续版本。
 
-> 注：阶段级失效、编辑影响识别、语义组差异、用户确认后局部重跑、过期审核拒绝、LangGraph StateGraph、PostgreSQL Current Truth 与一个统一用户侧 Agent 均已确认；DEC-049 已冻结生产 Checkpointer、同步持久性与 Interrupt / Recovery 的 Current-Truth-first 对账。字段级依赖图不进入首个 Goal。Safe Resume Action Matrix、Compatibility、Diff 算法、公共 API 状态映射和具体节点实现仍待 RFC-003 / 004 / Frontend Architecture。
+> 注：阶段级失效、编辑影响识别、语义组差异、用户确认后局部重跑、过期审核拒绝、LangGraph StateGraph、PostgreSQL Current Truth 与一个统一用户侧 Agent 均已确认；DEC-049 已冻结生产 Checkpointer、同步持久性与 Interrupt / Recovery 的 Current-Truth-first 对账，DEC-050 已冻结 Durable Dispatch、Lease / fencing 与协作式取消。字段级依赖图不进入首个 Goal。Safe Resume Action Matrix、Compatibility、Diff 算法、公共 API 状态映射和具体节点实现仍待 RFC-003 / 004 / Frontend Architecture。
 
 ### MVP 三维评价框架（DEC-010，Accepted，2026-07-27）
 

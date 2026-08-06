@@ -39,6 +39,7 @@
 | Progressive evidence, edit intent, stage progress, actionable recovery and export confirmation | DEC-047 | [User Flows](../product/user-flows.md) | — | DEC-047 + Issue #42 / PR #43 | RFC-003, RFC-004, RFC-005, RFC-007 | _(placeholder)_ | Browser evidence / edit / recovery / export interaction E2E _(planned)_ |
 | Small representative acceptance pack, behavior gates, human usability judgment and Markdown-first export | DEC-048 | [Testing Strategy](../development/testing-strategy.md) | — | DEC-048 + Issue #44 / PR #45 | RFC-004, RFC-006 | _(placeholder)_ | 3 fixed fixtures + mutation script + RC live smoke + human PASS / FAIL _(planned)_ |
 | Dedicated PostgreSQL Checkpoint Database, sync durability, reentrant nodes and Current-Truth-first reconciliation | DEC-049 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | spike-05, spike-08 | DEC-049 + Issue #46 / PR #47 | RFC-003（DRAFTING） | _(placeholder)_ | TS-03 isolation / reconciliation + interrupt / resume + duplicate-safe replay _(planned)_ |
+| PostgreSQL Durable Work Intent dispatch, fenced worker ownership and cooperative cancellation | DEC-050 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | — | DEC-050 + Issue #46 / PR #47 | RFC-003（DRAFTING） | _(placeholder)_ | TS-01 multi-worker claim / takeover / stale commit rejection + cancellation commit fence _(planned)_ |
 | RFC Planning and Dependency Order | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
@@ -62,7 +63,7 @@
 | Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
 |---|---|---|---|---|---|---|---|
 | 确定性 Workflow 编排（LLM 受约束） | DEC-011, DEC-023 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-01 | test_skeleton::test_normal_workflow_end_to_end | RFC-001, RFC-003 | _(placeholder)_ | _(placeholder)_ |
-| 任务级持久状态 + 跨会话 Resume | DEC-013, DEC-024, DEC-049 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-05, spike-08 | test_review_safety::spike05/spike08 + DEC-049 | RFC-003 | _(placeholder)_ | PostgresSaver interrupt / resume + Current Truth reconciliation _(planned)_ |
+| 任务级持久状态 + 跨会话 Resume | DEC-013, DEC-024, DEC-049, DEC-050 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-05, spike-08 | test_review_safety::spike05/spike08 + DEC-049 / DEC-050 | RFC-003 | _(placeholder)_ | PostgresSaver interrupt / resume + Current Truth reconciliation + fenced ownership _(planned)_ |
 | 单审查节点 + 异常暂停 | DEC-007 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | spike-01, spike-05 | test_skeleton / test_review_safety | RFC-004 | _(placeholder)_ | _(placeholder)_ |
 | MVP 不用 Multi-Agent（Bounded Worker） | DEC-021 | [System Architecture](../architecture/system-architecture.md) | — | architecture-baseline-v1 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 
@@ -72,6 +73,7 @@
 |---|---|---|---|---|---|---|---|
 | Versioned Domain State + Compact State | DEC-024 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-01, spike-06 | test_transaction_idempotency | RFC-002 | _(placeholder)_ | _(placeholder)_ |
 | 三类存储分离；Checkpoint≠Current Truth；独立 Checkpoint Database + sync durability | DEC-024, DEC-033, DEC-049 | [Runtime Failure / Recovery](../specs/runtime/workflow-runtime-failure-recovery-retry-and-observability.md) | spike-01, spike-08 | test_skeleton::test_three_stores_are_separate + DEC-049 | RFC-002, RFC-003 | _(placeholder)_ | Database / role / pool isolation + stale / foreign / incompatible rejection _(planned)_ |
+| Durable Work Intent + poll-and-claim + Lease / fencing + cooperative cancellation | DEC-033, DEC-050 | [Runtime Failure / Recovery](../specs/runtime/workflow-runtime-failure-recovery-retry-and-observability.md) | — | DEC-050 + Issue #46 / PR #47 | RFC-002, RFC-003, RFC-007 | _(placeholder)_ | Real PostgreSQL claim contention + lease takeover + stale commit rejection + cancellation / supersession _(planned)_ |
 | 原子提交 + 幂等 + 回滚 | DEC-029, DEC-033 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | spike-04, spike-06, Recovery | test_transaction_idempotency::spike04 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
 | 阶段级失效、编辑意图、语义组差异、影响预览与确认式部分重跑 | DEC-009, DEC-044, DEC-047 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-05 | test_review_safety::spike05（pos_count==1）+ DEC-047 | RFC-002, RFC-003, RFC-004 | _(placeholder)_ | Material / presentation edit + invalidation preview + affected-stage rerun _(planned)_ |
 | 不可变正式对象 + Review Draft revision | DEC-024, DEC-029, DEC-046 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | — | DEC-046 | RFC-002, RFC-004 | _(placeholder)_ | Immutable versions + stale revision save/submit _(planned)_ |
@@ -136,7 +138,7 @@
 ```text
 Spike-001 = COMPLETED
 RFC-001 / RFC-002 = ACCEPTED
-RFC-003 = DRAFTING (DEC-049 accepted inputs only; RFC acceptance not granted)
+RFC-003 = DRAFTING (DEC-049 / DEC-050 accepted inputs DQ-01 through DQ-06 only; RFC acceptance not granted)
 RFC-004 through RFC-007 = PROPOSED
 FND-001 / FND-002 / FND-003 = COMPLETED
 

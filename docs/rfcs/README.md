@@ -4,7 +4,7 @@
 
 > **当前阶段：** RFC Planning and Dependency Order（DEC-038 已接受）。  
 > **状态：** Architecture Readiness = `CONDITIONALLY READY` · Development Status = `CONDITIONALLY READY`。  
-> **当前议题：** [RFC-003: LangGraph Runtime and Checkpoint Architecture](rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（`DRAFTING`；P-19A～P-21A 已形成 DEC-049，RFC 整体尚未 Accepted）。
+> **当前议题：** [RFC-003: LangGraph Runtime and Checkpoint Architecture](rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（`DRAFTING`；P-19A～P-21A 已形成 DEC-049，P-22A～P-24A 已形成 DEC-050，RFC 整体尚未 Accepted）。
 
 ---
 
