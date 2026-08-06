@@ -8,7 +8,7 @@
 > **Related RFC:** None
 > **Supersedes:** None
 > **Amends:** DEC-023、DEC-024、DEC-029（在 LangGraph StateGraph 选型、版本化 Domain State 与四标识符边界、Human Review and Approved Strategy Contract 基础上，正式定义 Workflow Runtime 的运行身份分层、有界技术恢复、Checkpoint 与业务状态协调、Human Review Resume 可靠行为与端到端可观测性；**不推翻** DEC-023 / DEC-024 / DEC-029 既有结论）。
-> **Amended by:** [DEC-049](dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) 收敛生产 Checkpoint 与对账边界；[DEC-050](dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 收敛 Durable Dispatch、Lease / fencing 与协作式取消。其余概念契约保持有效。
+> **Amended by:** [DEC-049](dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) 收敛生产 Checkpoint 与对账边界；[DEC-050](dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 收敛 Durable Dispatch、Lease / fencing 与协作式取消；[DEC-051](dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) 收敛显式兼容、Safe Resume Action Matrix、迁移 / 回滚与验收证据。其余概念契约保持有效。
 
 ---
 

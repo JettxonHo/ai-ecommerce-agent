@@ -8,6 +8,8 @@ Workflow Runtime / Durable Dispatch / Worker Ownership / Cancellation
 
 Accepted
 
+> **Follow-up:** [DEC-051](dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) 冻结与本决定配套的显式兼容、确定性恢复动作、迁移 / 回滚与验收证据；不改变本决定的 Dispatch、Ownership 或 Cancellation 语义。
+
 ## Date
 
 2026-08-06
@@ -112,7 +114,7 @@ Lease 不是“任务一定只执行一次”的证明。系统仍只承诺在�
 - 外部调用期间可能发生重复计算，但不得形成重复业务效果；
 - Lease、Heartbeat、轮询和批大小需要 TS-01 / RFC-007 证据校准；
 - 取消可能是短暂的请求态，不能虚假宣称瞬时完成；
-- Safe Resume Matrix、版本兼容、迁移、回滚与最终验证仍须由 RFC-003 后续 Decision Gate 冻结。
+- Safe Resume Matrix、版本兼容、迁移、回滚与最终验证已由 DEC-051 冻结；精确实施版本、公共字段和运维参数仍待后续规划。
 
 ## Amendments and Relationships
 

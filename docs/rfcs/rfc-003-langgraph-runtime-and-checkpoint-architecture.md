@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- **Status:** DRAFTING
+- **Status:** IN REVIEW
 - **Date:** 2026-08-06
 - **Issue:** [#46](https://github.com/JettxonHo/ai-ecommerce-agent/issues/46)
 - **Draft PR:** [#47](https://github.com/JettxonHo/ai-ecommerce-agent/pull/47)
@@ -13,7 +13,7 @@
 
 ## Problem
 
-项目已经选择 Python 同步后端、LangGraph StateGraph 与 PostgreSQL Business Current Truth；DEC-049 / DEC-050 已冻结生产 Checkpointer、持久性、Node 重执行、Checkpoint 对账、Durable Dispatch、Worker 所有权和协作式取消。RFC-003 仍需冻结 Compatibility / Upgrade、Safe Resume Action Matrix、迁移 / 回滚与验收证据，才能整体 Accepted 并在未来安全实现 Workflow Runtime。
+项目已经选择 Python 同步后端、LangGraph StateGraph 与 PostgreSQL Business Current Truth；DEC-049 / DEC-050 / DEC-051 已冻结生产 Checkpointer、持久性、Node 重执行、Checkpoint 对账、Durable Dispatch、Worker 所有权、协作式取消、Compatibility / Upgrade、Safe Resume Action Matrix，以及迁移 / 回滚与验收证据边界。DQ-01～DQ-09 已全部闭合；RFC-003 现进入最终一致性 Review，仍须用户单独明确接受，才能整体 Accepted。
 
 ## Context
 
@@ -36,6 +36,7 @@ RFC-003 必须同时满足：
 - [DEC-041](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)
 - [DEC-049](../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)
 - [DEC-050](../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md)
+- [DEC-051](../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md)
 - [RFC-001](rfc-001-repository-and-application-architecture.md)
 - [RFC-002](rfc-002-persistence-and-transaction-architecture.md)
 - [Workflow Runtime Failure / Recovery Spec](../specs/runtime/workflow-runtime-failure-recovery-retry-and-observability.md)
@@ -69,9 +70,9 @@ RFC-003 必须同时满足：
 | DQ-04 Durable dispatch and worker claim | ACCEPTED INPUT | P-22A / DEC-050 |
 | DQ-05 Worker lease, fencing and heartbeat | ACCEPTED INPUT | P-23A / DEC-050 |
 | DQ-06 Cancellation and supersession | ACCEPTED INPUT | P-24A / DEC-050 |
-| DQ-07 Workflow / state compatibility and upgrade | PROPOSED | P-25A below |
-| DQ-08 Safe resume protocol and recovery action matrix | PROPOSED | P-26A below |
-| DQ-09 Testing, migration, rollback and acceptance evidence | PROPOSED | P-27A below |
+| DQ-07 Workflow / state compatibility and upgrade | ACCEPTED INPUT | P-25A / DEC-051 |
+| DQ-08 Safe resume protocol and recovery action matrix | ACCEPTED INPUT | P-26A / DEC-051 |
+| DQ-09 Testing, migration, rollback and acceptance evidence | ACCEPTED INPUT | P-27A / DEC-051 |
 
 `ACCEPTED INPUT` 表示对应子决策已由用户接受；不表示 RFC-003 整体 Accepted。
 
@@ -127,6 +128,32 @@ RFC-003 必须同时满足：
 - 请求态不等于终态，须由当前 Owner 确认停止，或由恢复流程证明不存在可提交 Owner；
 - 已发出的 Provider 调用可完成，但在取消、取代或 Ownership Loss 后必须丢弃结果；
 - 取消 Run 不删除先前有效的业务版本，删除 / Retention 另行处理。
+
+### DQ-07 — P-25A：显式 Compatibility Tuple + 受控前向升级
+
+- 每个可恢复执行绑定 Workflow Definition、Graph State Schema、Serializer Profile 与已验证的 Checkpointer Package / Store Schema 兼容范围；
+- 实施时由锁文件与 Compatibility Matrix 固定实际组合，不在策划阶段虚构精确依赖版本；
+- 只 Resume `exact_compatible` 或存在已测试纯转换器的 `upgradable` 状态；
+- 升级采用 Preflight → Checkpointer Migration Task → 新 Runtime 健康验证 → 有界 Worker 切换；
+- 历史 Checkpoint 不原地改写；旧、新 Worker 只能领取各自兼容工作并共同遵守 Lease / fencing；
+- 无法证明兼容时进入局部重跑、新安全分支或 Manual Recovery。
+
+### DQ-08 — P-26A：Current-Truth-first Deterministic Recovery Decision
+
+- Application 层先对账请求动作、Runtime Registry、Work Intent / Ownership、Checkpoint metadata、Current Truth、Source / Review / Stage revisions、失效状态和幂等结果；
+- 恢复决定只返回 `resume_same_thread`、`reconcile_committed_result`、`retry_current_stage`、`rerun_from_earliest_invalid_stage`、`restart_from_safe_boundary`、`manual_recovery_required` 或 `reject_request`；
+- 每次实际恢复保留稳定 `task_id` / `thread_id`，创建新的 `run_id` 与 Attempt；
+- API / Frontend 只能表达恢复意图，不能把 Checkpoint ID 当作恢复授权；
+- 恢复记录保存原因、关键 revisions、动作和新执行身份，正式 Commit 前仍执行最终 Fence。
+
+### DQ-09 — P-27A：风险切片证据包 + 前向恢复优先
+
+- RFC 接受前冻结测试清单、证据格式与停止条件；实际执行留给长期 Goal 的 TS-01 / TS-03 和实现 Issues；
+- 真实 PostgreSQL 证据覆盖兼容组合、受控迁移、多 Worker、Lease 接管、陈旧提交拒绝、取消、Interrupt / Resume、Checkpoint 分类与 Recovery Action Matrix；
+- 迁移优先兼容扩展与 Forward Repair；代码回滚须先证明旧 Runtime 与当前 Store Schema 兼容；
+- Vendor Migration 无安全降级路径时停止领取新工作并 Roll Forward；
+- Checkpoint Store 不可用时从受控备份恢复，或依据 Business Current Truth / Runtime Registry 创建安全新运行；
+- stale Worker 成功提交、跨 Task Resume、过期 Review 被接受、取消后形成 Current Truth、隐式迁移或不可解释恢复分支均为停止条件。
 
 ## Accepted Decision Round 2 — Historical Proposal Detail
 
@@ -197,7 +224,7 @@ RFC-003 必须同时满足：
 
 P-22A / P-23A / P-24A 已于 2026-08-06 被用户明确接受并归档为 [DEC-050](../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md)。以上备选与取舍保留为历史决策证据，不再是待确认提案。
 
-## Proposed Decision Round 3
+## Accepted Decision Round 3 — Historical Proposal Detail
 
 ### P-25：Workflow / State Compatibility and Upgrade
 
@@ -281,6 +308,8 @@ RFC-003 接受前冻结测试清单和证据格式；实际执行留给长期 Go
 
 **Recommendation:** P-27A。
 
+P-25A / P-26A / P-27A 已于 2026-08-06 被用户明确接受并归档为 [DEC-051](../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md)。以上备选与取舍保留为历史决策证据，不再是待确认提案。
+
 ## Architecture Boundaries
 
 - Checkpoint Database、Application Runtime Registry 与 Business Database 不共用职责或事务。
@@ -304,7 +333,7 @@ RFC-003 接受前冻结测试清单和证据格式；实际执行留给长期 Go
 - 不在本 RFC 引入内容 Hash、SHA-256、签名链或极低概率恢复变体。
 - 安全、异常和性能测试聚焦跨 Task 隔离、stale Worker、陈旧 Resume、取消与迁移等真实核心风险。
 
-## Testing Strategy — Draft
+## Testing Strategy — Accepted Planning Boundary
 
 最终接受前至少需要规划并授权以下证据；本 Draft 不执行测试：
 
@@ -320,14 +349,14 @@ RFC-003 接受前冻结测试清单和证据格式；实际执行留给长期 Go
 
 其中 Checkpoint Isolation / Reconciliation 的生产风险验证进入 TS-03 Charter；真实 PostgreSQL 多 Worker并发进入 TS-01。Spike 失败时停止对应生产模块，不降低验收标准继续。
 
-## Migration and Rollback — Open
+## Migration and Rollback — Accepted Planning Boundary
 
-- DQ-07 须冻结 Checkpointer package / PostgreSQL / Workflow Definition / State Schema 的兼容矩阵；
+- 实施时须以官方资料、锁文件与 TS-03 证据冻结 Checkpointer package / PostgreSQL / Workflow Definition / State Schema 的实际兼容矩阵；
 - setup / migration 必须有 preflight、备份 / 恢复边界、失败停止和 rollback / roll-forward 说明；
 - Graph / State 不兼容时不得让旧 Worker 与新 Worker同时处理同一执行所有权；
 - 不通过修改历史 Checkpoint 伪造升级成功。
 
-## Operational Impact — Draft
+## Operational Impact — Planning Baseline
 
 - 本地演示新增一个 Checkpoint Database、独立 Credential 与 Pool，但不新增 PostgreSQL Service 或 Broker；
 - API 与 Worker 是独立进程；Worker 数量与并发保持有界；
@@ -337,18 +366,30 @@ RFC-003 接受前冻结测试清单和证据格式；实际执行留给长期 Go
 ## Blocking Dependencies
 
 - RFC-001 / RFC-002 = ACCEPTED；
-- DQ-07～DQ-09 全部关闭；
+- DQ-01～DQ-09 已全部关闭；
 - ARP-06 Checkpoint Reconciliation Artifact 与 TS-03 Charter 完成；
-- Final Consistency Review 证明与 RFC-001 / 002、DEC-024 / 033 / 049 / 050 及 RFC-004 边界无冲突；
+- Final Consistency Review 证明与 RFC-001 / 002、DEC-024 / 033 / 049 / 050 / 051 及 RFC-004 边界无冲突；
 - 用户明确接受 RFC-003。
 
 ## Open Questions
 
-- P-25 / P-26 / P-27 的用户 Decision Gate；
-- Workflow Definition / State Schema / Serializer / Checkpointer 精确版本、Compatibility Matrix 与升级转换器；
-- Safe Resume Action Matrix 与 Runtime Registry 最终公共字段 / 状态映射；
+- Workflow Definition / State Schema / Serializer / Checkpointer 的精确实施版本、Compatibility Matrix 实例与所需转换器；
+- Runtime Registry / Recovery Record 的最终公共字段，以及 RFC-004 的状态 / 错误投影；
 - Checkpoint retention、cleanup、backup / restore 与 operator recovery；
 - 最终测试命令、TS-03 场景、迁移演练、性能基线和停止条件。
+
+## Final Consistency Review（PASS，2026-08-06）
+
+> **Review Status:** PASS · **Decision Conflict:** NONE FOUND · **Review is not RFC Acceptance or implementation authorization.**
+
+- **Decision completeness:** DQ-01～DQ-09 均有 Chosen Option、Rejected Alternatives、Trade-offs 与 Accepted Decision 来源；没有未决 RFC-003 子决策。
+- **Internal consistency:** Checkpoint 始终是 Runtime State，不是 Business Current Truth；Durability、Node 重执行、Dispatch、Lease / fencing、Cancellation、Compatibility、Recovery Action 与 Migration / Recovery 形成一致闭环。
+- **Accepted architecture alignment:** 与 RFC-001 / RFC-002、DEC-013 / 023 / 024 / 033 / 039 / 049 / 050 / 051 一致；Business Transaction、Idempotency、Current Truth、Review Revision 与 Worker Ownership 边界未被绕过。
+- **Later-RFC separation:** RFC-004 继续拥有公共 API / 状态 / 错误与恢复请求协议；RFC-007 继续拥有运维参数与 Observability；ARP-06 / TS-03、ARP-08 和 TS-01 继续拥有各自证据与生命周期规划。
+- **Proportional validation:** 证据聚焦跨 Task Resume、stale Worker、陈旧 Review、Cancellation late result、Migration compatibility 与 Commit Outcome Unknown；未新增 Hash / SHA-256 要求或低概率防御变体。
+- **Authorization boundary:** RFC-003 仍为 `IN REVIEW`；Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。全部 DQ Accepted、PR Merge 或检查通过均不能替代用户接受 RFC 整体。
+- **Independent review:** 独立审阅 Agent 按 correctness / readability / architecture / security / performance-ops 五轴复核实际文件，Blocking = 0、Non-blocking = 0，最终 PASS。
+- **Verification:** 141 份 Markdown、1,436 个本地链接、0 个损坏；`git diff --check`、Format、Lint、Type、Import Contracts、Architecture、Unit、Contract、Fast Suite、Lockfile、Package Build、isolated import 与 Dependency Audit 均通过。PR Required Checks 在最新 Commit 推送后重新确认。
 
 ## User Acceptance Gate
 
@@ -360,4 +401,4 @@ RFC-003 只有在以下条件全部满足后才可进入最终用户接受：
 4. 独立五轴 Review 与文档链接校验通过；
 5. 用户明确回复接受 RFC-003。
 
-PR Merge、Required Checks 通过、DEC-049 / DEC-050 Accepted 或单个 DQ Accepted，均不能替代 RFC-003 整体接受，也不授权实现、Spike 或 Goal。
+PR Merge、Required Checks 通过、DEC-049 / DEC-050 / DEC-051 Accepted 或全部 DQ Accepted，均不能替代 RFC-003 整体接受，也不授权实现、Spike 或 Goal。

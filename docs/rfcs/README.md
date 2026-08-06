@@ -4,7 +4,7 @@
 
 > **当前阶段：** RFC Planning and Dependency Order（DEC-038 已接受）。  
 > **状态：** Architecture Readiness = `CONDITIONALLY READY` · Development Status = `CONDITIONALLY READY`。  
-> **当前议题：** [RFC-003: LangGraph Runtime and Checkpoint Architecture](rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（`DRAFTING`；P-19A～P-21A 已形成 DEC-049，P-22A～P-24A 已形成 DEC-050，RFC 整体尚未 Accepted）。
+> **当前议题：** [RFC-003: LangGraph Runtime and Checkpoint Architecture](rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（`IN REVIEW`；P-19A～P-21A 已形成 DEC-049，P-22A～P-24A 已形成 DEC-050，P-25A～P-27A 已形成 DEC-051；DQ-01～09 已闭合，RFC 整体尚未 Accepted）。
 
 ---
 
@@ -84,7 +84,7 @@ Merge RFC PR
 |-----|------|------|----------|
 | RFC-001 | Repository and Application Architecture | Wave 1 | `ACCEPTED` |
 | RFC-002 | Persistence and Transaction Architecture | Wave 1 | `ACCEPTED` |
-| RFC-003 | LangGraph Runtime and Checkpoint Architecture | Wave 2 | `DRAFTING` |
+| RFC-003 | LangGraph Runtime and Checkpoint Architecture | Wave 2 | `IN REVIEW` |
 | RFC-004 | API and Human Review Protocol | Wave 3 | `PROPOSED` |
 | RFC-005 | Source Processing and Retrieval Architecture | Wave 3 | `PROPOSED` |
 | RFC-006 | LLM Runtime and Structured Output | Wave 2 | `PROPOSED` |
@@ -268,7 +268,7 @@ RFC Agent 不得：
 |-----|------|------|----------|
 | RFC-001 | Repository and Application Architecture | Wave 1 | `ACCEPTED` |
 | RFC-002 | Persistence and Transaction Architecture | Wave 1 | `ACCEPTED` |
-| RFC-003 | LangGraph Runtime and Checkpoint Architecture | Wave 2 | [`DRAFTING`](rfc-003-langgraph-runtime-and-checkpoint-architecture.md) |
+| RFC-003 | LangGraph Runtime and Checkpoint Architecture | Wave 2 | [`IN REVIEW`](rfc-003-langgraph-runtime-and-checkpoint-architecture.md) |
 | RFC-004 | API and Human Review Protocol | Wave 3 | `PROPOSED` |
 | RFC-005 | Source Processing and Retrieval Architecture | Wave 3 | `PROPOSED` |
 | RFC-006 | LLM Runtime and Structured Output | Wave 2 | `PROPOSED` |

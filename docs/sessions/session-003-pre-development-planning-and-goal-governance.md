@@ -6,7 +6,7 @@
 - Date: 2026-08-06
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-050
+- Related Decisions: DEC-039～DEC-051
 
 ## Context
 
@@ -87,7 +87,7 @@
 
 ## Proposed Decisions
 
-当前未决架构提案为 RFC-003 的 `P-25A / P-26A / P-27A`：显式 Compatibility Tuple + 受控前向升级、Current-Truth-first Deterministic Recovery Decision，以及风险切片证据包 + Forward-compatible Rollback Matrix。完整方案、备选与 Trade-off 见 [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)；用户接受前均保持 Proposed。
+RFC-003 的 `P-19A`～`P-27A` 已全部由用户接受，当前没有未决 RFC-003 子决策。下一项治理 Gate 是 RFC-003 最终一致性 Review 后的整体接受；该 Gate 尚未通过，不能写成 Accepted。
 
 ## Accepted Decisions
 
@@ -103,6 +103,7 @@
 - [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) — 采用小型代表性验收包、行为门禁与 Markdown-first 导出（用户于 2026-08-06 接受 P-16A / P-17A / P-18A；Amends DEC-010 / 042 / 046 / 047）。
 - [DEC-049](../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) — 采用独立 PostgreSQL Checkpoint Database、同步持久性、可重入 Node 与 Business-Current-Truth-first Reconciliation（用户于 2026-08-06 接受 P-19A / P-20A / P-21A；Amends DEC-013 / 023 / 024 / 033）。
 - [DEC-050](../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) — 采用 PostgreSQL Durable Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token 与持久化协作式取消 / Supersession（用户于 2026-08-06 接受 P-22A / P-23A / P-24A；Amends DEC-013 / 033，Complements DEC-049）。
+- [DEC-051](../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) — 采用显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移和 Forward Repair 证据边界（用户于 2026-08-06 接受 P-25A / P-26A / P-27A；Amends DEC-013 / 033，Complements DEC-049 / 050）。
 
 ## Rejected Approaches
 
@@ -116,7 +117,7 @@
 - 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决；代表性验收包、必要行为门禁和 Markdown-first 用户导出由 DEC-048 解决。
 - Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、Diff 算法、状态 / 错误映射、Markdown 模板与下载协议。
 - Fixture 具体业务数据、测试工具、最终浏览器 E2E 步骤、Live Smoke 手册与 Beta 指标。
-- RFC-003 已进入 Drafting；其 Checkpointer 拓扑、同步持久性与 Current-Truth-first Reconciliation 已由 DEC-049 解决，Durable Dispatch、Lease / fencing 与协作式取消已由 DEC-050 解决；Compatibility、Safe Resume Action Matrix、迁移 / 回滚与验收证据仍待 Decision Gate。RFC-004 至 RFC-007 与 Frontend Architecture 的具体技术选择仍开放。
+- RFC-003 已进入 `IN REVIEW`；其 DQ-01～09 已由 DEC-049～051 全部解决，整体仍待最终一致性 Review 后由用户单独接受。精确实施版本与公共字段不在 DEC-051 中虚构，继续由实施证据、RFC-004 / 007 冻结。RFC-004 至 RFC-007 与 Frontend Architecture 的具体技术选择仍开放。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
 - Luna 不可用时的路由已由 DEC-043 解决为 Terra 显式回退或外部 Luna 任务包；每个实际 Issue 仍需记录所用模型与独立 Reviewer。
 
@@ -132,6 +133,7 @@
 - 新增 DEC-048 与首版 Testing Strategy，更新产品 Current Truth、Readiness、Traceability 和本 Session。
 - 新增 DEC-049 与 RFC-003 Draft，更新架构 Current Truth、Readiness、Traceability、RFC Register 和本 Session。
 - 新增 DEC-050，接受 RFC-003 DQ-04～06，并将 DQ-07～09 的 P-25A～P-27A 方案写入 RFC Draft。
+- 新增 DEC-051，接受 RFC-003 DQ-07～09，将 RFC-003 推进到 `IN REVIEW` 并同步 Compatibility、Safe Resume、迁移 / 回滚和验收证据边界。
 
 ## Synchronization Checklist
 
@@ -438,3 +440,42 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - Issue #46 / PR #47 负责 DEC-050、RFC Draft、Architecture Current Truth、Runtime Spec、Readiness、Traceability、RFC Register 与本 Session 的一致性归档。
 - 本轮不创建 Worker、Claim SQL、Lease / Heartbeat、Cancellation API、数据库或迁移，不执行 TS-01～TS-05，不编写业务代码，也不创建或激活长期 Goal。
+
+## Decision Round — RFC-003 Compatibility, Safe Resume and Recovery Evidence（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-25A`：采用显式 Compatibility Tuple + 受控前向升级；可恢复执行绑定 Workflow Definition、Graph State Schema、Serializer Profile 与已验证的 Checkpointer Package / Store Schema 兼容范围，只恢复明确兼容或存在已测试纯转换器的状态，不原地改写历史 Checkpoint。
+- 用户明确接受 `P-26A`：采用 Current-Truth-first Deterministic Recovery Decision；Application 层在恢复前对账 Runtime Registry、Work Intent / Ownership、Checkpoint metadata、Current Truth、Source / Review / Stage revisions、失效和幂等结果，并只返回七类受控恢复动作。
+- 用户明确接受 `P-27A`：采用风险切片证据包 + Forward-compatible Rollback Matrix；真实 PostgreSQL 证据覆盖多 Worker、接管、取消、恢复与迁移，不能证明安全降级时停止领取新工作并 Forward Repair。
+
+### Acceptance Clarification
+
+- Compatibility Tuple 冻结兼容策略，不在策划阶段虚构精确依赖版本；实施时以官方资料、锁文件与 TS-03 证据固定实际组合。
+- 七类 Recovery Action 为 `resume_same_thread`、`reconcile_committed_result`、`retry_current_stage`、`rerun_from_earliest_invalid_stage`、`restart_from_safe_boundary`、`manual_recovery_required` 与 `reject_request`。
+- 每次实际恢复保留稳定 `task_id` / `thread_id`，创建新的 `run_id` 与 Attempt；Checkpoint ID 不构成客户端恢复授权。
+- 历史 Checkpoint 不原地改写；旧、新 Worker 只有在各自领取兼容工作且共同遵守 Lease / fencing 时才可短暂共存。
+- Checkpoint Store 不可用时只从受控备份恢复，或依据 Business Current Truth / Runtime Registry 创建安全新运行；Checkpoint 不能晋升为业务真相。
+- stale Worker 成功提交、跨 Task Resume、过期 Review 被接受、取消后结果成为 Current Truth、隐式迁移或不可解释恢复分支均为停止条件。
+
+### Accepted Result
+
+- [DEC-051](../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) 归档上述三项决定，并明确 Amends DEC-013 / DEC-033、Complements DEC-049 / DEC-050。
+- [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) 的 DQ-07～DQ-09 变为 `ACCEPTED INPUT`；DQ-01～DQ-09 已全部闭合，RFC 进入 `IN REVIEW`，整体 Acceptance / Implementation / Spike / Goal 仍未授权。
+- Issue #46 / Draft PR #47 继续承载同一 RFC；不另建重复 Issue、Branch 或 PR。
+
+### Goal Sequencing Clarification
+
+- “完成所有策划”指首个 Goal 开工所必需的产品、架构、公共契约、测试、治理与 Readiness 策划全部闭合并获得接受，不是穷举未来所有可能决定。
+- 完整策划包与 Goal 文本必须先展示；Implementation Readiness Review 必须通过；用户再明确批准“进入 Goal 执行阶段”后，才能创建并启动长期 Goal。
+- 在该明确批准前，不执行 TS-01～TS-05，不创建生产数据库 / 迁移 / Runtime / API / Frontend，也不编写业务代码。
+
+### Next Gate
+
+- 完成 RFC-003 最终一致性 Review，展示结论后由用户单独决定是否接受 RFC-003 整体。
+- RFC-003 整体接受仍不自动激活 Goal；后续继续完成 RFC-006、Frontend Architecture、RFC-004 / 005 / 007、Readiness 规划包、Testing Strategy、Development Plan 与 Goal 文本。
+
+### Archive Scope
+
+- Issue #46 / PR #47 负责 DEC-051、RFC-003 `IN REVIEW` 状态、Architecture Current Truth、Runtime Spec、Readiness、Traceability、RFC Register 与本 Session 的一致性归档。
+- 本轮不固定精确依赖版本，不创建 Compatibility Matrix 实例、转换器、Runtime Registry、Worker、数据库或迁移，不执行 TS-01～TS-05，不编写业务代码，也不创建或激活长期 Goal。

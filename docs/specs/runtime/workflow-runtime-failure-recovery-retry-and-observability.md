@@ -1,8 +1,8 @@
 # Workflow Runtime Failure Recovery, Retry and Observability — 概念 Specification
 
 > **Status: CONCEPTUAL（概念）**
-> 来源决定：[DEC-033 — Workflow Runtime 采用分层运行记录、分类故障处置、有界重试、安全恢复、事务幂等与端到端可观测性契约](../../decisions/dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)、[DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)、[DEC-049 — 独立 PostgreSQL Checkpoint、同步持久性与 Current-Truth-first 对账](../../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) 与 [DEC-050 — PostgreSQL Durable Dispatch、Fenced Worker Ownership 与协作式取消](../../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md)（均 Accepted；DEC-047 只冻结产品投影，DEC-049 / DEC-050 收敛 Workflow Runtime 技术与恢复边界）。
-> 本文件仍是**概念结构化记录**，**不是最终实现契约**。DEC-049 已确认 Checkpointer 拓扑、`sync` durability、可重入 Node 与 Reconciliation；DEC-050 已确认 Durable Work Intent 调度、Lease / fencing 所有权与协作式取消。Compatibility、Safe Resume Action Matrix、最终字段、枚举、Schema、阈值及 RFC-003 其余技术问题仍未确认。
+> 来源决定：[DEC-033 — Workflow Runtime 采用分层运行记录、分类故障处置、有界重试、安全恢复、事务幂等与端到端可观测性契约](../../decisions/dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)、[DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)、[DEC-049 — 独立 PostgreSQL Checkpoint、同步持久性与 Current-Truth-first 对账](../../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)、[DEC-050 — PostgreSQL Durable Dispatch、Fenced Worker Ownership 与协作式取消](../../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 与 [DEC-051 — 显式运行时兼容、确定性安全恢复与前向恢复证据边界](../../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md)（均 Accepted；DEC-047 只冻结产品投影，DEC-049～051 收敛 Workflow Runtime 技术与恢复边界）。
+> 本文件仍是**概念结构化记录**，**不是最终实现契约**。DEC-049 已确认 Checkpointer 拓扑、`sync` durability、可重入 Node 与 Reconciliation；DEC-050 已确认 Durable Work Intent 调度、Lease / fencing 所有权与协作式取消；DEC-051 已确认 Compatibility Tuple、Safe Resume Action Matrix、受控迁移和 Forward Repair 证据边界。最终字段、枚举、Schema、精确依赖版本与运维阈值仍未确认。
 > Development Status: **CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY**。
 
 ---
@@ -392,6 +392,18 @@ Checkpointer **不负责**：保存业务 Current Truth；替代业务 Repositor
 
 只允许从安全边界 Resume：Node 尚未开始 / Node 已完整成功 / 业务事务已完整提交 / Human Review Interrupt / 明确失败且可安全重试的 Node。不得从中间状态任意恢复：模型输出只生成一部分 / Evidence Link 只写入一部分 / Pointer 已更新但 Stage 未更新 / 外部 Side Effect 成功状态未知 / DB 事务结果不确定。
 
+Application 层必须先完成 Current-Truth-first Recovery Decision，并且只返回以下动作之一：
+
+- `resume_same_thread`；
+- `reconcile_committed_result`；
+- `retry_current_stage`；
+- `rerun_from_earliest_invalid_stage`；
+- `restart_from_safe_boundary`；
+- `manual_recovery_required`；
+- `reject_request`。
+
+每次实际恢复保留稳定 `task_id` / `thread_id`，创建新的 `run_id` 与 Attempt。相同逻辑操作可以沿用幂等语义，但不能复用旧 Runtime Identity。API / Frontend 只提交恢复意图，不能提交 Checkpoint ID 作为恢复授权。Recovery Record 保存选择原因、关键业务 revisions、动作和新执行身份；正式 Commit 前仍执行 Current Truth、Cancellation、Lease、Fencing、Revision 与幂等校验。
+
 ---
 
 ## §28 Checkpoint Reconciliation
@@ -402,6 +414,14 @@ Resume 前采用 Business-Current-Truth-first Reconciliation：验证 Runtime Re
 - stale / foreign / incompatible Checkpoint 不得继续旧计划、不得写 Current Truth；从当前最早失效阶段确定性重跑、创建新安全分支，或建立 Manual Recovery Case；
 - 对账结果写入 Application Runtime Registry / Recovery Record，不修改历史 Checkpoint；
 - Time Travel / Replay 不等于 Business Restore，不得回退 Current Truth。
+
+### Runtime Compatibility and Controlled Upgrade
+
+每个可恢复执行显式绑定 `workflow_definition_version`、`graph_state_schema_version`、`serializer_profile_version` 与已验证的 Checkpointer Package / Store Schema 兼容范围。实施时用依赖锁文件与 Compatibility Matrix 固定实际组合；Runtime 只对 `exact_compatible` 或存在已测试纯转换器的 `upgradable` 状态执行 Resume。
+
+升级顺序为 Preflight → 受控 Checkpointer Migration Task → 新 Runtime 健康验证 → 有界 Worker 切换。历史 Checkpoint 不原地改写。旧、新 Worker 只能领取各自兼容 Work Intent 并共同遵守 Lease / fencing。迁移优先兼容扩展与 Forward Repair；代码回滚只有在旧 Runtime 与当前 Store Schema 兼容性已被证据证明时允许。Vendor Migration 无安全降级路径时停止领取新工作并 Roll Forward。
+
+RFC-003 风险证据由 TS-01 / TS-03 在真实 PostgreSQL 中覆盖多 Worker、Lease 接管、陈旧提交拒绝、取消、Interrupt / Resume、Checkpoint 分类、Compatibility、Migration 与 Recovery Action。stale Worker 成功提交、跨 Task Resume、过期 Review 被接受、取消后形成 Current Truth、隐式迁移或不可解释恢复分支均为停止条件。
 
 ---
 
@@ -574,8 +594,8 @@ Observability 完整率目标（`= 100%`）：Runs with Trace ID / Skill Runs wi
 - Circuit Breaker 阈值、算法、实现库。
 - Worker 的轮询、批大小、Lease / Heartbeat、最大并发与 Graceful Shutdown 参数；Dead-letter Queue 技术是否需要。
 - Logging / Tracing / Metrics / Alerting Provider；是否采用 OpenTelemetry。
-- Workflow Definition / State Schema / Serializer / Checkpointer 兼容矩阵、升级与 Rollback。
-- Runtime Registry / Recovery Record 最终 Schema 与 Safe Resume Action Matrix。
+- Workflow Definition / State Schema / Serializer / Checkpointer 的精确实施版本、Compatibility Matrix 实例与所需转换器。
+- Runtime Registry / Recovery Record 最终 Schema，以及 Recovery Action 的 RFC-004 公共状态 / 错误映射。
 - 数据保留周期、日志采样率、PII 脱敏实现。
 - 最终 SLO、最终字段名称、最终错误代码、最终状态枚举名称。
 - Retry 的「Optional backup channel」是否存在（Failure Matrix LLM timeout 行）。

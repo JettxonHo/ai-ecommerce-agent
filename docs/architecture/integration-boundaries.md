@@ -1,6 +1,6 @@
 # Integration Boundaries（集成边界）
 
-> **Current sync（2026-08-06）：** RFC-001 / RFC-002 已 Accepted，RFC-003 正在 Drafting；API / Worker / CLI 进程边界和 PostgreSQL 持久化边界已经确认。DEC-049 已冻结同 PostgreSQL Service 下独立 Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Business-Current-Truth-first Reconciliation；DEC-050 已冻结 PostgreSQL Durable Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token 与协作式取消 / Supersession。DEC-046～048 已冻结 Review / Brief / 交互 / 验收 / Markdown 导出产品语义。正文累积段中的旧 `draft_version` 示例按 `revision` 解释。具体 API 协议、状态 / 错误映射、revision 并发、进度传输、RFC-003 剩余 Compatibility / Safe Resume / 验收证据、Retrieval、LLM Provider、Observability 与 Frontend 集成仍待后续 Gate。
+> **Current sync（2026-08-06）：** RFC-001 / RFC-002 已 Accepted，RFC-003 为 `IN REVIEW`；API / Worker / CLI 进程边界和 PostgreSQL 持久化边界已经确认。DEC-049 已冻结同 PostgreSQL Service 下独立 Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Business-Current-Truth-first Reconciliation；DEC-050 已冻结 PostgreSQL Durable Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token 与协作式取消 / Supersession；DEC-051 已冻结显式 Compatibility Tuple、七动作 Safe Resume Matrix、受控迁移和前向恢复证据边界。DEC-046～048 已冻结 Review / Brief / 交互 / 验收 / Markdown 导出产品语义。正文累积段中的旧 `draft_version` 示例按 `revision` 解释。具体 API 协议、状态 / 错误映射、revision 并发、进度传输、精确运行时版本、Retrieval、LLM Provider、Observability 与 Frontend 集成仍待后续 Gate。
 > **Historical expansion note：** 正文按 DEC-013～037 的形成顺序累积；其中 `NOT STARTED`、`NOT READY`、`下一动作 / 下一议题`、旧 PENDING 列表和 Spike Handoff 只记录当时状态，不是当前授权或执行指令。当前状态仅以上述 Current sync、[AGENTS.md](../../AGENTS.md) 与 [Implementation Readiness](../handoffs/implementation-readiness.md) 为准。
 
 > **Status: PARTIAL — 集成方向已确认（DEC-013 编排层 ↔ 持久化存储；DEC-014 检索 / 知识库组件；DEC-015 Skill 依赖；DEC-016 外部仓库角色区分；DEC-020 MVP 平台 Adapter 与共享能力集成面；DEC-021 未来受约束 Worker Runtime 边界；DEC-022 工作流框架与领域状态 / 配置 / Worker 集成边界；DEC-023 LangGraph 与 Skill Service / Worker / 模型供应商集成边界；DEC-024 LangGraph State 与 Domain Objects / Checkpointer 与 Business Repository 集成边界；DEC-025 Skill / LLM / Retrieval Service / Evidence Validator / Business Repository / Frontend 与来源证据集成边界；DEC-026 Product Intake & Fact Extraction Skill 与 Evidence Package / Evidence Validator / Business Repository / 下游 Skill / Human Review 集成边界；DEC-027 Customer Insight Analysis Skill 与 Evidence Package / 确定性统计服务 / Evidence Validator / Business Repository / 下游 Positioning Skill 集成边界；DEC-028 Product Positioning Skill 与 Facts / Insights / Validator / Repository / Human Review / 下游 Marketing Brief Skill 集成边界 / DEC-029 Review Service / LangGraph Interrupt / Frontend / Approved Strategy Service / 下游 Marketing Brief Skill 集成边界 / DEC-030 Marketing Brief Generation Skill 与 Approved Strategy / Proof Point / 下游 Xiaohongshu Adapter 集成边界 / DEC-031 Xiaohongshu Brief Mapping Adapter 与 Marketing Brief / Platform Policy Repository / Final Copy 集成边界 / DEC-032 Hybrid Retrieval and Evidence Runtime 集成边界 / DEC-033 Workflow Runtime Failure Recovery, Retry and Observability 集成边界 / DEC-034 Technical Spike Plan and Architecture Readiness Gate 集成边界 / DEC-035 Technical Spike 临时技术栈与执行契约集成边界[Spike 代码不能被生产模块 Import / Spike Graph 不能直接成为生产 Graph / Scripted Model 不构成生产 LLM 决策 / Mock Retrieval 不构成生产 Retrieval 决策 / SqliteSaver 不构成生产 Checkpointer 决策 / Spike Agent 不得修改 Accepted DEC / 不得创建正式 Roadmap 或 Issues / 不得执行外部 Side Effect；Amends DEC-034]）；具体存储 / 数据库 / 向量库 / 检索 / Skill 实现 / Checkpointer / 基底仓库供应商仍未确认**
@@ -265,7 +265,7 @@
 
 ### Production Checkpoint 与 Reconciliation 集成边界（DEC-049，Accepted，2026-08-06）
 
-> 来源：[DEC-049 — 采用独立 PostgreSQL Checkpoint 数据库、同步持久性与 Current-Truth-first 对账](../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)；承载 RFC：[RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（`DRAFTING`，整体尚未 Accepted）。
+> 来源：[DEC-049 — 采用独立 PostgreSQL Checkpoint 数据库、同步持久性与 Current-Truth-first 对账](../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)；承载 RFC：[RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（`IN REVIEW`，整体尚未 Accepted）。
 
 - **物理复用、职责隔离：** Checkpointer 与 Business Database 复用同一 PostgreSQL Service，但使用独立 Checkpoint Database、Runtime Role、Credential 与 Pool；不共享 Repository、Session、事务或 Business Alembic chain。
 - **受控生命周期：** 官方同步 `PostgresSaver` 的 setup / migration 由部署任务执行；API / Worker 启动不得隐式修改 Checkpoint Schema。
@@ -275,11 +275,11 @@
 - **不兼容分流：** stale / foreign / incompatible Checkpoint 不得继续旧计划或提交 Current Truth；进入确定性局部重跑、新安全执行分支或 Manual Recovery。对账结果写 Runtime / Recovery Record，不篡改历史 Checkpoint。
 - **Time Travel 边界：** Replay / Fork 不等于 Business Restore，不得回退 Current Truth Pointer。
 
-> 本节只同步 DEC-049 已接受输入。其接受当时尚未冻结的 Durable Dispatch、Worker Claim / Lease / Heartbeat 与 Cancellation 后续已由 DEC-050 冻结；Workflow / State Schema Compatibility、Retention 与 RFC-003 验收证据仍待 RFC-003 Decision Gate。本节不授权依赖安装、Database 创建、setup / migration、Spike 或实现。
+> 本节只同步 DEC-049 已接受输入。其接受当时尚未冻结的 Durable Dispatch、Worker Claim / Lease / Heartbeat 与 Cancellation 后续已由 DEC-050 冻结；Compatibility、Safe Resume、迁移 / 回滚与验收证据边界后续已由 DEC-051 冻结。Retention、精确实施版本与公共字段仍待后续规划。本节不授权依赖安装、Database 创建、setup / migration、Spike 或实现。
 
 ### Durable Dispatch、Worker Ownership 与 Cancellation 集成边界（DEC-050，Accepted，2026-08-06）
 
-> 来源：[DEC-050 — 采用 PostgreSQL Durable Dispatch、Fenced Worker Ownership 与协作式取消](../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md)；承载 RFC：[RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（`DRAFTING`，整体尚未 Accepted）。
+> 来源：[DEC-050 — 采用 PostgreSQL Durable Dispatch、Fenced Worker Ownership 与协作式取消](../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md)；承载 RFC：[RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（`IN REVIEW`，整体尚未 Accepted）。
 
 - **可靠调度来源：** Transactional Durable Work Intent 是唯一权威待执行来源；Worker 用短事务和 `FOR UPDATE SKIP LOCKED` 领取有界小批工作，Claim 后立即提交，外部执行不持有业务事务。
 - **Wake-up 边界：** 数据库轮询是正确性基线；`LISTEN / NOTIFY` 仅可优化等待，不承担可靠投递；首个 Goal 不引入独立 Broker。
@@ -288,7 +288,20 @@
 - **取消 / Supersession：** 先持久化请求，Worker 在外部调用前后、Node 边界和 Commit 前检查；请求态不冒充终态，无法中断的调用结果在取消、取代或 Ownership Loss 后被丢弃。
 - **职责交接：** RFC-004 冻结用户 / API 状态与错误映射；RFC-007 冻结轮询、Lease / Heartbeat、并发、Shutdown 与可观测参数；TS-01 验证真实 PostgreSQL 多 Worker 风险。
 
-> 本节不冻结最终表、字段、SQL、参数或公共 API，不授权 Worker、数据库、Migration、Spike 或业务实现。Compatibility、Safe Resume Action Matrix、迁移 / 回滚与 RFC-003 验收证据仍待后续 Decision Gate。
+> 本节不冻结最终表、字段、SQL、参数或公共 API，不授权 Worker、数据库、Migration、Spike 或业务实现。Compatibility、Safe Resume Action Matrix、迁移 / 回滚与 RFC-003 验收证据已由 DEC-051 冻结。
+
+### Compatibility、Safe Resume 与 Forward Recovery 集成边界（DEC-051，Accepted，2026-08-06）
+
+> 来源：[DEC-051 — 采用显式运行时兼容、确定性安全恢复与前向恢复证据边界](../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md)；承载 RFC：[RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)（`IN REVIEW`，整体尚未 Accepted）。
+
+- **Compatibility Tuple：** 可恢复执行绑定 Workflow Definition、Graph State Schema、Serializer Profile 与已验证的 Checkpointer Package / Store Schema 范围；Runtime 只恢复明确兼容或存在已测试纯转换器的状态。
+- **升级交接：** Preflight → 受控 Checkpointer Migration Task → 新 Runtime 健康验证 → 有界 Worker 切换；历史 Checkpoint 不原地改写，旧、新 Worker 只领取各自兼容 Work Intent。
+- **恢复授权：** Application 层依据 Current Truth、Runtime Registry、Work Intent / Ownership、Checkpoint metadata、Source / Review / Stage revisions、失效和幂等结果选择受控 Recovery Action；客户端 Checkpoint ID 不构成授权。
+- **执行身份：** 实际恢复保留稳定 `task_id` / `thread_id`，创建新的 `run_id` 与 Attempt，并在 Commit 前重新执行 Cancellation、Revision、Lease、Fencing 与幂等校验。
+- **恢复与回滚：** 优先兼容扩展和 Forward Repair；只有证明旧 Runtime 与当前 Store Schema 兼容时才允许代码回滚；Store 不可用时从受控备份或 Business Current Truth / Runtime Registry 的安全边界恢复。
+- **职责交接：** RFC-004 冻结公共状态、错误与请求协议；RFC-007 冻结运维参数和观测；ARP-06 / TS-03 冻结并执行 Checkpoint Reconciliation 风险验证；ARP-08 冻结 Retention / Backup 生命周期。
+
+> 本节不固定未经实施证据验证的精确依赖版本，不创建 Compatibility Matrix 实例、转换器、Runtime Registry、数据库或迁移，不执行 Spike，也不接受 RFC-003 整体或激活 Goal。
 
 ### Technical Spike and Architecture Readiness Gate 的集成边界（DEC-034，Accepted，2026-07-29）
 
