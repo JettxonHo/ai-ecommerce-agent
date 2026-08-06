@@ -6,7 +6,8 @@
 - Date: 2026-08-06
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-051
+- Related Decisions: DEC-039～DEC-054
+- Related Proposals: P-36～P-38（待裁决）
 
 ## Context
 
@@ -87,7 +88,8 @@
 
 ## Proposed Decisions
 
-RFC-003 的 `P-19A`～`P-27A` 已全部由用户接受，当前没有未决 RFC-003 子决策。下一项治理 Gate 是 RFC-003 最终一致性 Review 后的整体接受；该 Gate 尚未通过，不能写成 Accepted。
+- Frontend Architecture Issue #50 的首轮提案 `P-36A / P-37A / P-38A` 当前为 Proposed；完整备选、权衡和证据见本文末尾对应 Proposal Round。
+- 用户明确裁决前，不得把 React / Vite、TanStack Query、React Hook Form、OpenAPI Type Generation、Vitest、Playwright 或本地启动命令写成 Current Truth 或安装为依赖。
 
 ## Accepted Decisions
 
@@ -104,6 +106,9 @@ RFC-003 的 `P-19A`～`P-27A` 已全部由用户接受，当前没有未决 RFC-
 - [DEC-049](../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) — 采用独立 PostgreSQL Checkpoint Database、同步持久性、可重入 Node 与 Business-Current-Truth-first Reconciliation（用户于 2026-08-06 接受 P-19A / P-20A / P-21A；Amends DEC-013 / 023 / 024 / 033）。
 - [DEC-050](../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) — 采用 PostgreSQL Durable Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token 与持久化协作式取消 / Supersession（用户于 2026-08-06 接受 P-22A / P-23A / P-24A；Amends DEC-013 / 033，Complements DEC-049）。
 - [DEC-051](../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) — 采用显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移和 Forward Repair 证据边界（用户于 2026-08-06 接受 P-25A / P-26A / P-27A；Amends DEC-013 / 033，Complements DEC-049 / 050）。
+- [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) — 采用单一 OpenAI Responses Provider、窄型同步 Model Runtime Port 与 Structured Output 权威边界（用户于 2026-08-06 接受 P-28A / P-29A / P-30A）。
+- [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) — 采用有界 Model Recovery、可读 Version Tuple 与确定性 Skill Profiles（用户于 2026-08-06 接受 P-31A / P-32A / P-33A；Amends DEC-052）。
+- [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) — 采用 Adapter Secret / Payload 边界、同 Port Scripted Substitute 与单次人工 RC Smoke（用户于 2026-08-06 接受 P-34A / P-35A；Amends DEC-052 / 053）。
 
 ## Rejected Approaches
 
@@ -117,7 +122,7 @@ RFC-003 的 `P-19A`～`P-27A` 已全部由用户接受，当前没有未决 RFC-
 - 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决；代表性验收包、必要行为门禁和 Markdown-first 用户导出由 DEC-048 解决。
 - Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、Diff 算法、状态 / 错误映射、Markdown 模板与下载协议。
 - Fixture 具体业务数据、测试工具、最终浏览器 E2E 步骤、Live Smoke 手册与 Beta 指标。
-- RFC-003 已进入 `IN REVIEW`；其 DQ-01～09 已由 DEC-049～051 全部解决，整体仍待最终一致性 Review 后由用户单独接受。精确实施版本与公共字段不在 DEC-051 中虚构，继续由实施证据、RFC-004 / 007 冻结。RFC-004 至 RFC-007 与 Frontend Architecture 的具体技术选择仍开放。
+- RFC-003 与 RFC-006 均已整体接受；Frontend Architecture 的 P-36～P-41、RFC-004 / 005 / 007、精确实施版本、最终公共字段与运维参数仍开放。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
 - Luna 不可用时的路由已由 DEC-043 解决为 Terra 显式回退或外部 Luna 任务包；每个实际 Issue 仍需记录所用模型与独立 Reviewer。
 
@@ -134,6 +139,7 @@ RFC-003 的 `P-19A`～`P-27A` 已全部由用户接受，当前没有未决 RFC-
 - 新增 DEC-049 与 RFC-003 Draft，更新架构 Current Truth、Readiness、Traceability、RFC Register 和本 Session。
 - 新增 DEC-050，接受 RFC-003 DQ-04～06，并将 DQ-07～09 的 P-25A～P-27A 方案写入 RFC Draft。
 - 新增 DEC-051，接受 RFC-003 DQ-07～09，将 RFC-003 推进到 `IN REVIEW` 并同步 Compatibility、Safe Resume、迁移 / 回滚和验收证据边界。
+- 新增 DEC-052～054，接受 RFC-006 DQ-01～08；完成 Final Consistency Review、用户整体接受、PR #49 合并和 Issue #48 关闭。
 
 ## Synchronization Checklist
 
@@ -656,3 +662,122 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - RFC Acceptance 不等于实现授权；SDK Installation、Secret Read、Live Model Call、Implementation、Spike Execution 与 Goal Activation 继续为 `NOT GRANTED`。
 - 本次不安装或升级 Provider SDK，不读取真实 Secret，不调用真实模型或执行 Live Smoke，不创建 Model Runtime、Provider Adapter、Prompt、Fixture 或测试 Harness，不执行 TS-01～TS-05，也不创建或激活长期 Goal。
 - 下一策划议题按既定依赖顺序为 Frontend Architecture；之后继续闭合 RFC-004 / 005 / 007、Readiness 规划包、Testing Strategy、Development Plan 与 Goal 文本。
+
+## Proposal Round — Frontend Application, State and Verification Foundation（2026-08-06）
+
+### Context and Investigation
+
+- RFC-006 合并后已创建 Frontend Architecture Issue [#50](https://github.com/JettxonHo/ai-ecommerce-agent/issues/50) 与独立分支 `codex/frontend-architecture`。仓库当前不存在前端包、JavaScript Package Manager Lockfile 或前端实现，因此本轮没有兼容遗留前端的负担，也不得借策划名义安装依赖或生成脚手架。
+- 已接受的产品形态是受控单工作区的引导式任务工作台，浏览器负责资料输入、长任务进度、补充资料、结构化审核、结果查看与 Markdown 导出；业务状态属于后端 Task / Run / Review / Brief，不属于聊天记录或浏览器内存。
+- 首个 Goal 没有公开部署、SEO、服务端渲染、账号、多租户或前端直连 Provider 的需求；前端与独立 Python REST API / Worker 进程协作，长任务允许轮询，公共资源、状态与错误契约由后续 RFC-004 冻结。
+- Vite 官方文档提供 React + TypeScript 模板、开发代理和静态构建；React Router 官方把 Declarative Mode 定位为由应用自行拥有数据层时的基础路由方式，而 Data / Framework Mode 增加 loader、action、pending state 或服务端能力。Next.js Static Export 可以产出静态站点，但其 Server Features 在该模式下不可用。
+- TanStack Query 提供可按 Query 状态动态停止的 `refetchInterval`；`openapi-typescript` / `openapi-fetch` 可从 OpenAPI 3.1 生成 `paths` 类型并提供基于原生 `fetch` 的类型化客户端；React Hook Form 提供 TypeScript 表单、Field Array 和低重渲染的受控边界。
+- Vitest 与 Vite 共享配置和转换管线；Playwright 可以在测试前启动一个或多个本地 Web Server，并保存失败诊断证据。首个 Goal 只需要代表性 Chromium E2E，不需要在每个 PR 机械运行三浏览器矩阵或再建设一层通用 Mock Server。
+
+### P-36 — Application Shape, Framework, Routing and Build
+
+#### Option A — React 19 + TypeScript + Vite 8 SPA + React Router Declarative Mode（推荐）
+
+- 在 RFC-001 已接受的唯一前端根 `apps/web/` 建立纯浏览器 SPA；React 19 负责 UI，Vite 8 负责开发与静态构建，React Router Declarative Mode 只负责可链接的 Task / Stage / Panel 导航。
+- 浏览器只调用同源 `/api`；开发期由 Vite Proxy 转发到本地 Python API，构建产物为静态资源。首个 Goal 不使用 SSR、React Server Components、Route Loader / Action 作为业务状态层，也不让 Node 成为生产 API 进程。
+- 冻结 Major-line 与能力边界；精确 Patch、Node 兼容组合和 Lockfile 只在实施 Issue 中依据官方兼容性证据固定，不由实现 Agent 临场改架构。
+- 优点：与独立 Python API、P-37 选择的独立数据层和本地演示边界贴合；开发 / 构建链短；路由、远程状态和表单职责分离。
+- 代价：需要项目自行定义工作台模块、Error Boundary 与数据预取规则；未来若确需 SSR，要另立架构 Decision。
+
+#### Option B — React Router Framework Mode
+
+- 使用同一 React Router 同时承担路由、Loader / Action、Pending State、代码分割与可选服务端渲染。
+- 优点：路由数据约定完整，未来增加 SSR 的路径更直接。
+- 代价：若与 P-37A 组合，Loader / Action 会与 TanStack Query 的缓存、Mutation 和长轮询职责重叠；只有选择 P-37C 时才充分利用该模式，但仍会引入首个 Goal 不需要的服务端 / 构建约定。
+
+#### Option C — Next.js App Router + Static Export
+
+- 使用 Next.js App Router，但演示环境只产出 Static Export，并继续调用独立 Python API。
+- 优点：生态成熟，文件路由、代码分割和未来公开站点能力完整。
+- 代价：Static Export 下 Server Features 不可用；为了当前无 SEO / SSR 需求的内部工作台承担额外缓存、Server / Client Component 与构建语义。
+
+#### Recommendation
+
+选择 `P-36A`，并与 `P-37A` 组合。它把浏览器客户端保持为浅层适配器：路由表达位置，独立 Query Layer 表达远程状态，后端仍是业务状态权威；不会为首个本地演示引入第二个应用服务器模型。
+
+### P-37 — Remote State, Form State and Generated API Contract
+
+#### Option A — Explicit Ownership + TanStack Query + React Hook Form + OpenAPI Generation（推荐）
+
+- TanStack Query v5 独占 Task / Run / Source / Review / Brief 等远程资源缓存、Mutation、失效和长任务自适应轮询；终态、`needs_input`、待审核或错误态出现后停止对应轮询，后台标签页沿用库的节流 / 暂停语义。
+- React Hook Form v7 只拥有尚未保存的输入、补充资料和 Review 表单编辑缓冲；已经保存的 Review Draft、单调 revision 与跨标签恢复状态仍属于后端远程资源，由 TanStack Query 的 Query / Mutation 同步。React 局部状态只保存短命视觉状态，URL Route / Search Params 保存可分享的 Task、Stage 与 Panel 选择。首个 Goal 不引入 Redux 或 Zustand。
+- RFC-004 产出的已提交 OpenAPI 3.1 Artifact 是 HTTP Contract 唯一权威；`openapi-typescript` 生成类型，`openapi-fetch` 提供原生 `fetch` Client。生成文件是不可手改的派生产物，随 Contract 变更提交，并由 `api:generate` + clean-diff Gate 防止漂移，不创建第二套手写 DTO。
+- 组件不得直接调用 `fetch`。一个窄型 API Client / Query Adapter 负责 Request Identity、标准错误归一化和 DTO 到 View Model 的投影；业务 Revision / Idempotency / Stale Conflict 语义仍由 RFC-004 定义。
+- 前端同步校验只服务即时 UX；后端和公共 Contract 保持最终权威。首个 Goal 不把全部后端 Schema 机械复制为 Zod，也不为同项目 API 的每个响应重复运行通用 Runtime Validation；真正的非类型输入在其边界做针对性解析。
+- 优点：远程、表单、URL 和视觉状态边界明确；适合长轮询与结构化审核；Contract Drift 可被 CI 直接发现。
+- 代价：需要维护 Query Key / Invalidation 约定和生成步骤；如果未来出现大量跨页纯客户端状态，再单独评估 Store。
+
+#### Option B — Redux Toolkit + RTK Query + Centralized Draft State
+
+- Server Cache、Form Draft、Wizard 和视觉状态统一进入 Redux Store。
+- 优点：单一调试面板和集中式事件流，复杂跨页离线编辑时有优势。
+- 代价：当前单任务工作台会把后端 Current Truth、表单草稿和短命 UI State 混在一起；Boilerplate 和失效逻辑重于实际需求。
+
+#### Option C — React Router Framework Data APIs + Native Form / Custom Fetch（仅兼容 P-36B）
+
+- 用 Loader / Action / Fetcher 管理所有远程读写，自建轮询和缓存；复杂表单使用原生 React State。
+- 优点：依赖少，导航和请求生命周期统一。
+- 代价：长任务轮询、跨 Panel Cache、Revision Conflict 和 Field Array 会转化为项目自有基础设施；Route 生命周期与业务执行状态耦合。
+
+#### Recommendation
+
+选择 `P-37A`。它只为已经存在的三类复杂度选专用工具，不提前建设全局客户端状态平台；OpenAPI 生成链把 RFC-004 公共契约连接到前端而不产生手写重复定义。
+
+#### Compatibility Matrix
+
+| Application choice | P-37A | P-37B | P-37C |
+|---|---:|---:|---:|
+| P-36A — Vite SPA + Declarative Router | 推荐 | 可兼容，但偏重 | 不兼容；需改选 P-36B |
+| P-36B — React Router Framework Mode | 可兼容，但须禁用重复 Loader / Action 数据职责 | 可兼容，但偏重 | 原生组合 |
+| P-36C — Next.js Static Export | 可兼容 | 可兼容，但偏重 | 不兼容；不是 React Router Runtime |
+
+推荐组合是 `P-36A + P-37A`。若用户选择表中“不兼容”的组合，该组不能归档为 Accepted，必须重新裁决或通过后续 Decision 正式修订，而不是让实现 Agent 自行调和。
+
+### P-38 — Frontend Verification, Package Policy and Local Execution
+
+#### Option A — npm + Vitest / Testing Library + Playwright Chromium（推荐）
+
+- 使用实施开始时仍处于 Active LTS、且被已接受 Vite Major 官方支持的 Node 版本，配套 npm 与提交的 `package-lock.json`；精确版本在实施 Issue 的兼容性证据中固定，不为单一前端包引入 pnpm Workspace、Yarn 或 Bun。依赖升级和 Major 迁移保持独立 Issue / PR。
+- PR 基线为 Prettier Format Check、ESLint、`tsc --noEmit`、Vitest + React Testing Library / `user-event` 的 Unit / Component / State Transition Tests、类型化 API Client Contract Tests 和 Vite Production Build。
+- Playwright Chromium 覆盖关键浏览器纵向切片；涉及关键流程的前端 PR 跑相关 E2E，Release Candidate 跑完整固定 E2E。Firefox / WebKit 与 Visual Regression 只有出现明确发布目标或代表性缺陷时再提案，不作为首个 Goal 的机械矩阵。
+- Unit / Component Tests 使用注入式 Typed Transport / Fixture；Playwright 使用确定性本地 API / Model Substitute。首个 Goal 不额外建设通用 MSW 平台，也不允许测试访问真实 Provider。
+- `npm run dev` 是前端单独启动入口，使用固定严格端口和同源 `/api` Development Proxy；`npm run build` 是可发布构建入口，`npm run preview` 只用于本地构建预览、不冒充 Production Server。完整数据库 / API / Worker / Frontend 一键命令在 RFC-004 / 005 / 007 后由 Development Plan 冻结，但必须调用这些标准脚本并正确回收子进程。
+- 优点：Vite-native、配置少、失败反馈快；把行为测试和真实浏览器 E2E 分层，符合适度校验原则。
+- 代价：jsdom Component Test 不是完整浏览器；由少量关键 Playwright E2E 补齐，而不是把所有组件测试搬进浏览器。
+
+#### Option B — pnpm Workspace + Vitest Browser Mode + Playwright Chromium（Browser-first Stack）
+
+- 使用 pnpm Workspace 管理前端及未来可能的 TypeScript Package；Component Test 使用 Vitest Browser Mode，关键 E2E 仍使用 Playwright Chromium。Firefox / WebKit 与 P-38A 一样只在明确发布目标出现后启用，不绑定每 PR 三浏览器矩阵。
+- 优点：依赖存储高效，组件交互在真实浏览器运行；若后续确实出现多个 TypeScript Package，Workspace 边界更自然。
+- 代价：仓库当前只有一个计划中的前端 Package；额外 Package Manager / Workspace 约定没有即时收益，Browser Mode 与 Playwright E2E 仍存在两层浏览器测试职责和更高运行成本。
+
+#### Option C — npm + Jest / Testing Library + Cypress
+
+- 优点：工具成熟、交互式调试体验广泛。
+- 代价：Jest 需维护与 Vite 不同的转换 / Alias 配置，Cypress 又形成另一套 Dev Server 和 E2E 约定；没有证据表明这些额外边界能提升本项目首个 Goal 的可靠性。
+
+#### Recommendation
+
+选择 `P-38A`。它提供静态检查、行为测试、Contract、Build 和关键浏览器闭环，同时刻意不扩大为多 Package Manager、多浏览器或泛化 Mock 平台。
+
+### Primary Sources
+
+- [Vite Guide](https://vite.dev/guide/) 与 [Vite Server Proxy](https://vite.dev/config/server-options.html#server-proxy)
+- [React `createRoot`](https://react.dev/reference/react-dom/client/createRoot)
+- [React Router Modes](https://reactrouter.com/start/modes) 与 [Declarative Routing](https://reactrouter.com/start/declarative/routing)
+- [Next.js Static Exports](https://nextjs.org/docs/pages/guides/static-exports) 与 [Single-Page Applications](https://nextjs.org/docs/app/guides/single-page-applications)
+- [TanStack Query `useQuery`](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery)
+- [OpenAPI TypeScript](https://openapi-ts.dev/) 与 [OpenAPI Fetch](https://openapi-ts.dev/openapi-fetch/)
+- [React Hook Form](https://github.com/react-hook-form/react-hook-form)
+- [Vitest Guide](https://vitest.dev/guide/) 与 [Playwright Web Server](https://playwright.dev/docs/test-webserver)
+
+### Decision and Authorization Status
+
+- `P-36 / P-37 / P-38 = PROPOSED`；推荐项分别为 `P-36A / P-37A / P-38A`，用户尚未接受任何选项。
+- `P-39～P-41`（工作台模块 / UI Primitive、运行 / 审核 / 冲突状态投影、可访问性 / 浏览器 / 响应式 / 性能边界）将在首轮裁决后提出，避免把相互依赖的六项决定一次性机械打包。
+- Frontend Architecture Current Truth、Decision Record、Implementation、依赖安装、脚手架生成、浏览器测试执行与 Goal Activation 均为 `NOT GRANTED`。
