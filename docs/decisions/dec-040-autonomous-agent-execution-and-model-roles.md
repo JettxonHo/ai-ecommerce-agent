@@ -6,7 +6,9 @@ Agent Governance / Git and GitHub Operations / Model Roles
 
 ## Status
 
-Accepted
+Accepted — Amended by [DEC-043](dec-043-sol-luna-terra-multi-agent-development-orchestration.md)
+
+> **Amendment notice（2026-08-06）：** 本文原有“指定实现模型不可用即暂停实现”的规则作为历史决定保留。当前规则由 DEC-043 修订为 Luna Max 优先、Terra XHigh 可显式回退；Sol 仅在列明例外下直接实现，且必须保持最终 Review 独立性。
 
 ## Decision
 
@@ -76,3 +78,7 @@ None.
 ## Notes
 
 本决定不等于“进入 Goal 执行阶段”，也不授权业务代码、Technical Spike 或生产迁移。
+
+## Amended By
+
+[DEC-043 — Sol / Luna / Terra 多 Agent 开发编排](dec-043-sol-luna-terra-multi-agent-development-orchestration.md)

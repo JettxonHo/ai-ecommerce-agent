@@ -66,4 +66,4 @@
 
 ## 索引
 
-见 [decision-log.md](decision-log.md)。当前尚无已接受决定。
+见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 DEC-043；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。

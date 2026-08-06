@@ -94,6 +94,8 @@
 - [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) — 采用与真实风险相称的校验与审阅治理（用户于 2026-08-06 确认）。
 - [DEC-040](../decisions/dec-040-autonomous-agent-execution-and-model-roles.md) — 采用分级自主执行权限与固定模型角色（用户于 2026-08-06 确认）。
 - [DEC-041](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md) — 冻结本地端到端演示 MVP 的交付边界（用户于 2026-08-06 确认）。
+- [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) — 确认证据驱动商品上新策略工作台定位、复合 Persona 假设与行为型演示成功边界（用户于 2026-08-06 接受 P-01A / P-02A / P-03A）。
+- [DEC-043](../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) — 采用 Sol 主控、Luna 实现、Terra 辅助回退的多 Agent 开发编排（用户于 2026-08-06 确认；Amends DEC-040）。
 
 ## Rejected Approaches
 
@@ -104,11 +106,11 @@
 
 ## Open Questions
 
-- 产品定位句、最终 JTBD / Persona、任务工作台流程与演示成功标准的完整字段。
+- 产品定位、复合 Persona / JTBD 假设策略与行为型演示成功边界已由 DEC-042 解决；任务工作台流程、最终字段、Fixture 与必要阈值仍开放。
 - 四层 Brief、Review Package、Approved Strategy 与 Xiaohongshu Brief 的最终 Schema 和版本规则。
 - RFC-003 至 RFC-007 与 Frontend Architecture 的具体技术选择。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
-- Luna/max 的可用时间或后续是否由用户显式修改实现模型决定。
+- Luna 不可用时的路由已由 DEC-043 解决为 Terra 显式回退或外部 Luna 任务包；每个实际 Issue 仍需记录所用模型与独立 Reviewer。
 
 ## Deferred Topics
 
@@ -136,3 +138,33 @@
 - Current Truth Sync：Issue #32 / PR #33 已创建，范围限定为入口状态、产品 Current Truth、Readiness / RFC / Foundation / Traceability 同步和 30 个失效本地 Markdown 链接修复；不包含新产品字段、RFC-003～007 技术选择、业务代码、Spike 执行或 Goal 激活。
 - Link Audit：排除 `.claude/worktrees`、`.venv` 和生成目录后，Tracked Workspace Markdown 本地链接由 30 个损坏修复为 0。
 - Current Truth Review：经 Sol/xhigh 独立复审三轮修正，产品、架构、Readiness、Traceability 与治理口径最终结果 = `PASS`；未把未接受事项写成实现事实。
+
+## Decision Round — Product Identity and Multi-Agent Orchestration（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-01A`：产品定位为面向中小电商商品与内容运营人员的证据驱动商品上新策略工作台。
+- 用户明确接受 `P-02A`：采用一个复合主 Persona，商品运营与内容运营作为职责视角；详细 Persona / JTBD 继续标为待验证假设，真实访谈是 Beta 前门禁。
+- 用户明确接受 `P-03A`：演示成功采用端到端行为与人工可用性判断，不用机械总分或销量承诺自动接受。
+- 用户明确指定 Sol XHigh = `ORCHESTRATOR_REVIEWER`、Luna Max = 首选 `IMPLEMENTER`、Terra XHigh = `AUXILIARY_IMPLEMENTER` 与 Luna 不可用时的显式回退。
+- 用户明确要求实现 Agent 不得最终批准或合并自己的 PR；Sol 直接实现时必须更换独立 Reviewer 或升级人工 Gate。
+- 用户明确要求线程间通过文档、Issue、任务合同、Git、PR、Review 和测试记录交接，聊天上下文不能作为唯一事实来源。
+
+### Amendment to Prior Round
+
+DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订：Luna 仍为首选；当前工具不能创建 Luna 时，Sol 输出标准任务包供外部 Luna 使用，或显式路由 Terra XHigh。不得假装调用 Luna、不得错误归因、不得降低范围 / 测试 / Review / 验收 / 人工 Gate。
+
+### Alternatives and Trade-offs
+
+- “AI 营销 Brief 生成器”表达简单但弱化定位、证据与审核；未采用。
+- “电商 Agent 工作台”扩展性强但范围过宽；未采用。
+- 当前拆成两个完整 Persona 更细，但缺乏访谈证据；未采用。
+- 立即使用统一机械评分便于自动判断，但会制造虚假精确；未采用。
+- Luna 不可用即停止全部实现能保持最严格模型固定，但形成单点阻塞；由 Terra 显式回退替代。
+- 单一 Agent 完成策划、实现和最终批准交接少，但缺乏独立性；未采用。
+- 无任务合同的多线程并行吞吐表面较高，但接口漂移与冲突风险不可控；未采用。
+
+### Archive Scope
+
+- Issue #34 负责 DEC-042 / DEC-043、AGENTS、Collaboration Model、Product Current Truth、Readiness、Decision Log 与本 Session 的一致性归档。
+- 本轮不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。

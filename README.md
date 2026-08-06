@@ -7,11 +7,11 @@
 
 ## 产品定位
 
-AI Ecommerce Agent 面向中小电商商家的商品运营与内容运营人员，帮助其基于用户提供的商品与市场资料，完成上新定位分析、人工审核、平台中立 Marketing Brief 与小红书 Brief 映射。
+AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据驱动商品上新策略工作台**，将用户提供的商品与市场资料转化为可审核、可追溯的商品定位分析、平台中立 Marketing Brief 与小红书 Brief 映射。
 
 首个交付目标是**本地可复现、受控单工作区的端到端演示 MVP**。产品使用引导式任务工作台；聊天记录不作为业务 Current Truth。
 
-权威范围见 [DEC-041](docs/decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)。最终字段、交互细节、Frontend Architecture、Provider 与 RFC-003～007 仍待后续 Decision Gate，不得从本简介自行推断。
+权威定位与范围见 [DEC-042](docs/decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) 与 [DEC-041](docs/decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)。最终字段、交互细节、Frontend Architecture、Provider 与 RFC-003～007 仍待后续 Decision Gate，不得从本简介自行推断。
 
 ---
 
@@ -31,7 +31,7 @@ AI Ecommerce Agent 面向中小电商商家的商品运营与内容运营人员�
 
 ## 当前策划缺口
 
-- 产品定位句、JTBD / Persona 假设、任务工作台完整流程和最终输入输出字段；
+- 任务工作台完整流程、最终输入输出字段和 Persona / JTBD 的后续研究证据；
 - Frontend Architecture；
 - RFC-003 LangGraph Runtime、RFC-004 API / Human Review、RFC-005 Source / Retrieval、RFC-006 LLM Runtime、RFC-007 Observability；
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；
@@ -52,10 +52,11 @@ AI Ecommerce Agent 面向中小电商商家的商品运营与内容运营人员�
 | 角色 | 职责 |
 |------|------|
 | 用户 | Decision / RFC / 范围 / 高风险操作 / Goal 激活的最终决策人 |
-| GPT-5.6 Sol `xhigh` | 策划、架构、复杂拆分和独立 Review |
-| GPT-5.6 Luna `max` | Goal 激活后按冻结规格完成代码实现；不可用时实现任务暂停，不得静默替换 |
+| GPT-5.6 Sol `xhigh` | `ORCHESTRATOR_REVIEWER`：策划、架构、任务合同、调度、复杂问题与独立 Review |
+| GPT-5.6 Luna `max` | `IMPLEMENTER`：Goal 激活后按冻结规格和单一 Issue 完成首选代码实现 |
+| GPT-5.6 Terra `xhigh` | `AUXILIARY_IMPLEMENTER`：调查、测试和边界明确的实现；Luna 不可用时可显式回退 |
 
-详见 [AGENTS.md](AGENTS.md) 与 [docs/governance/collaboration-model.md](docs/governance/collaboration-model.md)。
+实现 Agent 不得最终批准或合并自己的 PR；模型回退必须记录实际模型且不降低测试、Review 或验收要求。详见 [AGENTS.md](AGENTS.md)、[DEC-043](docs/decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) 与 [Collaboration Model](docs/governance/collaboration-model.md)。
 
 ---
 

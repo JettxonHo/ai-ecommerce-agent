@@ -10,8 +10,8 @@
 
 ## 前置条件 Checklist
 
-- [x] 项目定位与端到端演示交付包络已确认（最终定位句仍需写入 PRD）
-- [x] 首要目标用户已确认（Persona / JTBD 仍作为待验证假设补全）
+- [x] 项目定位与端到端演示交付包络已确认（DEC-041 / DEC-042）
+- [x] 首要目标用户、复合 Persona 策划方式与 JTBD 基线假设已确认；真实访谈是 Beta 前门禁（DEC-002 / DEC-042）
 - [x] 核心问题已确认
 - [x] MVP 高层范围与非范围已确认
 - [x] 关键 Agent、Workflow、Human Review 与 Skill 边界已确认
@@ -21,11 +21,11 @@
 - [ ] 关键 Decision Records 已完成（状态为 Accepted）
 - [ ] PRD 和架构文档已同步
 - [ ] 最终公共数据契约、API 与状态 / 错误映射已明确
-- [ ] 验收标准已存在
+- [ ] 完整测试与验收标准已存在（行为型演示成功边界已由 DEC-042 确认；Fixture / 阈值待 Testing Strategy）
 - [ ] 文档不存在未同步或冲突部分
 - [ ] ARP-02 / 03 / 09 完整 Artifact、ARP-05～08 与 TS-01～TS-05 Charter 已完成
 - [ ] MVP Development Plan、Testing Strategy 与长期 Goal 文本已接受
-- [ ] 指定实现模型 GPT-5.6 Luna `max` 可用
+- [x] 已确认可用实现路由与独立 Reviewer：Luna/max 优先；不可用时按 DEC-043 显式路由 Terra/xhigh 或外部 Luna 线程
 - [ ] 已通过 Implementation Readiness Review
 - [ ] 用户明确发出「进入 Goal 执行阶段」指令
 
@@ -42,7 +42,7 @@
 - **允许工作:** 产品规格、Architecture RFC、Readiness Artifact / Spike Charter 规划、测试策略、开发计划、Goal 文档与一致性 Review
 - **禁止工作:** Business / Production Implementation、TS-01～TS-05 执行、公开部署、实际 Goal 启动
 - **用户 Goal 指令:** 未下达
-- **模型阻塞:** 当前工具未提供 GPT-5.6 Luna `max`；不影响策划，但会阻塞代码实现
+- **Agent 路由:** Luna/max 为首选实现 Agent；当前工具不能创建 Luna 时，可输出外部 Luna 任务包或显式使用 Terra/xhigh 回退，不因 Luna 暂时不可用单独阻塞 Goal，但必须保持任务合同、实际模型披露和 Review 独立性
 
 ---
 

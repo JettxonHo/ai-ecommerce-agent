@@ -29,8 +29,10 @@
 | Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
 |---|---|---|---|---|---|---|---|
 | Proportional validation and review | DEC-039 | [AGENTS](../../AGENTS.md) | — | PR #31 Sol/xhigh review | All | Governance only | Per-change relevant checks |
-| Autonomous low-risk PR flow and model roles | DEC-040 | [Collaboration Model](../governance/collaboration-model.md) | — | PR #31 | All | Goal governance | Sol review + Required Checks |
+| Autonomous low-risk PR flow and model roles | DEC-040, DEC-043 | [Collaboration Model](../governance/collaboration-model.md) | — | PR #31 + Issue #34 | All | Goal governance | Independent Sol review + Required Checks |
 | Local end-to-end demo MVP envelope | DEC-041 | [MVP Scope](../product/mvp-scope.md) | — | DEC-041 | RFC-003—RFC-007 | _(placeholder)_ | Browser E2E + release smoke _(planned)_ |
+| Evidence-driven launch strategy workbench positioning, composite Persona assumptions and behavior-based demo success | DEC-042 | [PRD](../product/prd.md) | — | DEC-042 | RFC-003—RFC-007 | _(placeholder)_ | Browser E2E + human usability review _(planned)_ |
+| Sol/Luna/Terra task routing, thread isolation and review independence | DEC-043 | [Collaboration Model](../governance/collaboration-model.md) | — | DEC-043 + Issue #34 | All | Goal governance | Actual model disclosure + independent reviewer + Required Checks |
 | RFC Planning and Dependency Order | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |

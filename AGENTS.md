@@ -20,11 +20,12 @@
 | 角色 | 职责 |
 |------|------|
 | **用户** | 项目所有者与最终决策人。接受、修改、否决或暂缓 Decision / RFC；批准范围变化、高风险操作、Goal 激活与发布条件。 |
-| **策划与审阅 Agent** | 使用 GPT-5.6 Sol、`xhigh`；负责产品策划、架构、RFC、复杂任务拆分、复杂诊断和 PR / 阶段 / Goal Review。 |
-| **代码实现 Agent** | 使用 GPT-5.6 Luna、`max`；仅在规格冻结并进入 Goal 后，按单一 Issue 边界实现与修复。 |
+| **主控与审阅 Agent** | GPT-5.6 Sol、`xhigh`，逻辑角色 `ORCHESTRATOR_REVIEWER`；负责策划、架构、复杂拆分、任务合同、调度、复杂诊断和 PR / 阶段 / Goal Review。 |
+| **首选代码实现 Agent** | GPT-5.6 Luna、`max`，逻辑角色 `IMPLEMENTER`；仅在规格冻结并进入 Goal 后，按单一 Issue 和任务合同实现与修复。 |
+| **辅助与回退 Agent** | GPT-5.6 Terra、`xhigh`，逻辑角色 `AUXILIARY_IMPLEMENTER`；负责调查、测试、文档和边界明确的实现；Luna 不可用时可显式回退，但不得代替 Sol 作最终裁决。 |
 | **文档与 Git 操作者** | 按已授权范围维护文件、Issue、Branch、Commit、PR、测试证据和进度；不替用户接受 Decision / RFC。 |
 
-指定模型不可用时，必须暂停对应任务并报告，不得静默替换模型。当前环境未提供 Luna 时，策划可继续，代码实现不可启动。
+禁止静默替换模型。Luna 是首选实现 Agent；若当前工具不能创建 Luna，Sol 应输出标准任务包供外部 Luna 线程使用，或明确记录由 Terra XHigh 回退实现。Terra 回退不得改变范围、任务合同、测试、Review 独立性、验收标准或人工 Gate。Sol 直接实现仅限 [DEC-043](docs/decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) 的例外，并必须由独立 Agent 或人工完成最终 Review。
 
 详细职责分工见 [docs/governance/collaboration-model.md](docs/governance/collaboration-model.md)。
 
@@ -69,7 +70,7 @@
 4. **禁止为了让文档看起来完整而补充未经讨论的事实。** 信息缺失时保留为 Open Question，不得自行补全。
 5. **禁止静默删除、覆盖或改写历史决策。** 改变旧决定时，必须保留追踪关系（Supersedes / Amends / 双向链接）。
 6. **禁止提前实现。** 在完整策划包被接受且用户明确下达「进入 Goal 执行阶段」指令前，不得编写业务代码、接入模型 API、创建生产 RAG、数据库、前后端、迁移、部署或 Docker 配置；代码示例只能视为 Illustrative Example。
-7. **禁止越权降级。** 不得为推进任务而更换已接受的数据库、运行时、Provider、公共契约、指定模型或质量 Gate。
+7. **禁止越权降级。** 不得为推进任务而更换已接受的数据库、运行时、Provider、公共契约或质量 Gate；模型路由只允许 DEC-043 定义的显式 Luna→Terra 回退，不得静默替换或错误归因。
 8. **禁止隐藏失败。** 不得隐藏失败测试、已知缺陷、Decision Conflict 或未解决风险。
 
 ---
@@ -106,12 +107,23 @@ ChatGPT 单方面输出的「建议」「推荐」「Proposed Decision」一律�
 - 一个 Issue 只交付一个可独立验证的结果；一个 Issue 对应独立分支和 PR。
 - PR 必须说明问题、方案、范围、测试、风险、回滚和文档影响。
 - 合并前必须完成正确性、可读性、架构、安全、性能五轴 Review；安全与性能按变更相关性执行。
-- 可执行代码 PR 由 Luna/max 实现并自检后，必须由 Sol/xhigh 在合并前完成独立五轴 Review；实现 Agent 自审不能替代该 Review。
-- 普通低风险 PR 在验收标准和 Required Checks 全部通过、无阻塞 Finding 后，可由 Agent 自主合并、关闭 Issue 并同步文档。
+- 可执行代码 PR 原则上由 Luna/max 实现；显式回退时可由 Terra/xhigh 实现。实现 Agent 自审不能替代 Sol/xhigh 对实际 Diff 和测试结果的独立五轴 Review。
+- 实现 Agent 不得最终批准或合并自己实现的 PR。普通低风险 PR 在验收标准和 Required Checks 全部通过、Sol 无阻塞 Finding 后，可由 Sol 主控或另一非实现 Agent 合并、关闭 Issue 并同步文档。
+- Sol 仅在 DEC-043 列出的例外下直接实现；此时必须由另一独立审查 Agent 或人工完成最终批准。
 - 破坏性操作、重大架构或公共契约变更、数据迁移、不可逆外部操作、安全事故或核心风险、产品范围变化和 Decision Conflict 必须暂停并请求用户确认。
 - 自主 Merge 不等于 Decision / RFC Accepted，也不等于 Goal 已启动或最终发布获批。
 
 详见 [DEC-040](docs/decisions/dec-040-autonomous-agent-execution-and-model-roles.md)。
+
+### 8.1 任务合同与线程隔离
+
+- 一个实现线程原则上只处理一个边界清晰的 Issue，或一组高度相关且写入边界不冲突的 Issues。
+- Sol 路由任务前必须提供任务合同：模型 / 角色、目标、权威文档与阅读顺序、范围、Non-goals、依赖、允许修改边界、冻结契约、验收、测试、风险、停止条件、PR 与独立 Reviewer。
+- 并行任务必须先冻结接口、依赖和文件 / 模块所有权；不得让多个实现线程无边界地修改同一核心模块。
+- 不假设线程自动共享上下文。重要事实必须写入项目文档、权威 Goal、GitHub Issue、任务合同、分支、Commit、PR、Review、Readiness / Current Status、Decision Log 或测试记录。
+- 聊天记录不是项目事实的唯一来源；Issue 不替代 Decision / RFC / Spec，PR 描述不替代实际代码 Review。
+
+详见 [DEC-043](docs/decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md)。
 
 ---
 
