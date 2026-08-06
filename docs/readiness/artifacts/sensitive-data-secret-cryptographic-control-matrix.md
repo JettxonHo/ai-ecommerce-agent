@@ -4,7 +4,7 @@
 
 ```text
 Status =
-DRAFT — USER REVIEW REQUIRED
+ACCEPTED — USER DECISION 2026-08-06
 
 Wave =
 WAVE 1
@@ -13,7 +13,7 @@ Scope =
 WAVE 1 FULL VOCABULARY / FOUNDATION ARTIFACT
 
 Artifact Acceptance =
-NOT YET DECIDED
+ACCEPTED — USER DECISION 2026-08-06
 
 Artifact Creation Authorization =
 AUTHORIZED
@@ -25,7 +25,7 @@ Implementation =
 NOT AUTHORIZED
 ```
 
-> 本文件由 Wave 1 Readiness Artifact Creation Authorization（Level 2）创建。文件创建不构成接受；`Artifact Creation ≠ Artifact Acceptance`，`Artifact Acceptance ≠ Spike Authorization`。
+> 本文件由 Wave 1 Readiness Artifact Creation Authorization（Level 2）创建。用户于 2026-08-06 明确接受本 Artifact 的 Wave 1 Full Vocabulary / Foundation 范围。`Artifact Creation ≠ Artifact Acceptance`，`Artifact Acceptance ≠ Spike Authorization`。
 
 ---
 
@@ -38,7 +38,7 @@ NOT AUTHORIZED
 | Purpose | 建立跨全部持久化平面的敏感数据分类与密码学控制词汇，对每个已有数据平面 / 记录类给出分类与允许/禁止的持久化传播边界，并承载 Cross-cutting Persistence Security Qualification Catalog（QL-02）的规划分配（仅规划，不执行）。 |
 | Scope | WAVE 1 FULL VOCABULARY / FOUNDATION ARTIFACT |
 | Source / Traceability | RFC-002-DQ-17 §3.23（Matrix = REQUIRED / NOT AUTHORIZED，26 项字段）；RFC-002-DQ-17 §3.24（Cross-cutting Persistence Security Qualification = REQUIRED IN FIRST AUTHORIZED PERSISTENCE SPIKES / NOT AUTHORIZED） |
-| Decision Status | DRAFT — USER REVIEW REQUIRED |
+| Decision Status | ACCEPTED — USER DECISION 2026-08-06 |
 
 ---
 
@@ -83,10 +83,10 @@ Artifact Creation Authorization =
 AUTHORIZED（本文件创建属 Level 2）
 
 Artifact Acceptance =
-NOT YET DECIDED
+ACCEPTED — USER DECISION 2026-08-06
 
 QL-02 Catalog =
-DEFINED FOR REVIEW
+ACCEPTED AS PLANNING CATALOG / NOT EXECUTED
 
 QL-02 Execution =
 NOT PERFORMED / NOT AUTHORIZED
@@ -308,7 +308,7 @@ SYNTHETIC TEST DATA
 
 ```text
 QL-02 Catalog =
-DEFINED FOR REVIEW
+ACCEPTED AS PLANNING CATALOG / NOT EXECUTED
 
 QL-02 Execution =
 NOT PERFORMED / NOT AUTHORIZED
@@ -408,16 +408,16 @@ QL-02 为 Cross-cutting Persistence Security Qualification Catalog：将 DQ-17 �
 
 ## 11. Review Checklist（Artifact-specific）
 
-- [ ] 第 6.1 节四类语义独立（SECRET ≠ PII ≠ SENSITIVE BUSINESS DATA ≠ PUBLIC/INTERNAL）已建立且未混用。
-- [ ] Confidentiality Level 与 Handling Tags 使用受控词汇。
-- [ ] 26 正式列 + Source/Traceability + Decision Status 全部出现在 Table A–D（见第 7 节 Column Index）。
-- [ ] 每个 Data Element 行有 Source / Traceability。
-- [ ] Secret Value 在全部持久化/派生平面为 PROHIBITED，仅 REFERENCE-ONLY 引用。
-- [ ] 未选择 KMS / Vault / HSM / 算法 / Rotation Period / Key Hierarchy（相关单元格 = NOT DECIDED / PENDING）。
-- [ ] 未填写任何 Retention Period（期限 = PERIOD NOT DECIDED，留 DQ-15）。
-- [ ] QL-02 Catalog 按 TS-01~TS-05 + QL-01 分配，且明确 `QL-02 Execution = NOT PERFORMED / NOT AUTHORIZED`。
-- [ ] 明确 `All QL-02 Items in TS-01 = NOT REQUIRED` 与 `Independent QL-02 Spike = NOT REQUIRED / NOT AUTHORIZED`。
-- [ ] 未出现 ACCEPTED / COMPLETED / READY FOR IMPLEMENTATION / READY FOR SPIKE EXECUTION 等被禁止措辞用于 Artifact 状态。
+- [x] 第 6.1 节四类语义独立（SECRET ≠ PII ≠ SENSITIVE BUSINESS DATA ≠ PUBLIC/INTERNAL）已建立且未混用。
+- [x] Confidentiality Level 与 Handling Tags 使用受控词汇。
+- [x] 26 正式列 + Source/Traceability + Decision Status 全部出现在 Table A–D（见第 7 节 Column Index）。
+- [x] 每个 Data Element 行有 Source / Traceability。
+- [x] Secret Value 在全部持久化/派生平面为 PROHIBITED，仅 REFERENCE-ONLY 引用。
+- [x] 未选择 KMS / Vault / HSM / 算法 / Rotation Period / Key Hierarchy（相关单元格 = NOT DECIDED / PENDING）。
+- [x] 未填写任何 Retention Period（期限 = PERIOD NOT DECIDED，留 DQ-15）。
+- [x] QL-02 Catalog 按 TS-01~TS-05 + QL-01 分配，且明确 `QL-02 Execution = NOT PERFORMED / NOT AUTHORIZED`。
+- [x] 明确 `All QL-02 Items in TS-01 = NOT REQUIRED` 与 `Independent QL-02 Spike = NOT REQUIRED / NOT AUTHORIZED`。
+- [x] Artifact Acceptance 已归档；仍未出现 `COMPLETED` / `READY FOR IMPLEMENTATION` / `READY FOR SPIKE EXECUTION` 等越权状态。
 
 ---
 
@@ -439,5 +439,5 @@ QL-02 为 Cross-cutting Persistence Security Qualification Catalog：将 DQ-17 �
 - 本 Artifact 不填写任何 Retention Period 数值。
 - 本 Artifact 不执行 QL-02 验证（QL-02 Execution = NOT PERFORMED / NOT AUTHORIZED）。
 - 本 Artifact 不创建 RLS Policy、Role-Grant、Redaction Middleware、Secret Scanner、Encrypted Column、Key Registry、Rotation Job、测试、DDL、Migration 或基础设施。
-- 本 Artifact 不接受自身（Artifact Acceptance = NOT YET DECIDED）。
+- 本 Artifact 不自我接受；用户已于 2026-08-06 作出外部接受决定，且只接受文件声明的 Wave 1 Full Vocabulary / Foundation 范围。
 - 本 Artifact 不授权 Technical Spike Planning / Execution 或任何实现。

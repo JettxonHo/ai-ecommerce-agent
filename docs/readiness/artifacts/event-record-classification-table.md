@@ -4,7 +4,7 @@
 
 ```text
 Status =
-DRAFT — USER REVIEW REQUIRED
+ACCEPTED — USER DECISION 2026-08-06
 
 Wave =
 WAVE 1
@@ -13,7 +13,7 @@ Scope =
 WAVE 1 FULL VOCABULARY / FOUNDATION ARTIFACT
 
 Artifact Acceptance =
-NOT YET DECIDED
+ACCEPTED — USER DECISION 2026-08-06
 
 Artifact Creation Authorization =
 AUTHORIZED
@@ -25,7 +25,7 @@ Implementation =
 NOT AUTHORIZED
 ```
 
-> 本文件由 Wave 1 Readiness Artifact Creation Authorization（Level 2）创建。`Artifact Creation ≠ Artifact Acceptance`；`Artifact Acceptance ≠ Spike Authorization`。
+> 本文件由 Wave 1 Readiness Artifact Creation Authorization（Level 2）创建。用户于 2026-08-06 明确接受本 Artifact 的 Wave 1 Full Vocabulary / Foundation 范围。`Artifact Creation ≠ Artifact Acceptance`；`Artifact Acceptance ≠ Spike Authorization`。
 
 ---
 
@@ -38,7 +38,7 @@ NOT AUTHORIZED
 | Purpose | 对 Repository 中已有依据的 Business Occurrence / Record Class 建立受控分类，明确其是否持久化、与 Atomic Business Commit 的关系、是否需要 Delivery，并保持六类记录语义与相关概念分离。 |
 | Scope | WAVE 1 FULL VOCABULARY / FOUNDATION ARTIFACT |
 | Source / Traceability | RFC-002-DQ-10 §3.11（Classification Table = REQUIRED / NOT AUTHORIZED，16 项字段） |
-| Decision Status | DRAFT — USER REVIEW REQUIRED |
+| Decision Status | ACCEPTED — USER DECISION 2026-08-06 |
 
 ---
 
@@ -82,7 +82,7 @@ Artifact Creation Authorization =
 AUTHORIZED（本文件创建属 Level 2）
 
 Artifact Acceptance =
-NOT YET DECIDED
+ACCEPTED — USER DECISION 2026-08-06
 
 Technical Spike Planning / Execution =
 NOT AUTHORIZED
@@ -215,20 +215,20 @@ Provider Call Ledger    （Provider 调用账本，无 Secret Value）
 
 ## 10. Review Checklist（Artifact-specific）
 
-- [ ] 每一行描述一个 Repository 中已有依据的 Business Occurrence 或 Record Class。
-- [ ] Domain Event / Application Event 的具体事件名与产生映射若无精确 Accepted 来源，标 `CANDIDATE EVENT NAME — NOT ACCEPTED` / `PENDING OWNER DECISION` / `NOT REQUIRED BY RFC-002`，未标为 Accepted Decision。
-- [ ] `Persistence Required` 指明具体哪一种 Record Class 必持久化；Domain Event 默认不自动持久化。
-- [ ] 明确与 Atomic Business Commit 的关系（Transaction Boundary）。
-- [ ] 明确是否需要 Delivery 及其 Guarantee。
-- [ ] 未承诺 Exactly-once（Integration Event = AT-LEAST-ONCE）。
-- [ ] Durable Work Intent（REC-009）未分类为 Integration Event。
-- [ ] Audit 未充当通用 Event Bus。
-- [ ] Observability Event（REC-012）未成为业务权威记录。
-- [ ] Workflow Checkpoint（REC-011）未成为 Business Current Truth。
-- [ ] Integration Event / Outbox 记录类（REC-013）区分 Record Class Semantics（ACCEPTED）/ Current Mapping（PENDING / NONE EVIDENCED）/ Relay（DEFERRED TO RFC-003）；未发明当前 MVP 必须发布的具体 Integration Event。
-- [ ] Schema Version 具体值未知处使用 `PENDING OWNER DECISION`，未虚构。
-- [ ] Retention Period 未填写。
-- [ ] 16 正式列 + Source/Traceability + Decision Status 全部出现于 Table A–C（见第 7 节 Column Index）。
+- [x] 每一行描述一个 Repository 中已有依据的 Business Occurrence 或 Record Class。
+- [x] Domain Event / Application Event 的具体事件名与产生映射若无精确 Accepted 来源，标 `CANDIDATE EVENT NAME — NOT ACCEPTED` / `PENDING OWNER DECISION` / `NOT REQUIRED BY RFC-002`，未标为 Accepted Decision。
+- [x] `Persistence Required` 指明具体哪一种 Record Class 必持久化；Domain Event 默认不自动持久化。
+- [x] 明确与 Atomic Business Commit 的关系（Transaction Boundary）。
+- [x] 明确是否需要 Delivery 及其 Guarantee。
+- [x] 未承诺 Exactly-once（Integration Event = AT-LEAST-ONCE）。
+- [x] Durable Work Intent（REC-009）未分类为 Integration Event。
+- [x] Audit 未充当通用 Event Bus。
+- [x] Observability Event（REC-012）未成为业务权威记录。
+- [x] Workflow Checkpoint（REC-011）未成为 Business Current Truth。
+- [x] Integration Event / Outbox 记录类（REC-013）区分 Record Class Semantics（ACCEPTED）/ Current Mapping（PENDING / NONE EVIDENCED）/ Relay（DEFERRED TO RFC-003）；未发明当前 MVP 必须发布的具体 Integration Event。
+- [x] Schema Version 具体值未知处使用 `PENDING OWNER DECISION`，未虚构。
+- [x] Retention Period 未填写。
+- [x] 16 正式列 + Source/Traceability + Decision Status 全部出现于 Table A–C（见第 7 节 Column Index）。
 
 ---
 
@@ -249,5 +249,5 @@ Provider Call Ledger    （Provider 调用账本，无 Secret Value）
 - 本 Artifact 不选择 Event Relay / Broker / 发布状态机 / Dead-letter（留 RFC-003）。
 - 本 Artifact 不填写 Retention Period 数值。
 - 本 Artifact 不承诺 Exactly-once Delivery。
-- 本 Artifact 不接受自身（Artifact Acceptance = NOT YET DECIDED）。
+- 本 Artifact 不自我接受；用户已于 2026-08-06 作出外部接受决定，且只接受文件声明的 Wave 1 Full Vocabulary / Foundation 范围。
 - 本 Artifact 不授权 Technical Spike Planning / Execution 或任何实现。

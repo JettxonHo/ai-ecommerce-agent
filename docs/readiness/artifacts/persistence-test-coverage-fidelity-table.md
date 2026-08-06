@@ -4,7 +4,7 @@
 
 ```text
 Status =
-DRAFT — USER REVIEW REQUIRED
+ACCEPTED — USER DECISION 2026-08-06
 
 Wave =
 WAVE 1
@@ -13,13 +13,13 @@ Scope =
 TS-01 MINIMUM SLICE ONLY
 
 TS-01 Minimum Slice =
-CREATED FOR REVIEW
+ACCEPTED FOR TS-01 PLANNING BASELINE
 
 Full ARP-09 Completion =
 NOT CLAIMED
 
 Artifact Acceptance =
-NOT YET DECIDED
+ACCEPTED — USER DECISION 2026-08-06
 
 Artifact Creation Authorization =
 AUTHORIZED
@@ -34,7 +34,7 @@ Implementation =
 NOT AUTHORIZED
 ```
 
-> 本文件由 Wave 1 Readiness Artifact Creation Authorization（Level 2）创建。本 Slice 仅覆盖 TS-01 所需的最小测试覆盖与保真度声明，**不声称完成完整 ARP-09**。
+> 本文件由 Wave 1 Readiness Artifact Creation Authorization（Level 2）创建。用户于 2026-08-06 明确接受本 TS-01 Minimum Slice；本 Slice 仅覆盖 TS-01 所需的最小测试覆盖与保真度声明，**不声称完成完整 ARP-09**。`Artifact Acceptance ≠ Spike Authorization`。
 > 本 Slice **不创建测试代码、Fixture、Container 或 CI Workflow**；未知实测值一律写 `REQUIRES TS-01 EVIDENCE`；`Evidence Produced` 统一为 `NOT YET AVAILABLE`。
 > 现有 SQLite Spike-001 证据**不得**当作 PostgreSQL Acceptance Evidence（DQ-16：SQLite 仅可选非权威 Test Double）。
 
@@ -49,7 +49,7 @@ NOT AUTHORIZED
 | Purpose | 为 TS-01 声明每项持久化/并发/幂等不变量所需的测试层、保真度要求（真实 PostgreSQL、连接/进程数、隔离级别、Commit Visibility、Fault Injection）与 CI 层级，作为实现前置测试覆盖规划。 |
 | Scope | TS-01 MINIMUM SLICE ONLY |
 | Source / Traceability | RFC-002-DQ-16 §3.17（Persistence Test Coverage & Fidelity Table = REQUIRED / NOT AUTHORIZED，18 项字段）· §3.18（Common Harness Qualification） |
-| Decision Status | DRAFT — USER REVIEW REQUIRED |
+| Decision Status | ACCEPTED — TS-01 MINIMUM SLICE ONLY（2026-08-06） |
 
 ---
 
@@ -91,7 +91,7 @@ Artifact Creation Authorization =
 AUTHORIZED（本文件创建属 Level 2）
 
 Artifact Acceptance =
-NOT YET DECIDED
+ACCEPTED — TS-01 MINIMUM SLICE ONLY（2026-08-06）
 
 Technical Spike Planning / Execution =
 NOT AUTHORIZED
@@ -253,7 +253,7 @@ Production-topology Qualification
 | TEST-012 | NOT YET AVAILABLE | 同 TEST-001 | rfc-002-decision-questions.md §DQ-16 · DEC-035 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | TEST-013 | NOT YET AVAILABLE | 同 TEST-001 | rfc-002-decision-questions.md §DQ-07 §59 · DQ-11 | ACCEPTED DECISION | NOT YET EVIDENCED / REQUIRES TS-01 |
 | TEST-014 | NOT YET AVAILABLE | QL-01 Harness Owner（未授权）= PENDING USER DECISION | rfc-002-decision-questions.md §DQ-16 §56-57 | Harness Qualification = REQUIRED / NOT AUTHORIZED | NOT YET EVIDENCED / REQUIRES TS-01 |
-| TEST-015 | NOT YET AVAILABLE | TS-01 Spike Owner + Security Governance（未授权） | rfc-002-decision-questions.md §DQ-17 · ARP-10 §9.2 | QL-02 Slice = DEFINED FOR REVIEW / NOT EXECUTED | NOT YET EVIDENCED / REQUIRES TS-01 |
+| TEST-015 | NOT YET AVAILABLE | TS-01 Spike Owner + Security Governance（未授权） | rfc-002-decision-questions.md §DQ-17 · ARP-10 §9.2 | QL-02 Slice = ACCEPTED AS PLANNING CATALOG / NOT EXECUTED | NOT YET EVIDENCED / REQUIRES TS-01 |
 | TEST-016 | NOT YET AVAILABLE | TS-01 Spike Owner（未授权）= PENDING USER DECISION | rfc-002-decision-questions.md §DQ-10 §121 | Coverage = ACCEPTED DECISION（DQ-10） | NOT YET EVIDENCED / REQUIRES TS-01 |
 | TEST-017 | NOT YET AVAILABLE | TS-01 Spike Owner（未授权）= PENDING USER DECISION | rfc-002-decision-questions.md §DQ-10 §121 | Coverage = ACCEPTED DECISION（DQ-10） | NOT YET EVIDENCED / REQUIRES TS-01 |
 | TEST-018 | NOT YET AVAILABLE | TS-01 Spike Owner（未授权）= PENDING USER DECISION | rfc-002-decision-questions.md §DQ-10 §121 | Coverage = ACCEPTED DECISION（DQ-10） | NOT YET EVIDENCED / REQUIRES TS-01 |
@@ -282,16 +282,16 @@ Production-topology Qualification
 
 ## 10. Review Checklist（Artifact-specific）
 
-- [ ] 覆盖 TS-01 所需最小 Slice（revision CAS / unique constraint / Lease-Fencing / SKIP LOCKED / 40001 / 40P01 / retry identity / idempotency replay·conflict / Durable Work Intent / crash recovery / Atomic Commit fault windows / no partial write / QL-01 Harness / TS-01 QL-02 Slice / Consumer Dedup / Relay Crash Recovery / stale Event Publish Attempt / Polling Recovery / Simultaneous Work Retry / Ordering Conflict）。
-- [ ] DQ-10 Integration Event Duplicate Delivery / Consumer Dedup / Relay Crash / stale Publish Attempt 已由独立 TEST 行覆盖（DQ-10 分配给 DQ-07 真实 PostgreSQL Multi-worker Spike）。
-- [ ] Test Layer 仅使用受控词汇。
-- [ ] Real PostgreSQL Required = YES（全部正式持久化/并发/幂等/迁移语义）。
-- [ ] 未知实测值写 `REQUIRES TS-01 EVIDENCE`。
-- [ ] Evidence Produced 统一 = `NOT YET AVAILABLE`。
-- [ ] 未把 SQLite Spike-001 证据当作 PostgreSQL Acceptance Evidence。
-- [ ] 未创建测试代码 / Fixture / Container / CI Workflow。
-- [ ] 每行有 Source / Traceability；Evidence Status = NOT YET EVIDENCED / REQUIRES TS-01。
-- [ ] 18 正式列 + Source/Traceability + Decision Status + Evidence Status 全部出现于 Table A–D（见第 7 节 Column Index）。
+- [x] 覆盖 TS-01 所需最小 Slice（revision CAS / unique constraint / Lease-Fencing / SKIP LOCKED / 40001 / 40P01 / retry identity / idempotency replay·conflict / Durable Work Intent / crash recovery / Atomic Commit fault windows / no partial write / QL-01 Harness / TS-01 QL-02 Slice / Consumer Dedup / Relay Crash Recovery / stale Event Publish Attempt / Polling Recovery / Simultaneous Work Retry / Ordering Conflict）。
+- [x] DQ-10 Integration Event Duplicate Delivery / Consumer Dedup / Relay Crash / stale Publish Attempt 已由独立 TEST 行覆盖（DQ-10 分配给 DQ-07 真实 PostgreSQL Multi-worker Spike）。
+- [x] Test Layer 仅使用受控词汇。
+- [x] Real PostgreSQL Required = YES（全部正式持久化/并发/幂等/迁移语义）。
+- [x] 未知实测值写 `REQUIRES TS-01 EVIDENCE`。
+- [x] Evidence Produced 统一 = `NOT YET AVAILABLE`。
+- [x] 未把 SQLite Spike-001 证据当作 PostgreSQL Acceptance Evidence。
+- [x] 未创建测试代码 / Fixture / Container / CI Workflow。
+- [x] 每行有 Source / Traceability；Evidence Status = NOT YET EVIDENCED / REQUIRES TS-01。
+- [x] 18 正式列 + Source/Traceability + Decision Status + Evidence Status 全部出现于 Table A–D（见第 7 节 Column Index）。
 
 ---
 
@@ -312,5 +312,5 @@ Production-topology Qualification
 - 本 Slice 不把 SQLite Spike-001 证据当作 PostgreSQL Acceptance Evidence。
 - 本 Slice 不填写未知实测值（统一 REQUIRES TS-01 EVIDENCE）。
 - 本 Slice 不声称完成完整 ARP-09。
-- 本 Slice 不接受自身（Artifact Acceptance = NOT YET DECIDED）。
+- 本 Slice 不自我接受；用户已于 2026-08-06 作出外部接受决定，范围仅为 TS-01 Minimum Slice。
 - 本 Slice 不授权 TS-01 Planning / Execution 或任何实现。

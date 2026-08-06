@@ -4,7 +4,7 @@
 
 ```text
 Status =
-DRAFT — USER REVIEW REQUIRED
+ACCEPTED — USER DECISION 2026-08-06
 
 Wave =
 WAVE 1
@@ -13,13 +13,13 @@ Scope =
 TS-01 MINIMUM SLICE ONLY
 
 TS-01 Minimum Slice =
-CREATED FOR REVIEW
+ACCEPTED FOR TS-01 PLANNING BASELINE
 
 Full ARP-03 Completion =
 NOT CLAIMED
 
 Artifact Acceptance =
-NOT YET DECIDED
+ACCEPTED — USER DECISION 2026-08-06
 
 Artifact Creation Authorization =
 AUTHORIZED
@@ -31,7 +31,7 @@ Implementation =
 NOT AUTHORIZED
 ```
 
-> 本文件由 Wave 1 Readiness Artifact Creation Authorization（Level 2）创建。本 Slice 仅覆盖 TS-01 所需的最小幂等身份语义，**不声称完成完整 ARP-03**。
+> 本文件由 Wave 1 Readiness Artifact Creation Authorization（Level 2）创建。用户于 2026-08-06 明确接受本 TS-01 Minimum Slice；本 Slice 仅覆盖 TS-01 所需的最小幂等身份语义，**不声称完成完整 ARP-03**。`Artifact Acceptance ≠ Spike Authorization`。
 > 本 Slice **不设计统一跨模块万能幂等表**（Candidate A 已被 DQ-08 拒绝）；**不发明具体 HTTP Idempotency Header**（留 RFC-004）；**不设置具体 Retention Period**（留 DQ-15）。
 
 ---
@@ -45,7 +45,7 @@ NOT AUTHORIZED
 | Purpose | 为 TS-01 所需操作建立幂等身份语义矩阵，明确区分 Command ID / Idempotency Key / Attempt ID / Stage Run ID / Dispatch ID / Delivery Attempt ID / Provider Call Identity，并给出 Retry 与 Rerun 的身份分离。 |
 | Scope | TS-01 MINIMUM SLICE ONLY |
 | Source / Traceability | RFC-002-DQ-08 §4.11（Idempotency Identity Matrix = REQUIRED / NOT AUTHORIZED，18 项字段）；RFC-002-DQ-09 §93（补充 Dispatch ID / Delivery Attempt Identity / Consumer Scope / Provider Call Identity） |
-| Decision Status | DRAFT — USER REVIEW REQUIRED |
+| Decision Status | ACCEPTED — TS-01 MINIMUM SLICE ONLY（2026-08-06） |
 
 ---
 
@@ -87,7 +87,7 @@ Artifact Creation Authorization =
 AUTHORIZED（本文件创建属 Level 2）
 
 Artifact Acceptance =
-NOT YET DECIDED
+ACCEPTED — TS-01 MINIMUM SLICE ONLY（2026-08-06）
 
 Technical Spike Planning / Execution =
 NOT AUTHORIZED
@@ -254,16 +254,16 @@ NOT AUTHORIZED
 
 ## 9. Review Checklist（Artifact-specific）
 
-- [ ] 覆盖 TS-01 所需最小身份 Slice（Transactional Application Command / Exact Replay / Concurrent Exact Replay / Same Key-Different Fingerprint / Transient Failure Retry / Commit Outcome Unknown Retry / Intentional Rerun / Durable Work Intent / Work Intent Claim / Durable Work Intent Delivery-Execution Attempt / Consumer Dedup / Integration Event Identity / Integration Event Publish-Delivery Attempt / Provider Call Identity / Retry-vs-Rerun 分离）。
-- [ ] Work Intent Attempt（IDEM-010）与 Integration Event Publish Attempt（IDEM-015）身份彻底分离；未把 `dispatch_id` / `delivery_attempt_id` 用作 Integration Event 默认 Identity。
-- [ ] 未设计统一跨模块万能幂等表（Candidate A 已拒绝）。
-- [ ] 未发明具体 HTTP Idempotency Header（留 RFC-004）。
-- [ ] 未设置具体 Retention Period（留 DQ-15）。
-- [ ] Retry 与 Rerun 身份语义明确分离。
-- [ ] 数据库事务 Retry 不生成新 Provider Key、不重调 Provider。
-- [ ] Checkpoint / thread_id 未作为业务幂等记录。
-- [ ] 每行有 Source / Traceability；Evidence Status = NOT YET EVIDENCED / REQUIRES TS-01。
-- [ ] 22 正式列 + Source/Traceability + Decision Status + Evidence Status 全部出现于 Table A–E（见第 6 节 Column Index）。
+- [x] 覆盖 TS-01 所需最小身份 Slice（Transactional Application Command / Exact Replay / Concurrent Exact Replay / Same Key-Different Fingerprint / Transient Failure Retry / Commit Outcome Unknown Retry / Intentional Rerun / Durable Work Intent / Work Intent Claim / Durable Work Intent Delivery-Execution Attempt / Consumer Dedup / Integration Event Identity / Integration Event Publish-Delivery Attempt / Provider Call Identity / Retry-vs-Rerun 分离）。
+- [x] Work Intent Attempt（IDEM-010）与 Integration Event Publish Attempt（IDEM-015）身份彻底分离；未把 `dispatch_id` / `delivery_attempt_id` 用作 Integration Event 默认 Identity。
+- [x] 未设计统一跨模块万能幂等表（Candidate A 已拒绝）。
+- [x] 未发明具体 HTTP Idempotency Header（留 RFC-004）。
+- [x] 未设置具体 Retention Period（留 DQ-15）。
+- [x] Retry 与 Rerun 身份语义明确分离。
+- [x] 数据库事务 Retry 不生成新 Provider Key、不重调 Provider。
+- [x] Checkpoint / thread_id 未作为业务幂等记录。
+- [x] 每行有 Source / Traceability；Evidence Status = NOT YET EVIDENCED / REQUIRES TS-01。
+- [x] 22 正式列 + Source/Traceability + Decision Status + Evidence Status 全部出现于 Table A–E（见第 6 节 Column Index）。
 
 ---
 
@@ -285,5 +285,5 @@ NOT AUTHORIZED
 - 本 Slice 不设置 Retention Period 数值。
 - 本 Slice 不调用真实 Provider（Provider Call Identity 仅语义边界）。
 - 本 Slice 不声称完成完整 ARP-03。
-- 本 Slice 不接受自身（Artifact Acceptance = NOT YET DECIDED）。
+- 本 Slice 不自我接受；用户已于 2026-08-06 作出外部接受决定，范围仅为 TS-01 Minimum Slice。
 - 本 Slice 不授权 Technical Spike Planning / Execution 或任何实现。

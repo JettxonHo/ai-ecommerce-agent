@@ -4,7 +4,7 @@
 
 ```text
 Status =
-DRAFT — USER REVIEW REQUIRED
+ACCEPTED — USER DECISION 2026-08-06
 
 Wave =
 WAVE 1
@@ -13,13 +13,13 @@ Scope =
 TS-01 MINIMUM SLICE ONLY
 
 TS-01 Minimum Slice =
-CREATED FOR REVIEW
+ACCEPTED FOR TS-01 PLANNING BASELINE
 
 Full ARP-02 Completion =
 NOT CLAIMED
 
 Artifact Acceptance =
-NOT YET DECIDED
+ACCEPTED — USER DECISION 2026-08-06
 
 Artifact Creation Authorization =
 AUTHORIZED
@@ -31,7 +31,7 @@ Implementation =
 NOT AUTHORIZED
 ```
 
-> 本文件由 Wave 1 Readiness Artifact Creation Authorization（Level 2）创建。本 Slice 仅覆盖 TS-01（PostgreSQL Multi-worker Concurrency Technical Spike）所需场景，**不声称完成完整 ARP-02**。`Artifact Creation ≠ Artifact Acceptance`。
+> 本文件由 Wave 1 Readiness Artifact Creation Authorization（Level 2）创建。用户于 2026-08-06 明确接受本 TS-01 Minimum Slice；本 Slice 仅覆盖 TS-01（PostgreSQL Multi-worker Concurrency Technical Spike）所需场景，**不声称完成完整 ARP-02**。`Artifact Acceptance ≠ Spike Authorization`。
 > 全部场景 Evidence Status 统一为 `NOT YET EVIDENCED` / `REQUIRES TS-01`；本 Slice 不含任何真实测试结果。
 
 ---
@@ -45,7 +45,7 @@ NOT AUTHORIZED
 | Purpose | 枚举 TS-01 必需的并发场景，标识其并发范围、受保护业务不变量、并发控制机制组合、重试分类与用户可见冲突结果，作为持久化/并发控制实现前置条件。 |
 | Scope | TS-01 MINIMUM SLICE ONLY |
 | Source / Traceability | RFC-002-DQ-07 §54-56（Concurrency Scenario Matrix = REQUIRED / NOT AUTHORIZED，字段清单）；DQ-09 §94（Dispatch 场景补充）；DQ-11 §154（版本分配/CAS/失效/恢复场景） |
-| Decision Status | DRAFT — USER REVIEW REQUIRED |
+| Decision Status | ACCEPTED — TS-01 MINIMUM SLICE ONLY（2026-08-06） |
 
 ---
 
@@ -88,7 +88,7 @@ Artifact Creation Authorization =
 AUTHORIZED（本文件创建属 Level 2）
 
 Artifact Acceptance =
-NOT YET DECIDED
+ACCEPTED — TS-01 MINIMUM SLICE ONLY（2026-08-06）
 
 Technical Spike Planning / Execution =
 NOT AUTHORIZED
@@ -279,15 +279,15 @@ NOT AUTHORIZED
 
 ## 9. Review Checklist（Artifact-specific）
 
-- [ ] 覆盖并从 RFC-002 重新提取全部 TS-01 必需场景（expected_revision CAS / Pointer Promotion / Named Unique Constraint / Work Intent Claim / SKIP LOCKED / Lease Expiry-Takeover / Stale fencing_token / 40001 / 40P01 / Retry Identity / Idempotency Key±Fingerprint / Duplicate Delivery / Worker Crash / Commit Outcome Unknown / Atomic Commit Fault Windows / No Partial Write / No Orphan Version / No Duplicate Work Intent / Restore-vs-new-write / Version Number Allocation / Invalidation / Promotion-vs-Invalidation / Cancel-vs-complete / Simultaneous Work Retry / Ordering Conflict / Authoritative Polling Recovery / Integration Event Relay Crash Recovery / Stale Integration Event Publish Attempt Rejection）。
-- [ ] Claim Exclusivity 归因正确（SKIP LOCKED 短事务 + Durable Lease + fencing_token；唯一约束不用于 Claim 互斥，Intent 重复创建防线由 CONC-019 承载）。
-- [ ] 每行有 Source / Traceability。
-- [ ] 全部行 Evidence Status = `NOT YET EVIDENCED` / `REQUIRES TS-01`；未出现 PASS / SUPPORTED / VERIFIED。
-- [ ] 未填写真实测试结果。
-- [ ] Maximum Attempts 对 40001/40P01 = 3 次总事务尝试（DQ-07），语义冲突不盲目重试。
-- [ ] Pessimistic Lock 未作为全局默认；Session-level Advisory Lock = PROHIBITED。
-- [ ] 16 正式列全部出现于 Table A–D（见第 6 节 Column Index）。
-- [ ] 明确 `Full ARP-02 Completion = NOT CLAIMED`。
+- [x] 覆盖并从 RFC-002 重新提取全部 TS-01 必需场景（expected_revision CAS / Pointer Promotion / Named Unique Constraint / Work Intent Claim / SKIP LOCKED / Lease Expiry-Takeover / Stale fencing_token / 40001 / 40P01 / Retry Identity / Idempotency Key±Fingerprint / Duplicate Delivery / Worker Crash / Commit Outcome Unknown / Atomic Commit Fault Windows / No Partial Write / No Orphan Version / No Duplicate Work Intent / Restore-vs-new-write / Version Number Allocation / Invalidation / Promotion-vs-Invalidation / Cancel-vs-complete / Simultaneous Work Retry / Ordering Conflict / Authoritative Polling Recovery / Integration Event Relay Crash Recovery / Stale Integration Event Publish Attempt Rejection）。
+- [x] Claim Exclusivity 归因正确（SKIP LOCKED 短事务 + Durable Lease + fencing_token；唯一约束不用于 Claim 互斥，Intent 重复创建防线由 CONC-019 承载）。
+- [x] 每行有 Source / Traceability。
+- [x] 全部行 Evidence Status = `NOT YET EVIDENCED` / `REQUIRES TS-01`；未出现 PASS / SUPPORTED / VERIFIED。
+- [x] 未填写真实测试结果。
+- [x] Maximum Attempts 对 40001/40P01 = 3 次总事务尝试（DQ-07），语义冲突不盲目重试。
+- [x] Pessimistic Lock 未作为全局默认；Session-level Advisory Lock = PROHIBITED。
+- [x] 16 正式列全部出现于 Table A–D（见第 6 节 Column Index）。
+- [x] 明确 `Full ARP-02 Completion = NOT CLAIMED`。
 
 ---
 
@@ -307,5 +307,5 @@ NOT AUTHORIZED
 - 本 Slice 不声称完成完整 ARP-02（Full ARP-02 Completion = NOT CLAIMED）。
 - 本 Slice 不定义具体 HTTP Status Code / Header（留 RFC-004）。
 - 本 Slice 不设置 Retry backoff / jitter 数值（留 RFC-007）。
-- 本 Slice 不接受自身（Artifact Acceptance = NOT YET DECIDED）。
+- 本 Slice 不自我接受；用户已于 2026-08-06 作出外部接受决定，范围仅为 TS-01 Minimum Slice。
 - 本 Slice 不授权 TS-01 Planning / Execution 或任何实现。
