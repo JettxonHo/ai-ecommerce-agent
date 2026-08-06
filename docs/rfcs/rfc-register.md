@@ -276,5 +276,5 @@ TS-01～TS-05 Execution = NOT AUTHORIZED
 Business / Production Implementation = NOT AUTHORIZED
 Actual Goal = NOT CREATED / NOT ACTIVATED
 
-Next Gate: Frontend Architecture; then product specification closure, RFC-004 / RFC-005 / RFC-007, complete readiness planning package, testing strategy, Goal text, project-wide planning consistency review, and explicit user approval
+Next Gate: Frontend Architecture overall acceptance (Final Consistency Review = PASS); then product specification closure, RFC-004 / RFC-005 / RFC-007, complete readiness planning package, testing strategy, Goal text, project-wide planning consistency review, and explicit user approval
 ```

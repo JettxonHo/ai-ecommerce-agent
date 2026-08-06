@@ -919,3 +919,37 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `P-39 / P-40 / P-41 = PROPOSED`；推荐项分别为 `P-39A / P-40A / P-41A`，用户尚未接受任何选项。
 - 用户接受后还须创建 DEC、同步 Frontend Architecture Current Truth、Testing Strategy 与 Readiness，并完成 Frontend Architecture Final Consistency Review；Acceptance 之前不得安装 Radix / axe 或任何前端依赖。
 - 本轮不冻结 RFC-004 / 005 / 007 字段、路径、枚举、错误代码、Pagination 或运维参数；不生成脚手架、代码、样式、Fixture 或测试，不执行 Browser / Spike / Live，不创建或激活 Goal。
+
+## Decision Round — Frontend Workbench, Interaction and Web Quality Boundary（2026-08-06）
+
+### User Acceptance
+
+- 用户明确接受 `P-39A + P-40A + P-41A`。
+- 选择一个深 `TaskWorkbench Module` + Native / 按需 Radix Primitives + CSS Modules；私有 `WorkbenchProjection` + Capability / Intent + revision-safe 串行 Autosave；WCAG 2.2 A / AA 基线 + Desktop Chrome + 代表性 Reflow / Accessibility + Evidence-driven Performance。
+
+### Accepted Result
+
+- [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) 归档 P-39A / P-40A / P-41A，并明确 Concretizes DEC-055 / 044 / 046 / 047、Applies DEC-039。
+- [Frontend Architecture](../architecture/frontend-architecture.md) 同步全部已接受的 P-36～P-41；产品 / Module / 交互 / Web 质量决策已闭合，最终 HTTP Contract、精确依赖版本与实现证据仍待 RFC / Development Plan / Goal。
+- 接受不改变 RFC-004 对最终 Resource、字段、状态、错误、revision、幂等、Conflict 和下载协议的权威，也不改变 RFC-005 对 Pagination / Retrieval Contract 的权威。
+
+### Authorization Boundary and Next Gate
+
+- 接受不授权安装 Radix、axe 或其他依赖，不授权脚手架、组件、样式、Client、测试、CI、业务实现、Spike、PR 合并或 Goal。
+- 下一步是完成 Frontend Architecture Final Consistency Review，展示整体收口结果并取得用户对 Frontend Architecture 整体的明确接受；之后才可合并 Draft PR #51、关闭 Issue #50，并继续下一个策划议题。
+- 全部策划、最终策划包与 Goal 文本展示并获用户明确“进入 Goal 执行阶段”批准前，仍不启动自动开发。
+
+## Final Consistency Review — Frontend Architecture（2026-08-06）
+
+### Independent Review Result
+
+- 独立 `Sol / xhigh` Reviewer 审阅 DEC-055 / DEC-056、P-36～P-41、Frontend Current Truth、Testing、Readiness、Traceability 与实际 Diff。
+- 第一轮发现 3 项 Required 状态口径：Integration Boundaries 未同步 DEC-055 / 056；PRD / MVP Scope 与 Frontend 主规格把“逐项接受”写得像“整体接受”。均已修正，未改变产品或架构内容。
+- 快速复审结果：`Critical = 0 / Required = 0 / Optional = 0`，Final Consistency Review = `PASS`。
+- 正确性、可读性、架构、安全与性能五轴均通过；公共 RFC-004 / 005 / 007 权威、Accepted / Proposed、历史快照与授权边界无冲突。
+
+### Validation and Next Gate
+
+- 本地 Markdown 链接损坏数为 0；`git diff --check` 与仓库既有格式、Lint、Type、Architecture、Fast Tests、Lock、Build、Dependency Audit 均通过。
+- P-36～P-41 已满足进入 Frontend Architecture 整体接受 Gate 的条件。
+- 用户整体接受前，不安装依赖、不实施前端、不合并 PR #51、不关闭 Issue #50、不执行 Spike、不创建或激活 Goal。

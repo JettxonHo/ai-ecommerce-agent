@@ -196,7 +196,7 @@ None.
 
 **本决定尚未确认：**
 
-> 以下为本决定接受时的边界；版本差异与导出前确认的产品语义后来由 DEC-047 解决，Marketing Brief / Xiaohongshu Brief 的 Markdown-first 用户导出后来由 DEC-048 解决。最终组件、Diff 算法、Markdown 模板和传输实现仍未确认。
+> 以下为本决定接受时的边界；版本差异与导出前确认的产品语义后来由 DEC-047 解决，Marketing Brief / Xiaohongshu Brief 的 Markdown-first 用户导出后来由 DEC-048 解决，前端语义组级 Diff 与工作台交互后来由 DEC-056 解决。最终公共 Change Set、Markdown 模板和传输实现仍未确认。
 
 - 最终 JSON / OpenAPI / 数据库字段名、类型、枚举和必填表达；
 - API 路径、请求 / 响应结构、错误代码和状态映射；

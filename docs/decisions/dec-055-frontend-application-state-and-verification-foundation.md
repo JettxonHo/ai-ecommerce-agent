@@ -7,7 +7,7 @@
 - **Decision Type:** Frontend Architecture / State Ownership / Contract Generation / Verification
 - **Source:** Session-003；用户明确确认推荐组合 `P-36A + P-37A + P-38A`
 - **Related Issue:** [#50](https://github.com/JettxonHo/ai-ecommerce-agent/issues/50)
-- **Related PR:** [#51](https://github.com/JettxonHo/ai-ecommerce-agent/pull/51)（Draft；Frontend Architecture 仍待 P-39～P-41）
+- **Related PR:** [#51](https://github.com/JettxonHo/ai-ecommerce-agent/pull/51)（Draft；P-39～P-41 后续已由 DEC-056 接受，仍待 Frontend Architecture 整体接受 Gate）
 
 ## Context
 
