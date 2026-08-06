@@ -13,7 +13,7 @@
 
 ## Problem
 
-首个演示 MVP 已确定使用一个真实 LLM Provider 与一个确定性测试替身；DEC-052 已进一步冻结生产 Provider、默认模型、SDK 能力基线、项目内 Model Runtime Port 与 Structured Output Authority。错误修复、版本记录、Skill Profile、Secret / Payload / Telemetry 和 Live Smoke 边界仍未冻结。若把剩余选择留给单个实现 Issue 临场决定，Provider Output、业务 Validator、Workflow Retry、运行证据和 Current Truth 仍可能被写入同一职责。
+首个演示 MVP 已确定使用一个真实 LLM Provider 与一个确定性测试替身；DEC-052 / 053 已进一步冻结生产 Provider、默认模型、SDK 能力基线、项目内 Model Runtime Port、Structured Output Authority、有界 Recovery、可读版本元组与确定性 Skill Profile。Secret / Payload / Telemetry、确定性测试替身和 Live Smoke 边界仍未冻结。若把剩余选择留给单个实现 Issue 临场决定，Provider Output、运行证据、敏感内容、测试替身和 Current Truth 仍可能被写入同一职责。
 
 RFC-006 需要在不实现 Prompt Runtime、不调用真实模型、不扩大 MVP 的前提下，冻结一个足够窄、可测试、可追溯的生产 LLM Runtime 契约。
 
@@ -44,6 +44,7 @@ RFC-006 必须同时满足：
 - [DEC-041](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)
 - [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)
 - [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)
+- [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md)
 - [RFC-001](rfc-001-repository-and-application-architecture.md)
 - [RFC-002](rfc-002-persistence-and-transaction-architecture.md)
 - [RFC-003](rfc-003-langgraph-runtime-and-checkpoint-architecture.md)
@@ -79,13 +80,13 @@ RFC-006 必须同时满足：
 | DQ-01 Provider / Model / SDK Capability Baseline | P-28A | ACCEPTED INPUT（DEC-052） |
 | DQ-02 Model Runtime Port, DI and Configuration | P-29A | ACCEPTED INPUT（DEC-052） |
 | DQ-03 Structured Output Contract and Schema Authority | P-30A | ACCEPTED INPUT（DEC-052） |
-| DQ-04 Provider Failure, Repair, Retry, Cancellation and Call Identity | P-31 | PROPOSED |
-| DQ-05 Prompt / Model / Schema / Execution Configuration Versioning | P-32 | PROPOSED |
-| DQ-06 Skill-specific Invocation Profiles and Context Assembly | P-33 | PROPOSED |
-| DQ-07 Secret, Provider Payload, Persistence and Telemetry Boundary | P-34 | NOT YET PROPOSED |
-| DQ-08 Deterministic Substitute, Contract Tests and Live Smoke | P-35 | NOT YET PROPOSED |
+| DQ-04 Provider Failure, Repair, Retry, Cancellation and Call Identity | P-31A | ACCEPTED INPUT（DEC-053） |
+| DQ-05 Prompt / Model / Schema / Execution Configuration Versioning | P-32A | ACCEPTED INPUT（DEC-053） |
+| DQ-06 Skill-specific Invocation Profiles and Context Assembly | P-33A | ACCEPTED INPUT（DEC-053） |
+| DQ-07 Secret, Provider Payload, Persistence and Telemetry Boundary | P-34 | PROPOSED |
+| DQ-08 Deterministic Substitute, Contract Tests and Live Smoke | P-35 | PROPOSED |
 
-用户已于 2026-08-06 明确接受 P-28A、P-29A 与 P-30A，并由 [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) 归档。该接受只闭合 DQ-01～DQ-03；DQ-04～DQ-08、RFC-006 Final Consistency Review 与 RFC 整体接受仍未完成。
+用户已于 2026-08-06 明确接受 P-28A～P-30A 与 P-31A～P-33A，分别由 [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) 与 [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) 归档。DQ-01～DQ-06 已闭合；DQ-07～DQ-08、RFC-006 Final Consistency Review 与 RFC 整体接受仍未完成。
 
 ## Accepted Decision Round 1
 
@@ -183,11 +184,11 @@ Schema 合规只证明结构有效，不证明事实、证据、战略或业务�
 
 P-30A 同时利用 Provider 的结构保证与项目 Validator 的业务保证，不把 Structured Output 当作自动接受器，也不堆叠重复的防御性解析变体。
 
-## Proposed Decision Round 2
+## Accepted Decision Round 2
 
 ### P-31：Provider Failure, Repair, Retry, Cancellation and Call Identity
 
-#### P-31A（推荐）：项目统一预算 + 共享单次传输重试 + 单次 Model-assisted Recovery
+#### P-31A（已接受）：项目统一预算 + 共享单次传输重试 + 单次 Model-assisted Recovery
 
 Model Runtime Adapter 将 Provider / SDK 结果收敛为少量稳定内部类别：`configuration_or_access`、`invalid_request`、`transient_provider_failure`、`refusal`、`incomplete_output`、`invalid_candidate`、`cancelled_or_superseded`。Provider 的细粒度异常保留在诊断 metadata，不上浮为公共业务契约，也不为每个低概率子类型建立独立防御分支。
 
@@ -226,7 +227,7 @@ P-31A 以“最多 2 个 Model Call、共享 1 次额外传输重试、整个 Op
 
 ### P-32：Prompt / Model / Schema / Execution Configuration Versioning
 
-#### P-32A（推荐）：项目自有可读 Version Tuple + 每次调用固化快照
+#### P-32A（已接受）：项目自有可读 Version Tuple + 每次调用固化快照
 
 项目在 Source Control 中维护可读、显式的 Model Runtime Version Tuple，不引入外部 Prompt Management SaaS，也不使用内容 Hash 作为身份。每个 Model Call 至少绑定：
 
@@ -261,7 +262,7 @@ P-32A 只记录真正影响模型行为与结果契约的身份，足以支持�
 
 ### P-33：Skill-specific Invocation Profiles and Context Assembly
 
-#### P-33A（推荐）：五个命名 Profile + 确定性 Context Assembly + 无工具调用
+#### P-33A（已接受）：五个命名 Profile + 确定性 Context Assembly + 无工具调用
 
 四个 Core Skills 与 Xiaohongshu Adapter 各使用一个版本化、不可在运行中由模型改写的命名 Profile，并共用 DEC-052 接受的 Provider / Model：
 
@@ -301,15 +302,79 @@ Context 由 Application / Retrieval Runtime 在调用前确定性装配，Provid
 
 P-33A 用五个显式 Profile 覆盖真实 Stage 差异，并把 Context Scope、权限、Current Truth 与 Evidence ID 控制留在确定性 Application / Retrieval 层。精确数值以小型固定资料包校准，避免在无证据时机械固定大参数矩阵。
 
-## Remaining Decision Questions
+## Proposed Decision Round 3
 
-### DQ-07 — P-34：Secret, Provider Payload, Persistence and Telemetry Boundary
+### P-34：Secret, Provider Payload, Persistence and Telemetry Boundary
 
-待决定 Credential Reference、运行时 Secret Resolution、Prompt / Response / Diagnostic 数据分类、最小持久化、Provider `store` 控制、Redaction 和允许交给 RFC-007 的 Metadata。不得默认把完整 Prompt / Response 写入日志或 Trace。
+#### P-34A（推荐）：Adapter 边界环境解析 + `store=false` + 最小 Provider Ledger + Payload-free Telemetry
 
-### DQ-08 — P-35：Deterministic Substitute, Contract Tests and Live Smoke
+首个本地演示只使用一个固定 Credential Reference（概念名 `openai_primary`）。Bootstrap / Composition Root 只选择该 Reference 并调用 Infrastructure Adapter Factory；Adapter 在自身边界内把 Reference 解析为进程环境中的 `OPENAI_API_KEY` 并创建 OpenAI Client，Secret Value 不回传 Bootstrap 配置对象。Secret Value 只在 Adapter 进程内存中短暂存在，不进入 Application / Domain、配置对象序列化、数据库、Checkpoint、Work Intent、Audit、日志、Trace、Fixture、导出或 Git。应用本身不加载或管理 `.env`，也不在 MVP 建设 Vault / KMS / Rotation Service；开发者可由 Shell 或外部启动器注入环境变量。
 
-待决定同 Port 的 Scripted Fake、错误脚本、Schema / refusal / incomplete / repair 场景、网络隔离、固定资料包、Release Candidate 一次 Live Smoke、人工验收证据和停止条件。Spike-001 只可作为测试设计证据，禁止迁移其生产代码。
+创建真实 Adapter 时缺少 Secret 必须 fail-fast；Provider 在调用时报告无效、撤销或无权访问的 Credential，则映射为 `configuration_or_access` 并停止受影响路径。两者均不得静默切换到测试替身。确定性测试的 Composition Root 显式注入 Scripted Substitute，因此不需要真实 Secret。
+
+每次 Responses 请求显式设置 `store=false`，不使用 Conversations、Background Mode、Provider-hosted Tools 或 Provider Files。发送内容只包含 P-33 允许的 Stage Contract、Version Tuple、当前权威引用与已授权 Evidence Context，不把整份 Source、无关 Workspace 内容或 Secret 发送给 Provider。`store=false` 关闭 Response 对象默认至少 30 天的持久化，但不代表 Zero Data Retention，也不关闭所有 Provider Application State。按 2026-08-06 OpenAI 官方说明，标准 API 默认仍可能生成并最长保留 30 天 Abuse Monitoring Logs；未启用 ZDR 时，受支持模型的请求还会使用 Extended Prompt Caching，加密 Key / Value Tensor 位于 GPU-local Storage，最长约 24 小时。本地演示不假设账号已获 Modified Abuse Monitoring / Zero Data Retention。
+
+项目持久化边界固定为：
+
+- Provider Call Ledger 只保存调用身份、Version Tuple、Provider response / request ID（存在时）、Model ID、Attempt / Recovery 关系、时间、Latency、Token Usage、Status、Error Category 与 disposition；保存 `credential_ref`，不保存 Secret Value；
+- 通过项目 Schema / Validator 的 Provider-neutral Candidate 按对应业务版本生命周期保存，不保存原始 SDK / HTTP Response；
+- DEC-033 要求保留的失败候选只保存为 Provider-neutral Diagnostic Candidate：包含最小结构化候选、Validation Errors、Evidence / Version References 与失败身份，分类为 `MODEL_CONTENT / PROVIDER_PAYLOAD`，不进入 Current Truth、Audit 原文、日志或 Trace；具体删除期限由 ARP-08 / Retention Plan 决定；
+- Rendered Prompt、完整 Context、原始 Provider Response、SDK Object、HTTP Body 与 Chain-of-thought 不单独持久化。历史解释依靠 Version Tuple、权威业务版本、Evidence Package 与 Provider-neutral Candidate；
+- Logs / Traces 只允许相关 ID、Version、Usage、Latency、Status、Error Category、Retry / Recovery Count 与 disposition。RFC-007 决定 Sink / Trace Provider、采样和最终 Redaction 实现，但不得扩大本 RFC 的 Payload Allowlist。
+
+不建设通用内容扫描、复杂 Redaction Rule Engine 或低概率 Secret 变体矩阵。Secret 通过“从不进入可序列化数据结构”的边界保护；既有 Secret Detection Required Check 继续作为仓库泄漏 Gate。
+
+- **优点：** 与 ARP-10、RFC-001 配置边界、P-29 Port 隔离和本地演示范围一致；数据面最小、可追溯而不过度建设安全平台。
+- **缺点：** 默认没有完整 Prompt / Response 可用于事后逐字回放；标准 Provider Abuse Monitoring 与 Prompt Cache Retention 不受项目 `store=false` 控制；本地环境变量由操作者负责注入。
+
+#### P-34B：本地持久化完整 Prompt / Response，按日志 Redaction 处理
+
+- **优点：** Provider 兼容问题和质量回归容易逐字调试。
+- **缺点：** 重复保存用户资料、Evidence 与模型输出，扩大 Retention / Export / Backup / Redaction 范围；日志 Redaction 不能把敏感 Payload 自动变成低风险数据。
+
+#### P-34C：使用 Provider `store=true`、Conversation State 与远程 Trace 作为运行证据
+
+- **优点：** Provider 侧调试、历史续接与可视化较方便。
+- **缺点：** 与同步、项目权威状态、本地可复现和最小外部持久化边界冲突；把运行证据依赖外部控制面，并扩大数据留存。
+
+#### 推荐理由
+
+P-34A 通过数据结构和职责边界避免 Secret / Payload 泄漏，而不是事后堆叠扫描器。最小 Ledger 足以支持 P-31 / P-32 的 Retry、版本和对账；业务 Candidate 与失败 Diagnostic Candidate 保留项目需要的证据，不复制原始 Provider Payload。
+
+### P-35：Deterministic Substitute, Contract Tests and Live Smoke
+
+#### P-35A（推荐）：同 Port Scripted Substitute + 分层 Contract Suite + 单次人工 RC Smoke
+
+项目实现一个与生产 Adapter 遵守同一 Model Runtime Port 的 `ScriptedModelRuntime`。它按人类可读 `scenario_id`、Profile、Schema Version 与 Call Ordinal 校验请求并返回预先声明的 Provider-neutral Result / Error；不解析 Prompt 来猜测答案，不模拟模型语言能力，也不包含真实 SDK 类型。Spike-001 的 Scripted Model 只提供场景设计证据，不复制其生产代码。
+
+确定性测试分三层：
+
+1. **Port Contract：** Scripted Substitute 验证 Request / Result / Error、Version Tuple、Profile、Call / Attempt / Recovery Identity；
+2. **OpenAI Adapter Contract：** 注入 SDK Client Stub 与最小 SDK-shaped Fixtures，验证 Responses 参数、`store=false`、Structured Output 映射、Provider IDs、Usage 与 Error Classification，全程断网；
+3. **Workflow / Skill Behavior：** 使用固定资料包验证 Candidate → Validator → Current Truth / Failure 的行为，不断言模型措辞。
+
+只覆盖已接受契约中的代表性分支：valid success、transient failure then success、refusal、incomplete + one Recovery、Schema-invalid + one Repair、Domain-invalid → one Regeneration → second invalid → bounded failure，以及 cancelled / superseded late result rejection。Domain-invalid 的唯一权威场景明确验证恢复预算耗尽后的终止；不再为“恢复后成功”重复增加一组 Case。每个分支只保留一个权威场景和必要的 Skill-specific Schema Fixture，不为基本不可能出现的排列组合重复建 Case。
+
+普通 PR 继续默认断网并排除 `live` marker。Release Candidate 仅在同时满足显式命令 / `live` marker、显式 `RUN_LIVE_MODEL_SMOKE=1`、可用 `OPENAI_API_KEY` 与已接受 Model / Profile Version 时，人工执行一次 `fixture-sufficient-v1` 完整端到端 Smoke；Secret 存在本身不得自动触发 Live Call。该 Smoke 依次经过五个 Profile、Human Review、通用 Brief、小红书映射与 Markdown 导出，不执行额外 Live Edge-case Matrix，也不依赖 Provider Evals / Prompt Management 平台。
+
+Live Smoke 必须记录 Commit、Version Tuple、Run / Model Call IDs、Provider IDs（存在时）、Usage、Latency、Retry / Recovery Count、最终 disposition、行为门禁结果与人工 `PASS / FAIL` 理由；不得保存 Secret、完整 Prompt、原始 Response 或用户资料副本。质量验收使用 DEC-048 的固定行为门禁和人工判断，不要求相同措辞，不生成加权总分。Smoke 失败必须保留失败记录并阻塞 Release Candidate；修复后可以产生新的独立 Run 证据，但不得覆盖原失败或通过放宽 Schema / Validator / Gate 使其通过。
+
+- **优点：** PR 快速、可复现、无 Secret / 网络成本；生产 Adapter 映射仍有直接 Contract Test；真实 Provider 只验证确定性测试无法证明的兼容与质量闭环。
+- **缺点：** Scripted Substitute 不能证明真实模型质量；SDK-shaped Fixture 在 SDK 升级时需要同步；RC Smoke 仍可能受账号、限流和 Provider 波动影响。
+
+#### P-35B：只 Mock OpenAI SDK，不定义同 Port Scripted Substitute
+
+- **优点：** 初始测试代码较少，直接贴近 Adapter。
+- **缺点：** Skill / Workflow 测试耦合 Provider SDK 结构，难以稳定表达业务级 refusal、recovery、version 与 late-result 场景，也违反 P-29 的 Port 隔离目标。
+
+#### P-35C：普通 PR 直接运行真实 Provider 测试
+
+- **优点：** 每次改动都能看到真实模型结果。
+- **缺点：** 需要 Secret 和网络，产生费用与波动，可能泄漏 Fork / CI 上下文；失败不能可靠区分代码回归与 Provider 波动，不适合作为普通 Required Check。
+
+#### 推荐理由
+
+P-35A 把软件契约正确性、Adapter 映射和真实模型可用性分开验证。它复用现有断网 Gate、固定验收包与人工判断，不引入外部 Evals 平台，也不把一次 Live Smoke 扩张成昂贵的全场景模型测试。
 
 ## Cross-RFC Ownership
 
@@ -326,7 +391,7 @@ P-33A 用五个显式 Profile 覆盖真实 Stage 差异，并把 Context Scope�
 
 这些链接证明候选能力在策划日存在，不构成长期兼容保证；实施时仍须复核官方文档、锁文件与最小兼容证据。
 
-- OpenAI：[Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)、[GPT-5.6 Terra](https://developers.openai.com/api/docs/models/gpt-5.6-terra)、[Error Codes](https://developers.openai.com/api/docs/guides/error-codes)、[Cancel Response](https://developers.openai.com/api/reference/python/resources/responses/methods/cancel)、[Official Python SDK](https://github.com/openai/openai-python)、[Data Controls](https://developers.openai.com/api/docs/guides/your-data)
+- OpenAI：[Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)、[GPT-5.6 Terra](https://developers.openai.com/api/docs/models/gpt-5.6-terra)、[Error Codes](https://developers.openai.com/api/docs/guides/error-codes)、[Cancel Response](https://developers.openai.com/api/reference/python/resources/responses/methods/cancel)、[Official Python SDK](https://github.com/openai/openai-python)、[Data Controls](https://developers.openai.com/api/docs/guides/your-data)、[Production Best Practices](https://developers.openai.com/api/docs/guides/production-best-practices)、[Evaluation Best Practices](https://developers.openai.com/api/docs/guides/evaluation-best-practices)
 - Anthropic：[Structured Outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)、[API Errors](https://platform.claude.com/docs/en/api/errors)、[API and Data Retention](https://platform.claude.com/docs/en/manage-claude/api-and-data-retention)
 - Google：[Structured Outputs](https://ai.google.dev/gemini-api/docs/structured-output)、[API Versions](https://ai.google.dev/gemini-api/docs/api-versions)、[Model Version Patterns](https://ai.google.dev/gemini-api/docs/models)
 

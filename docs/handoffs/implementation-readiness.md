@@ -24,6 +24,7 @@
 - [x] RFC-003 的显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、前向恢复与风险切片证据边界已确认（DEC-051）
 - [x] RFC-003 Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-003 整体
 - [x] RFC-006 的单一 OpenAI Responses / `gpt-5.6-terra` 基线、Application-owned 窄型同步 Model Runtime Port 与 Structured Output Authority 已确认（DEC-052；仅 DQ-01～03）
+- [x] RFC-006 的有界 Model Recovery、可读 Version Tuple、五个固定 Profile 与确定性 Context Assembly 已确认（DEC-053；DQ-04～06）
 - [x] 关键 Agent、Workflow、Human Review 与 Skill 边界已确认
 - [x] Retrieval / Evidence 与 Skill 的概念职责已确认
 - [x] 外部 Skill 供体的 Adapt / Reference 策略已确认
@@ -46,12 +47,12 @@
 - **Architecture Readiness:** CONDITIONALLY READY
 - **Development Status:** CONDITIONALLY READY（仅策划与治理）
 - **Spike-001:** COMPLETED
-- **RFC:** RFC-001 / RFC-002 / RFC-003 = ACCEPTED；RFC-006 = DRAFTING（DQ-01～03 Accepted Input / DEC-052，DQ-04～08 未闭合）；RFC-004 / 005 / 007 = PROPOSED
+- **RFC:** RFC-001 / RFC-002 / RFC-003 = ACCEPTED；RFC-006 = DRAFTING（DQ-01～06 Accepted Input / DEC-052～053，DQ-07～08 Proposed）；RFC-004 / 005 / 007 = PROPOSED
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
 - **产品交互与验收:** 单任务工作台、确认式局部重跑、Task / Fact Stage 最低门禁、默认文件限制、分级冲突、审核 / Brief 产品语义和版本 / revision / 导出、渐进式证据、编辑影响、阶段进度、行动导向恢复、固定验收包、行为门禁与 Markdown-first 用户导出 = ACCEPTED（DEC-044～048）；最终公共 Schema、视觉组件、Diff 算法、并发实现、测试工具与公共状态映射仍待 Frontend Architecture / RFC / Testing Strategy
 - **Workflow Runtime:** 独立 PostgreSQL Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Current-Truth-first Reconciliation = ACCEPTED（DEC-049 / RFC-003）；PostgreSQL Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token、协作式 Cancellation / Supersession + Commit Fence = ACCEPTED（DEC-050 / RFC-003）；显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、Forward Repair 与风险切片证据边界 = ACCEPTED（DEC-051 / RFC-003）。精确实施版本、最终公共字段与运维参数仍待实施证据、RFC-004 / 007
-- **LLM Runtime:** OpenAI Responses API + `gpt-5.6-terra` + 官方 Python SDK 的单一真实 Provider 基线、Application-owned typed sync Port、`platform/model_runtime` Adapter 隔离、Provider-native Strict Output → 项目 Schema → Domain Validator = ACCEPTED INPUT（DEC-052 / RFC-006 DQ-01～03）；错误 / 修复 / 重试 / 取消、版本、Skill Profile、Secret / Payload / Telemetry、确定性替身与 Live Smoke 仍待 DQ-04～08
+- **LLM Runtime:** OpenAI Responses API + `gpt-5.6-terra`、typed sync Port、Adapter 隔离、Strict Output → 项目 Schema → Domain Validator、有界 Recovery、可读 Version Tuple、五个固定 Profile 与确定性 Context Assembly = ACCEPTED INPUT（DEC-052 / 053；RFC-006 DQ-01～06）；Secret / Payload / Telemetry、确定性替身与 Live Smoke 仍待 DQ-07～08
 - **允许工作:** 产品规格、Architecture RFC、Readiness Artifact / Spike Charter 规划、测试策略、开发计划、Goal 文档与一致性 Review
 - **禁止工作:** Business / Production Implementation、TS-01～TS-05 执行、公开部署、实际 Goal 启动
 - **用户 Goal 指令:** 未下达

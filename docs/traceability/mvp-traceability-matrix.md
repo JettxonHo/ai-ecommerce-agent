@@ -42,6 +42,7 @@
 | PostgreSQL Durable Work Intent dispatch, fenced worker ownership and cooperative cancellation | DEC-050 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | — | DEC-050 + Issue #46 / PR #47 | RFC-003（ACCEPTED） | _(placeholder)_ | TS-01 multi-worker claim / takeover / stale commit rejection + cancellation commit fence _(planned)_ |
 | Explicit runtime compatibility, deterministic Safe Resume and forward-recovery evidence | DEC-051 | [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) | — | DEC-051 + Issue #46 / PR #47 | RFC-003（ACCEPTED） | _(placeholder)_ | TS-01 / TS-03 compatibility + seven-action recovery + migration / forward repair _(planned)_ |
 | Single OpenAI Responses provider, narrow sync Model Runtime Port and project-authoritative Structured Output validation | DEC-052 | [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) | spike-03（test-design evidence only） | DEC-052 + Issue #48 / PR #49 | RFC-006（DQ-01～03 accepted input；overall pending） | _(placeholder)_ | Port contract + SDK isolation + strict output / project schema / domain-validator order _(planned)_ |
+| Bounded Model Recovery, readable Version Tuple and five deterministic invocation profiles | DEC-053 | [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) | spike-03（test-design evidence only） | DEC-053 + Issue #48 / PR #49 | RFC-006（DQ-04～06 accepted input；overall pending） | _(placeholder)_ | Retry / recovery budget + version snapshot + profile / context contract _(planned)_ |
 | RFC Planning and Dependency Order | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
@@ -142,7 +143,7 @@
 Spike-001 = COMPLETED
 RFC-001 / RFC-002 / RFC-003 = ACCEPTED
 RFC-004 / RFC-005 / RFC-007 = PROPOSED
-RFC-006 = DRAFTING (DQ-01 through DQ-03 accepted input via DEC-052; DQ-04 through DQ-08 and RFC overall pending)
+RFC-006 = DRAFTING (DQ-01 through DQ-06 accepted input via DEC-052 / DEC-053; DQ-07 through DQ-08 proposed; RFC overall pending)
 FND-001 / FND-002 / FND-003 = COMPLETED
 
 ARP-01 / ARP-04 / ARP-10 = ACCEPTED (full declared scope)

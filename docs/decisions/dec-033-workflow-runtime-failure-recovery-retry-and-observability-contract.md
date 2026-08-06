@@ -8,7 +8,7 @@
 > **Related RFC:** None
 > **Supersedes:** None
 > **Amends:** DEC-023、DEC-024、DEC-029（在 LangGraph StateGraph 选型、版本化 Domain State 与四标识符边界、Human Review and Approved Strategy Contract 基础上，正式定义 Workflow Runtime 的运行身份分层、有界技术恢复、Checkpoint 与业务状态协调、Human Review Resume 可靠行为与端到端可观测性；**不推翻** DEC-023 / DEC-024 / DEC-029 既有结论）。
-> **Amended by:** [DEC-049](dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) 收敛生产 Checkpoint 与对账边界；[DEC-050](dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 收敛 Durable Dispatch、Lease / fencing 与协作式取消；[DEC-051](dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) 收敛显式兼容、Safe Resume Action Matrix、迁移 / 回滚与验收证据。其余概念契约保持有效。
+> **Amended by:** [DEC-049](dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) 收敛生产 Checkpoint 与对账边界；[DEC-050](dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 收敛 Durable Dispatch、Lease / fencing 与协作式取消；[DEC-051](dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) 收敛显式兼容、Safe Resume Action Matrix、迁移 / 回滚与验收证据；[DEC-053](dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) 收敛模型调用预算，并允许 Parse / Schema 失败后执行一次语义不变 Normalization 再重新 Parse / Validate。其余概念契约保持有效。
 
 ---
 
@@ -370,6 +370,8 @@ Runtime 应统一协调 `per_attempt_timeout` / `per_node_retry_limit` / `per_sk
 6. Regenerate current node if permitted
 7. Fail after bounded attempts
 ```
+
+> **DEC-053 Amendment（2026-08-06）：** 上述历史顺序不静默改写。模型输出的权威执行语义调整为：Parse / Schema 失败时，仅对语义不变表达问题执行 Deterministic Normalization，随后重新 Parse 并重新验证 Schema；仍失败才可进入唯一 Model-assisted Recovery。Domain Validator 只在 Schema / Normalization 通过后执行，并与 incomplete / repair 共享同一个最多一次的 Recovery Budget。所有原有 Gate 继续保留。
 
 ### Deterministic Normalization
 

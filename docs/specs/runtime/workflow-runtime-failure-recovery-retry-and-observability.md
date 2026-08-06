@@ -1,8 +1,8 @@
 # Workflow Runtime Failure Recovery, Retry and Observability — 概念 Specification
 
 > **Status: CONCEPTUAL（概念）**
-> 来源决定：[DEC-033 — Workflow Runtime 采用分层运行记录、分类故障处置、有界重试、安全恢复、事务幂等与端到端可观测性契约](../../decisions/dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)、[DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)、[DEC-049 — 独立 PostgreSQL Checkpoint、同步持久性与 Current-Truth-first 对账](../../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)、[DEC-050 — PostgreSQL Durable Dispatch、Fenced Worker Ownership 与协作式取消](../../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 与 [DEC-051 — 显式运行时兼容、确定性安全恢复与前向恢复证据边界](../../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md)（均 Accepted；DEC-047 只冻结产品投影，DEC-049～051 收敛 Workflow Runtime 技术与恢复边界）。
-> 本文件仍是**概念结构化记录**，**不是最终实现契约**。DEC-049 已确认 Checkpointer 拓扑、`sync` durability、可重入 Node 与 Reconciliation；DEC-050 已确认 Durable Work Intent 调度、Lease / fencing 所有权与协作式取消；DEC-051 已确认 Compatibility Tuple、Safe Resume Action Matrix、受控迁移和 Forward Repair 证据边界。最终字段、枚举、Schema、精确依赖版本与运维阈值仍未确认。
+> 来源决定：[DEC-033 — Workflow Runtime 采用分层运行记录、分类故障处置、有界重试、安全恢复、事务幂等与端到端可观测性契约](../../decisions/dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)、[DEC-047 — 渐进式证据、编辑意图与行动导向恢复交互](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)、[DEC-049 — 独立 PostgreSQL Checkpoint、同步持久性与 Current-Truth-first 对账](../../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)、[DEC-050 — PostgreSQL Durable Dispatch、Fenced Worker Ownership 与协作式取消](../../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md)、[DEC-051 — 显式运行时兼容、确定性安全恢复与前向恢复证据边界](../../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) 与 [DEC-053 — 有界模型恢复、可读版本身份与确定性 Skill Profile](../../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md)（均 Accepted；DEC-047 只冻结产品投影，DEC-049～051 收敛 Workflow Runtime 技术与恢复边界，DEC-053 修订 Structured Output Recovery 顺序与预算）。
+> 本文件仍是**概念结构化记录**，**不是最终实现契约**。DEC-049 已确认 Checkpointer 拓扑、`sync` durability、可重入 Node 与 Reconciliation；DEC-050 已确认 Durable Work Intent 调度、Lease / fencing 所有权与协作式取消；DEC-051 已确认 Compatibility Tuple、Safe Resume Action Matrix、受控迁移和 Forward Repair 证据边界；DEC-053 已确认单次共享 Model Recovery、最多 2 个 Model Call / 3 个 Provider Attempt，以及 Normalization 后重新 Parse / Validate。最终字段、枚举、Schema、精确依赖版本与运维阈值仍未确认。
 > Development Status: **CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY**。
 
 ---
@@ -295,17 +295,21 @@ RuntimeErrorRecord
 ## §17 Structured Output Recovery
 
 ```text
-1. Receive model output
-2. Parse output
-3. Validate schema
-4. Apply deterministic normalization
-5. Perform constrained repair
-6. Regenerate current node if permitted
-7. Fail after bounded attempts
+Receive model output
+  -> classify transport / refusal / incomplete
+  -> parse + validate project schema
+     -> eligible expression failure: deterministic normalization
+        -> re-parse + re-validate project schema
+     -> still invalid: constrained repair, if the one recovery budget remains
+  -> perform Skill Domain Validator
+     -> domain invalid: candidate regeneration, if the same recovery budget remains
+  -> fail after the bounded budget is exhausted
 ```
 
+Constrained Repair、Candidate Regeneration 与适用的 incomplete Recovery 共享 DEC-053 的最多一次 Model-assisted Recovery；不得先 Repair 再 Regenerate，也不得删除任何 Schema / Validator Gate。
+
 - **Deterministic Normalization**：仅允许语义不变修复（去 JSON Fence / 修尾随逗号 / 标准化 Enum 大小写 / 补容器结构）。不得猜测业务事实 / 创造 Fragment ID / 自动补 Proof Point / 把自由文本推断为业务字段。
-- **Constrained Repair**：可向模型返回 Schema 错误 / 缺失字段 / 非法 Enum / 无效引用 / Validator 拒绝原因。只能修正当前候选，不得扩大 Source Scope / 改输入版本 / 绕权限。达上限后 `error_category = structured_output_error`、`failure_disposition = fail`。无效输出不得写入 Current Truth。
+- **Constrained Repair**：只可向模型返回 Parse / Project Schema 反馈，例如结构错误、缺失必填字段、非法 Enum / 类型或 Unknown Field；不接收 Skill Domain Validator 拒绝原因。只能修正当前候选，不得扩大 Source Scope / 改输入版本 / 绕权限。达上限后 `error_category = structured_output_error`、`failure_disposition = fail`。无效输出不得写入 Current Truth。
 
 ---
 

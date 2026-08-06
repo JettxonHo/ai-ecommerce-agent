@@ -566,3 +566,45 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `P-31 / P-32 / P-33 = PROPOSED`；用户尚未接受任何选项。
 - RFC-006 仍为 `DRAFTING`；P-34 / P-35 尚未提出，RFC Acceptance、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
 - 在用户裁决前，不把 Reasoning Profile、Retry 次数、版本 Tuple 或 Context Assembly 写成实现事实，也不安装 SDK、读取 Secret、调用模型或执行 Live Smoke。
+
+## Decision Round — RFC-006 Failure, Versioning and Skill Profiles（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-31A`：关闭 SDK 隐式重试；单个 Model Operation 最多 2 个 Model Call、共享 1 次额外传输重试、最多 3 次 Provider Attempt；唯一 Model-assisted Recovery 覆盖 incomplete / repair / regeneration；同步取消使用前后检查、Timeout 与晚到结果丢弃。
+- 用户明确接受 `P-32A`：使用项目自有可读 Version Tuple，按调用固化 Provider / API / SDK / Model / Prompt / Schema / Skill Contract / Validator / Profile / Context Assembly 版本，不使用 Hash / SHA-256 或外部 Prompt Management SaaS。
+- 用户明确接受 `P-33A`：五个固定命名 Profile，Reasoning 初始档位为 Fact=`low`、Insight=`medium`、Positioning=`high`、Marketing Brief=`medium`、Xiaohongshu Mapping=`low`；无 Provider-hosted Tools；Context 由 Application / Retrieval Runtime 确定性装配。
+
+### Accepted Result
+
+- [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) 归档 P-31A / P-32A / P-33A。
+- [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) 的 DQ-01～DQ-06 均为 `ACCEPTED INPUT`；RFC 整体仍为 `DRAFTING`。
+- 精确 Token / Timeout 仍需实施授权后的固定资料包校准与独立 Review，不得由实现 Agent 临场自由选择。
+
+### Authorization Boundary
+
+- DQ-07～DQ-08（P-34 / P-35）、RFC Final Consistency Review 与 RFC 整体接受仍未闭合。
+- RFC Acceptance、SDK 安装、Secret 读取、真实模型调用、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
+- 本轮只归档用户决定并同步 Current Truth；不编写业务代码、不执行 TS-01～TS-05、不创建或激活长期 Goal。
+
+## Proposal Round — RFC-006 Secret, Payload, Test Substitute and Live Smoke（2026-08-06）
+
+### Official Evidence and Constraint Check
+
+- OpenAI 官方 Production Best Practices 建议 API Key 不进入代码或公开仓库，而通过环境变量或 Secret Management Service 暴露给应用；项目 ARP-10 已进一步要求 Secret Value 只在 Adapter 内存短暂存在、任何持久化平面只允许无明文 Reference。
+- OpenAI Data Controls 说明 API 数据默认不用于训练；Responses 默认或 `store=true` 时具有至少 30 天 Response Object Application State，标准 API Abuse Monitoring Logs 默认最多保留 30 天；未启用 ZDR 时，受支持模型还使用最长约 24 小时的加密 Prompt Cache Application State。`store=false` 不等于 Zero Data Retention，也不关闭这些外部留存边界。
+- OpenAI Evaluation Best Practices 强调代表性、任务特定测试并结合人工判断；同时官方 Evals Platform 已进入弃用时间线。项目使用本地固定验收包与人工 `PASS / FAIL`，不依赖 Provider Evals 平台，也不把 Rubric 机械化。
+- 仓库已有非 `live` 测试默认断网、`live` 显式 opt-in、`.env*` 忽略与 Secret Detection Required Check；P-35 直接复用，不建设第二套泛化测试安全层。
+
+### Proposed Decisions
+
+- `P-34A`（推荐）：Bootstrap 只选择固定 Credential Reference，Infrastructure Adapter 在自身边界把它解析为 `OPENAI_API_KEY` 进程环境并创建 Client；应用不加载 `.env`、不建设 Vault；Responses 显式 `store=false`，同时如实记录 Abuse Monitoring 与 Prompt Cache 的外部留存；Provider Ledger 只保存身份 / Version / Usage / Latency / Disposition；通过的 Provider-neutral Candidate 按业务生命周期保存，失败候选按 DEC-033 保存最小 Diagnostic Candidate；不持久化 Rendered Prompt、完整 Context、原始 Response 或 SDK Object；Logs / Traces 只含允许 Metadata。
+- `P-35A`（推荐）：实现同 Port 的 `ScriptedModelRuntime`、断网 Port / Adapter / Workflow 三层 Contract Tests，并只覆盖已接受的代表性失败分支；Release Candidate 在显式 `live` + `RUN_LIVE_MODEL_SMOKE=1` + Secret 条件下人工执行一次 `fixture-sufficient-v1` 完整闭环，记录最小证据与人工 `PASS / FAIL`，不进入普通 PR Gate、不依赖 Provider Evals 平台。
+
+完整 B / C 备选、数据分类、持久化允许清单、测试分层、Live Smoke 证据和停止条件见 [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)。
+
+### Decision and Authorization Status
+
+- `P-34 / P-35 = PROPOSED`；用户尚未接受任何选项。
+- RFC-006 仍为 `DRAFTING`；全部 DQ 只有在 P-34 / P-35 被用户接受后才闭合，随后还须 Final Consistency Review 与单独的 RFC Overall Acceptance。
+- 在用户裁决前，不把 Secret Resolution、`store=false`、Payload Persistence、Scripted Substitute 或 Live Smoke 流程写成实现事实，也不安装 SDK、读取 Secret、调用模型或执行 Live Smoke。
