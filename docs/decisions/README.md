@@ -66,4 +66,4 @@
 
 ## 索引
 
-见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。
+见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 [DEC-051](dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md)；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。

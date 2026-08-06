@@ -8,6 +8,8 @@ Architecture
 
 Accepted
 
+> **Amended by:** [DEC-049](dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) 冻结生产 Checkpoint 与 Current-Truth-first 对账；[DEC-050](dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 冻结 Durable Dispatch、Fenced Worker Ownership 与协作式取消；[DEC-051](dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) 冻结显式兼容、确定性恢复动作与前向恢复证据边界。任务级跨会话恢复目标保持有效。
+
 ## Decision
 
 AI Ecommerce Agent 的 MVP 采用**任务级持久化状态**。

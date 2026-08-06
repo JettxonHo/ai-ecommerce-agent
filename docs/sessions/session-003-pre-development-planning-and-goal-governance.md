@@ -6,7 +6,7 @@
 - Date: 2026-08-06
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-048
+- Related Decisions: DEC-039～DEC-051
 
 ## Context
 
@@ -87,7 +87,7 @@
 
 ## Proposed Decisions
 
-当前无未决治理提案。产品字段、交互、前端方案、RFC-003 至 RFC-007 和完整 Readiness Artifact 仍将在后续独立 Decision Gate 中提出方案。
+RFC-003 的 `P-19A`～`P-27A` 已全部由用户接受，当前没有未决 RFC-003 子决策。下一项治理 Gate 是 RFC-003 最终一致性 Review 后的整体接受；该 Gate 尚未通过，不能写成 Accepted。
 
 ## Accepted Decisions
 
@@ -101,6 +101,9 @@
 - [DEC-046](../decisions/dec-046-review-brief-and-export-product-contract.md) — 冻结审核、Brief、版本、revision 与导出的产品契约（用户于 2026-08-06 接受 P-10A / P-11A / P-12A；Amends DEC-006 / 024 / 029 / 030 / 031）。
 - [DEC-047](../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) — 采用渐进式证据披露、结构化编辑意图与行动导向恢复交互（用户于 2026-08-06 接受 P-13A / P-14A / P-15A；Amends DEC-007 / 008 / 009 / 044 / 046）。
 - [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) — 采用小型代表性验收包、行为门禁与 Markdown-first 导出（用户于 2026-08-06 接受 P-16A / P-17A / P-18A；Amends DEC-010 / 042 / 046 / 047）。
+- [DEC-049](../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) — 采用独立 PostgreSQL Checkpoint Database、同步持久性、可重入 Node 与 Business-Current-Truth-first Reconciliation（用户于 2026-08-06 接受 P-19A / P-20A / P-21A；Amends DEC-013 / 023 / 024 / 033）。
+- [DEC-050](../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) — 采用 PostgreSQL Durable Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token 与持久化协作式取消 / Supersession（用户于 2026-08-06 接受 P-22A / P-23A / P-24A；Amends DEC-013 / 033，Complements DEC-049）。
+- [DEC-051](../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) — 采用显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移和 Forward Repair 证据边界（用户于 2026-08-06 接受 P-25A / P-26A / P-27A；Amends DEC-013 / 033，Complements DEC-049 / 050）。
 
 ## Rejected Approaches
 
@@ -114,7 +117,7 @@
 - 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决；代表性验收包、必要行为门禁和 Markdown-first 用户导出由 DEC-048 解决。
 - Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、Diff 算法、状态 / 错误映射、Markdown 模板与下载协议。
 - Fixture 具体业务数据、测试工具、最终浏览器 E2E 步骤、Live Smoke 手册与 Beta 指标。
-- RFC-003 至 RFC-007 与 Frontend Architecture 的具体技术选择。
+- RFC-003 已进入 `IN REVIEW`；其 DQ-01～09 已由 DEC-049～051 全部解决，整体仍待最终一致性 Review 后由用户单独接受。精确实施版本与公共字段不在 DEC-051 中虚构，继续由实施证据、RFC-004 / 007 冻结。RFC-004 至 RFC-007 与 Frontend Architecture 的具体技术选择仍开放。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
 - Luna 不可用时的路由已由 DEC-043 解决为 Terra 显式回退或外部 Luna 任务包；每个实际 Issue 仍需记录所用模型与独立 Reviewer。
 
@@ -128,6 +131,9 @@
 - 更新 AGENTS.md 与 Collaboration Model。
 - 后续独立 PR 同步 README、Implementation Readiness、RFC Register、Architecture / Agent 入口、Foundation、Traceability 与本地链接。
 - 新增 DEC-048 与首版 Testing Strategy，更新产品 Current Truth、Readiness、Traceability 和本 Session。
+- 新增 DEC-049 与 RFC-003 Draft，更新架构 Current Truth、Readiness、Traceability、RFC Register 和本 Session。
+- 新增 DEC-050，接受 RFC-003 DQ-04～06，并将 DQ-07～09 的 P-25A～P-27A 方案写入 RFC Draft。
+- 新增 DEC-051，接受 RFC-003 DQ-07～09，将 RFC-003 推进到 `IN REVIEW` 并同步 Compatibility、Safe Resume、迁移 / 回滚和验收证据边界。
 
 ## Synchronization Checklist
 
@@ -364,3 +370,125 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - Issue #44 / PR #45 负责 DEC-048、被修订 Decision、Testing Strategy、Product Current Truth、Readiness、Traceability 与本 Session 的一致性归档。
 - 本轮不创建实际 Fixture、不选择测试框架 / Provider、不冻结 API / Schema / 前端技术，不编写业务代码、不执行 TS-01～TS-05、不创建或启动实际 Goal。
+
+## Decision Round — RFC-003 Checkpointer, Durability and Reconciliation（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-19A`：同一 PostgreSQL Service 下使用独立 Checkpoint Database，采用官方同步 `PostgresSaver`，并隔离 Runtime Role、Credential、Pool 与 setup / migration 生命周期。
+- 用户明确接受 `P-20A`：正式 Graph 使用 `sync` durability；Graph State 紧凑、引用化；Node 可重入并遵守 `Prepare → Execute → Commit`；不承诺 Node exactly-once，只保证业务效果 duplicate-safe。
+- 用户明确接受 `P-21A`：Resume / Recovery 采用 Business-Current-Truth-first Reconciliation；compatible Checkpoint 可继续，stale / foreign / incompatible Checkpoint 不得写 Current Truth，并须进入安全重跑或 Manual Recovery。
+
+### Acceptance Clarification
+
+- Checkpoint 与 Business Database 可共享 PostgreSQL Service，但不共享 Database、Role、Credential、Pool、Repository、Session、事务或 migration chain。
+- Checkpointer setup / migration 由受控部署任务执行，API / Worker 启动不隐式修改数据库结构。
+- `sync` durability 提供清晰的 Super-step 故障边界；节点仍可能在 Replay、Retry 或 Resume 中从起点重执行。
+- Checkpoint 是恢复候选证据，不是恢复授权器；恢复前和业务 Commit 前均须验证 Current Truth、版本、Review、Invalidation、Lease / fencing 与幂等身份。
+- Time Travel / Replay 不得作为 Business Restore 或回退 Current Truth 的机制。
+
+### Accepted Result
+
+- [DEC-049](../decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md) 归档上述三项决定。
+- [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) 从 `PROPOSED` 进入 `DRAFTING`，但整体 Acceptance 仍为 `NOT GRANTED`。
+- Issue #46 / PR #47 / 分支 `codex/rfc-003-runtime-checkpoint` 承载 RFC-003；Draft PR 合并不接受 RFC、不授权 TS-03、迁移、业务实现或 Goal。
+
+### Proposed Next Decisions
+
+- `P-22A`（推荐）：PostgreSQL Durable Work Intent + 短事务 Poll-and-claim；轮询是正确性基线，`LISTEN / NOTIFY` 只作可选 Wake-up，不引入 Broker。
+- `P-23A`（推荐）：数据库权威 Lease + 单调 Fencing Token + 短事务 Heartbeat；过期 Worker 即使晚到也不能提交。
+- `P-24A`（推荐）：持久化协作式取消 / Supersession + Commit Fence；外部调用可能完成，但结果在取消或失去所有权后必须丢弃。
+
+三个提案的完整备选、优缺点与推荐理由见 RFC-003；用户明确接受前保持 Proposed。
+
+### Archive Scope
+
+- Issue #46 / PR #47 负责 DEC-049、RFC Draft、Architecture Current Truth、Readiness、Traceability、RFC Register 与本 Session 的一致性归档。
+- 本轮不安装 LangGraph Checkpointer、不创建 Checkpoint Database、不执行 setup / migration 或 Technical Spike、不实现 Worker / Graph / API / 业务能力，也不创建或激活长期 Goal。
+
+## Decision Round — RFC-003 Durable Dispatch, Worker Ownership and Cancellation（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-22A`：采用 PostgreSQL Transactional Durable Work Intent + 短事务 Poll-and-claim；轮询是工作重新发现的正确性基线，`LISTEN / NOTIFY` 仅可作为可选 Wake-up，首个 Goal 不引入独立 Broker。
+- 用户明确接受 `P-23A`：采用数据库权威 Lease + Heartbeat + 单调 Fencing Token；接管后的旧 Worker 即使晚到，也不得完成 Work Intent 或提交 Current Truth。
+- 用户明确接受 `P-24A`：采用持久化协作式取消 / Supersession + Commit Fence；取消请求不冒充终态，无法即时中断的 Provider 调用返回后须在取消、取代或 Ownership Loss 情况下丢弃结果。
+
+### Acceptance Clarification
+
+- Work Intent 产生继续遵守 RFC-002 的事务边界；Worker Claim 用短事务建立所有权，模型、检索和文件处理在事务外执行。
+- Heartbeat、完成、释放和由该 Worker 执行产生的正式业务 Commit 都验证当前 Holder + Fencing Token；Lease 过期后的新 Owner 使用更高 Token。
+- 轮询、批大小、Lease / Heartbeat、并发与 Shutdown 参数不在本轮机械固定，由 TS-01 / RFC-007 按证据校准。
+- 取消当前 Run 不删除先前有效的 Domain Version；Task 删除、Retention 与 Legal Hold 是独立边界。
+- 本决定不承诺 Worker 或外部调用 exactly-once，只保护重复或陈旧执行不形成重复 / 过期 Business Current Truth。
+
+### Accepted Result
+
+- [DEC-050](../decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md) 归档上述三项决定，并明确 Amends DEC-013 / DEC-033、Complements DEC-049。
+- [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) 的 DQ-04～DQ-06 变为 `ACCEPTED INPUT`；整体仍为 `DRAFTING`，Acceptance / Implementation / Spike / Goal 均未授权。
+- Issue #46 / Draft PR #47 继续承载同一 RFC；不另建重复 Issue、Branch 或 PR。
+
+### Proposed Next Decisions
+
+- `P-25A`（推荐）：显式 Compatibility Tuple + 受控前向升级；只恢复明确兼容或有已测试纯转换器的状态，不原地改写历史 Checkpoint。
+- `P-26A`（推荐）：Current-Truth-first Deterministic Recovery Decision；在 `resume_same_thread`、已提交结果对账、阶段 Retry、最早失效阶段 Rerun、安全边界重启、Manual Recovery 与拒绝请求之间做确定性选择。
+- `P-27A`（推荐）：风险切片证据包 + Forward-compatible Rollback Matrix；真实 PostgreSQL 验证多 Worker、接管、取消、恢复和迁移，不能安全降级时停止领取并 Roll Forward。
+
+三个提案的完整备选、优缺点与推荐理由见 RFC-003；用户明确接受前保持 Proposed。
+
+### Archive Scope
+
+- Issue #46 / PR #47 负责 DEC-050、RFC Draft、Architecture Current Truth、Runtime Spec、Readiness、Traceability、RFC Register 与本 Session 的一致性归档。
+- 本轮不创建 Worker、Claim SQL、Lease / Heartbeat、Cancellation API、数据库或迁移，不执行 TS-01～TS-05，不编写业务代码，也不创建或激活长期 Goal。
+
+## Decision Round — RFC-003 Compatibility, Safe Resume and Recovery Evidence（2026-08-06）
+
+### User Acceptances
+
+- 用户明确接受 `P-25A`：采用显式 Compatibility Tuple + 受控前向升级；可恢复执行绑定 Workflow Definition、Graph State Schema、Serializer Profile 与已验证的 Checkpointer Package / Store Schema 兼容范围，只恢复明确兼容或存在已测试纯转换器的状态，不原地改写历史 Checkpoint。
+- 用户明确接受 `P-26A`：采用 Current-Truth-first Deterministic Recovery Decision；Application 层在恢复前对账 Runtime Registry、Work Intent / Ownership、Checkpoint metadata、Current Truth、Source / Review / Stage revisions、失效和幂等结果，并只返回七类受控恢复动作。
+- 用户明确接受 `P-27A`：采用风险切片证据包 + Forward-compatible Rollback Matrix；真实 PostgreSQL 证据覆盖多 Worker、接管、取消、恢复与迁移，不能证明安全降级时停止领取新工作并 Forward Repair。
+
+### Acceptance Clarification
+
+- Compatibility Tuple 冻结兼容策略，不在策划阶段虚构精确依赖版本；实施时以官方资料、锁文件与 TS-03 证据固定实际组合。
+- 七类 Recovery Action 为 `resume_same_thread`、`reconcile_committed_result`、`retry_current_stage`、`rerun_from_earliest_invalid_stage`、`restart_from_safe_boundary`、`manual_recovery_required` 与 `reject_request`。
+- 每次实际恢复保留稳定 `task_id` / `thread_id`，创建新的 `run_id` 与 Attempt；Checkpoint ID 不构成客户端恢复授权。
+- 历史 Checkpoint 不原地改写；旧、新 Worker 只有在各自领取兼容工作且共同遵守 Lease / fencing 时才可短暂共存。
+- Checkpoint Store 不可用时只从受控备份恢复，或依据 Business Current Truth / Runtime Registry 创建安全新运行；Checkpoint 不能晋升为业务真相。
+- stale Worker 成功提交、跨 Task Resume、过期 Review 被接受、取消后结果成为 Current Truth、隐式迁移或不可解释恢复分支均为停止条件。
+
+### Accepted Result
+
+- [DEC-051](../decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md) 归档上述三项决定，并明确 Amends DEC-013 / DEC-033、Complements DEC-049 / DEC-050。
+- [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md) 的 DQ-07～DQ-09 变为 `ACCEPTED INPUT`；DQ-01～DQ-09 已全部闭合，RFC 进入 `IN REVIEW`，整体 Acceptance / Implementation / Spike / Goal 仍未授权。
+- Issue #46 / Draft PR #47 继续承载同一 RFC；不另建重复 Issue、Branch 或 PR。
+
+### Goal Sequencing Clarification
+
+- “完成所有策划”指首个 Goal 开工所必需的产品、架构、公共契约、测试、治理与 Readiness 策划全部闭合并获得接受，不是穷举未来所有可能决定。
+- 完整策划包与 Goal 文本必须先展示；Implementation Readiness Review 必须通过；用户再明确批准“进入 Goal 执行阶段”后，才能创建并启动长期 Goal。
+- 在该明确批准前，不执行 TS-01～TS-05，不创建生产数据库 / 迁移 / Runtime / API / Frontend，也不编写业务代码。
+
+### Next Gate
+
+- 完成 RFC-003 最终一致性 Review，展示结论后由用户单独决定是否接受 RFC-003 整体。
+- RFC-003 整体接受仍不自动激活 Goal；后续继续完成 RFC-006、Frontend Architecture、RFC-004 / 005 / 007、Readiness 规划包、Testing Strategy、Development Plan 与 Goal 文本。
+
+### Archive Scope
+
+- Issue #46 / PR #47 负责 DEC-051、RFC-003 `IN REVIEW` 状态、Architecture Current Truth、Runtime Spec、Readiness、Traceability、RFC Register 与本 Session 的一致性归档。
+- 本轮不固定精确依赖版本，不创建 Compatibility Matrix 实例、转换器、Runtime Registry、Worker、数据库或迁移，不执行 TS-01～TS-05，不编写业务代码，也不创建或激活长期 Goal。
+
+## Final Decision — RFC-003 Overall Acceptance（2026-08-06）
+
+### User Acceptance
+
+- 用户在 RFC-003 Final Consistency Review、独立五轴 Review 与最新 Required Checks 结果展示后，明确回复「接受 RFC-003 整体」。
+- RFC-003 Status 由 `IN REVIEW` 变为 `ACCEPTED`；DQ-01～DQ-09 及 DEC-049～051 共同构成正式 Workflow Runtime / Checkpoint Architecture 基线。
+
+### Authorization Boundary
+
+- RFC Acceptance 不等于实现授权；Implementation、Spike Execution 与 Goal Activation 继续为 `NOT GRANTED`。
+- 本次不安装生产 Checkpointer，不创建 Checkpoint Database、Runtime Registry、Worker、Graph、API、迁移或 Compatibility Matrix 实例，不执行 TS-01～TS-05，也不创建或激活长期 Goal。
+- 下一策划议题为 RFC-006；之后依次闭合 Frontend Architecture、RFC-004 / 005 / 007、Readiness 规划包、Testing Strategy、Development Plan 与 Goal 文本。

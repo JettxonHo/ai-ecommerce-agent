@@ -1,10 +1,10 @@
 # Architecture Baseline v1
 
-> **Status: ACTIVE PRE-DEVELOPMENT BASELINE（已同步 DEC-001—041、RFC-001 / RFC-002；RFC-003～007 仍待决定）**
+> **Status: ACTIVE PRE-DEVELOPMENT BASELINE（已同步至 DEC-051、RFC-001～RFC-003；RFC-004～007 仍待决定）**
 > **治理来源：** 本文件综合当前**已接受**的 DEC 与 Specs，形成 Current Architecture Truth。**不发明任何新的生产技术选择。**
 > **关联：** [../readiness/architecture-readiness-report-v1.md](../readiness/architecture-readiness-report-v1.md) · [../rfcs/rfc-register.md](../rfcs/rfc-register.md) · Spike-001（MERGED）
 > **Base Commit：** `a60ff3b6a24bf8b35e1c2ba1031038bb7123a578`
-> **Current sync（2026-08-06）：** RFC-002 已选定 PostgreSQL + SQLAlchemy 2.x Sync + Psycopg 3 Sync + Alembic；FND-001～003 已完成。正文中仍标为 `PENDING RFC` 的数据库或 Foundation 状态是历史快照，以 RFC-002、Foundation 完成记录和本说明为准。
+> **Current sync（2026-08-06）：** RFC-002 已选定 PostgreSQL + SQLAlchemy 2.x Sync + Psycopg 3 Sync + Alembic；DEC-049 已选定同 PostgreSQL Service 下独立 Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Business-Current-Truth-first Reconciliation；DEC-050 已选定 PostgreSQL Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token 与协作式取消 / Supersession；DEC-051 已选定显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移和 Forward Repair 证据边界。RFC-003 的 DQ-01～09 已闭合，并于 2026-08-06 被用户整体接受；FND-001～003 已完成。正文中仍标为 `PENDING RFC` 的数据库、Checkpointer、Worker 或 Foundation 状态是历史快照，以 RFC-002 / RFC-003、DEC-049～051、Foundation 完成记录和本说明为准。
 > **Historical expansion note：** 正文按 DEC 与 Foundation 的形成顺序累积；其中 `IN REVIEW`、`NOT AUTHORIZED`、旧 PENDING 表和 `Next Topic` 只记录当时状态，不是当前授权或执行指令。当前状态仅以上述 Current sync、[AGENTS.md](../../AGENTS.md) 与 [Implementation Readiness](../handoffs/implementation-readiness.md) 为准。
 
 ---
@@ -13,7 +13,7 @@
 
 - 本文件描述「系统当前应该怎样工作」，内容**只能来自用户明确接受的 Decision**。
 - Spike-001 的临时技术选择**一律标注** `Validated Temporary Implementation / Not Production Commitment`，**不**视为生产承诺。
-- 任何尚未通过 RFC + Accepted Decision 收敛的生产技术（数据库 / Checkpointer / API / ORM / Retrieval / Observability / 部署平台）在本文件中标记为 **`PENDING RFC`**，**不得**由 Coding Agent 临场选择。
+- 任何尚未通过 RFC + Accepted Decision 收敛的生产技术（精确实施版本、API、Retrieval、Observability、部署平台等）在本文件中标记为 **`PENDING RFC`**，**不得**由 Coding Agent 临场选择。RFC-003 整体 Acceptance 与 DEC-049～051 均不授权实现。
 
 ## 1. 系统分层（System Architecture）
 
@@ -39,6 +39,12 @@
 - **Versioned Domain State**：业务域以 Domain Version 演进；`current_truth_pointer` 指向当前有效版本；旧版本 `superseded`。
 - **Compact Graph State**：Graph State 仅存运行身份 + `*_version_id` 引用，不存业务正文。
 - **三类存储分离**：Business（Current Truth）/ Runtime（执行记录）/ Checkpoint（Graph 检查点）物理分离；**Checkpoint ≠ Current Truth**。
+- **生产 Checkpoint 基线（DEC-049）**：同 PostgreSQL Service、独立 Checkpoint Database / Role / Credential / Pool；官方同步 `PostgresSaver`；受控 setup / migration；正式 Graph 使用 `sync` durability。
+- **可重入与对账（DEC-049）**：Node 遵守 `Prepare → Execute → Commit`，不承诺 exactly-once，只保证业务效果 duplicate-safe；Resume 先以 Business Current Truth 对账，stale / foreign / incompatible Checkpoint 不得写入业务事实。
+- **Durable Dispatch 与执行所有权（DEC-050）**：Transactional Durable Work Intent + 短事务 `FOR UPDATE SKIP LOCKED` Poll-and-claim；轮询是正确性基线；Worker 使用数据库权威 Lease / Heartbeat / 单调 Fencing Token，陈旧 Worker 不得完成或提交。
+- **协作式取消（DEC-050）**：取消 / Supersession 先持久化请求，Worker 在外部调用边界、Node 边界和 Commit 前检查；请求态不冒充终态，已取消、被取代或失去所有权的结果不得进入 Current Truth。
+- **兼容与确定性恢复（DEC-051）**：每个可恢复执行绑定 Workflow Definition / Graph State Schema / Serializer Profile / Checkpointer Store 兼容身份；只恢复明确兼容或有已测试纯转换器的状态；Application 只返回七类受控 Recovery Action。
+- **迁移与恢复证据（DEC-051）**：受控 Preflight / Migration / Worker Cutover，不原地改写历史 Checkpoint；真实 PostgreSQL 风险切片验证；无法安全降级时停止领取并 Forward Repair。
 - **运行身份分层（DEC-033）**：`task_id` / `workflow_run_id` / `skill_run_id` / `node_execution_id` / `attempt_id` / `error_id` / `trace_id` / `recovery_case_id` 全链可关联。
 
 ## 3. 事务与幂等（Transaction & Idempotency）
@@ -73,6 +79,9 @@
 - **有界重试**：仅重试 transient 基础设施错误；non-transient（如 Invalid Structured Output）不重试；预算耗尽抛 `RetryBudgetExhausted`（无无限重试）。
 - **取消无部分写入**：取消后不留 partial business state。
 - **Manual Recovery**：失败提交经同一幂等键恢复，不重复。
+- **Checkpoint Recovery（DEC-049）**：Checkpoint 是恢复候选证据而不是恢复授权器；Time Travel / Replay 不等于 Business Restore。
+- **Durable Dispatch / Ownership / Cancellation（DEC-050）**：PostgreSQL Durable Work Intent + 短事务 Poll-and-claim；数据库权威 Lease / Heartbeat / 单调 Fencing Token；持久化协作式取消 / Supersession + Commit Fence。
+- **Compatibility / Safe Resume / Forward Recovery（DEC-051）**：显式兼容身份 + 七动作 Recovery Decision + 风险切片证据；Checkpoint 不能授权恢复或晋升为 Business Current Truth。
 - **Observability**：结构化 Trace + 运行身份关联 + Checkpoint Summary + JUnit（**生产 Provider `PENDING RFC`**）。
 
 ## 7. 集成边界（Integration Boundaries）
@@ -1260,7 +1269,7 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 尚未确认：
 
 - Configuration Management：PENDING RFC；
-- Production Checkpointer：PENDING RFC-003；
+- Production Checkpointer：ACCEPTED RFC-003（精确兼容版本待实施证据）；
 - API Framework and Human Review Protocol：PENDING RFC-004；
 - Source Processing and Retrieval：PENDING RFC-005；
 - LLM Provider and Structured Output：PENDING RFC-006；
@@ -1273,7 +1282,7 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 |---|---|---|
 | Repository and Application Architecture | ACCEPTED — 2026-07-30 | RFC-001 |
 | Persistence and Transaction Architecture（生产 DB / ORM） | ACCEPTED — 2026-08-04 | RFC-002 |
-| LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | PENDING RFC | RFC-003 |
+| LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | ACCEPTED — 2026-08-06 | RFC-003 |
 | API and Human Review Protocol | PENDING RFC | RFC-004 |
 | Source Processing and Retrieval Architecture | PENDING RFC | RFC-005 |
 | LLM Runtime and Structured Output | PENDING RFC | RFC-006 |
@@ -1283,7 +1292,7 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 
 ## 21. Historical Status Snapshot（Foundation 完成前）
 
-> 本节保留 Foundation 实施期间的收口快照，不代表 2026-08-06 当前状态。当前状态为：RFC-001 / RFC-002 与 FND-001～003 已完成；RFC-003～007、Frontend Architecture、产品最终规格、完整 Readiness Artifact、测试与 Goal 文档仍待策划；TS-01～TS-05 执行、业务实现和实际 Goal 均未授权。
+> 本节保留 Foundation 实施期间的收口快照，不代表 2026-08-06 当前状态。当前状态为：RFC-001～003 与 FND-001～003 已完成；RFC-004～007、Frontend Architecture、产品最终规格、完整 Readiness Artifact、测试与 Goal 文档仍待策划；TS-01～TS-05 执行、业务实现和实际 Goal 均未授权。
 
 ```text
 Spike Execution Status = COMPLETED
