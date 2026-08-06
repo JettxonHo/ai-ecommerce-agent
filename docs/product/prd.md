@@ -1,13 +1,14 @@
 # PRD（产品需求文档）
 
-> **Status: PARTIAL — 产品定位、Persona / JTBD 假设、工作台、输入、审核 / Brief、证据 / 恢复交互、代表性验收包、行为门禁与 Markdown-first 用户导出已确认；最终公共 Schema、视觉组件、工作流实现和测试工具仍待确认**
+> **Status: PARTIAL — 产品定位、Persona / JTBD 假设、工作台、输入、审核 / Brief、证据 / 恢复交互、代表性验收包、行为门禁、Markdown-first 用户导出与 Frontend 基础已确认；最终公共 Schema、工作台组件 / 状态投影、工作流实现和 Fixture 仍待确认**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
-> 当前已确认：产品设计原则（DEC-001）、首要用户与核心任务（DEC-002 / 003）、平台与输入输出范围（DEC-004～006）、Human Review、证据与失效规则（DEC-007～009）、三维评价框架（DEC-010）、本地演示包络（DEC-041）、产品定位与行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制和冲突分级（DEC-045）、审核 / Brief / 版本 / 导出产品契约（DEC-046）、证据披露、编辑意图、阶段进度和恢复交互（DEC-047），以及代表性验收包、行为门禁、人工验收和 Markdown-first 用户导出（DEC-048）。
+> 当前已确认：产品设计原则（DEC-001）、首要用户与核心任务（DEC-002 / 003）、平台与输入输出范围（DEC-004～006）、Human Review、证据与失效规则（DEC-007～009）、三维评价框架（DEC-010）、本地演示包络（DEC-041）、产品定位与行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制和冲突分级（DEC-045）、审核 / Brief / 版本 / 导出产品契约（DEC-046）、证据披露、编辑意图、阶段进度和恢复交互（DEC-047）、代表性验收包、行为门禁、人工验收和 Markdown-first 用户导出（DEC-048），以及 Frontend 应用 / 状态 / OpenAPI 类型生成与核心验证基础（DEC-055）。
 > **DEC-041 同步：** 首个交付为本地可复现、受控单工作区的引导式任务工作台；输入限结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV，不做 OCR、图片理解、链接抓取或主动联网研究；完整小红书正文、图片 / 视频生成和自动发布均不在首个 Goal。
 > **DEC-044 同步：** 工作台采用阶段导航 + 当前工作区 + 可收起证据 / 上下文面板；最低可运行输入通过后即可启动，真实阻塞进入 Needs Input；变更先展示失效范围，由用户确认后局部重跑，旧 Review Package 不得提交。
 > **DEC-046 同步：** Review Package / Approved Strategy / Marketing Brief / Xiaohongshu Brief 的产品语义组已冻结；正式对象采用不可变 Domain Version，Review Draft 使用单调递增 revision，导出冻结 Current Truth 快照。最终公共字段与实现仍由 RFC-004 / 006 冻结。
 > **DEC-047 同步：** 五类标记从当前条目渐进展开证据；语义组差异和编辑意图决定既有阶段级失效；阶段时间线不使用虚构百分比，错误按恢复动作组织，导出前确认 Current Truth 版本和限制摘要。最终组件、状态、传输与导出模板仍待 Frontend Architecture / RFC。
 > **DEC-048 同步：** 首个演示使用三个固定资料包和一个变更脚本；行为硬门禁与非机械人工 `PASS / FAIL` 分离；Release Candidate 使用资料充分 Fixture 完成一次真实 Provider Smoke；当前有效 Marketing Brief 与 Xiaohongshu Brief 分别导出 UTF-8 Markdown，用户侧 PDF / JSON 文件导出不进入首个 Goal。
+> **DEC-055 同步：** Frontend 应用 / 路由、远程 / 表单 / URL / 本地状态所有权、OpenAPI 3.1 类型生成、npm / Node 基线，以及 Vitest / Testing Library / Playwright Chromium 核心验证基础已冻结；最终工作台 Module、控件 / 样式、交互投影、可访问性与浏览器范围仍待 P-39～P-41。
 > **DEC-045 同步：** 名称 / 临时名称、品类和推广目标用于创建 Task；Fact Stage 还需核心用途、至少一个当前商品来源、至少一个有来源的核心属性且无阻断性身份冲突。默认每任务 20 文件、10 MB / 文件、文本 PDF 100 页、评论 CSV 10,000 行；单文件失败不回滚已接受文件。
 
 ---
@@ -81,7 +82,7 @@
 - **信息架构：** 同一稳定任务通过阶段导航、当前工作区和可收起证据 / 上下文面板完成创建、资料提交、进度、补充资料、审核、重跑、结果与导出。
 - **两级门禁：** 最低可运行输入决定能否启动；增强 / 可选资料只提升覆盖与证据质量，不作为机械完整度强制项。
 - **Needs Input：** 真实阻塞时显示原因、受影响阶段、需补充 / 确认内容与恢复方式；这是用户可见语言，不是已冻结 API 枚举。
-- **范围边界：** 最终视觉布局、控件、公共字段 / 状态枚举与前端框架仍待后续规格或 RFC。
+- **范围边界：** Frontend 框架与基础已由 DEC-055 确认；最终视觉布局、控件、工作台私有投影，以及公共字段 / 状态枚举仍待 P-39～P-41 或 RFC。
 
 ### 最小输入、文件限制与冲突处理（DEC-045，Accepted，2026-08-06）
 
@@ -196,7 +197,7 @@
 - 关键中断可恢复，失效内容不会继续作为当前有效结果；
 - 目标用户视角下的 Brief 可用于后续内容策划，不要求开发者解释内部实现才能完成流程。
 
-DEC-048 已冻结三个固定资料包 + 一个变更脚本、必要行为门禁、人工 `PASS / FAIL`、Release Candidate 单次 Live Smoke 与 Critical / Blocking 缺陷为零的完成边界。测试工具、Fixture 具体内容和最终 E2E 步骤由 Testing Strategy 补全；Rubric 只辅助判断，不以机械总分、语言流畅度或销量承诺自动接受。
+DEC-048 已冻结三个固定资料包 + 一个变更脚本、必要行为门禁、人工 `PASS / FAIL`、Release Candidate 单次 Live Smoke 与 Critical / Blocking 缺陷为零的完成边界。DEC-055 已冻结 Frontend 核心测试与浏览器验证工具；Fixture 具体内容和最终 E2E 步骤 / 证据格式仍由 Testing Strategy 补全。Rubric 只辅助判断，不以机械总分、语言流畅度或销量承诺自动接受。
 
 ### 验收包与用户导出（DEC-048，Accepted，2026-08-06）
 
@@ -211,7 +212,7 @@ DEC-048 已冻结三个固定资料包 + 一个变更脚本、必要行为门禁
 ## 当前状态
 
 - 项目处于 **Pre-development Planning（正式开发前策划）阶段**；业务实现与长期 Goal 均未启动。
-- 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、输入门禁、确认式局部重跑、审核 / Brief 产品语义、版本 / revision / 导出行为、证据 / 编辑 / 进度 / 恢复交互，以及代表性验收包、行为门禁与 Markdown-first 用户导出（DEC-001～010 / DEC-041 / DEC-042 / DEC-044～048）；最终公共字段、视觉组件、工作流与数据实现、测试工具和 Fixture 实例仍待确认。
+- 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、输入门禁、确认式局部重跑、审核 / Brief 产品语义、版本 / revision / 导出行为、证据 / 编辑 / 进度 / 恢复交互、代表性验收包、行为门禁、Markdown-first 用户导出与 Frontend 基础（DEC-001～010 / DEC-041 / DEC-042 / DEC-044～048 / DEC-055）；最终公共字段、工作台组件 / 状态投影、工作流与数据实现、Fixture 实例与最终 E2E 步骤仍待确认。
 - 其余具体内容，必须等到对应 Proposed Decision 被用户明确接受并记为 Accepted Decision（见 [../decisions/](../decisions/)）后，才能写入。
 
 ---
@@ -230,11 +231,11 @@ DEC-048 已冻结三个固定资料包 + 一个变更脚本、必要行为门禁
 - 人机协作 —— **单一关键审核节点 + 异常暂停 + 用户最终判断权 + 过期 Package / revision 拒绝 + 行动导向恢复已确认**（DEC-007 / 029 / 044 / 046 / 047）；自动保存频率、并发实现与工作流技术实现待确认
 - 输出可靠性 —— **五类结论标记、渐进式证据、非数字置信度、可追溯、版本化 Source / Evidence 与按需混合 Retrieval 已确认**；最终组件、公共 Schema、Retrieval Backend 与索引方案待确认
 - 失效与重跑 —— **阶段级失效 + 编辑意图 + 语义组差异 + 失效预览 + 用户确认后局部重跑，以及生产 Checkpointer 拓扑、同步持久性、Current-Truth-first 对账、Workflow / State Compatibility 与七动作 Safe Resume Matrix 已确认**；字段级依赖图不进入首个 Goal；Diff 算法、最终公共字段和公共状态映射待确认
-- 评价框架 —— **三维评价 + 六项优先指标、首个演示固定验收包、行为门禁与非机械人工判断已确认**（DEC-010 / DEC-048）；Beta 指标公式 / 阈值 / 人数 / 埋点 / Dashboard，以及 Fixture 实例与测试工具待确认
+- 评价框架 —— **三维评价 + 六项优先指标、首个演示固定验收包、行为门禁与非机械人工判断已确认**（DEC-010 / DEC-048）；Frontend 核心测试工具已由 DEC-055 确认，Beta 指标公式 / 阈值 / 人数 / 埋点 / Dashboard、Fixture 实例与最终 E2E 步骤待确认
 - 非目标 —— 见 [mvp-scope.md](mvp-scope.md)「Out of Scope」
 - 关键体验与流程（与 [user-flows.md](user-flows.md) 保持一致）—— **高层流程已确认**（DEC-003 / 004 / 005）；具体步骤待 [user-flows.md](user-flows.md)
 - 约束与假设
-- 验收标准 —— **DEC-010 三维评价 + 六项优先指标与 DEC-048 固定验收包、行为硬门禁、人工 `PASS / FAIL` 和 Live Smoke 边界已确认**；Beta 指标、Fixture 实例、测试工具和最终执行步骤待确认
+- 验收标准 —— **DEC-010 三维评价 + 六项优先指标与 DEC-048 固定验收包、行为硬门禁、人工 `PASS / FAIL` 和 Live Smoke 边界已确认**；Frontend 核心测试工具已由 DEC-055 确认，Beta 指标、Fixture 实例和最终执行步骤 / 证据格式待确认
 - 开放问题
 
 ---
@@ -252,7 +253,7 @@ DEC-048 已冻结三个固定资料包 + 一个变更脚本、必要行为门禁
 - 完整小红书标题 / 正文、图片 / 视频生成与自动发布：**不进入首个 Goal**（DEC-041）。
 - 产品价值与评估指标（Question-003）：三维评价 + 六项优先指标由 DEC-010 确认；首个演示的固定验收包、行为门禁与非机械人工判断由 DEC-048 确认。真实用户指标公式 / 阈值、人数、埋点与 Dashboard 待 Beta 规划。
 - Agent、Retrieval / Evidence、Skill 的职责边界：**概念层已确认**（DEC-020～033）；Workflow Runtime 已由 RFC-003 接受，LLM Runtime 已由 RFC-006 接受，具体 API / Retrieval / Observability Provider 与 Backend 仍待 RFC-004 / 005 / 007。
-- 演示成功边界：行为与人工可用性标准由 DEC-042 确认；固定验收包、必要行为门禁、人工 `PASS / FAIL` 和 Live Smoke 边界由 DEC-048 确认；测试工具、Fixture 实例和最终 E2E 步骤待 Testing Strategy 补全。
+- 演示成功边界：行为与人工可用性标准由 DEC-042 确认；固定验收包、必要行为门禁、人工 `PASS / FAIL` 和 Live Smoke 边界由 DEC-048 确认；Frontend 核心测试工具由 DEC-055 确认，Fixture 实例和最终 E2E 步骤 / 证据格式待 Testing Strategy 补全。
 
 讨论与提案记录在 [../sessions/](../sessions/)；确认后的决定记录在 [../decisions/](../decisions/) 并同步回本文件。
 

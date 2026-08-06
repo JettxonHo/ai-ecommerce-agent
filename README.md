@@ -11,7 +11,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 首个交付目标是**本地可复现、受控单工作区的端到端演示 MVP**。产品使用带阶段导航、当前工作区和可收起证据 / 上下文面板的单任务工作台；聊天记录不作为业务 Current Truth。名称 / 品类 / 推广目标用于创建任务，满足 DEC-026 的最小事实资料后运行 Fact Stage；真实阻塞进入 Needs Input，非阻断差异继续但显式说明限制。资料或上游内容变化先展示影响范围，由用户确认后局部重跑。
 
-权威定位、范围和交互边界见 [DEC-042](docs/decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md)、[DEC-041](docs/decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)、[DEC-044](docs/decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)、[DEC-045](docs/decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md)、[DEC-046](docs/decisions/dec-046-review-brief-and-export-product-contract.md)、[DEC-047](docs/decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)、[DEC-048](docs/decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)、[DEC-049](docs/decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)、[DEC-050](docs/decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md)、[DEC-051](docs/decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md)、[DEC-052](docs/decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)、[DEC-053](docs/decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) 与 [DEC-054](docs/decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md)。Review / Brief / 导出语义、渐进式证据、编辑影响、阶段进度、行动导向恢复、代表性验收包和 Markdown-first 用户导出已冻结；生产 Checkpointer、同步持久性、Current-Truth-first 对账、PostgreSQL Durable Dispatch、Fenced Worker Ownership、协作式取消、显式 Compatibility Tuple、七动作 Safe Resume Matrix、前向恢复证据边界，以及单一 OpenAI Provider、窄型同步 Model Runtime Port、Structured Output、有界 Recovery、可读版本元组、确定性 Profile、Adapter Secret / Payload 边界与模型验证策略也已冻结。RFC-006 已于 2026-08-06 被用户整体接受；公共字段类型、API Schema、视觉组件、Frontend Architecture、精确实施版本，以及 RFC-004 / 005 / 007 仍待后续 Decision Gate。RFC 接受不代表实现授权。
+权威定位、范围和交互边界见 [DEC-042](docs/decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md)、[DEC-041](docs/decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)、[DEC-044](docs/decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)、[DEC-045](docs/decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md)、[DEC-046](docs/decisions/dec-046-review-brief-and-export-product-contract.md)、[DEC-047](docs/decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)、[DEC-048](docs/decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)、[DEC-049](docs/decisions/dec-049-dedicated-postgres-checkpoint-sync-durability-and-current-truth-reconciliation.md)、[DEC-050](docs/decisions/dec-050-postgres-durable-dispatch-fenced-worker-ownership-and-cooperative-cancellation.md)、[DEC-051](docs/decisions/dec-051-explicit-runtime-compatibility-deterministic-safe-resume-and-forward-recovery-evidence.md)、[DEC-052](docs/decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)、[DEC-053](docs/decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md)、[DEC-054](docs/decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) 与 [DEC-055](docs/decisions/dec-055-frontend-application-state-and-verification-foundation.md)。Review / Brief / 导出语义、渐进式证据、编辑影响、阶段进度、行动导向恢复、代表性验收包和 Markdown-first 用户导出已冻结；生产 Workflow / LLM Runtime 基线以及 React / Vite SPA、显式前端状态所有权、OpenAPI 生成与适度 Chromium 验证基础也已冻结。公共字段类型、API Schema、工作台 Module / UI Primitive / Styling、最终状态投影、可访问性 / 响应式 / 性能、精确实施版本，以及 RFC-004 / 005 / 007 仍待后续 Decision Gate。接受不代表实现授权。
 
 ---
 
@@ -29,18 +29,19 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 - RFC-001 Repository and Application Architecture、RFC-002 Persistence and Transaction Architecture、RFC-003 LangGraph Runtime and Checkpoint Architecture 与 RFC-006 LLM Runtime and Structured Output 已 Accepted；
 - Business Current Truth 的生产持久化栈已由 RFC-002 选定为 PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；SQLite 不作为持久化验收引擎；
 - FND-001～003 已完成，仓库已有 Python 后端 Package、质量工具、架构测试、CI 与 Repository Protection 基础。
+- Frontend Foundation 已接受：`apps/web/` 下的 React 19 + TypeScript + Vite 8 SPA、React Router Declarative Mode、TanStack Query / React Hook Form 显式状态职责、OpenAPI 生成，以及 npm + Vitest / Testing Library + Playwright Chromium；依赖尚未安装，前端尚未实现。
 
 ---
 
 ## 当前策划缺口
 
-- 任务工作台的公共字段类型、最终组件 / 视觉布局和 Persona / JTBD 的后续研究证据；输入与冲突已由 DEC-045 冻结，审核 / Brief / 版本已由 DEC-046 冻结，证据 / 编辑 / 进度 / 恢复 / 导出确认已由 DEC-047 冻结，验收包与 Markdown-first 用户导出已由 DEC-048 冻结；
-- Frontend Architecture；
+- 任务工作台的公共字段类型、最终 Module / UI Primitive / Styling、状态与错误投影、自动保存 / Diff、可访问性 / 浏览器 / 响应式 / 性能，以及 Persona / JTBD 的后续研究证据；输入、审核、证据、恢复和验收语义已由 DEC-045～048 冻结，前端应用 / 状态 / 测试基础已由 DEC-055 冻结；
+- Frontend Architecture P-39～P-41 与最终一致性 Review；
 - RFC-004 API / Human Review、RFC-005 Source / Retrieval、RFC-007 Observability；
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；
 - MVP Development Plan、Testing Strategy 的技术层补全与长期 Goal 最终文本。
 
-以上缺口必须在业务实现前闭合。首个真实 Provider / 默认模型、窄型同步 Model Runtime Port、Structured Output、有界 Recovery、可读 Version Tuple、五个固定 Profile、Adapter Secret / Payload / Telemetry、确定性 Test Substitute 与单次人工 RC Smoke 已由 DEC-052～054 和 RFC-006 冻结；前端框架、公共 API 与最终 Schema 仍未完成。
+以上缺口必须在业务实现前闭合。模型运行基线已由 DEC-052～054 / RFC-006 冻结，前端应用、状态所有权、生成契约和验证基础已由 DEC-055 冻结；工作台 Module / 视觉 / 状态投影、公共 API 与最终 Schema 仍未完成。
 
 ## Wave 1 Readiness 状态
 

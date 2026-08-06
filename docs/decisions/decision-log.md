@@ -65,6 +65,7 @@
 | DEC-052 | 采用 OpenAI Responses、窄型 Model Runtime Port 与项目权威 Structured Output 契约 | LLM Runtime / Provider Architecture / Structured Output / Dependency Injection | Amended by DEC-053 / DEC-054 | 2026-08-06 | Session-003 | RFC-006（Accepted；后续整体接受） | 接受 P-28A / P-29A / P-30A；首个 Goal 只实现 OpenAI Responses API + `gpt-5.6-terra` + 官方 Python SDK 的单一真实 Adapter；Application-owned typed sync Port 隔离 SDK；Provider-native Strict Structured Output 之后仍须通过项目 Schema、确定性 Normalization 与 Skill Domain Validator。DEC-053 收敛 Recovery 顺序与预算，DEC-054 将 Secret 解析与 Client 构造收敛到 Adapter Factory；其余结论保持有效。RFC-006 后由用户单独整体接受。 |
 | DEC-053 | 采用有界模型恢复、可读版本身份与确定性 Skill Profile | LLM Runtime / Failure Recovery / Versioning / Invocation Profile | Accepted | 2026-08-06 | Session-003 | RFC-006（Accepted；后续整体接受） | 接受 P-31A / P-32A / P-33A；单 Operation 最多 2 Model Calls / 3 Provider Attempts；可读 Version Tuple 不使用 Hash / SHA-256；五个固定 Profile + 无 Provider Tools + 确定性 Context Assembly。DQ-07～08 后由 DEC-054 闭合；SDK / Secret / Live / 实现 / Spike / Goal 均未授权。Amends DEC-033 / 052；RFC-006 后由用户单独整体接受。 |
 | DEC-054 | 采用 Adapter Secret / Payload 边界与确定性模型验证 | LLM Runtime / Secret and Payload Boundary / Model Testing / Live Smoke | Accepted | 2026-08-06 | Session-003 | RFC-006（Accepted；后续整体接受） | 接受 P-34A / P-35A；Adapter Factory 解析环境 Secret 并构造 Client，Responses `store=false`，最小 Provider Ledger 与 Payload-free Telemetry；同 Port Scripted Substitute、断网三层 Contract Tests 与人工 opt-in 的单次 RC Smoke。DQ-01～08 已闭合且 Final Consistency Review = PASS；SDK / Secret / Live / 实现 / Spike / Goal 均未授权。Amends DEC-052，Complements DEC-053，Concretizes DEC-048；RFC-006 后由用户单独整体接受。 |
+| DEC-055 | 采用 React / Vite SPA、显式前端状态所有权与适度浏览器验证 | Frontend Architecture / State Ownership / Contract Generation / Verification | Accepted | 2026-08-06 | Session-003 | RFC-004（输入；仍待策划） | 接受 P-36A / P-37A / P-38A；`apps/web/` 使用 React 19 + TypeScript + Vite 8 SPA 与 React Router Declarative Mode；TanStack Query / React Hook Form / URL / Local State 显式分工；RFC-004 OpenAPI 3.1 Artifact 生成 `openapi-typescript` / `openapi-fetch` Client；npm + Vitest / Testing Library + Playwright Chromium。P-39～P-41、依赖安装、业务实现与 Goal 均未授权。 |
 
 ---
 
@@ -79,6 +80,8 @@
 > **Workflow runtime amendment note：** DEC-013 的任务级跨会话恢复与 DEC-033 的安全恢复 / 幂等契约保持有效；生产 Checkpoint 拓扑、`sync` durability、可重入 Node 和 Current-Truth-first Reconciliation 以 DEC-049 为准，Durable Work Intent 调度、Lease / fencing 所有权和协作式取消以 DEC-050 为准，显式 Compatibility Tuple、七动作 Safe Resume Matrix、迁移 / 回滚和验收证据边界以 DEC-051 为准。RFC-003 的 DQ-01～DQ-09 已闭合，Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-003 整体；Implementation、Spike Execution 与 Goal Activation 仍未授权。
 
 > **LLM runtime acceptance note：** DEC-052～054 分别冻结 Provider / Port / Structured Output、Recovery / Version / Profiles，以及 Secret / Payload / Deterministic Verification；RFC-006 的 DQ-01～DQ-08 已闭合，Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-006 整体。该接受不授权 SDK Installation、Secret Read、Live Model Call、Implementation、Spike Execution 或 Goal Activation。
+
+> **Frontend foundation acceptance note：** DEC-055 冻结 React / Vite SPA、显式状态所有权、OpenAPI 生成链、npm + Vitest / Testing Library + Playwright Chromium；Frontend Architecture 仍待 P-39～P-41 与 Final Consistency Review，公共资源 / 状态 / 错误 / revision / 幂等仍由 RFC-004 冻结。该接受不授权依赖安装、Frontend Implementation、Spike Execution 或 Goal Activation。
 
 - `Accepted` — 用户明确接受，当前有效。
 - `Rejected` — 被明确否决。

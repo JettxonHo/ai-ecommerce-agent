@@ -1,9 +1,9 @@
 # MVP Testing Strategy
 
 > **Status: PARTIAL — product acceptance baseline accepted; implementation tooling and executable suites pending RFC / Goal**
-> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md)
+> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) · [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md)
 
-本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前只固化已接受的产品验收基线与 DEC-052～054 / RFC-006 的模型契约，不授权业务实现，也不提前选择测试框架、浏览器工具或公共接口。
+本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前固化已接受的产品验收基线、DEC-052～054 / RFC-006 的模型契约，以及 DEC-055 的前端验证工具；不授权业务实现，也不提前冻结公共接口或 P-39～P-41 的交互 / 质量细节。
 
 ---
 
@@ -49,10 +49,13 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 
 ### 3.3 前端与端到端
 
+- 前端静态与构建基线使用 Prettier、ESLint、`tsc --noEmit` 与 Vite Production Build；
+- Unit / Module / State Transition 使用 Vitest + React Testing Library / `user-event`；类型化 Client Contract 使用注入式 Typed Transport / Fixture；
 - 组件与状态转换测试覆盖输入、进度、Needs Input、Review、恢复、结果和导出；
 - API Contract 测试验证前后端状态、错误和版本映射；
-- Browser E2E 使用固定验收包覆盖正常闭环、冲突恢复和 mutation script；
-- 最终浏览器工具、步骤和截图 / Trace 证据格式待 Frontend Architecture 冻结。
+- Browser E2E 使用 Playwright Chromium 与确定性本地 API / Model Substitute，按固定验收包覆盖正常闭环、冲突恢复和 mutation script；
+- 相关前端 PR 运行受影响的关键 E2E，Release Candidate 运行完整固定 Browser E2E；普通测试不得访问真实 Provider；
+- Firefox / WebKit、Visual Regression、最终 E2E 步骤和截图 / Trace 证据格式仍待明确发布目标、Frontend Architecture / Development Plan 或 Goal 冻结，不机械加入首个 Goal。
 
 ### 3.4 真实 Provider Smoke
 
@@ -109,7 +112,7 @@ Goal 完成前必须同时满足：
 ## 8. 尚待冻结
 
 - Fixture 的具体业务数据、许可、文件布局与 expected-output 表示；
-- 测试框架、浏览器 E2E 工具、命令、CI 分组和证据保存格式；
+- 前端精确工具版本、除 `dev` / `build` / `preview` 外的最终命令、CI Job 分组和浏览器证据保存格式；前端框架与核心测试工具已由 DEC-055 冻结；
 - Fixture / SDK Stub 的物理实现、Live Smoke 操作手册与证据文件格式；Provider、Version、Profile、Recovery、Secret / Payload / Telemetry、确定性替身分层与 Smoke 触发边界已由 DEC-052～054 冻结；
 - Integration / Migration / concurrency / failure-injection 的最终场景矩阵；
 - Markdown 模板、文件名、下载协议与视觉样式；
