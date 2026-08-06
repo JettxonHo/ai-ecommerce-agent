@@ -3,7 +3,7 @@
 > **Status: PARTIAL — product acceptance baseline accepted; implementation tooling and executable suites pending RFC / Goal**
 > **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md)
 
-本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前只固化已接受的产品验收基线与 DEC-052～054 的模型契约输入，不授权业务实现，也不提前选择测试框架、浏览器工具或公共接口。
+本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前只固化已接受的产品验收基线与 DEC-052～054 / RFC-006 的模型契约，不授权业务实现，也不提前选择测试框架、浏览器工具或公共接口。
 
 ---
 

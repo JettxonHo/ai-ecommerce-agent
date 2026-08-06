@@ -6,7 +6,7 @@
 - **Date:** 2026-08-06
 - **Decision Type:** LLM Runtime / Failure Recovery / Versioning / Invocation Profile
 - **Source:** Session-003；用户明确接受 P-31A、P-32A、P-33A
-- **Related RFC:** [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)（In Review；Final Consistency Review 已通过，整体尚未接受）
+- **Related RFC:** [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)（Accepted；2026-08-06 用户明确整体接受）
 - **Amends:** [DEC-033](dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md) 与 [DEC-052](dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)（Structured Output Recovery 顺序与共享预算）
 
 ## Context
@@ -93,7 +93,7 @@ Context 由 Application / Retrieval Runtime 确定性装配，优先级固定为
 - **Builds on and Amends [DEC-052](dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)：** 在已接受 Provider / Port / Schema 权威上补全 DQ-04～DQ-06，并收敛 Normalization 后重新 Parse / Validate、Repair / Regeneration 分工与共享 Recovery Budget。
 - **Amends [DEC-033](dec-033-workflow-runtime-failure-recovery-retry-and-observability-contract.md)：** 把条件式 LLM Recovery Stages 收紧为单次共享 Recovery 与单一 Retry Budget，并明确 Parse / Schema 失败后的语义不变 Normalization 必须重新 Parse / Validate；不删除任何 Schema / Validator Gate。
 - **Applies [DEC-039](dec-039-proportional-validation-and-review-governance.md)：** 只覆盖代表性真实失败，不建设修复树、低概率错误矩阵、内容 Hash 或机械评分。
-- **Input to [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** 接受 DQ-04～DQ-06；DQ-01～DQ-08 后续均已闭合且 Final Consistency Review 已通过，RFC-006 当前为 `IN REVIEW`，整体仍待用户接受。
+- **Input to [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** 接受 DQ-04～DQ-06；DQ-01～DQ-08 后续均已闭合且 Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-006 整体。
 
 ## Authorization Boundary
 

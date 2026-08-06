@@ -2,7 +2,7 @@
 
 > **Status: CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY**
 >
-> Foundation 与 RFC-001～RFC-003 已完成，但 Business / Production Implementation、TS-01～TS-05 执行和实际 Goal 均未授权。已完成的 Spike-001 不在本禁令所指范围内。
+> Foundation、RFC-001～003 与 RFC-006 已完成，但 Business / Production Implementation、TS-01～TS-05 执行和实际 Goal 均未授权。已完成的 Spike-001 不在本禁令所指范围内。
 
 进入开发至少需要以下条件**全部**满足，并须先通过 Implementation Readiness Review（见 [../reviews/](../reviews/)），再由用户明确批准。
 
@@ -26,6 +26,7 @@
 - [x] RFC-006 的单一 OpenAI Responses / `gpt-5.6-terra` 基线、Application-owned 窄型同步 Model Runtime Port 与 Structured Output Authority 已确认（DEC-052；仅 DQ-01～03）
 - [x] RFC-006 的有界 Model Recovery、可读 Version Tuple、五个固定 Profile 与确定性 Context Assembly 已确认（DEC-053；DQ-04～06）
 - [x] RFC-006 的 Adapter Secret / Payload / Telemetry Allowlist、同 Port Scripted Substitute、断网 Contract Tests 与单次人工 RC Smoke 已确认（DEC-054；DQ-07～08）
+- [x] RFC-006 Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-006 整体
 - [x] 关键 Agent、Workflow、Human Review 与 Skill 边界已确认
 - [x] Retrieval / Evidence 与 Skill 的概念职责已确认
 - [x] 外部 Skill 供体的 Adapt / Reference 策略已确认
@@ -48,12 +49,12 @@
 - **Architecture Readiness:** CONDITIONALLY READY
 - **Development Status:** CONDITIONALLY READY（仅策划与治理）
 - **Spike-001:** COMPLETED
-- **RFC:** RFC-001 / RFC-002 / RFC-003 = ACCEPTED；RFC-006 = IN REVIEW（DQ-01～08 Accepted Input / DEC-052～054；Final Review PASS / overall pending）；RFC-004 / 005 / 007 = PROPOSED
+- **RFC:** RFC-001 / RFC-002 / RFC-003 / RFC-006 = ACCEPTED；RFC-004 / 005 / 007 = PROPOSED
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
 - **产品交互与验收:** 单任务工作台、确认式局部重跑、Task / Fact Stage 最低门禁、默认文件限制、分级冲突、审核 / Brief 产品语义和版本 / revision / 导出、渐进式证据、编辑影响、阶段进度、行动导向恢复、固定验收包、行为门禁与 Markdown-first 用户导出 = ACCEPTED（DEC-044～048）；最终公共 Schema、视觉组件、Diff 算法、并发实现、测试工具与公共状态映射仍待 Frontend Architecture / RFC / Testing Strategy
 - **Workflow Runtime:** 独立 PostgreSQL Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Current-Truth-first Reconciliation = ACCEPTED（DEC-049 / RFC-003）；PostgreSQL Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token、协作式 Cancellation / Supersession + Commit Fence = ACCEPTED（DEC-050 / RFC-003）；显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、Forward Repair 与风险切片证据边界 = ACCEPTED（DEC-051 / RFC-003）。精确实施版本、最终公共字段与运维参数仍待实施证据、RFC-004 / 007
-- **LLM Runtime:** OpenAI Responses API + `gpt-5.6-terra`、typed sync Port、Adapter 隔离、Strict Output → 项目 Schema → Domain Validator、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute、断网三层 Contract Tests 与单次人工 RC Smoke = ACCEPTED INPUT（DEC-052～054；RFC-006 DQ-01～08）；Final Review = PASS，RFC overall 仍待用户接受
+- **LLM Runtime:** OpenAI Responses API + `gpt-5.6-terra`、typed sync Port、Adapter 隔离、Strict Output → 项目 Schema → Domain Validator、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute、断网三层 Contract Tests 与单次人工 RC Smoke = ACCEPTED（DEC-052～054 / RFC-006）；精确实施版本、Token / Timeout 与实际 Provider 兼容性仍待实施证据
 - **允许工作:** 产品规格、Architecture RFC、Readiness Artifact / Spike Charter 规划、测试策略、开发计划、Goal 文档与一致性 Review
 - **禁止工作:** Business / Production Implementation、TS-01～TS-05 执行、公开部署、实际 Goal 启动
 - **用户 Goal 指令:** 未下达

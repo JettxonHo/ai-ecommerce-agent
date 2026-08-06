@@ -93,7 +93,7 @@ OpenAI Responses API、官方 Python SDK 与项目的 sync-first Python 后端�
 - **Conforms to [RFC-001](../rfcs/rfc-001-repository-and-application-architecture.md)：** 遵守 Application-owned Port、Infrastructure Adapter、Composition Root、sync-first 与 Provider 类型隔离。
 - **Conforms to [RFC-002](../rfcs/rfc-002-persistence-and-transaction-architecture.md)：** Provider Call 不跨 Business Transaction，Secret 与外部数据遵守既有边界。
 - **Amended by [DEC-054](dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md)：** Composition Root 只调用 Infrastructure Adapter Factory 并管理返回 Adapter 的生命周期；Secret 解析与 OpenAI Client 构造收敛在 Adapter 边界。
-- **Input to [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** 接受 DQ-01～DQ-03；DQ-01～DQ-08 后续均已闭合且 Final Consistency Review 已通过，RFC-006 当前为 `IN REVIEW`，整体仍待用户接受。
+- **Input to [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** 接受 DQ-01～DQ-03；DQ-01～DQ-08 后续均已闭合且 Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-006 整体。
 
 ## Authorization Boundary
 

@@ -2,19 +2,20 @@
 
 ## Metadata
 
-- **Status:** IN REVIEW
+- **Status:** ACCEPTED
 - **Date:** 2026-08-06
+- **Accepted:** 2026-08-06（用户明确接受：「接受 RFC-006 整体」）
 - **Issue:** [#48](https://github.com/JettxonHo/ai-ecommerce-agent/issues/48)
-- **Pull Request:** [#49](https://github.com/JettxonHo/ai-ecommerce-agent/pull/49)（Draft）
+- **Pull Request:** [#49](https://github.com/JettxonHo/ai-ecommerce-agent/pull/49)
 - **Final Consistency Review:** PASS（2026-08-06）
-- **RFC Acceptance:** NOT GRANTED
+- **RFC Acceptance:** GRANTED
 - **Implementation Authorization:** NOT GRANTED
 - **Spike Execution Authorization:** NOT GRANTED
 - **Goal Activation:** NOT GRANTED
 
 ## Problem
 
-首个演示 MVP 已确定使用一个真实 LLM Provider 与一个确定性测试替身；DEC-052～054 已冻结生产 Provider、默认模型、SDK 能力基线、项目内 Model Runtime Port、Structured Output Authority、有界 Recovery、可读版本元组、确定性 Skill Profile、Secret / Payload / Telemetry、确定性测试替身和 Live Smoke 边界。RFC-006 的八个 DQ 已全部闭合，Final Consistency Review 已通过；RFC 整体仍须单独获得用户接受。
+首个演示 MVP 已确定使用一个真实 LLM Provider 与一个确定性测试替身；DEC-052～054 已冻结生产 Provider、默认模型、SDK 能力基线、项目内 Model Runtime Port、Structured Output Authority、有界 Recovery、可读版本元组、确定性 Skill Profile、Secret / Payload / Telemetry、确定性测试替身和 Live Smoke 边界。RFC-006 的八个 DQ 已全部闭合，Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-006 整体。
 
 RFC-006 需要在不实现 Prompt Runtime、不调用真实模型、不扩大 MVP 的前提下，冻结一个足够窄、可测试、可追溯的生产 LLM Runtime 契约。
 
@@ -79,16 +80,16 @@ RFC-006 必须同时满足：
 
 | Decision Question | Proposal | Status |
 |---|---|---|
-| DQ-01 Provider / Model / SDK Capability Baseline | P-28A | ACCEPTED INPUT（DEC-052） |
-| DQ-02 Model Runtime Port, DI and Configuration | P-29A | ACCEPTED INPUT（DEC-052） |
-| DQ-03 Structured Output Contract and Schema Authority | P-30A | ACCEPTED INPUT（DEC-052） |
-| DQ-04 Provider Failure, Repair, Retry, Cancellation and Call Identity | P-31A | ACCEPTED INPUT（DEC-053） |
-| DQ-05 Prompt / Model / Schema / Execution Configuration Versioning | P-32A | ACCEPTED INPUT（DEC-053） |
-| DQ-06 Skill-specific Invocation Profiles and Context Assembly | P-33A | ACCEPTED INPUT（DEC-053） |
-| DQ-07 Secret, Provider Payload, Persistence and Telemetry Boundary | P-34A | ACCEPTED INPUT（DEC-054） |
-| DQ-08 Deterministic Substitute, Contract Tests and Live Smoke | P-35A | ACCEPTED INPUT（DEC-054） |
+| DQ-01 Provider / Model / SDK Capability Baseline | P-28A | ACCEPTED（DEC-052） |
+| DQ-02 Model Runtime Port, DI and Configuration | P-29A | ACCEPTED（DEC-052） |
+| DQ-03 Structured Output Contract and Schema Authority | P-30A | ACCEPTED（DEC-052） |
+| DQ-04 Provider Failure, Repair, Retry, Cancellation and Call Identity | P-31A | ACCEPTED（DEC-053） |
+| DQ-05 Prompt / Model / Schema / Execution Configuration Versioning | P-32A | ACCEPTED（DEC-053） |
+| DQ-06 Skill-specific Invocation Profiles and Context Assembly | P-33A | ACCEPTED（DEC-053） |
+| DQ-07 Secret, Provider Payload, Persistence and Telemetry Boundary | P-34A | ACCEPTED（DEC-054） |
+| DQ-08 Deterministic Substitute, Contract Tests and Live Smoke | P-35A | ACCEPTED（DEC-054） |
 
-用户已于 2026-08-06 明确接受 P-28A～P-30A、P-31A～P-33A 与 P-34A～P-35A，分别由 [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)、[DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) 与 [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) 归档。DQ-01～DQ-08 已全部闭合，Final Consistency Review 已通过；RFC 整体接受仍未完成。
+用户已于 2026-08-06 明确接受 P-28A～P-30A、P-31A～P-33A 与 P-34A～P-35A，分别由 [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)、[DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) 与 [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) 归档。DQ-01～DQ-08 已全部闭合，Final Consistency Review 已通过，RFC 整体也已由用户另行明确接受。
 
 ## Accepted Decision Round 1
 
@@ -411,19 +412,27 @@ P-35A 把软件契约正确性、Adapter 映射和真实模型可用性分开验
 - **Cross-RFC ownership:** RFC-003 继续拥有 Workflow / Node / Skill / Run 级 Retry、Resume 与业务 Rerun；RFC-004 / 005 / 007 分别拥有公共协议、Retrieval / Permission 与运维 Observability；RFC-006 只拥有单个 Model Operation 及其调用、输出、数据和验证边界。
 - **Proportional validation:** 只保留代表性失败分支、断网三层 Contract Tests 与单次人工 RC Smoke；未新增 Hash / SHA-256、泛化安全层、低概率 Case 矩阵或机械 Rubric。
 - **External data honesty:** `store=false` 未被表述为 ZDR；标准 Abuse Monitoring 与 Prompt Cache 留存被记录为项目无法消除的 Provider 边界。
-- **Authorization boundary:** RFC Acceptance、SDK / Secret / Live Call、Implementation、Spike Execution 与 Goal Activation 仍为 `NOT GRANTED`。
+- **Authorization boundary:** RFC-006 已由用户整体接受；SDK / Secret / Live Call、Implementation、Spike Execution 与 Goal Activation 仍为 `NOT GRANTED`。RFC Acceptance 不等于这些后续授权。
 - **Independent review:** 独立审阅 Agent 按 correctness / readability / architecture / security / performance-complexity 五轴复核实际文件；Critical = 0、Required = 0、Optional = 0，最终 PASS。
 - **Verification:** 1,512 个本地 Markdown 链接、0 个损坏；`git diff --check`、Format、Lint、Type、Import Contracts、Architecture、Unit、Contract、非 Live / 非 Slow Suite、Lockfile、Package Build 与 Dependency Audit 均通过。
 
-## User Acceptance Gate（PENDING）
+## User Acceptance Gate（PASSED，2026-08-06）
 
-RFC-006 已具备请求整体接受的条件，但只有用户明确回复“接受 RFC-006 整体”后，才能把状态从 `IN REVIEW` 改为 `ACCEPTED`。PR Merge 不能替代该决定。
+RFC-006 的最终用户接受条件与结果如下：
+
+1. DQ-01～DQ-08 均有明确 Chosen Option、Rejected Alternatives 与 Trade-offs — PASS；
+2. Provider、Port、Structured Output、Recovery、Version、Profile、Secret、Payload、Telemetry 与测试边界完整 — PASS；
+3. 与 Accepted DEC、RFC-001～003、Current Specs 和后续 RFC 边界一致 — PASS；
+4. 独立五轴 Review、文档链接校验与 Required Checks 通过 — PASS；
+5. 用户于 2026-08-06 明确回复「接受 RFC-006 整体」— PASS。
+
+**Final Decision：RFC-006 = ACCEPTED。** 该决定使 RFC-006 成为当前 LLM Runtime and Structured Output 架构基线；后续 RFC、Readiness Artifact、Spike 与实现不得违反或静默绕过其边界。
 
 ## Acceptance and Authorization Boundary
 
-P-28A～P-35A 均已由用户明确接受并归档为 DEC-052～054，八个 DQ 已闭合且 Final Consistency Review 已通过。仍须由用户另行明确接受 RFC-006 整体。
+P-28A～P-35A 均已由用户明确接受并归档为 DEC-052～054，八个 DQ 已闭合且 Final Consistency Review 已通过；RFC-006 整体也已于 2026-08-06 被用户明确接受。
 
-即使 RFC-006 整体被接受，也只代表架构决策成立；以下事项仍保持未授权，直到完整策划包展示并且用户明确批准“进入 Goal 执行阶段”：
+RFC-006 整体接受只代表架构决策成立；以下事项仍保持未授权，直到完整策划包展示并且用户明确批准“进入 Goal 执行阶段”：
 
 - 安装或升级 Provider SDK；
 - 读取真实 Provider Secret；

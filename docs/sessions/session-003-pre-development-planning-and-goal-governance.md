@@ -643,3 +643,16 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - RFC-006 Status 从 `DRAFTING` 进入 `IN REVIEW`；Final Consistency Review = `PASS`。
 - 下一且唯一的 RFC Gate 是用户明确接受 RFC-006 整体；PR 合并本身不能替代整体接受。
 - RFC Overall Acceptance、SDK 安装、Secret 读取、真实模型调用、Live Smoke、Implementation、Spike Execution 与 Goal Activation 仍为 `NOT GRANTED`。
+
+## Final Decision — RFC-006 Overall Acceptance（2026-08-06）
+
+### User Acceptance
+
+- 用户在 RFC-006 Final Consistency Review、独立五轴 Review 与最新 Required Checks 结果展示后，明确回复「接受 RFC-006 整体」。
+- RFC-006 Status 由 `IN REVIEW` 变为 `ACCEPTED`；DQ-01～DQ-08 及 DEC-052～054 共同构成正式 LLM Runtime and Structured Output 架构基线。
+
+### Authorization Boundary
+
+- RFC Acceptance 不等于实现授权；SDK Installation、Secret Read、Live Model Call、Implementation、Spike Execution 与 Goal Activation 继续为 `NOT GRANTED`。
+- 本次不安装或升级 Provider SDK，不读取真实 Secret，不调用真实模型或执行 Live Smoke，不创建 Model Runtime、Provider Adapter、Prompt、Fixture 或测试 Harness，不执行 TS-01～TS-05，也不创建或激活长期 Goal。
+- 下一策划议题按既定依赖顺序为 Frontend Architecture；之后继续闭合 RFC-004 / 005 / 007、Readiness 规划包、Testing Strategy、Development Plan 与 Goal 文本。

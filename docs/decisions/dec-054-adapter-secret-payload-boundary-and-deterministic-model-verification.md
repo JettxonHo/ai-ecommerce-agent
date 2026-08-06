@@ -6,7 +6,7 @@
 - **Date:** 2026-08-06
 - **Decision Type:** LLM Runtime / Secret and Payload Boundary / Model Testing / Live Smoke
 - **Source:** Session-003；用户明确接受 P-34A、P-35A
-- **Related RFC:** [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)（In Review；DQ-01～08 已闭合且 Final Consistency Review 已通过，整体尚未接受）
+- **Related RFC:** [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)（Accepted；2026-08-06 用户明确整体接受）
 - **Amends:** [DEC-052](dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)（Secret 解析与 OpenAI Client 构造职责）
 
 ## Context
@@ -102,7 +102,7 @@ Smoke 证据只记录 Commit、Version Tuple、Run / Model Call IDs、Provider I
 - **Concretizes [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)：** 将“确定性 PR 验证 + 单次 RC Smoke”落实为三层 Contract Suite 与人工 opt-in 规则，不改变非机械验收原则。
 - **Applies [DEC-039](dec-039-proportional-validation-and-review-governance.md)：** 不使用 Hash / SHA-256，不建设泛化安全工程或低概率 Case 矩阵。
 - **Applies RFC-001 / ARP-10：** Secret 获取封装在 Infrastructure Adapter，Secret Value 只在适配器内存短暂存在。
-- **Input to [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** 接受 DQ-07～DQ-08；DQ-01～DQ-08 已全部闭合且 Final Consistency Review 已通过，RFC-006 当前为 `IN REVIEW`，整体仍待用户接受。
+- **Input to [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** 接受 DQ-07～DQ-08；DQ-01～DQ-08 已全部闭合且 Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-006 整体。
 
 ## Authorization Boundary
 

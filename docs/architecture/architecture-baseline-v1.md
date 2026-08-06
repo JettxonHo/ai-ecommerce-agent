@@ -1,10 +1,10 @@
 # Architecture Baseline v1
 
-> **Status: ACTIVE PRE-DEVELOPMENT BASELINE（已同步至 DEC-054、RFC-001～RFC-003；RFC-006 DQ-01～08 已接受输入且 Final Review = PASS，overall acceptance 与 RFC-004 / 005 / 007 仍待完成）**
+> **Status: ACTIVE PRE-DEVELOPMENT BASELINE（已同步至 DEC-054、RFC-001～RFC-003 与 RFC-006；RFC-004 / 005 / 007 仍待完成）**
 > **治理来源：** 本文件综合当前**已接受**的 DEC 与 Specs，形成 Current Architecture Truth。**不发明任何新的生产技术选择。**
 > **关联：** [../readiness/architecture-readiness-report-v1.md](../readiness/architecture-readiness-report-v1.md) · [../rfcs/rfc-register.md](../rfcs/rfc-register.md) · Spike-001（MERGED）
 > **Base Commit：** `a60ff3b6a24bf8b35e1c2ba1031038bb7123a578`
-> **Current sync（2026-08-06）：** RFC-002 已选定 PostgreSQL + SQLAlchemy 2.x Sync + Psycopg 3 Sync + Alembic；DEC-049～051 与 RFC-003 已冻结 Checkpoint、Durable Dispatch、Fenced Ownership、兼容与 Safe Resume。DEC-052～054 已冻结单一 OpenAI Responses / `gpt-5.6-terra`、窄型同步 Port、Structured Output、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute 与单次人工 RC Smoke；RFC-006 DQ-01～08 已闭合且 Final Review = PASS，仅整体接受待用户决定。RFC-003 的 DQ-01～09 已闭合，并于 2026-08-06 被用户整体接受；FND-001～003 已完成。正文中仍标为 `PENDING RFC` 的数据库、Checkpointer、Worker 或 Foundation 状态是历史快照，以最新 Accepted Decision、RFC 与本说明为准。
+> **Current sync（2026-08-06）：** RFC-002 已选定 PostgreSQL + SQLAlchemy 2.x Sync + Psycopg 3 Sync + Alembic；DEC-049～051 与 RFC-003 已冻结 Checkpoint、Durable Dispatch、Fenced Ownership、兼容与 Safe Resume。DEC-052～054 与 RFC-006 已冻结单一 OpenAI Responses / `gpt-5.6-terra`、窄型同步 Port、Structured Output、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute 与单次人工 RC Smoke；RFC-006 DQ-01～08 已闭合且 Final Review = PASS，用户已于 2026-08-06 明确接受 RFC 整体。RFC-003 的 DQ-01～09 已闭合，并于同日被用户整体接受；FND-001～003 已完成。正文中仍标为 `PENDING RFC` 的数据库、Checkpointer、Worker、LLM Runtime 或 Foundation 状态是历史快照，以最新 Accepted Decision、RFC 与本说明为准。
 > **Historical expansion note：** 正文按 DEC 与 Foundation 的形成顺序累积；其中 `IN REVIEW`、`NOT AUTHORIZED`、旧 PENDING 表和 `Next Topic` 只记录当时状态，不是当前授权或执行指令。当前状态仅以上述 Current sync、[AGENTS.md](../../AGENTS.md) 与 [Implementation Readiness](../handoffs/implementation-readiness.md) 为准。
 
 ---
@@ -108,7 +108,7 @@ Validated Temporary Implementation — Not Production Commitment
 - pytest + 本地 JSONL Trace + CLI [临时]
 ```
 
-> 生产后端语言、数据库、ORM 与迁移方案已由 RFC-001 / RFC-002 确认，生产 Checkpointer 已由 RFC-003 确认；LLM Provider / Model / Port / Structured Output / Recovery / Version / Profile / Secret / Payload / Test / Smoke 已由 DEC-052～054 确认，RFC-006 DQ-01～08 已闭合但整体仍为 `PENDING DECISION`。Retrieval、Observability、Frontend 与部署边界仍为 `PENDING RFC / Decision`（见 [../rfcs/rfc-register.md](../rfcs/rfc-register.md)）。
+> 生产后端语言、数据库、ORM 与迁移方案已由 RFC-001 / RFC-002 确认，生产 Checkpointer 已由 RFC-003 确认；LLM Provider / Model / Port / Structured Output / Recovery / Version / Profile / Secret / Payload / Test / Smoke 已由 DEC-052～054 与 RFC-006 确认。Retrieval、Observability、Frontend 与部署边界仍为 `PENDING RFC / Decision`（见 [../rfcs/rfc-register.md](../rfcs/rfc-register.md)）。
 
 ## 9. RFC Governance and Production Decision Gate
 
@@ -1272,7 +1272,7 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 - Production Checkpointer：ACCEPTED RFC-003（精确兼容版本待实施证据）；
 - API Framework and Human Review Protocol：PENDING RFC-004；
 - Source Processing and Retrieval：PENDING RFC-005；
-- LLM Provider / Model / Port / Structured Output / Recovery / Version / Profile / Secret / Payload / Test / Smoke：ACCEPTED INPUT（DEC-052～054）；RFC-006 DQ-01～08 已闭合，整体接受仍待决定；
+- LLM Provider / Model / Port / Structured Output / Recovery / Version / Profile / Secret / Payload / Test / Smoke：ACCEPTED（DEC-052～054 / RFC-006）；
 - Observability and Runtime Operations：PENDING RFC-007；
 - Frontend Architecture、Test Layering 与 Deployment Platform：PENDING Decision / Planning Package。
 
@@ -1285,14 +1285,14 @@ Graph Node 不得成为业务持久化规则的所有者。在 RFC-001 后续 DQ
 | LangGraph Runtime and Checkpoint Architecture（生产 Checkpointer） | ACCEPTED — 2026-08-06 | RFC-003 |
 | API and Human Review Protocol | PENDING RFC | RFC-004 |
 | Source Processing and Retrieval Architecture | PENDING RFC | RFC-005 |
-| LLM Runtime and Structured Output | IN REVIEW — all DQ accepted input / Final Review PASS；RFC overall pending | RFC-006 |
+| LLM Runtime and Structured Output | ACCEPTED（2026-08-06 用户明确整体接受） | RFC-006 |
 | Observability and Runtime Operations | PENDING RFC | RFC-007 |
 
 > **Historical planning record（2026-07-30）：** RFC-001 已由用户正式接受；当时 Foundation Planning 开放，FND-001 已完成、FND-002 处于 Review、FND-003 被 FND-002 阻塞，其余 RFC 尚为 `PROPOSED`。该段只保留当时的授权与依赖背景，不表示当前状态；当前 RFC / Foundation 状态以上表、本文件顶部 Current Sync 与后续 Historical Status Snapshot 顶部说明为准。所有尚未接受的技术选择仍不得由实现 Agent 临场决定。详见 [../decisions/dec-038-rfc-planning-and-dependency-order.md](../decisions/dec-038-rfc-planning-and-dependency-order.md) 与 [../specs/governance/rfc-planning-and-dependency-order.md](../specs/governance/rfc-planning-and-dependency-order.md)。
 
 ## 21. Historical Status Snapshot（Foundation 完成前）
 
-> 本节保留 Foundation 实施期间的收口快照。2026-08-06 当前状态为：RFC-001～003 与 FND-001～003 已完成；RFC-006 DQ-01～08 已由 DEC-052～054 接受且 Final Review = PASS，仅 RFC 整体接受待用户决定；RFC-004 / 005 / 007、Frontend Architecture、产品最终规格、完整 Readiness Artifact、测试与 Goal 文档仍待策划；TS-01～TS-05 执行、业务实现和实际 Goal 均未授权。
+> 本节保留 Foundation 实施期间的收口快照。2026-08-06 当前状态为：RFC-001～003、RFC-006 与 FND-001～003 已完成；RFC-004 / 005 / 007、Frontend Architecture、产品最终规格、完整 Readiness Artifact、测试与 Goal 文档仍待策划；TS-01～TS-05 执行、业务实现和实际 Goal 均未授权。
 
 ```text
 Spike Execution Status = COMPLETED
