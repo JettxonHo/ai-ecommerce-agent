@@ -492,3 +492,26 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - RFC Acceptance 不等于实现授权；Implementation、Spike Execution 与 Goal Activation 继续为 `NOT GRANTED`。
 - 本次不安装生产 Checkpointer，不创建 Checkpoint Database、Runtime Registry、Worker、Graph、API、迁移或 Compatibility Matrix 实例，不执行 TS-01～TS-05，也不创建或激活长期 Goal。
 - 下一策划议题为 RFC-006；之后依次闭合 Frontend Architecture、RFC-004 / 005 / 007、Readiness 规划包、Testing Strategy、Development Plan 与 Goal 文本。
+
+## Proposal Round — RFC-006 Provider, Model Runtime Port and Structured Output（2026-08-06）
+
+### Context and Investigation
+
+- RFC-003 合并后，按既定依赖顺序创建 RFC-006 Issue #48、独立分支与 RFC 正文；当前只授权策划和文档，不授权 Provider 接入、模型调用、Spike、业务实现或 Goal 激活。
+- 仓库调查确认 RFC-006 之前只有 RFC Register 登记，没有生产 Model Runtime、Provider Adapter 或 Prompt Registry；Spike-001 的 `ScriptedModelProvider` 只可作为测试设计参考，禁止迁入生产。
+- 官方资料调查覆盖 OpenAI、Anthropic 与 Google 的 Structured Output、模型 / API 版本、错误和数据处理边界。时效性能力只作为 2026-08-06 Proposal 证据；实施时仍须复核账号访问、官方兼容性与固定验收包结果。
+- RFC-006 被拆成 8 个 DQ：Provider / Model / SDK；Model Runtime Port / DI；Structured Output；Failure / Repair / Retry / Cancellation；版本；Skill Profiles / Context；Secret / Payload / Telemetry；Deterministic Substitute / Live Smoke。
+
+### Proposed Decisions
+
+- `P-28A`（推荐）：首个 Goal 采用 OpenAI Responses API + `gpt-5.6-terra` + 官方 Python SDK，只实现一个真实 Provider Adapter，不开放 Provider-hosted Tools；这是基于当前官方能力与项目边界的适配度推断，不是三家模型质量 Benchmark 结论。
+- `P-29A`（推荐）：Application 定义窄型、typed、Provider-neutral 同步 Model Runtime Port，`platform/model_runtime` 实现单一已接受 Provider Adapter，Composition Root 注入；不建设多 Provider Gateway。
+- `P-30A`（推荐）：Provider-native Strict Structured Output + 项目权威 Pydantic / JSON Schema + Skill Domain Validator；严格遵守 `Parse → Project Schema Validation → Deterministic Normalization → Domain Validator`，refusal / incomplete 为显式非成功分支。
+
+完整的 B / C 备选、优缺点、官方证据和停止条件见 [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)。
+
+### Decision and Authorization Status
+
+- `P-28 / P-29 / P-30 = PROPOSED`；用户尚未接受任何选项。
+- RFC-006 Status = `DRAFTING`；RFC Acceptance、Implementation、Spike Execution 与 Goal Activation 均为 `NOT GRANTED`。
+- 在用户裁决前，不安装 Provider SDK、不读取 Secret、不调用模型、不创建 Prompt Runtime / Registry、不执行 Live Smoke，也不把推荐方案写成 Current Truth。

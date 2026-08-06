@@ -36,7 +36,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 - 任务工作台的公共字段类型、最终组件 / 视觉布局和 Persona / JTBD 的后续研究证据；输入与冲突已由 DEC-045 冻结，审核 / Brief / 版本已由 DEC-046 冻结，证据 / 编辑 / 进度 / 恢复 / 导出确认已由 DEC-047 冻结，验收包与 Markdown-first 用户导出已由 DEC-048 冻结；
 - Frontend Architecture；
-- RFC-004 API / Human Review、RFC-005 Source / Retrieval、RFC-006 LLM Runtime、RFC-007 Observability；
+- RFC-004 API / Human Review、RFC-005 Source / Retrieval、[RFC-006 LLM Runtime](docs/rfcs/rfc-006-llm-runtime-and-structured-output.md)（Issue #48，`DRAFTING`；P-28～P-30 仍待用户决定）、RFC-007 Observability；
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；
 - MVP Development Plan、Testing Strategy 的技术层补全与长期 Goal 最终文本。
 
