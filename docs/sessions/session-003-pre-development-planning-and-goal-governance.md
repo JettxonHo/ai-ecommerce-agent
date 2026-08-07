@@ -9,6 +9,8 @@
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
 - Related Decisions: DEC-039～DEC-056
 - Frontend Proposal Status: P-36～P-41 全部 Accepted；Frontend Architecture overall Accepted
+- Current Planning Gate: 产品规格闭合 → RFC-004 → RFC-005 → RFC-007（用户于 2026-08-07 明确确认）
+- Product Closure Proposal Status: P-42～P-44 = Proposed；未接受
 
 ## Context
 
@@ -91,6 +93,7 @@
 
 - 当前无未接受的 Frontend Architecture Proposal；P-36～P-41 的完整提案与接受过程保留在下方各 Decision Round。
 - Frontend Architecture 整体接受不授权安装依赖、生成脚手架或编写前端，未接受的 RFC-004 / 005 / 007 公共契约不得被提前写成实现事实。
+- 产品规格闭合首轮 `P-42A / P-43A / P-44A` 已形成推荐方案，完整备选与权衡见本 Session 末尾；用户明确接受前均保持 Proposed，不同步为 Current Truth。
 
 ## Accepted Decisions
 
@@ -969,3 +972,101 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - RFC-004 继续拥有公共 Resource / 字段 / 状态 / 错误 / revision / 幂等 / Conflict / 下载协议；RFC-005 继续拥有 Pagination / Retrieval Contract；RFC-007 继续拥有 Observability 与运维边界。
 - 整体接受不授权依赖安装、Frontend Implementation、Technical Spike、业务实现或 Goal 创建 / 激活。
 - PR #51 只有在最新提交的 Required Checks 全部通过且最终五轴 Review 无阻塞 Finding 后才可合并；合并后关闭 Issue #50 并继续产品规格与 RFC-004 / 005 / 007 策划。
+
+## Gate Confirmation — Product Specification and Remaining RFCs（2026-08-07）
+
+### User Confirmation
+
+- 用户明确确认下一 Gate 为：**产品规格闭合及 RFC-004、RFC-005、RFC-007**。
+- 为保持单一结果、独立验收和依赖顺序，执行顺序解释为：产品规格闭合 → RFC-004 → RFC-005 → RFC-007；四项分别使用独立 Issue / Branch / PR 与用户 Decision / Acceptance Gate。
+- [Issue #52](https://github.com/JettxonHo/ai-ecommerce-agent/issues/52) 仅承载产品规格闭合。RFC-004 / 005 / 007 将在前一依赖 Gate 完成后分别建立独立策划项。
+
+### Authorization Boundary
+
+- 本确认授权继续策划和文档归档，不接受下列任一产品提案，不接受 RFC-004 / 005 / 007，不授权 Technical Spike、依赖安装、业务实现或 Goal 创建 / 激活。
+- 产品 Current Truth 只能在相应 Proposal 获得用户明确接受后更新；公共 HTTP / Retrieval / Observability 契约不得借产品文档提前冻结。
+
+## Proposal Round — Product Specification Closure I（2026-08-07）
+
+### P-42 — Product Specification Closure Boundary
+
+#### Option A — Stable Product Semantics + Explicit Contract Handoff（推荐）
+
+- 产品规格在用户可见目标、范围、输入门禁、工作台流程、审核、版本 / 失效、证据、结果、导出与验收语义完整后即可判定闭合。
+- 公共 Resource / 字段名 / 类型 / 状态 / 错误 / revision / 幂等 / Conflict / 下载协议交给 RFC-004；Source / Locator / Pagination / Retrieval / Evidence Package 传输交给 RFC-005；日志 / Trace / Metrics / 运维参数交给 RFC-007；Fixture 文件内容与最终 E2E 证据格式交给 Testing Strategy。
+- 产品文档保留稳定的业务语义组与行为不变量，不复制 OpenAPI 或数据库 Schema；RFC 不得反向改变已接受产品行为。
+- 优点：产品与技术各有一个权威来源，公共契约可以独立演进和测试；避免把概念字段机械地一对一提升为 API。
+- 代价：阅读者需要沿 Traceability 从产品语义跳转到 RFC 才能看到传输细节。
+
+#### Option B — Freeze Every Product and Wire Field Together
+
+- 在产品闭合 PR 中同时冻结全部字段、类型、状态、错误和文件模板，三份 RFC 只选实现技术。
+- 优点：单份文档看起来最完整。
+- 代价：重复 RFC-004 / 005 的职责，容易形成两套 Schema 权威；字段会在接口设计前过早锁死，返工和冲突风险高。
+
+#### Option C — Keep Product Specification Partial Until All RFCs Finish
+
+- 不单独判定产品规格闭合，等 RFC-004 / 005 / 007 全部接受后再统一更新产品状态。
+- 优点：最终一次同步即可看到完整产品与技术合同。
+- 代价：产品语义与技术实现长期混为同一个 Gate，无法判断 RFC 的上游输入是否已稳定，也会让技术限制反向替代产品决定。
+
+#### Recommendation
+
+选择 `P-42A`。它闭合产品层而不制造平行 Schema，符合 Contract-first 和稳定接口最小暴露原则，也保留 RFC 对技术契约的权威。
+
+### P-43 — Fixed Acceptance Fixture Product Strategy
+
+#### Option A — One Fictional Anchor SKU, Three Variants + One Mutation（推荐）
+
+- 使用一个明确标注为虚构的非管制类商品“城市通勤双肩包”作为固定 Anchor SKU；三个资料包分别表达资料充分、资料不足但可运行、阻断性冲突与恢复，一个变更脚本在正常任务上修改重要商品事实并验证失效 / 局部重跑。
+- 三个资料包共享基础商品身份和大部分可比内容，只改变与目标行为相关的资料完整性、冲突和版本。
+- 优点：能把结果差异主要归因于系统行为而不是品类差异；无真实品牌授权、商标和内容漂移问题；功能、材质、容量、通勤场景与评论数据足以支撑四层分析和小红书 Brief 映射。
+- 代价：只验证一个品类，不能证明跨品类泛化；Fixture 必须显式标为测试数据，不能伪装成真实用户研究。
+
+#### Option B — Three Different Fictional Product Categories
+
+- 资料充分、可运行不足和冲突恢复分别使用不同商品品类。
+- 优点：表面覆盖更多业务表达和输入结构。
+- 代价：品类差异与状态差异相互混杂，失败时难以定位是工作流问题还是领域内容差异；资料维护量更大。
+
+#### Option C — One Real Brand / Real Listing Dataset
+
+- 选用真实商品详情与评论作为三个资料包基础。
+- 优点：演示观感更接近现实。
+- 代价：来源许可、商标、隐私、内容变化和可复现性形成额外负担；真实资料也不能替代 Beta 用户研究。
+
+#### Recommendation
+
+选择 `P-43A`。首个演示应优先验证版本、审核、证据与恢复闭环；单一虚构 Anchor SKU 能在不扩大范围的情况下提供最清晰的可复现证据。
+
+### P-44 — Needs Input Supplement Request Model
+
+#### Option A — Targeted Action Request Derived from the Current Blocker（推荐）
+
+- Needs Input 不采用一张不断扩张的固定问卷，也不退化为无结构聊天。系统针对当前真实阻断生成有限的行动请求，每项说明：缺少或冲突的业务信息、为什么影响当前阶段、当前可见来源 / 冲突值、用户可采取的结构化补充或裁决动作，以及完成后将恢复或重跑的范围。
+- 非阻断增强资料继续以建议呈现，不冒充必填；同一阻断已有代表性请求后，不重复制造基本不可能出现的防御性变体。
+- 请求内容只能基于已存在的 Task、Source、冲突和阶段上下文，不得补造外部事实；公共字段与错误码由 RFC-004 / 005 冻结。
+- 优点：与行动导向恢复和两级门禁一致；用户知道为什么被阻断以及如何继续；能测试又不把 Rubric 或问卷机械化。
+- 代价：后端需把阻断原因投影为结构化行动语义，具体映射要在 RFC-004 / 005 中保持一致。
+
+#### Option B — Exhaustive Category Questionnaire
+
+- 为每个商品展示固定、完整的长问卷，缺任何预设字段都要求回答。
+- 优点：字段覆盖统一，表单实现直观。
+- 代价：违背最低可运行输入与非阻断增强资料原则；会将低概率缺失机械化为强制防御。
+
+#### Option C — Free-form Chat Follow-up
+
+- 只显示自由文本追问，由用户与模型多轮对话补齐。
+- 优点：表达灵活，前期字段设计少。
+- 代价：聊天成为事实来源，冲突裁决、版本、恢复和自动化验收难以可靠追踪，违反已接受工作台边界。
+
+#### Recommendation
+
+选择 `P-44A`。它延续 DEC-044 / 045 / 047 的真实阻断、分级资料和行动导向恢复，同时不给首个 Goal 增加通用问卷或聊天状态机。
+
+### Proposal Status and Next Decision Gate
+
+- `P-42 / P-43 / P-44 = PROPOSED`；推荐项分别为 `P-42A / P-43A / P-44A`，用户尚未接受。
+- 用户接受后才创建或修订 DEC、更新 Product Current Truth、Testing Strategy 输入、Readiness 与 Traceability；随后继续清理剩余产品 Open Questions，并完成 Product Specification Final Consistency Review。
+- 本轮不创建 Fixture 数据文件，不冻结 OpenAPI / Retrieval / Observability 字段，不执行测试、Spike 或 Goal，不编写任何业务代码。

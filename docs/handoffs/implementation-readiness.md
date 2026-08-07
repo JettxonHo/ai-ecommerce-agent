@@ -3,6 +3,8 @@
 > **Status: CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY**
 >
 > Foundation、RFC-001～003 与 RFC-006 已完成，但 Business / Production Implementation、TS-01～TS-05 执行和实际 Goal 均未授权。已完成的 Spike-001 不在本禁令所指范围内。
+>
+> **Current Gate（2026-08-07）：** 用户已确认按“产品规格闭合 → RFC-004 → RFC-005 → RFC-007”推进；当前只启动产品规格闭合策划 Issue #52，后三份 RFC 仍为 `PROPOSED`。
 
 进入开发至少需要以下条件**全部**满足，并须先通过 Implementation Readiness Review（见 [../reviews/](../reviews/)），再由用户明确批准。
 

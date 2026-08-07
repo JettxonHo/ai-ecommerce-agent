@@ -35,6 +35,8 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 当前策划缺口
 
+当前 Gate 顺序已由用户于 2026-08-07 明确确认为：**产品规格闭合 → RFC-004 → RFC-005 → RFC-007**。四项分别使用独立 Issue / Branch / PR 与用户 Decision Gate；当前仅启动产品规格闭合策划，不代表后三份 RFC 已接受或实现已获授权。
+
 - 任务工作台的最终公共字段、API 状态 / 错误 / Conflict / Pagination / 下载协议，以及 Persona / JTBD 的后续研究证据；产品与 Frontend P-36～P-41 已由 DEC-045～048、DEC-055～056 冻结；
 - RFC-004 API / Human Review、RFC-005 Source / Retrieval、RFC-007 Observability；
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；
