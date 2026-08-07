@@ -1,7 +1,7 @@
 # Source and Evidence Specification（来源与证据规格 — 概念）
 
-> **Status: PARTIALLY FROZEN — DEC-025 概念层 + DEC-067 RFC-005 DQ-01～03 当前契约。**
-> **本文件是 Current Truth Layer 的一部分。** 来源 / Evidence 基础来自 [DEC-025](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)，产品展示投影来自 [DEC-047](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)，Source association / processing / Fragment / Locator 现行边界来自 [DEC-067](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)（均 Accepted）。
+> **Status: PARTIALLY FROZEN — DEC-025 概念层 + DEC-067 / 068 RFC-005 DQ-01～06 当前契约。**
+> **本文件是 Current Truth Layer 的一部分。** 来源 / Evidence 基础来自 [DEC-025](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)，产品展示投影来自 [DEC-047](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)，Source association / processing / Fragment / Locator 现行边界来自 [DEC-067](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)，Retrieval-derived artifact / index generation 边界来自 [DEC-068](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)（均 Accepted）。
 > 本文件**不**包含：最终数据库表、Parser 代码、OCR、RAG 代码、Embedding、Vector Store、Web Scraper、Review Importer、最终 Evidence UI、正式 API。所有结构名为**概念示意，非最终数据契约 / 最终实现**。
 
 ---
@@ -20,6 +20,7 @@
 - [DEC-018 — Product Positioning Skill Adapt](../../decisions/dec-018-adapt-product-differentiation-for-positioning-skill.md)
 - [DEC-024 — 版本化领域状态与紧凑 LangGraph State](../../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)
 - [DEC-067 — 版本化 Source 关联、逐资料耐久处理与格式感知 Fragment 契约](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)
+- [DEC-068 — PostgreSQL-native、版本化且确定性的 Retrieval 基线](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)
 
 > DEC-067 明确修订 DEC-025 的 Task 成员关系与 Fragment / Locator 细节：Source 不直接承载可变 Task membership，processing / association / availability / integrity 状态分离。旧概念示例与现行条款冲突时以 DEC-067 为准。
 
@@ -114,6 +115,8 @@ SourceVersion
 ### 4.1 Derived Artifact（现行契约）
 
 Parsed text、normalized search text、Record / Fragment set 与后续 lexical / embedding output 都是精确 Source Version 的版本化派生产物。Processor / Parser / Fragmenter 配置变化创建新 Derived Artifact version 和新 Fragment identity，不覆盖历史 Provenance。
+
+Retrieval Index 是同 PostgreSQL Service 下可重建、非权威的派生平面。每个 lexical / vector entry 必须引用精确 Fragment、Source Version、Derived Artifact / Fragmenter version、index generation 与适用 lexical / Embedding Profile。新 generation 旁路构建并完成 expected / present / missing / extra entry 对账后才原子切换；remove / replace / restriction 先由权威 eligibility 排除，不等待物理 cleanup。首个 Goal 使用 `pgvector` filtered exact NN，不默认启用 ANN。
 
 ---
 
@@ -607,7 +610,7 @@ New Source Version
 - 直接证据可显示短摘录，综合判断可显示忠实摘要和主要依据，不强制逐句引用。
 - 不显示未经校准数字置信度或机械证据覆盖总分。
 
-本节只定义业务数据向用户交互的投影要求；工作台与证据交互边界已由 DEC-055 / DEC-056 冻结，最终 Locator Schema、权限映射与 Evidence API 仍待 RFC-004 / RFC-005。
+本节只定义业务数据向用户交互的投影要求；工作台与证据交互边界已由 DEC-055 / DEC-056 冻结，四类 Locator 语义已由 DEC-067 冻结，最终公共字段、权限映射、Pagination 与 Evidence API 仍待 RFC-005 DQ-07～10。
 
 ---
 

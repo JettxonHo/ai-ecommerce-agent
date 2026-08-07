@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- **Status:** DRAFTING — ROUND 1 ACCEPTED；PROPOSAL ROUND 2 USER DECISIONS PENDING
+- **Status:** DRAFTING — ROUNDS 1～2 ACCEPTED；PROPOSAL ROUND 3 USER DECISIONS PENDING
 - **Date:** 2026-08-07
 - **Issue:** [#56](https://github.com/JettxonHo/ai-ecommerce-agent/issues/56)
 - **Pull Request:** [#57](https://github.com/JettxonHo/ai-ecommerce-agent/pull/57)（Draft）
@@ -87,12 +87,12 @@ RFC-002 remains authority for PostgreSQL transactions, storage classification, a
 | DQ-01 | Source authority, Task association, version / artifact manifest and reproducibility identity | ACCEPTED — P-58A / DEC-067 |
 | DQ-02 | Registration, processing lifecycle, partial acceptance and typed item outcome | ACCEPTED — P-59A / DEC-067 |
 | DQ-03 | Format-aware Fragment and Locator contract | ACCEPTED — P-60A / DEC-067 |
-| DQ-04 | PostgreSQL Lexical / Vector topology and Exact / ANN boundary | PROPOSED as P-61A / B / C |
-| DQ-05 | Embedding, index entry versioning, update / rebuild and consistency | PROPOSED as P-62A / B / C |
-| DQ-06 | Planner, Query Rewrite, fusion, Top-K and optional reranking | PROPOSED as P-63A / B / C |
-| DQ-07 | Scope filtering, Source Set Version and public Source / Evidence transport | PENDING |
-| DQ-08 | Retrieval Run, Evidence Package, Dataset Statistic and Formal Evidence Link | PENDING |
-| DQ-09 | Retrieval evaluation, fallback, degraded behavior and quality gates | PENDING |
+| DQ-04 | PostgreSQL Lexical / Vector topology and Exact / ANN boundary | ACCEPTED — P-61A / DEC-068 |
+| DQ-05 | Embedding, index entry versioning, update / rebuild and consistency | ACCEPTED — P-62A / DEC-068 |
+| DQ-06 | Planner, Query Rewrite, fusion, Top-K and optional reranking | ACCEPTED — P-63A / DEC-068 |
+| DQ-07 | Scope filtering, Source Set Version and public Source / Evidence transport | PROPOSED as P-64A / B / C |
+| DQ-08 | Retrieval Run, Evidence Package, Dataset Statistic and Formal Evidence Link | PROPOSED as P-65A / B / C |
+| DQ-09 | Retrieval evaluation, fallback, degraded behavior and quality gates | PROPOSED as P-66A / B / C |
 | DQ-10 | Adoption order, reconciliation, Spike / test evidence and RFC closure | PENDING |
 
 No item in this table is Accepted until the user explicitly accepts the corresponding proposal and it is archived in a Decision record.
@@ -327,10 +327,127 @@ Choose P-63A. It preserves the already accepted deterministic planner boundary, 
 
 ## Round 2 decision status and next gate
 
-- `P-61 / P-62 / P-63 = PROPOSED`; none is Accepted until the user explicitly chooses an option.
-- Recommended combination: `P-61A + P-62A + P-63A`.
-- If accepted, archive the three decisions in one RFC-005 Decision Record, freeze the exact current OpenAI Embedding model evidence item during final RFC closure, update only accepted Current Truth, and proceed to DQ-07～09 covering mandatory scope / public transport, Evidence Package contracts and Retrieval Evaluation / degraded behavior.
+- 用户于 2026-08-07 明确接受 `P-61A + P-62A + P-63A`，并归档为 [DEC-068](../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)；P-61B / C、P-62B / C、P-63B / C 保留为未采用 Alternative。
+- `DQ-04～06 = ACCEPTED`；PostgreSQL-native derived retrieval plane、filtered exact NN baseline、单一版本化 OpenAI Embedding Profile、immutable index generation、deterministic Direct-first Planner、RRF、seed candidate bounds 与 no-baseline-reranker 已成为 Current Truth。
+- Exact OpenAI Embedding model identifier / dimensions 仍是 RFC-005 Final Closure 的强制 evidence item，不得由 Implementation Agent 临场选择。
 - This round does not install PostgreSQL extensions, call OpenAI, create indexes / schemas / migrations / retrieval code, execute evaluation or Technical Spikes, or activate the Goal.
+
+## Proposal Round 3
+
+### P-64 — Authoritative Scope, Source Set and Public Source / Evidence Transport
+
+#### P-64A — Server-derived Scope + SQL Eligibility Boundary + Narrow Public Projections（推荐）
+
+- Fixed Workspace identity 继续由 RFC-004 的 server configuration 注入；Browser、Skill 或 Provider payload 都不能提交任意 Workspace / Task / Source Scope 以扩大访问范围。调用方只表达已接受的 retrieval purpose / exact reference，服务端从 Task、Skill Contract、TaskSourceAssociation revision、SourceSetVersion manifest 与 Product / Competitor identity 推导 allowed scope。
+- 同一条 authoritative eligible-candidate relation 同时约束 Direct / Exact / Lexical / Semantic / Hybrid。它至少连接当前 Task association、精确 Source Version、SourceSetVersion membership、Source Scope、Product / Competitor identity、processing readiness、availability 与 current index generation；不允许先检索跨范围正文、再在 Application 或 Frontend 中删除。
+- SourceSetVersion 是不可变的运行输入 manifest，固定 association identity + revision、精确 Source Version 与 eligibility basis。Source remove / replace / restriction 使新的运行不能继续使用旧 membership；历史 Retrieval Run / Evidence Package 仍引用当时 manifest，但不得冒充 Current input。
+- 填充 RFC-004 已委托的 Source / Evidence refs，而不创建第二 HTTP authority：提供 task-scoped Source intake / item result、Source summary / exact SourceVersion processing read、Source collection 与 Evidence collection read；remove / replace 仍使用 RFC-004 已冻结的四个 Preview / Confirm operations。
+- Source / Evidence list 使用 opaque cursor keyset pagination，稳定排序为服务端时间 + stable identity；默认 20、最大 50。Cursor 只用于翻页，不承担 authorization、revision、idempotency 或 integrity proof；参数越界使用既有 RFC-004 validation Problem。
+- Public Source projection 只暴露工作台需要的 identity、display metadata、association / version reference、processing / availability、typed item issues、Locator-safe preview 与 Capability。Public Evidence projection 只暴露 stable Evidence Link / target version / Fragment reference、verbatim excerpt、honest Locator、Evidence role / class、availability 与 limitation。不得暴露 embedding vector、raw index row、Provider payload、SQL filter、private storage reference 或把 rank 显示成 confidence。
+- Source content download / preview 仍受同一 Task / SourceSet / availability check；外部对象 URL 不成为长期公共 identity。首个 Goal 不增加 Login、RBAC、多租户、跨 Task knowledge browser、public share link 或 permanent-delete endpoint。
+
+**优点：** 范围在内容进入检索前即被权威关系约束，公共投影足够支撑 Workbench 与 Evidence drill-down，又不泄漏 Index / Storage 实现；cursor pagination 可稳定处理大量 Source / Evidence。
+
+**代价：** OpenAPI Contract Issue 需要补齐 RFC-005 refs、cursor envelope 与 Source lifecycle operations；服务端必须维护一条可被多个 channel 复用的 candidate relation。
+
+#### P-64B — Client-selected Scope + Offset Pagination
+
+客户端提交 Workspace、Source scopes 与 offset / page，Backend 只校验字段格式并据此检索。
+
+**优点：** UI 筛选灵活，接口容易理解。
+
+**代价：** 把 authorization / business scope 变成不可信客户端输入；offset 在异步处理和 Source 变化时容易重复 / 跳项，也会诱导 Frontend 维护第二套 eligibility 状态。
+
+#### P-64C — Broad Retrieval + Application Post-filter + Public Index Detail
+
+先从所有 indexed Fragment 召回，再由 Application 删除不允许结果，并向 UI 暴露 raw score、vector / index metadata 方便诊断。
+
+**优点：** Retrieval query 简单，调试信息丰富。
+
+**代价：** 不允许内容已越过授权边界，违反 Task-scoped private material；公共 Index 细节会形成不必要兼容承诺并把 rank 误读成证据质量。
+
+#### Recommendation
+
+Choose P-64A. It makes scope a server-owned precondition, preserves RFC-004 as the single HTTP authority and exposes only the stable Source / Evidence semantics the Workbench can act on.
+
+### P-65 — Retrieval Run, Evidence Package, Dataset Statistic and Formal Evidence Link
+
+#### P-65A — Immutable Execution Record + Referenced Package + Atomic Validated Evidence Commit（推荐）
+
+- 每次实际 Retrieval execution 创建不可变 `RetrievalRun`，记录 task / purpose、Retrieval Plan version、SourceSetVersion、authorized filter summary、query identities、channel / component profile and generation references、bounded candidate identity / rank summary、degraded / zero-result outcome、started / completed time 与 correlation reference。它是运行解释记录，不是业务 Current Truth，也不保存 Secret / Provider payload。
+- `EvidencePackage` 是不可变的 Skill input snapshot：引用 exact SourceSetVersion、RetrievalPlan、RetrievalRun(s)、selected Candidate Fragment identities、适用 verified Fact references、DatasetStatistic identities、known conflicts、coverage summary、limitations 与可读 component versions。它不复制整库正文、不绑定 latest-at-read，也不使用 package Hash / Digest。
+- Candidate Fragment body / excerpt 可在同一受控事务读取，但 Package 的 identity / version reference 是重现权威。历史 Package 打开时明确展示其 current / superseded / unavailable relationship；availability 变化不改写历史 Package。
+- `DatasetStatistic` 只能由确定性 dataset-analysis path 对完整、明确可计数的 Record set 生成，固定 dataset / SourceSet version、population definition、included / rejected counts、deterministic method version 与 limitations。Top-K Candidate、RRF rank 或 LLM summary 不得生成正式 frequency / proportion。
+- Skill 输出只携带待验证 Fragment / DatasetStatistic references。Evidence Validator 按当前 Task、Package membership、Source scope / version / availability、Locator 与 target claim boundary 校验；同一业务事务原子创建 Versioned Domain Object、Formal Evidence Link 与 Current Truth pointer / audit effect。任一校验或提交失败不留下部分 Evidence Link 或部分 Current Truth。
+- Formal Evidence Link 使用稳定 identity，至少关联 target domain object version、Fragment 或 DatasetStatistic reference、Evidence role / class、accepted wording / claim target、source / locator projection 与 availability。Retrieval rank 仅留在 RetrievalRun / Candidate explanation，不成为 link confidence。
+- Public API 只返回 task-scoped Package / Evidence projection 和 stable references；内部 full RetrievalRun 主要供 dev / eval / operator 使用，RFC-007 决定日志、Trace、redaction 与保留，而非在 RFC-005 复制运维协议。
+
+**优点：** 清楚分开执行记录、Skill 输入、统计证据与正式业务关系，支持历史解释和原子提交，又不复制敏感正文或引入 digest。
+
+**代价：** 读取历史 Package 需要解析多个 immutable references；Dataset Statistic 必须有独立确定性路径，不能复用 Top-K 结果偷算比例。
+
+#### P-65B — Fully Copied Evidence Package as Business Truth
+
+把全部候选正文、scores、统计和 Skill 结论复制进 Package，并把 Package 本身作为可批准的 Current Truth。
+
+**优点：** 单对象读取方便。
+
+**代价：** 重复私有内容、模糊 Candidate / Formal Evidence / Business Truth，移除与保留复杂，并可能把 rank 或生成结果误作已验证事实。
+
+#### P-65C — One Generic Evidence Object
+
+用一个可变对象同时表示 Candidate、统计、正式 Evidence Link、用户展示和运行日志。
+
+**优点：** Schema 数量少。
+
+**代价：** 不同生命周期、事务与可信度被压成同一状态，容易让 QC / retrieval success 等同 approval，并破坏历史版本和独立验证。
+
+#### Recommendation
+
+Choose P-65A. It preserves the accepted Candidate-to-Validator-to-Formal-Link transition and gives statistics a truthful complete-dataset basis without turning the Evidence Package into a second business database.
+
+### P-66 — Retrieval Evaluation, Fallback and Degraded Behavior
+
+#### P-66A — Fixed Representative Evaluation + Behavioral Hard Gates + Explicit Degradation（推荐）
+
+- 基于 DEC-058 的同一个虚构 Anchor SKU 三资料变体和 mutation，建立版本化 Retrieval evaluation manifest；覆盖 exact identifier、CJK lexical、semantic paraphrase、hybrid / counter-evidence、scope isolation、complete review-dataset statistic、zero result、removed / replaced Source、semantic outage 与 incomplete generation。Fixture 内容和最终 runner 由 Testing Strategy / Goal Issue 创建，本 RFC 只冻结行为。
+- Hard gates 为行为不变量：零跨 Task / Scope / Product leakage；零 stale / unavailable / non-current-generation candidate；零 Top-K frequency extrapolation；zero result 不生成答案；Exact identifiers 原样命中；相同 manifest + plan + component tuple 产生相同 candidate identities / order；Formal Evidence 只在 Validator + atomic commit 后出现。任一失败阻断对应生产 slice。
+- Retrieval usefulness 由代表性 query 的 Recall@K / reciprocal-rank、coverage / counter-evidence 与人工 `PASS / FAIL` 判断共同说明。数值指标用于诊断和比较，不用单一 aggregate score、机械 rubric 或为了达分堆叠低价值 queries；K 与通过阈值由 Testing Strategy 在固定 fixture 内容可见后冻结。
+- Semantic unavailable 时只运行适用的 Direct / Exact / Lexical 并传播 `semantic_retrieval_unavailable` limitation；Lexical unavailable 时 Direct / Exact 保持，Semantic 只在 authorized candidate relation 和 exact identifier coverage 均成立时继续，否则返回 limitation / `insufficient_information`。任何 fallback 都不扩大 Scope 或改用旧 generation。
+- 当前 generation incomplete / failed 时不切换；继续使用仍兼容且 eligibility-current 的上一 generation，或只运行 Direct / Exact / applicable Lexical 并显式限制。没有安全兼容 generation 时返回 temporary unavailable / actionable recovery，不让客户端模拟完成。
+- Reranker、LLM rewrite 或 ANN 只有在 fixed evaluation 显示 deterministic exact + RRF baseline 的实质质量 / latency缺口时才可提案；提案必须带 before / after、Scope isolation、rollback 与额外 failure behavior 证据。
+- RFC-007 继续拥有 metric export、latency / error operational threshold、alerts、retry delay 与 runbook；RFC-005 只输出 typed retrieval outcome / limitation 与 evaluation evidence contract。
+
+**优点：** 关键隔离与证据真实性是不可协商行为门禁，相关性仍由数据和人工可用性共同判断；故障降级诚实且不会扩大范围。
+
+**代价：** 最终 K / relevance threshold 必须等固定 Fixture 内容形成后才能校准；部分 outage 会降低证据覆盖而非伪装正常。
+
+#### P-66B — One Aggregate Retrieval Score Gate
+
+把 recall、latency、cost、coverage 与人工评分合成一个总分，达到阈值即可接受。
+
+**优点：** 报告简洁、容易比较。
+
+**代价：** 严重的 Scope leakage 可被其他高分抵消，Rubric 变成机械接受器，也掩盖不同查询类型的失败。
+
+#### P-66C — Live-provider-only Evaluation and Silent Fallback
+
+主要依赖实时 Provider / ad hoc queries 验证；任何 channel 失败时静默切换其余 channel 并继续生成。
+
+**优点：** 看起来接近真实运行且流程不中断。
+
+**代价：** 不可重复、依赖 Secret / 网络、难以定位回归；静默降级会让用户误判证据覆盖，并可能在关键缺口下继续生成。
+
+#### Recommendation
+
+Choose P-66A. It separates non-negotiable correctness from relevance judgment, uses the already accepted representative fixture strategy and keeps degraded behavior explicit instead of optimistic.
+
+## Round 3 decision status and next gate
+
+- `P-64 / P-65 / P-66 = PROPOSED`; none is Accepted until the user explicitly chooses an option.
+- Recommended combination: `P-64A + P-65A + P-66A`.
+- If accepted, archive the three decisions in one RFC-005 Decision Record, update only accepted Current Truth, and proceed to DQ-10 covering adoption order, exact Embedding profile closure evidence, reconciliation / test slices and RFC final acceptance readiness.
+- This round does not create OpenAPI, schemas, fixtures, migrations, indexes, evaluation code, Source / Evidence API, Technical Spikes or Goal execution.
 
 ## Risks and stop conditions
 
@@ -356,4 +473,4 @@ Even though P-58A / P-59A / P-60A are accepted, the following remain `NOT GRANTE
 
 ## Outcome
 
-P-58A / P-59A / P-60A ACCEPTED AND ARCHIVED AS DEC-067. PENDING USER DECISIONS FOR P-61～P-63.
+P-58A～P-60A ACCEPTED AND ARCHIVED AS DEC-067. P-61A～P-63A ACCEPTED AND ARCHIVED AS DEC-068. PENDING USER DECISIONS FOR P-64～P-66.

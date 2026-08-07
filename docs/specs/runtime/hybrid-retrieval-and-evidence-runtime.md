@@ -1,8 +1,8 @@
 # Hybrid Retrieval and Evidence Runtime — 概念 Specification
 
-> **Status: CONCEPTUAL WITH ACCEPTED AMENDMENT（概念；DEC-067 已修订 Evidence Package 重现方式）**
-> 来源决定：[DEC-032 — Hybrid Retrieval and Evidence Runtime](../../decisions/dec-032-hybrid-retrieval-and-evidence-runtime-architecture.md) 与 [DEC-067 — Versioned Source Intake and Format-aware Fragment Contract](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)（Accepted）。DEC-067 移除旧概念 `package_hash`，以 Source Set manifest、Retrieval Plan / Run identity 与可读组件版本保持重现；DEC-032 其余边界不变。
-> 本文件是 DEC-032 的**概念结构化记录**，**不是最终实现契约**。所有字段名、枚举、Schema、阈值、算法、Prompt、模型均未确认。
+> **Status: PARTIALLY FROZEN（DEC-067 + DEC-068 已接受；RFC-005 DQ-07～10 待闭合）**
+> 来源决定：[DEC-032 — Hybrid Retrieval and Evidence Runtime](../../decisions/dec-032-hybrid-retrieval-and-evidence-runtime-architecture.md)、[DEC-067 — Versioned Source Intake and Format-aware Fragment Contract](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md) 与 [DEC-068 — PostgreSQL-native Versioned and Deterministic Retrieval Baseline](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)（Accepted）。DEC-067 移除旧概念 `package_hash`；DEC-068 冻结 PostgreSQL-native derived retrieval plane、单一版本化 Embedding Profile、immutable index generation、Direct-first deterministic Planner、RRF、seed bounds 与 no-baseline-reranker。
+> 本文件仍不是最终实现 Schema。公共 Source / Evidence transport、Evidence Package / Formal Evidence Link 最终字段、evaluation / degraded behavior、exact Embedding model / dimensions 与 RFC closure 尚待后续 Decision。
 > Development Status: **NOT READY**。
 
 ---
@@ -53,7 +53,7 @@ Skill Retrieval Request
 - 不创建 Formal Evidence Link / Fact / Insight / Positioning / Approved Strategy / Execution Brief（须经对应 Validator 与业务事务）；
 - 不计算正式总体频率 / 统计比例（须由确定性统计服务基于完整可计数数据集产生，承接 DEC-027）；
 - 不决定最终 Source Scope / Product Scope / Source Set Version / 访问权限（由业务身份与确定性逻辑前置确定，Runtime 仅执行过滤）；
-- 不选择具体 Embedding 模型 / 向量数据库 / 词法搜索引擎 / BM25 实现 / Rank Fusion 算法 / Score Normalization / 融合权重 / Top-K / Reranker / Chunk Size / Chunk Overlap / Query Rewrite 模型 / 缓存技术 / 索引刷新机制。
+- 不自行选择 exact Embedding model / dimensions、tokenizer / threshold、ANN 参数、Chunk Size / Overlap、缓存技术或运维阈值；这些只能由 RFC-005 final closure、固定评测证据、Testing Strategy 或 RFC-007 的相应权威冻结。
 
 ---
 
@@ -68,7 +68,7 @@ Skill Retrieval Request
 4. Lexical Retrieval           （词法检索）
 5. Semantic Retrieval          （语义检索）
 6. Hybrid Retrieval            （混合检索）
-7. Optional Reranking          （可选 Reranking）
+7. Optional Reranking          （首个 Goal baseline 不启用）
 ```
 
 优先级 1–3 为 **Direct 读取**（确定性、可完全复现、无相关性打分）；优先级 4–6 为 **Retrieval 检索**（基于相关性打分召回）；优先级 7 为可选增强。
@@ -107,7 +107,7 @@ Skill Retrieval Request
 
 ## §8 Lexical Retrieval
 
-词法检索（如 BM25）。
+词法检索使用 PostgreSQL-native derived plane：语言适配的 `tsvector` + GIN，并为 CJK / identifier-heavy 内容提供有界 `pg_trgm` + GIN lane。
 
 - 基于关键词 / term 匹配；
 - 返回 `lexical_rank`、`matched_terms[]`；
@@ -122,7 +122,8 @@ Skill Retrieval Request
 
 - 基于语义相似；
 - 返回 `semantic_rank`；
-- Embedding 模型未确认；
+- 使用 `pgvector` filtered exact nearest-neighbor 作为首个 Goal 基线；HNSW / IVFFlat 只有在评测证明 latency / recall 需要且 Scope isolation 仍安全时才可另行提案；
+- exact OpenAI Embedding model identifier / dimensions 尚待 RFC-005 final closure；
 - 不可用时回退 Structured + Lexical（见 §27）。
 
 ---
@@ -134,16 +135,15 @@ Lexical + Semantic 融合检索。
 - 调用 §8 + §9；
 - 经 §11 Fusion 合并；
 - 记录 `fused_rank`；
-- Fusion 方法与权重未确认。
+- 使用 RRF，保留每个 channel 的原始 rank；不直接组合 raw scores。
 
 ---
 
 ## §11 Score and Fusion Boundary
 
 - **不得直接相加不同量纲分数：** BM25（词法）与 Vector similarity（语义）属不同量纲，**不得**直接数值相加。
-- **可用 Rank Fusion 或 Score Normalization + Weighted Combination。**
-- **融合方法须满足：** 可复现、可版本化、保留原始各通道排名（raw ranks）、可解释、可替换。
-- 本文件**不**选择具体融合算法 / Score Normalization 方法 / 融合权重。
+- **采用 Reciprocal Rank Fusion：** RRF rank constant seed 为 60；保留原始各通道排名、matched query 与可读 Fusion version。
+- **候选边界：** 每通道最多 20 个 candidates，Fusion 后最多返回 12 个 Candidate Fragments；这些不是 Evidence strength、统计频率或机械验收分。
 
 ---
 
@@ -186,17 +186,15 @@ Planner 接收 RetrievalRequest，输出 RetrievalPlan（概念字段）：
 
 - Planner 决定**检索方式与边界**，不是业务结论；
 - Plan 可复现、可版本化（`retrieval_plan_version`）；
-- Planner 可有限借助 LLM 做 Query Planning（见 §14）。
+- 首个 Goal Planner 不调用 LLM；使用最多 4 个确定性 query variants，并逐字保留 exact identifiers。
 
 ---
 
-## §14 LLM Query Planning Boundary
+## §14 Query Planning Boundary
 
-- **LLM 可辅助：** 意图识别 / 子查询拆分 / 有限 Query Rewrite / 同义表达 / 主题查询候选。
-- **LLM 不得决定：** `task_id` / `workspace_id` / Permission / Source Scope / Product Scope / Source Set Version / 是否允许跨任务检索。
-- **Exact identifiers 必须逐字保留：** SKU / 型号 / 认证编号 / 数字 / 单位 / 品牌名 / Fragment ID / Source Version ID 在 Query Rewrite 中不得改写、翻译或泛化。
-- **Query Rewrite 数量有确定性上限：** 不允许无限发散查询。
-- **LLM 不接触访问范围控制。**
+- 首个 Goal 不使用 LLM Query Rewrite；Query 由 purpose、Skill / user query、结构化 aliases 与 exact identifiers 确定性构造。
+- Exact identifiers 必须逐字保留，不得改写、翻译或泛化。
+- 未来引入 LLM rewrite 必须由固定评测证明必要并形成 RFC amendment；即使引入，LLM 也不得决定 Task / Workspace / Permission / Source Scope / Product Scope / SourceSetVersion。
 
 ---
 
@@ -227,7 +225,7 @@ Planner 接收 RetrievalRequest，输出 RetrievalPlan（概念字段）：
 
 - 过滤在召回前 / 召回中生效，不是「先全召回再删除」；
 - 强制过滤应在索引层 / 查询层前置应用；
-- 本文件**不**选择具体向量数据库实现；Pre-filter / Post-filter 的具体工程实现未确认。
+- Direct / Exact / Lexical / Semantic / Hybrid 复用同一 PostgreSQL SQL authorized candidate relation；应用层 post-filter 不能作为隔离正确性路径。
 
 ---
 
@@ -312,10 +310,10 @@ Candidate Fragment 为概念对象（非最终 Schema）：
 
 ## §21 Reranking
 
-- Reranking 是**可选增强**，不是 MVP 硬依赖；
+- 首个 Goal baseline 不启用 Reranking；只有固定评测证明 deterministic Planner + RRF 存在实质相关性缺陷时才可另行提案；
 - Reranker 只能对「已允许」的 Candidate Fragments 重排；
 - 不得新增来源、不得修改 Scope / Version、不得创建 Evidence Link；
-- 必须记录 Reranker 模型与版本；
+- 未来获准使用 Reranker 时必须记录其模型与版本；
 - Reranker 失败 → 回退到 Fusion 结果；
 - 是否引入 Reranking 由 Retrieval Evaluation 决定。
 
@@ -332,8 +330,8 @@ Evidence Package 是 Skill 的可复现证据输入。构建流程（概念步�
 4.  执行 Direct Read / Exact Lookup / Lexical / Semantic / Hybrid
 5.  召回 Candidate Fragments
 6.  去重（按 fragment_id，保留通道与 record_id）
-7.  Fusion（Rank Fusion 或 Score Normalization + Weighted）
-8.  Optional Reranking（失败回退 Fusion）
+7.  RRF Fusion（按 fragment_id 去重并保留 channel ranks）
+8.  首个 Goal 不 Rerank；未来获准时失败回退 Fusion
 9.  Coverage 检查
 10. Conflict 检查（记录 known_conflicts[]）
 11. 装配 Evidence Package
@@ -391,7 +389,7 @@ Evidence Coverage 不得只展示 Top 10。必须检查并报告：
 ## §25 Retrieval Logging
 
 - 每次检索记录一条 RetrievalRun（Plan、过滤条件、组件版本、召回结果概要、时间）；
-- 可记录检索组件版本（Embedding 版本 / 索引版本 / Reranker 版本 / Fusion 方法版本）；
+- 必须记录适用的 Embedding Profile / index generation / lexical profile / Fusion version；未来获准 Reranker 时才记录其版本；
 - 本文件暂不选择具体检索日志技术。
 
 ---
@@ -470,24 +468,18 @@ Formal Evidence Link 仅在 Skill 输出通过 Evidence Validator 后才创建�
 
 ## Open Questions
 
-以下为 DEC-032 明确**未确认**的项目，须由后续议题与评测决定（本文件不发明答案）：
+以下为 DEC-067 / 068 后仍**未确认**的项目，须由后续议题与评测决定：
 
-- Embedding 模型；
-- 向量数据库（Vector Database）；
-- 词法搜索引擎（Lexical Search Engine）/ BM25 实现；
-- Rank Fusion 算法；
-- Score Normalization 方法与融合权重；
-- Top-K 值（K 未确认）；
-- Reranker 模型与是否引入；
+- exact Embedding model identifier / dimensions；
+- PostgreSQL extension / package exact versions、tokenizer 与 trigram threshold；
+- ANN 是否需要及其参数（默认不启用）；
+- Reranker / LLM Query Rewrite 是否由未来评测解锁（默认不启用）；
 - Chunk Size / Chunk Overlap；
-- Query Rewrite 模型；
 - 缓存技术（Cache Technology）；
-- 索引刷新机制（Index Refresh Strategy）；
-- 数据库 / API 框架；
+- DQ-07～09 的 public transport、Evidence Package / Formal Evidence Link 与 evaluation / degraded behavior；
 - 性能目标（延迟 / 成本阈值）；
 - 最终字段名称、Schema、枚举；
 - 最终错误代码；
-- Pre-filter / Post-filter 的具体工程实现；
 - 检索日志的具体技术；
 - RetrievalPlan / RetrievalRequest / Candidate Fragment / EvidencePackage 的最终 Schema。
 

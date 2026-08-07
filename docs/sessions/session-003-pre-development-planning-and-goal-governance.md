@@ -1474,3 +1474,38 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `P-61 / P-62 / P-63 = PROPOSED`；推荐组合为 `P-61A + P-62A + P-63A`。
 - 用户明确接受前，不创建对应 DEC，不把 PostgreSQL retrieval topology、OpenAI Embedding profile、RRF 或 seed bounds 写成 Accepted Current Truth。
 - 本轮不接受 RFC-005 整体，不安装扩展 / 依赖，不创建 Schema / Migration / Index / Parser / Embedding / Retrieval / API / Frontend，不调用 OpenAI，不执行 Evaluation / Technical Spike，也不创建或激活 Goal。
+
+## RFC-005 Round 2 Acceptance and Proposal Round 3（2026-08-07）
+
+### User Decision and Archive Result
+
+- 用户明确回复：「接受 P-61A、P-62A、P-63A」。
+- P-61A / P-62A / P-63A 已归档为 [DEC-068](../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)，RFC-005 DQ-04～06 = `ACCEPTED`。
+- P-61A 冻结同 PostgreSQL Service 的非权威 derived retrieval plane：Exact / key、语言适配 `tsvector` / GIN、CJK / identifier-heavy bounded `pg_trgm` / GIN，以及首 Goal `pgvector` filtered exact NN；mandatory scope / eligibility 在 SQL candidate relation 中先于 ranking，ANN 不默认启用。
+- P-62A 冻结 Retrieval-owned 单一 OpenAI Embedding Port / Profile、可读 profile version、immutable index generation、side-by-side reconcile + atomic switch 与 eligibility-first removal；exact model identifier / dimensions 必须在 RFC-005 final closure 冻结，Implementation Agent 不得选择。
+- P-63A 冻结 deterministic Direct-first strategy catalog、首 Goal 无 LLM Query Rewrite、按 Fragment 去重、RRF 与 4 query variants / 20 candidates per channel / RRF constant 60 / 12 fused candidates 的 seed bounds；这些数字不是 Evidence strength、frequency 或机械 acceptance score，首 Goal 无 baseline Reranker。
+- 接受不授权 PostgreSQL extension / dependency 安装、Schema / Migration / Index / Retrieval / API / Frontend、Live Provider、Evaluation / Spike 或 Goal。
+
+### P-64 — Authoritative Scope and Public Transport
+
+- **P-64A（推荐）：** Workspace / Task / Source Scope 由服务端从 accepted Task、Skill Contract、TaskSourceAssociation 与 SourceSetVersion 推导；所有 channel 复用同一 SQL authorized candidate relation。只填充 RFC-004 已委托的 Source intake / item result、Source summary / version processing、Source / Evidence collections，并使用 opaque cursor keyset pagination（默认 20、最大 50）；公共投影不暴露 vectors、index rows、Provider payload、private storage refs 或 rank-as-confidence。RFC-004 的 Source remove / replace Preview / Confirm operations 不变。
+- **P-64B：** Client-selected Scope + offset pagination；灵活但把授权范围交给不可信客户端，异步列表也易漂移。
+- **P-64C：** broad retrieval + application post-filter + public index details；调试方便但内容先越过边界，且泄漏实现与混淆 rank / evidence。
+
+### P-65 — Retrieval Record, Evidence Package and Formal Evidence
+
+- **P-65A（推荐）：** immutable RetrievalRun 记录 Plan / SourceSet / authorized filter summary / component generation / candidate summary / degradation；EvidencePackage 用 immutable references 固定 Skill input，不复制整库正文或使用 digest；DatasetStatistic 只来自 complete countable Record set 的 deterministic analysis；Evidence Validator 后在一个业务事务内原子创建 Domain Version + Formal Evidence Link + Current Truth / audit，不允许部分提交。Retrieval rank 留在解释记录，不成为 Evidence confidence。
+- **P-65B：** fully copied Evidence Package as Business Truth；读取简单但重复私有正文、混淆 Candidate / Formal Evidence / Current Truth。
+- **P-65C：** one generic mutable Evidence object；Schema 少但压扁不同生命周期、事务与可信度。
+
+### P-66 — Evaluation and Explicit Degradation
+
+- **P-66A（推荐）：** 复用虚构 Anchor SKU 的三个变体 + mutation，覆盖 exact、CJK lexical、semantic / hybrid / counter-evidence、scope isolation、dataset statistic、zero result、remove / replace、semantic outage 与 incomplete generation。Scope / stale / Top-K extrapolation / fabricated zero-result / deterministic replay / Formal Evidence commit 为行为硬门禁；Recall@K / reciprocal-rank / coverage + 人工 `PASS / FAIL` 共同判断可用性，不合成机械总分。Fallback 显式传播 limitation、绝不扩大 Scope 或切换到不安全 generation；ANN / Reranker / LLM rewrite 只由 before / after 证据解锁。
+- **P-66B：** one aggregate retrieval score；报告简单但可让严重 leakage 被其他分数抵消。
+- **P-66C：** live-provider-only evaluation + silent fallback；接近实时但不可重复，且会掩盖证据覆盖缺口。
+
+### Proposal Status and Next Gate
+
+- `P-64 / P-65 / P-66 = PROPOSED`；推荐组合为 `P-64A + P-65A + P-66A`。
+- 用户明确接受前，不创建对应 DEC，不把 public projection、pagination、Evidence commit 或 evaluation / degraded contract 写成 Current Truth。
+- 接受后只归档 DQ-07～09，并进入 DQ-10 adoption / exact Embedding profile evidence / reconciliation / test slices / RFC closure 提案；不接受 RFC-005 整体、不合并 PR #57、不关闭 Issue #56、不实现或启动 Goal。
