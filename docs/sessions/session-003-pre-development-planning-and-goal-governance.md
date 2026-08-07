@@ -1408,3 +1408,35 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - 不创建或修改 `contracts/openapi/openapi.yaml`、API Route、Handler、generated client、Frontend、Database、Migration、测试实现或生产文件。
 - 不执行 TS-01～TS-05、Live Provider 调用或任何新 Technical Spike。
 - 不创建或激活实际长期 Goal；仍需完成 RFC-005、RFC-007、Readiness、Testing、Development Plan、Goal 文本与最终 Implementation Readiness Review，并获得用户明确「进入 Goal 执行阶段」批准。
+
+## RFC-005 Planning Gate Launch and Proposal Round 1（2026-08-07）
+
+### Gate Transition
+
+- PR #55 已在 8 / 8 Required Checks 通过后合并，merge commit 为 `edeb93b`；Issue #54 已关闭。
+- 创建 [Issue #56](https://github.com/JettxonHo/ai-ecommerce-agent/issues/56) 承载 RFC-005 Source Processing and Retrieval Architecture；当前只授权文档策划。
+- 新建独立分支 `codex/rfc-005-source-retrieval`；未创建 Parser、Fragmenter、Embedding、Index、Retrieval、API、Frontend、Database、Migration、依赖或 Spike。
+
+### P-58 — Source Authority, Association and Reproducible Manifest
+
+- **P-58A（推荐）：** 保持 PostgreSQL 权威 Source / Evidence 图与 RFC-002 Inline / External 分类；分离 Source、不可变 Source Version、可变 Task Source Association revision 与版本化 Derived Artifact；Source Set manifest 固定精确 Version 输入；Evidence Package 使用可读 identity / version manifest，不新增 `package_hash`、SHA-256 或公共 Digest，并在接受时显式修订 DEC-032 的概念 `package_hash`。
+- **P-58B：** 每个 Evidence Package 复制全部候选正文形成自包含快照；易查看但重复私有资料、增加保留 / 移除风险并模糊权威图。
+- **P-58C：** 只存 Source identity、读取时解析最新版本；最省引用但破坏历史可复现性。
+
+### P-59 — Registration, Processing and Partial Acceptance
+
+- **P-59A（推荐）：** 多项输入采用每 Source 原子登记 + Durable Processing + typed per-item result；有效项不因兄弟项失败回滚；评论 CSV 可在有效子集诚实时接受合法行并报告有界 row issues，TXT / Markdown / PDF 不制造页级伪部分成功；处理成功不等于 Fact / QC / Approval。
+- **P-59B：** 整批全成全败；简单但违反已接受的部分接受与恢复边界。
+- **P-59C：** 上传请求内同步完成全部解析 / Fragment / Index；隐藏中间态但不适合 PDF / CSV，且绕过 Durable Processing。
+
+### P-60 — Fragment and Locator
+
+- **P-60A（推荐）：** 四类格式使用结构感知确定性 Lane：表单字段、TXT / Markdown heading + line range、文本 PDF page + block / character range、评论 CSV row + column；Fragment 不跨 Source Version / Record / PDF page，展示原文与检索归一文本分离，Fragmenter 改变创建新 Derived Artifact / Fragment identities，不新增 OCR。
+- **P-60B：** 所有输入统一固定 token + overlap；实现简单但破坏 CSV 计数、PDF 页定位与 Markdown 结构。
+- **P-60C：** 查询时临时生成 Fragment；无需持久 Fragment，但无法稳定支撑 Evidence Link 与历史引用。
+
+### Proposal Status and Next Gate
+
+- `P-58 / P-59 / P-60 = PROPOSED`；推荐组合为 `P-58A + P-59A + P-60A`。
+- 用户明确接受前，不创建 DEC，不把推荐写入 Current Truth，不进入 DQ-04～06 的 Retrieval Topology / Component Version / Planner & Fusion 决策。
+- 本轮不授权 RFC-005 整体、实现、依赖、Technical Spike、RFC-007 或 Goal。
