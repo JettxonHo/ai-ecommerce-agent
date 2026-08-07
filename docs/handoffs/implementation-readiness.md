@@ -4,7 +4,7 @@
 >
 > Foundation、RFC-001～003 与 RFC-006 已完成，但 Business / Production Implementation、TS-01～TS-05 执行和实际 Goal 均未授权。已完成的 Spike-001 不在本禁令所指范围内。
 >
-> **Current Gate（2026-08-07）：** 用户已接受 Product Specification 整体闭合，并授权合并 PR #53、关闭 Issue #52 与进入 RFC-004 策划 Gate。RFC-004 / 005 / 007 仍为 `PROPOSED`；本次 Gate 变更不接受任何 RFC，不授权 Technical Spike、业务实现或 Goal 激活。
+> **Current Gate（2026-08-07）：** Product Specification 已整体闭合，PR #53 已合并且 Issue #52 已关闭；Issue #54 承载 RFC-004 策划，RFC-004 = `DRAFTING`，RFC-005 / 007 = `PROPOSED`。当前未接受任何 RFC-004 Proposal，不授权 Technical Spike、业务实现或 Goal 激活。
 
 进入开发至少需要以下条件**全部**满足，并须先通过 Implementation Readiness Review（见 [../reviews/](../reviews/)），再由用户明确批准。
 
@@ -60,7 +60,7 @@
 - **Architecture Readiness:** CONDITIONALLY READY
 - **Development Status:** CONDITIONALLY READY（仅策划与治理）
 - **Spike-001:** COMPLETED
-- **RFC:** RFC-001 / RFC-002 / RFC-003 / RFC-006 = ACCEPTED；RFC-004 / 005 / 007 = PROPOSED
+- **RFC:** RFC-001 / RFC-002 / RFC-003 / RFC-006 = ACCEPTED；RFC-004 = DRAFTING；RFC-005 / 007 = PROPOSED
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
 - **产品交互与验收:** 单任务工作台、确认式局部重跑、输入门禁、审核 / Brief / Evidence / Recovery / Markdown 导出 = ACCEPTED（DEC-044～048）；产品 / 技术权威边界、虚构 Anchor SKU、有限结构化 Needs Input、证据约束声明完整性、Task 范围资料与可逆移除、最小最近任务入口 = ACCEPTED（DEC-057～062）；前端应用 / 状态 / Contract Generation / Verification Foundation = ACCEPTED（DEC-055）；深 TaskWorkbench、Primitive / Styling、私有投影、revision-safe Autosave / Diff、Accessibility / Browser / Reflow / Performance = ACCEPTED，外层 Router 由 DEC-062 增加 `/tasks` 入口（DEC-056 / 062）。Product Final Consistency Review = PASS，Product Specification 整体闭合已由用户接受；公共 Schema、状态 / 错误 / Conflict / Pagination / 下载协议、物理生命周期与 Fixture 载体分别待 RFC / Readiness / Testing Strategy

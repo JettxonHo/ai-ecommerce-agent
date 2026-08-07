@@ -1222,3 +1222,43 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - PR #53 可在最新 Required Checks 通过且合并前五轴 Review 无阻塞 Finding 后合并；Issue #52 随后关闭。
 - 下一活动 Gate 为 RFC-004 API and Human Review Architecture 策划。RFC-004 本身仍为 `PROPOSED`，必须继续经过方案、用户 Decision、Final Consistency Review 与整体接受流程。
 - 本接受不授权 RFC-005、RFC-007、Technical Spike、依赖安装、业务实现、数据迁移、Goal 创建 / 激活或发布。
+
+## RFC-004 Gate Start and Proposal Round I（2026-08-07）
+
+### Gate Transition
+
+- PR #53 已在最新 8 项 Required Checks 全部通过、独立 Sol / `xhigh` 五轴 Review 无阻塞 Finding后合并；Merge Commit 为 `ff4a178`。
+- Issue #52 已关闭；[Issue #54](https://github.com/JettxonHo/ai-ecommerce-agent/issues/54) 成为 RFC-004 的独立策划事实来源，分支为 `codex/rfc-004-api-human-review`。
+- [RFC-004 Draft](../rfcs/rfc-004-api-and-human-review-architecture.md) 已创建，状态为 `DRAFTING`；创建 Draft 与进入 Gate 不等于接受 RFC 或任一 Proposal。
+
+### Standards and Project Evidence
+
+- OpenAPI 3.1 的语言无关 HTTP Contract、OAS feature version 与 API 自身版本分离能力来自官方 OpenAPI Specification；项目已由 DEC-055 接受 OpenAPI 3.1 → TypeScript Generated Client 边界。
+- `202 Accepted`、strong ETag / `If-Match` 和 `Retry-After` 的标准语义来自 RFC 9110；`202` 只表示请求已接受处理，不表示处理完成。
+- 公共错误共同形态参考 RFC 9457 `application/problem+json`；Human-readable detail 不作为机器控制数据。
+- `Idempotency-Key` 在本次核验时仍只是 2026-04-18 已过期的 IETF Internet-Draft，不是最终 RFC。若项目采用该字段名，完整行为必须由 RFC-002 DQ-08 与 RFC-004 自行冻结，不依赖草案状态。
+
+### P-48 — Contract Authority, Namespace and Interface Topology
+
+- **P-48A（推荐）：** OpenAPI 3.1 Contract-first；`/api/v1` 单一当前主版本；查询使用显式 Resource，状态修改使用逐项 typed Command；拒绝让客户端 Patch 状态或调用 generic action dispatcher。
+- **P-48B：** Pure REST Resource Mutation；路径较统一，但容易把非法状态转换和业务 Command 伪装为普通字段更新。
+- **P-48C：** One Workbench Endpoint + Generic Action Dispatcher；路由少，但耦合 UI、削弱类型生成并形成不受控通用入口。
+
+### P-49 — Revision Preconditions, Idempotency and Conflict
+
+- **P-49A（推荐）：** 受保护写操作携带真正需要的 semantic precondition；可重试非幂等 Command 使用项目自定义完整语义的 `Idempotency-Key`；stale precondition 返回 typed `409`，不在首 Goal 强制维护第二套 ETag write authority。异步命令首次接受返回 `202`，已提交的同 Key / 同输入重放固定返回 `200` + 完全相同的不可变 Command Receipt 与 monitor identity；当前 Run 状态只从 `Location` 获取，响应 Schema 不随时间改变。
+- **P-49B：** 所有受保护写使用 strong ETag / `If-Match`，非幂等操作另加 Idempotency Key；更 HTTP-native，但多资源业务 Command 和前端 revision-safe 编辑需要额外 Transport Validator 状态。
+- **P-49C：** 单资源编辑使用 ETag / `If-Match`，多资源 Command 使用 Body precondition；能够精细采用 HTTP 条件请求，但形成 `409 / 412` 两套冲突与两个并发 Transport，对首个受控客户端不相称。
+- 幂等重放必须在已知 Key 场景先于当前 revision 重检，否则“首次提交成功但响应丢失”的重试会被错误判定为 stale；Public Contract 不暴露 Hash / Digest，Idempotency Key 与 Command / Run / Attempt Identity 分离。
+
+### P-50 — Durable Async Acceptance, Polling and Error Projection
+
+- **P-50A（推荐）：** 只有真正异步的 Start / Resume / Rerun / Cancel 等操作在权威耐久接受记录提交后返回 `202` + Command Receipt + canonical Run monitor；Start / Resume / Rerun 提交 Durable Work Intent，Cancel 提交 `cancellation_requested`，不要求 Cancel 新建第二个 Work Intent。Draft Save 等同步写使用真实 `200 / 201`。活动期窄轮询 Run，阶段 / 终态变化后刷新窄 Task Overview 与受影响 Resource，由前端重新派生私有 WorkbenchProjection；Capability 是 revision-bound advisory allowlist，不是授权凭证。4xx / 5xx 采用 RFC 9457 Problem Details，Needs Input / Review Wait / Manual Recovery 和已接受后的 Run Failure 属于 Resource 状态而非 HTTP Error。
+- **P-50B：** `202` + Task Snapshot only；资源少，但 Run / retry / rerun / cancel / receipt replay 语义被迫挤进 Task。
+- **P-50C：** Push-first SSE / WebSocket；更新更即时，但扩大连接、部署、恢复和测试范围，不符合首个本地单工作区 Goal。
+
+### Proposal Status and Authorization Boundary
+
+- `P-48 / P-49 / P-50 = PROPOSED`；用户明确接受前不得创建 DEC 或同步为 Accepted Current Truth。
+- 本轮只创建 RFC Draft、更新 Proposal / Current Gate 状态并提出方案；不创建 OpenAPI Artifact、API / Frontend / Worker / Database / Migration / Test Implementation，不安装依赖，不执行 Technical Spike，不创建或激活 Goal。
+- 用户完成本轮 Decision Gate 后，下一轮才继续 DQ-04～06：Task / Workbench Query、Recovery Command 与 Human Review Protocol。
