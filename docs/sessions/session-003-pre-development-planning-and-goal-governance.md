@@ -1336,3 +1336,29 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - `P-54 / P-55 / P-56 = PROPOSED`；未获用户确认，不能同步为 Accepted Current Truth。
 - 接受后只归档 DQ-07～09，并进入 DQ-10 OpenAPI Closure / Adoption / Contract Test 最终提案；不合并 PR #55、不关闭 Issue #54、不接受 RFC 整体、不实现 API 或启动 Goal。
+
+## RFC-004 Acceptance Archive III and Final Proposal Round（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 `P-54A`：Marketing Brief / Xiaohongshu Brief 使用独立不可变 Version Resource、Task Current Truth references、semantic-group Comparison 与 typed revise；导出通过 Preview → Confirm 创建可重放的单 Brief UTF-8 Markdown Export Snapshot，不增加 PDF / JSON、异步文档任务或内容 Hash。
+- 用户明确接受 `P-55A`：所有 4xx / 5xx 使用 RFC 9457 Problem Details，采用有限稳定 Problem Type / typed action catalog；正常 Needs Input、waiting Review、manual recovery 与 failed Run 保持 Resource state，不暴露内部异常矩阵。
+- 用户明确接受 `P-56A`：Workspace 由服务端固定配置，Browser 不选择 Workspace；首个 Goal 采用 loopback + same-origin `/api/v1`、CORS closed 与 state-changing Origin 匹配，不建设 Login、Token、RBAC、多租户或公网认证。
+
+### Archive Result
+
+- `P-54 / P-55 / P-56 = ACCEPTED`；[DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md) 是三项权威 Decision，RFC-004 DQ-07～09 已闭合。
+- RFC-004 仍为 `DRAFTING`；DQ-10、Final Consistency Review 与用户整体接受仍未完成。
+- 接受只授权策划文档同步，不创建 OpenAPI、API、Client、Export / Database / Migration、测试实现、Technical Spike 或 Goal。
+
+### P-57 — OpenAPI Closure, Compatibility, Generated Client and Contract Tests
+
+- **P-57A（推荐）：** Goal 激活后先创建唯一 `contracts/openapi/openapi.yaml` entry contract；冻结 Task、Run / Recovery、Needs Input、Source-change、Review、Brief 与 Export 的 first-Goal Operation catalog，Task recent 默认 / 最大窗口 `20 / 50`、Brief history `10 / 25`，以及 Task / Stage / Run、Resource / Command / Problem Schema family；只允许 `/api/v1` additive evolution，公共 enum 新值须同 PR 更新 unknown fallback；使用 `openapi-typescript` + `openapi-fetch` 派生不可手改客户端并执行 clean-diff，Contract Tests 验证 OAS、examples、status / media、幂等 / conflict、Review / Export 与 fixed-workspace 代表性行为。RFC-005 / 007 只补齐各自拥有的 refs / extensions，不创建第二 Contract authority。
+- **P-57B：** 先实现 Handler，再从 Backend implementation 生成 OpenAPI 并复制给 Frontend；启动快，但把实现变为事实源、Contract Review 后置且易产生快照漂移。
+- **P-57C：** 开发前穷举 Source / Evidence / Observability / Auth / Tenant / Retention / Search / Push / 全部内部错误；表面完整，但越过 RFC-005 / 007 与 MVP 范围并制造无需求依据的长期兼容承诺。
+
+### Proposal Status and Next Gate
+
+- `P-57 = PROPOSED`；未获用户确认，不能同步为 Accepted Current Truth 或 DEC。
+- 当前 DQ-01～09 已接受；接受 P-57A 后只归档 DQ-10 并执行 RFC-004 Final Consistency Review。
+- Final Review 完成后仍须单独取得用户对 RFC-004 整体的明确接受，才可合并 PR #55、关闭 Issue #54 并进入 RFC-005 Gate；本轮不实现 API 或启动 Goal。

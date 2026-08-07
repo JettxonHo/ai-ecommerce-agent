@@ -77,10 +77,10 @@ RFC-005 owns Source / Fragment / Evidence Locator, retrieval, ranking, evidence 
 | DQ-04 | Task creation, recent-task index and Workbench read models | ACCEPTED as P-51A（DEC-064） |
 | DQ-05 | Needs Input, Source-facing task actions, cancel, resume, rerun and recovery commands | ACCEPTED as P-52A（DEC-064） |
 | DQ-06 | Review Package, Review Draft, Review Decision and Approved Strategy protocol | ACCEPTED as P-53A（DEC-064） |
-| DQ-07 | Brief versions, comparison, Current Truth result and Markdown export snapshot | PROPOSED as P-54 |
-| DQ-08 | Problem types, HTTP status mapping and user / retry action semantics | PROPOSED as P-55 |
-| DQ-09 | Fixed-workspace identity, transport and proportional authorization boundary | PROPOSED as P-56 |
-| DQ-10 | OpenAPI compatibility, tests, adoption and RFC closure | PENDING |
+| DQ-07 | Brief versions, comparison, Current Truth result and Markdown export snapshot | ACCEPTED as P-54A（DEC-065） |
+| DQ-08 | Problem types, HTTP status mapping and user / retry action semantics | ACCEPTED as P-55A（DEC-065） |
+| DQ-09 | Fixed-workspace identity, transport and proportional authorization boundary | ACCEPTED as P-56A（DEC-065） |
+| DQ-10 | OpenAPI operation / schema closure, compatibility, tests and adoption | PROPOSED as P-57 |
 
 No item in this table is Accepted until the user explicitly accepts the corresponding proposal and it is archived in a Decision record.
 
@@ -442,11 +442,121 @@ Frontend 在每个请求中发送静态 `X-Workspace-Id`，服务端按该 Heade
 
 Choose P-56A. It states the honest security boundary of the local demo, prevents client-selected workspace scope, and adds only the same-origin protections justified by the actual threat surface.
 
-## Round 3 proposal status and next gate
+## Round 3 decision status
 
-- P-54 / P-55 / P-56 are `PROPOSED`; no option is Accepted until the user explicitly confirms it and a Decision record is archived.
-- P-54A does not add PDF / JSON user export, asynchronous document jobs or content hashes. P-55A does not expose internal exception matrices. P-56A is not public-deployment authentication.
-- If this round is accepted, the final Decision proposal will cover DQ-10: exact OpenAPI operation / schema closure, compatibility, generated-client adoption, Contract Tests and RFC-004 Final Consistency Review readiness.
+- 用户于 2026-08-07 明确接受 P-54A / P-55A / P-56A，三项归档为 [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md)。
+- `DQ-07 / DQ-08 / DQ-09 = ACCEPTED`；该部分接受不等于 RFC-004 整体接受。
+- P-54A 不增加 PDF / JSON 用户导出、异步文档任务或内容 Hash；P-55A 不公开内部异常矩阵；P-56A 不是公网部署认证。
+- 最后一个 Decision Gate 为 DQ-10：OpenAPI Operation / Schema closure、兼容、Generated Client adoption、Contract Tests 与 Final Consistency Review readiness。
+
+## Proposal Round 4 — Final Contract Closure
+
+### P-57 — OpenAPI Operation / Schema Closure, Compatibility, Tests and Adoption
+
+#### P-57A — One Contract Artifact + Bounded Operation Catalog + Generated-client Clean Diff（推荐）
+
+##### Contract artifact and naming
+
+- Goal 激活后的第一个 API Contract Issue 创建并提交单一 OpenAPI 3.1 entry document `contracts/openapi/openapi.yaml`。允许按 domain 拆分被 `$ref` 引用的 sibling documents，但 entry document 是唯一入口；OpenAPI Description 整体是公共 HTTP 权威，不能由 Handler 反向生成，也不能与手写 DTO 文档并列为第二事实源。
+- OpenAPI feature line 保持已接受的 `3.1`；当前核验采用 3.1.2 文义。`info.version` 独立表达本项目 API Contract revision，不把 OAS 版本、`/api/v1` 主版本和 Domain Version 混为一个字段。
+- JSON field 与 query parameter 使用 `camelCase`；稳定 identity 字段使用明确的 `{resource}Id`，Domain Version 使用 `{resource}VersionId` + `versionNumber`，可变 Resource 使用 `revision`。时间使用 UTC RFC 3339 `date-time`；公开 enum 使用 `snake_case`，与已接受的 Domain / Product 语义一致。
+- 每个 Operation 有唯一、稳定、动作明确的 `operationId`；每个 request、success response、Problem response、Header 与 media type 均显式引用 Schema。公共 body 默认 `application/json`，错误使用 `application/problem+json`，Snapshot 下载使用 `text/markdown; charset=utf-8`；不提供 undocumented body 或 alternate success shape。
+
+##### Exact first-Goal operation catalog
+
+| Family | Operations frozen for the first Goal |
+|---|---|
+| Task | `POST /api/v1/tasks`; `GET /api/v1/tasks`; `GET /api/v1/tasks/{taskId}`; `POST /api/v1/tasks/{taskId}/commands/start`; `POST /api/v1/tasks/{taskId}/commands/rerun` |
+| Run / recovery | `GET /api/v1/runs/{runId}`; `POST /api/v1/runs/{runId}/commands/cancel`; `POST /api/v1/runs/{runId}/commands/resume`; capability-gated `POST /api/v1/runs/{runId}/commands/retry-current-stage`; capability-gated `POST /api/v1/runs/{runId}/commands/restart-from-safe-boundary` |
+| Needs Input | `GET /api/v1/needs-input-requests/{actionRequestId}`; `POST /api/v1/needs-input-requests/{actionRequestId}/commands/resolve` |
+| Task-facing Source change | `POST /api/v1/tasks/{taskId}/source-associations/{sourceAssociationId}/previews/remove`; `POST /api/v1/tasks/{taskId}/source-associations/{sourceAssociationId}/commands/remove`; `POST /api/v1/tasks/{taskId}/source-associations/{sourceAssociationId}/previews/replace`; `POST /api/v1/tasks/{taskId}/source-associations/{sourceAssociationId}/commands/replace`; Source content、upload、processing 与 Evidence operations 由 RFC-005 提供 |
+| Human Review | `GET /api/v1/review-packages/{reviewPackageId}`; `GET /api/v1/review-packages/{reviewPackageId}/draft`; `PUT /api/v1/review-packages/{reviewPackageId}/draft`; `POST /api/v1/review-packages/{reviewPackageId}/commands/submit`; `POST /api/v1/review-packages/{reviewPackageId}/commands/request-more-information`; `POST /api/v1/review-packages/{reviewPackageId}/commands/reject-all-and-request-regeneration`; `GET /api/v1/approved-strategies/{approvedStrategyVersionId}`; `POST /api/v1/approved-strategies/{approvedStrategyVersionId}/commands/withdraw` |
+| Marketing Brief | `GET /api/v1/tasks/{taskId}/marketing-briefs`; `GET /api/v1/marketing-briefs/{marketingBriefVersionId}`; `POST /api/v1/marketing-brief-comparisons`; `POST /api/v1/marketing-briefs/{marketingBriefVersionId}/commands/revise` |
+| Xiaohongshu Brief | `GET /api/v1/tasks/{taskId}/xiaohongshu-briefs`; `GET /api/v1/xiaohongshu-briefs/{xiaohongshuBriefVersionId}`; `POST /api/v1/xiaohongshu-brief-comparisons`; `POST /api/v1/xiaohongshu-briefs/{xiaohongshuBriefVersionId}/commands/revise` |
+| Export | `POST /api/v1/tasks/{taskId}/export-previews`; `POST /api/v1/export-snapshots`; `GET /api/v1/export-snapshots/{exportSnapshotId}`; `GET /api/v1/export-snapshots/{exportSnapshotId}/content` |
+
+- RFC-005 补齐 Source / Source Version / Source Association identity 与 content / upload / processing / Evidence operations，但不得改变 DEC-064 的四个 Source-change typed Operation，也不得把它们合并成 generic action。实现 Agent 不得增删、改名或临场合并上述 RFC-004 Operation。
+- `GET /api/v1/tasks` 只有可选 `limit`，默认 `20`、最大 `50`；响应只有 `items` 与实际 `limit`，不承诺 total、cursor、任意 offset、搜索或完整历史。Task 在窗口外仍可通过稳定 identity 深链读取。
+- Brief history 同样使用 server-bounded recent window，默认 `10`、最大 `25`，不提供搜索、批量恢复或无限历史承诺。Comparison 始终由显式 base / target Version identity 驱动，不依赖列表位置。
+- 不在首个 Goal 添加 delete / purge、generic PATCH Task status、generic `/commands` dispatcher、batch、webhook、callback、SSE、WebSocket、public health diagnostics、login 或 Tenant operations。
+
+##### Public schema and state catalog
+
+- Common Schema 固定为 typed stable references、`ResourceRevision`、`DomainVersionReference`、`StageSummary`、`PrimaryAction`、revision-bound `Capability[]`、`CommandReceipt`、`ProblemDetails`、`FieldIssue` 与 typed conflict context。Public DTO 不复用 ORM / Checkpoint / Provider type。
+- First-Goal wire fields 至少冻结如下；OpenAPI 可以按复用关系拆成 Components，但不得删减、改义或把不同 identity 合并：
+
+| Schema | Required public fields / groups |
+|---|---|
+| `CreateTaskRequest` | `taskName`, `productCategory`, `promotionGoal`；`Idempotency-Key` 位于 Header |
+| `TaskSummary` | `taskId`, `taskName`, `productCategory`, `taskStatus`, `currentStage`, `waitingReason`, `updatedAt`, `revision`, `primaryAction`, `capabilities` |
+| `TaskOverview` | Summary identity / status / revision fields + `stages[]`, `activeRun`, `latestRun`, `needsInputRequest`, `reviewPackage`, `approvedStrategy`, `marketingBrief`, `xiaohongshuBrief`, `primaryAction`, `capabilities`；各关联对象只返回 typed reference |
+| `StageSummary` | `stage`, `status`, `currentVersion`, `lastValidVersion`, `lastRun`, `waitingReason`, `updatedAt` |
+| `CommandReceipt` | `commandId`, `commandType`, `taskId`, `acceptedAt`, `monitor`, `resultReference`（同步主结果存在时）；不返回 Attempt / Work Intent identity |
+| `Run` | `runId`, `taskId`, `sourceRunId`, `status`, `currentStage`, `startedAt`, `updatedAt`, `completedAt`, `failureSummary`, `lastValidResult`, `primaryAction`, `capabilities` |
+| `NeedsInputActionRequest` | `actionRequestId`, `taskId`, `revision`, `status`, `reasonType`, `reasonSummary`, `affectedStages[]`, `sourceReferences[]`, `conflictValues[]`, `allowedResolutionTypes[]`, `expectedRecovery`, `supersededBy` |
+| `ReviewPackage` / `ReviewDraft` | stable Review / Package identity, immutable Package Version, upstream Version references, accepted review semantic groups, required decisions, limitations, Draft `revision`, full structured Draft content, save / supersession metadata |
+| `ReviewOutcomeResult` | `reviewDecision`, optional `approvedStrategy`, updated Task / Stage references, optional continuation `CommandReceipt`; each typed Outcome has only its accepted applicable fields |
+| Brief Version | Brief family / Version identity, `taskId`, `versionNumber`, validity / provenance / time, upstream Version references, six product semantic groups, `hypotheses`, `evidenceLimitations`, `risks`, `evidenceReferences` |
+| `BriefComparison` | family, `baseVersion`, `targetVersion`, `changes[]` grouped by semantic group / field path with before / after / origin / edit intent / affected stages |
+| `ExportPreview` / `ExportSnapshot` | typed export basis; Task / Brief / upstream references; hypotheses / limitations / risks summary; template version; Snapshot identity, `exportedAt`, `fileName`, `mediaType`, `contentLocation` |
+| `ProblemDetails` | RFC 9457 `type`, `title`, `status`, `detail`, `instance` + stable `action`; optional typed `fieldIssues`, current Resource / revision / Version references, safe basis summary, `correlationReference`, `retryAfterSeconds` only when applicable |
+
+- `null` 只表示 Schema 明确允许的“当前不存在 / 不适用”；字段缺失只用于 contract-defined optional extension。空列表使用 `[]`，不以 `null` 替代。Reference 至少包含其稳定 identity 和 resource kind；Version Reference 另含 `versionNumber`，mutable Reference 另含 `revision`，两者不互换。
+- Capability enum 只含实际公共语义动作：`start`, `cancel`, `resume`, `rerun`, `retry_current_stage`, `restart_from_safe_boundary`, `resolve_needs_input`, `preview_remove_source`, `remove_source`, `preview_replace_source`, `replace_source`, `save_review_draft`, `submit_review`, `request_more_information`, `reject_all_and_request_regeneration`, `withdraw_approved_strategy`, `compare_brief`, `revise_marketing_brief`, `revise_xiaohongshu_brief`, `preview_export`, `confirm_export`。Capability 不是授权凭证。
+- `PrimaryAction` 是窄 discriminated union：`none`；`navigate` + `intake / needs_input / review / results / recovery` target；或 `command` + 上述 Capability。服务端可以指出应打开哪个已存在工作台 Panel，但不能把 URL、前端 Route State 或任意 action payload 塞入该字段。导航不是写 Capability，Frontend 也不得从导航文案推断可写权限。
+- Task family 固定为 `CreateTaskRequest`、`TaskSummaryList`、`TaskSummary`、`TaskOverview`；Task 状态沿用 Accepted `draft / running / waiting_for_input / waiting_for_review / paused / completed / failed / cancelled`，Stage 状态沿用 `not_started / ready / running / waiting_input / waiting_review / valid / invalid / failed / skipped`。
+- Run family 固定公开 `queued / running / retrying / waiting_for_input / waiting_for_review / paused / cancellation_requested / completed / failed / cancelled / superseded`。只有 `queued / running / retrying / cancellation_requested` 触发轮询；业务等待、manual recovery 与终态停止自动轮询。Run representation 包含 identity、Task reference、来源 Run（适用时）、状态、当前 / 最近 Stage、权威时间、safe failure summary、Primary Action 与 Capability，不公开 Attempt、Lease、Fence、Checkpoint 或 Provider payload。
+- Needs Input / Source-change family 固定为 `NeedsInputActionRequest` + discriminated `NeedsInputResolution`，以及 `SourceChangePreview` / `SourceChangeBasis` / typed Confirm requests。RFC-005 只补齐它拥有的 Source / Version / Association / item-result reference Schema。
+- Review family 固定为 immutable `ReviewPackage`、mutable `ReviewDraft`、typed full-snapshot `PutReviewDraftRequest`、四个 Outcome request / result、immutable `ReviewDecision` 与 `ApprovedStrategyVersion`。Candidate edit / select 只存在于 Draft；QC / validation success 不得映射为 approval。
+- Brief / Export family 固定为 immutable `MarketingBriefVersion`、`XiaohongshuBriefVersion`、`BriefComparison`、family-specific Revise request / result、`ExportPreview`、`ConfirmExportRequest`、`ExportSnapshot` 与 Markdown content response。六个产品语义组、Hypotheses、Evidence Limitations、Risks 与 Evidence references 必须复用产品 / RFC-005 authority，不创建平行字段定义。
+- Every non-read create / command that DEC-063 requires to survive uncertain retry requires `Idempotency-Key`; every mutable or version-sensitive write carries its real typed expected revision / base Version / basis. OpenAPI response matrix must preserve first success versus committed replay (`201` or `202` first, `200` replay) and typed `409` distinctions.
+- P-55A 的 Problem Type / action catalog 是封闭的首 Goal集合；增加只会被同一受控 Workbench 忽略的内部 error 没有价值。RFC-005 / 007 可以提供该 catalog 已预留的 safe Source item details、correlation reference 与 `Retry-After`，不得创建第二 Problem envelope。
+
+##### Compatibility and generated-client adoption
+
+- `/api/v1` 只允许 additive evolution：新增 optional response field、optional request capability、new Operation 或新 Problem Type，且同一仓库的 Frontend 能安全忽略未知字段 / Capability。删除、改名、改变既有字段类型 / requiredness / enum 含义、改变幂等或状态码语义、复用 identity 字段，均属 breaking change，必须新 RFC；若确需公开破坏性 Contract，使用 `/api/v2`，首个 Goal 不维护并行双版本。
+- Public enum 新值会改变 UI 控制流，不视为“天然安全的 optional addition”。增加 Task / Stage / Run / Primary Action / Problem action 值时必须同一 PR 更新 Contract、generated client、Frontend unknown fallback、Contract Tests 与文档；Frontend 对未知值只进入只读 `refresh / unavailable` 安全投影，不猜测可写 Capability。
+- Frontend 使用 DEC-055 已接受的 `openapi-typescript` 生成不可手改的派生 Schema，并由 `openapi-fetch` 的窄 Adapter 消费。Contract 或 generator 变更后必须重新生成；CI 对生成结果执行 clean-diff，禁止手写平行 DTO 或为绕过生成器直接扩展 `any`。
+- Goal 的依赖顺序为：Accepted RFC-004 / 005 / 007 → OpenAPI Contract Issue → generated client issue → Backend conformance / typed Adapter vertical slices。API Handler 与 Web Workbench 不得先于权威 Contract 自行发明 Request / Response shape。
+- OpenAPI generator、validator 和精确 package patch 版本在 Goal Issue 中根据当时官方兼容证据锁定；若工具不能表达已接受的 Contract，应停止并提出工具替代或 RFC amendment，不得弱化 Contract 迁就生成器。
+
+##### Contract tests and RFC closure readiness
+
+- Contract PR 必须验证：OAS 3.1 解析 / validation、所有 `$ref` 可解析、`operationId` 唯一、example 符合 Schema、所有成功与 Problem media types / status 明确、generated client clean-diff。
+- Backend Contract Tests 覆盖每个 Operation 的代表性成功路径，并重点覆盖首次提交 / 重放、stale revision、superseded resource、capability conflict、Run polling stop、Review Submit atomic continuation、Brief revise impact、Export basis conflict、Snapshot download 与 fixed-workspace / Origin boundary；不为每个字段排列组合堆叠低概率 case。
+- Frontend typed-fixture Contract Tests 覆盖每类 Resource / Command / Problem action 和 unknown enum / Capability 的只读 fallback。Browser E2E 只覆盖产品固定闭环与代表性 conflict / temporary unavailable，不复制整套 API matrix。
+- RFC-005 / 007 接受后若只是填充本 RFC 已声明的 Source / Evidence Schema refs 或 operational extensions，不重开 RFC-004；若要求改变 Resource ownership、Operation topology、Problem envelope、workspace boundary 或 public state semantics，则立即停止并提出 RFC-004 amendment。
+- P-57A 被接受后，RFC-004 的 DQ-01～10 才算全部有 Accepted Decision；随后仍须进行独立 Final Consistency Review，清理跨 Decision / RFC-005 / RFC-007 handoff 冲突，再单独请求用户接受 RFC-004 整体。P-57A 接受本身不授权合并 PR #55、关闭 Issue #54、创建 OpenAPI 或启动实现。
+
+**优点：** 在开发前把实现 Agent 最容易临场发明的 Operation、状态、Schema family、窗口限制、兼容与生成链闭合，同时把 Source / Observability 的真实所有权留给后续 RFC；可直接导出独立 Issue 和 Contract Tests。
+
+**代价：** Contract Artifact 必须在 API / Frontend 实现之前独立完成，且公共 enum / Operation 变更需同步 generated client；RFC-005 / 007 接受后还需把其拥有的 Schema 与安全运维扩展接入同一 Description。
+
+#### P-57B — Implementation-generated OpenAPI + Frontend Snapshot
+
+先由 Backend Handler / serializer 定义接口，再从实现生成 OpenAPI；Frontend 把某次生成结果复制为类型输入。
+
+**优点：** 后端开发启动快，Schema 看起来与当前 Handler 一致。
+
+**代价：** 实现成为事实源，Contract Review 发生在代码之后；生成时机与复制快照可能漂移，Frontend / Backend 无法在实现前并行，也违反 DEC-055 / DEC-063 的 Contract-first 边界。
+
+#### P-57C — Exhaustive Platform Contract Before Development
+
+在 RFC-004 内同时定义 Source / Evidence 每个字段、Observability、认证、多租户、Retention、全部历史分页、通用搜索、Push、未来格式和每个内部错误。
+
+**优点：** 表面上一次覆盖所有未来接口。
+
+**代价：** 覆盖大量未授权范围和未接受 RFC 所有权，产生无需求依据的长期兼容承诺，并违反适度校验与首个 Goal 边界。
+
+#### Recommendation
+
+Choose P-57A. It closes the public contract tightly enough for independent implementation and testing while keeping RFC-005 / 007 handoffs explicit and avoiding an oversized speculative API platform.
+
+## Round 4 proposal status and next gate
+
+- P-57A / B / C are `PROPOSED`; no option is Accepted until the user explicitly confirms it and a Decision record is archived.
+- 当前 DQ-01～09 已由 DEC-063～065 接受；DQ-10、Final Consistency Review 与 RFC-004 整体接受仍未完成。
+- 用户若接受 P-57A，下一步只归档 DQ-10 并执行 RFC-004 Final Consistency Review；仍不创建 OpenAPI Artifact、不合并 PR #55、不关闭 Issue #54、不启动实现或 Goal。
 
 ## Risks and stop conditions
 

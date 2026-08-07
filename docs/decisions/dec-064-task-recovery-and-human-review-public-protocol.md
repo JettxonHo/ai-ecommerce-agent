@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- **Status:** Accepted
+- **Status:** Accepted — Extended by [DEC-065](dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md)
 - **Date:** 2026-08-07
 - **Decision Type:** API Architecture / Task Navigation / Recovery / Human Review
 - **Source:** Session-003；用户明确接受 `P-51A / P-52A / P-53A`
@@ -12,6 +12,8 @@
 ## Context
 
 [DEC-063](dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) 已冻结 Contract-first Resource / typed Command、语义 revision、项目定义的幂等语义、耐久异步接受与 Run Monitor 基础。RFC-004 仍需把最小最近任务入口、真实 Needs Input、Source 变化、取消 / 恢复 / 重跑和 Human Review 映射为可生成、可恢复且不会把业务状态机移到浏览器的公共协议。
+
+> **Current extension:** DEC-065 later accepted P-54A / P-55A / P-56A and closed RFC-004 DQ-07～09. Task、Recovery 与 Review 协议保持不变；DQ-10 与 RFC-004 整体仍待后续 Gate。
 
 ## Decision
 
@@ -63,7 +65,7 @@ JSON Patch 增加数组、合并与冲突复杂度；公开操作日志会把单
 
 ## Consequences
 
-- RFC-004 后续必须冻结 Brief / Export、Problem taxonomy、固定工作区身份与最终 OpenAPI Closure。
+- RFC-004 的 Brief / Export、Problem taxonomy 与固定工作区身份后由 DEC-065 冻结；最终 OpenAPI Closure 仍待 DQ-10。
 - RFC-005 继续拥有 Source 内容、Source / Fragment / Evidence schema、处理生命周期和 Retrieval transport；DEC-064 只拥有 Task-facing Source command basis 与公共结果映射。
 - Contract / Application / Persistence / Frontend 测试必须覆盖 Task 创建重放、窄最近列表、revision-bound Capability、Needs Input supersession、Source Preview / Confirm 冲突、Cancel requested、Resume 新 Run、Review Draft stale save、Submit 原子 continuation 和各审核 Outcome 的不同副作用。
 - OpenAPI Artifact、API Handler、Frontend Client、数据库记录、迁移与测试均尚未实现。
@@ -75,7 +77,7 @@ JSON Patch 增加数组、合并与冲突复杂度；公开操作日志会把单
 - **Concretizes [DEC-062](dec-062-minimal-recent-task-index-and-stable-deep-links.md)：** 冻结最小 Task Index 与窄 Task Overview。
 - **Concretizes [DEC-046](dec-046-review-brief-and-export-product-contract.md) / [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)：** 冻结 Review Package、Draft revision、Outcome 与 continuation transport；不改变产品语义组。
 - **Extends [DEC-063](dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md)：** 在其 Resource / Command、revision、idempotency 与 Run 基础上闭合 RFC-004 DQ-04～06。
-- **Input to [RFC-004](../rfcs/rfc-004-api-and-human-review-architecture.md)：** 接受 DQ-04～06；DQ-07～10 与 RFC 整体仍待后续 Gate。
+- **Input to [RFC-004](../rfcs/rfc-004-api-and-human-review-architecture.md)：** 接受 DQ-04～06；DQ-07～09 后由 DEC-065 接受，DQ-10 与 RFC 整体仍待后续 Gate。
 
 ## Authorization Boundary
 
@@ -84,7 +86,7 @@ JSON Patch 增加数组、合并与冲突复杂度；公开操作日志会把单
 - 不接受 RFC-004 整体；
 - 不授权创建 OpenAPI Artifact、Schema、API Route、Handler、Frontend Client、Database Record、Migration 或 Test Implementation；
 - 不授权安装依赖、执行 Technical Spike、业务实现、生产实现或长期 Goal；
-- DQ-07～10、Final Consistency Review 与用户 RFC 整体接受仍是后续 Gate。
+- DQ-07～09 后由 DEC-065 接受；DQ-10、Final Consistency Review 与用户 RFC 整体接受仍是后续 Gate。
 
 ## Accepted From
 
