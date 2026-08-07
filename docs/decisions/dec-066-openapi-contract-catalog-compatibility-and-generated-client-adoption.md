@@ -7,7 +7,7 @@
 - **Decision Type:** API Architecture / OpenAPI Closure / Compatibility / Client Generation / Contract Verification
 - **Source:** Session-003；用户明确接受 `P-57A`
 - **Related Issue:** [#54](https://github.com/JettxonHo/ai-ecommerce-agent/issues/54)
-- **Related PR:** [#55](https://github.com/JettxonHo/ai-ecommerce-agent/pull/55)（Draft；RFC-004 整体仍待用户接受）
+- **Related PR:** [#55](https://github.com/JettxonHo/ai-ecommerce-agent/pull/55)
 
 ## Context
 
@@ -77,7 +77,7 @@
 
 ## Consequences
 
-- RFC-004 DQ-01～10 均已有 Accepted Decision；Final Consistency Review 必须通过后，才能单独请求用户接受 RFC-004 整体。
+- RFC-004 DQ-01～10 均已有 Accepted Decision；Final Consistency Review 已通过，用户已于 2026-08-07 明确接受 RFC-004 整体。
 - RFC-005 / 007 仍须闭合其委托范围，OpenAPI Contract Issue 不能早于三份 RFC 整体接受。
 - Contract Artifact、generated client、API Handler、Frontend Adapter 与 Contract Test implementation 均尚未创建。
 - 对公共 Operation、状态、Problem envelope 或 workspace boundary 的后续实质变化需要显式 RFC amendment，不得在实现 PR 中静默修改。
@@ -88,17 +88,19 @@
 - **Extends [DEC-064](dec-064-task-recovery-and-human-review-public-protocol.md)：** 将 Task / Recovery / Review 协议冻结为有限 Operation / state family。
 - **Extends [DEC-065](dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md)：** 将 Brief / Export / Problem / fixed-workspace 边界冻结为可生成、可测试的最终公共目录。
 - **Conforms to [DEC-039](dec-039-proportional-validation-and-review-governance.md)：** 不使用 Hash / SHA-256，不堆叠低概率防御变体，不把 Contract Test 清单变成机械接受器。
-- **Input to [RFC-004](../rfcs/rfc-004-api-and-human-review-architecture.md)：** 接受 DQ-10；RFC 整体接受仍需 Final Consistency Review 通过后的独立用户决定。
+- **Input to [RFC-004](../rfcs/rfc-004-api-and-human-review-architecture.md)：** 接受 DQ-10；Final Consistency Review 通过后，用户已于 2026-08-07 独立接受 RFC-004 整体。
 
 ## Authorization Boundary
 
-本决定只授权 Decision、RFC、Current Truth、Readiness、Testing、Traceability 与 Review 文档同步：
+本决定形成时只授权 Decision、RFC、Current Truth、Readiness、Testing、Traceability 与 Review 文档同步：
 
 - 不接受 RFC-004 整体；
 - 不授权合并 PR #55 或关闭 Issue #54；
 - 不授权创建 `contracts/openapi/openapi.yaml`、Schema、generated client、API Route、Handler、Frontend Adapter、Database Record、Migration 或 Test Implementation；
 - 不授权安装依赖、执行 Technical Spike、业务实现、生产实现或长期 Goal；
 - 只有 Final Consistency Review 通过且用户另行接受 RFC-004 整体后，才可合并当前策划 PR 并进入 RFC-005 策划 Gate；这仍不等于实现授权。
+
+> **Post-decision acceptance（2026-08-07）：** 上述后续 Gate 已满足。用户明确接受 RFC-004 整体，并允许合并 PR #55、关闭 Issue #54、进入 RFC-005 策划 Gate；OpenAPI Artifact、依赖安装、实现、Spike 与 Goal 仍未授权。
 
 ## Accepted From
 

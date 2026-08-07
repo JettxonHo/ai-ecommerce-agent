@@ -33,16 +33,16 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 - Business Current Truth 的生产持久化栈已由 RFC-002 选定为 PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；SQLite 不作为持久化验收引擎；
 - FND-001～003 已完成，仓库已有 Python 后端 Package、质量工具、架构测试、CI 与 Repository Protection 基础。
 - Frontend Architecture P-36～P-41 及整体已接受：`apps/web/` React / Vite SPA、显式状态职责、OpenAPI 生成、一个深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有交互投影、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance；依赖尚未安装，前端尚未实现。
-- RFC-004 DQ-01～10 已由 DEC-063～066 接受：OpenAPI 3.1 `/api/v1` 是唯一公共 HTTP Contract，查询使用窄 Resource、状态变更使用 typed Command；语义 revision / Idempotency、耐久 Receipt + Run Monitor、窄 Task / Recovery / Review、不可变 Brief Version / Comparison / Markdown Export Snapshot、有限 RFC 9457 Problem Catalog、server-bound fixed Workspace + loopback same-origin transport，以及最终 Operation / Schema / state catalog、有界窗口、additive compatibility、generated-client adoption 与 Contract Tests 已冻结；Final Consistency Review = PASS，RFC 整体仍待用户接受，OpenAPI 与 API 尚未实现。
+- RFC-004 DQ-01～10 已由 DEC-063～066 接受：OpenAPI 3.1 `/api/v1` 是唯一公共 HTTP Contract，查询使用窄 Resource、状态变更使用 typed Command；语义 revision / Idempotency、耐久 Receipt + Run Monitor、窄 Task / Recovery / Review、不可变 Brief Version / Comparison / Markdown Export Snapshot、有限 RFC 9457 Problem Catalog、server-bound fixed Workspace + loopback same-origin transport，以及最终 Operation / Schema / state catalog、有界窗口、additive compatibility、generated-client adoption 与 Contract Tests 已冻结；Final Consistency Review = PASS，用户已于 2026-08-07 明确接受 RFC-004 整体；OpenAPI 与 API 尚未实现。
 
 ---
 
 ## 当前策划缺口
 
-当前 Gate 顺序已由用户于 2026-08-07 明确确认为：**产品规格闭合 → RFC-004 → RFC-005 → RFC-007**。Product Specification 整体闭合已接受，PR #53 已合并且 Issue #52 已关闭；当前由 [Issue #54](https://github.com/JettxonHo/ai-ecommerce-agent/issues/54) / [Draft PR #55](https://github.com/JettxonHo/ai-ecommerce-agent/pull/55) 承载 RFC-004 策划，P-48A～P-57A / DQ-01～10 已接受且 Final Consistency Review = PASS，RFC-004 = `IN REVIEW — USER OVERALL ACCEPTANCE PENDING`。RFC-005 / 007 仍为 `PROPOSED`；Decision closure 与 Review PASS 不代表 RFC 已接受或实现已获授权。
+当前 Gate 顺序已由用户于 2026-08-07 明确确认为：**产品规格闭合 → RFC-004 → RFC-005 → RFC-007**。Product Specification 与 RFC-004 均已整体接受；PR #55 获准合并且 Issue #54 获准关闭。当前进入 RFC-005 Source Processing and Retrieval Architecture 策划 Gate；RFC-005 / 007 仍为 `PROPOSED`，未接受 Proposal 不得写成实现事实。
 
-- RFC-004 整体接受，以及 Persona / JTBD 的后续研究证据；RFC-004 主协议和 OpenAPI closure 已由 DEC-063～066 冻结；
-- RFC-004 API / Human Review、RFC-005 Source / Retrieval、RFC-007 Observability；
+- Persona / JTBD 的后续研究证据；RFC-004 主协议和 OpenAPI closure 已由 DEC-063～066 冻结并整体接受；
+- RFC-005 Source / Retrieval、RFC-007 Observability；
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；
 - MVP Development Plan、Testing Strategy 的技术层补全与长期 Goal 最终文本。
 
@@ -95,4 +95,4 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 开发状态
 
-**CONDITIONALLY READY（规划范围）** — Foundation、RFC-001～003、RFC-006 与 Frontend Architecture 已完成，但业务实现仍未授权。必须完成 RFC-004 / 005 / 007、Readiness 规划包、测试策略、Goal 文本和最终一致性 Review，并由用户明确批准“进入 Goal 执行阶段”后，才可开始长期开发。详见 [Implementation Readiness](docs/handoffs/implementation-readiness.md) 与 [AGENTS.md](AGENTS.md)。
+**CONDITIONALLY READY（规划范围）** — Foundation、RFC-001～004、RFC-006 与 Frontend Architecture 已完成，但业务实现仍未授权。必须完成 RFC-005 / 007、Readiness 规划包、测试策略、Goal 文本和最终一致性 Review，并由用户明确批准“进入 Goal 执行阶段”后，才可开始长期开发。详见 [Implementation Readiness](docs/handoffs/implementation-readiness.md) 与 [AGENTS.md](AGENTS.md)。

@@ -7,9 +7,9 @@
 - **Decision Type:** API Architecture / Public Contract / Concurrency / Idempotency / Async Processing
 - **Source:** Session-003；用户明确接受 `P-48A / P-49A / P-50A`
 - **Related Issue:** [#54](https://github.com/JettxonHo/ai-ecommerce-agent/issues/54)
-- **Related PR:** [#55](https://github.com/JettxonHo/ai-ecommerce-agent/pull/55)（Draft；RFC-004 仍在策划）
+- **Related PR:** [#55](https://github.com/JettxonHo/ai-ecommerce-agent/pull/55)
 
-> **Current extension:** DEC-064 later accepted P-51A / P-52A / P-53A and closed RFC-004 DQ-04～06; DEC-065 accepted P-54A / P-55A / P-56A and closed DQ-07～09; DEC-066 accepted P-57A and closed DQ-10. The foundations in this decision remain unchanged; Final Consistency Review has passed and RFC-004 overall acceptance remains pending.
+> **Current extension:** DEC-064 later accepted P-51A / P-52A / P-53A and closed RFC-004 DQ-04～06; DEC-065 accepted P-54A / P-55A / P-56A and closed DQ-07～09; DEC-066 accepted P-57A and closed DQ-10. The foundations in this decision remain unchanged; Final Consistency Review passed and the user accepted RFC-004 overall on 2026-08-07.
 
 ## Context
 
@@ -82,7 +82,7 @@ Frontend Architecture 已把已提交的 OpenAPI 3.1 Artifact 定义为前端类
 - **Conforms to [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)：** `202`、Run、Durable Work Intent 与 cancellation semantics 映射已接受 Runtime 不变量，不把 Checkpoint 暴露为 Public Resource。
 - **Concretizes [DEC-055](dec-055-frontend-application-state-and-verification-foundation.md) / [DEC-056](dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md)：** OpenAPI 生成链、私有 WorkbenchProjection、revision-safe 写入和轮询停止获得公共协议基础。
 - **Conforms to [DEC-039](dec-039-proportional-validation-and-review-governance.md)：** 不新增 Hash / SHA-256，不堆叠低概率防御分支，不把 Capability 或 Rubric 变成机械接受器。
-- **Input to [RFC-004](../rfcs/rfc-004-api-and-human-review-architecture.md)：** 本决定接受 DQ-01～DQ-03；DQ-04～06 后由 DEC-064、DQ-07～09 后由 DEC-065、DQ-10 后由 DEC-066 接受。Final Consistency Review 已通过，RFC 整体接受仍待用户决定。
+- **Input to [RFC-004](../rfcs/rfc-004-api-and-human-review-architecture.md)：** 本决定接受 DQ-01～DQ-03；DQ-04～06 后由 DEC-064、DQ-07～09 后由 DEC-065、DQ-10 后由 DEC-066 接受。Final Consistency Review 已通过，用户已于 2026-08-07 明确接受 RFC-004 整体。
 
 ## Authorization Boundary
 

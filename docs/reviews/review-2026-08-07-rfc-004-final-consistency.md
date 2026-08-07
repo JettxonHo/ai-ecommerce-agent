@@ -1,8 +1,8 @@
 # RFC-004 Final Consistency Review
 
-> **Status:** PASS — USER OVERALL ACCEPTANCE PENDING
+> **Status:** PASS — USER OVERALL ACCEPTANCE ACCEPTED
 > **Date:** 2026-08-07
-> **Scope:** Issue #54 / Draft PR #55；P-48A～P-57A；DEC-063～066；RFC-004 与 Product / Architecture / RFC-005 / RFC-007 handoff
+> **Scope:** Issue #54 / PR #55；P-48A～P-57A；DEC-063～066；RFC-004 与 Product / Architecture / RFC-005 / RFC-007 handoff
 > **Reviewer:** GPT-5.6 Sol，`xhigh`，逻辑角色 `ORCHESTRATOR_REVIEWER`；审阅实际 RFC、Accepted Decisions、Current Truth、Readiness、Testing、Traceability 与分支差异
 
 ---
@@ -11,7 +11,7 @@
 
 确认 RFC-004 已在公共 HTTP 与 Human Review 协议层闭合，完整承接 Accepted Product / Persistence / Workflow / LLM / Frontend 决定，同时没有越权冻结 RFC-005 的 Source / Retrieval 细节、RFC-007 的 Observability / operational 参数或首个 Goal 之外的认证、多租户、Push、物理删除能力。
 
-本 Review 只判断 RFC 是否已具备请求用户整体接受的条件。Review PASS 不等于 RFC Accepted，不授权合并 PR #55、关闭 Issue #54、创建 OpenAPI Artifact、安装依赖、执行 Spike、编写业务代码或激活 Goal。
+本 Review 判断 RFC 是否具备请求用户整体接受的条件；Review 本身不替代用户决定。用户随后于 2026-08-07 明确接受 RFC-004 整体，并允许合并 PR #55、关闭 Issue #54、进入 RFC-005 策划 Gate。该接受仍不授权创建 OpenAPI Artifact、安装依赖、执行 Spike、编写业务代码或激活 Goal。
 
 ## 2. 审阅范围
 
@@ -79,12 +79,12 @@
 
 **Verdict：PASS。**
 
-**User Overall Acceptance：PENDING。**
+**User Overall Acceptance：ACCEPTED（2026-08-07）。**
 
-RFC-004 已具备请求整体接受的条件。下一步必须由用户单独决定是否：
+用户已明确决定：
 
 1. 接受 RFC-004 整体；
 2. 允许合并 PR #55 并关闭 Issue #54；
 3. 进入 RFC-005 策划 Gate。
 
-即使上述三项获批，也不授权 OpenAPI / API / Frontend / Database 实现、Technical Spike 或 Goal 激活。
+**Final Decision：RFC-004 = ACCEPTED。** 下一活动 Gate 为 RFC-005 策划；不授权 OpenAPI / API / Frontend / Database 实现、Technical Spike 或 Goal 激活。

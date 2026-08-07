@@ -7,13 +7,13 @@
 - **Decision Type:** API Architecture / Task Navigation / Recovery / Human Review
 - **Source:** Session-003；用户明确接受 `P-51A / P-52A / P-53A`
 - **Related Issue:** [#54](https://github.com/JettxonHo/ai-ecommerce-agent/issues/54)
-- **Related PR:** [#55](https://github.com/JettxonHo/ai-ecommerce-agent/pull/55)（Draft；RFC-004 仍在策划）
+- **Related PR:** [#55](https://github.com/JettxonHo/ai-ecommerce-agent/pull/55)
 
 ## Context
 
 [DEC-063](dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) 已冻结 Contract-first Resource / typed Command、语义 revision、项目定义的幂等语义、耐久异步接受与 Run Monitor 基础。RFC-004 仍需把最小最近任务入口、真实 Needs Input、Source 变化、取消 / 恢复 / 重跑和 Human Review 映射为可生成、可恢复且不会把业务状态机移到浏览器的公共协议。
 
-> **Current extension:** DEC-065 later accepted P-54A / P-55A / P-56A and closed RFC-004 DQ-07～09; DEC-066 accepted P-57A and closed DQ-10. Task、Recovery 与 Review 协议保持不变；Final Consistency Review 已通过，RFC-004 整体仍待用户接受。
+> **Current extension:** DEC-065 later accepted P-54A / P-55A / P-56A and closed RFC-004 DQ-07～09; DEC-066 accepted P-57A and closed DQ-10. Task、Recovery 与 Review 协议保持不变；Final Consistency Review 已通过，用户已于 2026-08-07 明确接受 RFC-004 整体。
 
 ## Decision
 
@@ -77,7 +77,7 @@ JSON Patch 增加数组、合并与冲突复杂度；公开操作日志会把单
 - **Concretizes [DEC-062](dec-062-minimal-recent-task-index-and-stable-deep-links.md)：** 冻结最小 Task Index 与窄 Task Overview。
 - **Concretizes [DEC-046](dec-046-review-brief-and-export-product-contract.md) / [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)：** 冻结 Review Package、Draft revision、Outcome 与 continuation transport；不改变产品语义组。
 - **Extends [DEC-063](dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md)：** 在其 Resource / Command、revision、idempotency 与 Run 基础上闭合 RFC-004 DQ-04～06。
-- **Input to [RFC-004](../rfcs/rfc-004-api-and-human-review-architecture.md)：** 接受 DQ-04～06；DQ-07～09 后由 DEC-065、DQ-10 后由 DEC-066 接受。Final Consistency Review 已通过，RFC 整体仍待用户决定。
+- **Input to [RFC-004](../rfcs/rfc-004-api-and-human-review-architecture.md)：** 接受 DQ-04～06；DQ-07～09 后由 DEC-065、DQ-10 后由 DEC-066 接受。Final Consistency Review 已通过，用户已于 2026-08-07 明确接受 RFC-004 整体。
 
 ## Authorization Boundary
 

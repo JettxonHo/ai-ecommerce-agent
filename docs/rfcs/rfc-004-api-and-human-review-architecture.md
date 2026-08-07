@@ -2,11 +2,12 @@
 
 ## Metadata
 
-- **Status:** IN REVIEW — FINAL CONSISTENCY REVIEW PASS；USER OVERALL ACCEPTANCE PENDING
+- **Status:** ACCEPTED
 - **Date:** 2026-08-07
+- **Accepted:** 2026-08-07（用户明确接受：「接受 RFC-004 整体」）
 - **Issue:** [#54](https://github.com/JettxonHo/ai-ecommerce-agent/issues/54)
-- **Pull Request:** [#55](https://github.com/JettxonHo/ai-ecommerce-agent/pull/55)（Draft）
-- **RFC Acceptance:** NOT GRANTED
+- **Pull Request:** [#55](https://github.com/JettxonHo/ai-ecommerce-agent/pull/55)
+- **RFC Acceptance:** GRANTED
 - **Final Consistency Review:** PASS（2026-08-07）
 - **Implementation Authorization:** NOT GRANTED
 - **Spike Execution Authorization:** NOT GRANTED
@@ -53,7 +54,7 @@ RFC-004 必须在不实现 API、不创建 OpenAPI 文件、不安装依赖的�
 - defining log, Trace, Metric, polling threshold, retry delay or operational alert values owned by RFC-007;
 - defining physical retention, hold, purge or deletion execution owned by ARP-08 and later Development Planning;
 - adding account registration, login, RBAC, multi-tenancy, public API consumers, callbacks, webhooks, SSE, WebSocket or push notifications to the first Goal;
-- accepting RFC-004, executing a Technical Spike, or activating the long-running Goal.
+- executing a Technical Spike or activating the long-running Goal；RFC-004 的整体接受只确立架构基线，不授权实现。
 
 ## Contract boundary and handoffs
 
@@ -557,8 +558,8 @@ Choose P-57A. It closes the public contract tightly enough for independent imple
 
 - 用户于 2026-08-07 明确接受 P-57A，并归档为 [DEC-066](../decisions/dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md)；P-57B / P-57C 保留为未采用 Alternative。
 - `DQ-10 = ACCEPTED`；RFC-004 的 DQ-01～10 均已有 Accepted Decision。
-- Final Consistency Review 已于 2026-08-07 通过；下一 Gate 只请求用户接受 RFC-004 整体，并决定是否允许合并 PR #55、关闭 Issue #54、进入 RFC-005 策划。
-- 本状态仍不创建 OpenAPI Artifact、不合并 PR #55、不关闭 Issue #54、不启动实现或 Goal。
+- Final Consistency Review 已于 2026-08-07 通过；用户随后明确接受 RFC-004 整体，并允许合并 PR #55、关闭 Issue #54、进入 RFC-005 策划 Gate。
+- RFC-004 = `ACCEPTED`；下一活动 Gate 为 RFC-005 策划。本状态仍不创建 OpenAPI Artifact、不启动实现、Spike 或 Goal。
 
 ## Risks and stop conditions
 
@@ -614,4 +615,6 @@ Choose P-57A. It closes the public contract tightly enough for independent imple
 
 ## Outcome
 
-DQ-01～10 已全部闭合，Final Consistency Review = PASS。RFC-004 仍等待用户整体接受；PR #55 保持 Draft，Issue #54 保持 Open，Implementation / Spike Execution / Goal Activation 均未授权。
+DQ-01～10 已全部闭合，Final Consistency Review = PASS。用户于 2026-08-07 明确接受 RFC-004 整体，并允许合并 PR #55、关闭 Issue #54、进入 RFC-005 策划 Gate。
+
+**Final Decision：RFC-004 = ACCEPTED。** RFC-004 现为公共 HTTP 与 Human Review Architecture 基线；后续 RFC、Readiness Artifact、Contract 与实现不得违反或静默绕过其边界。该接受不创建 OpenAPI Artifact，不授权 API / Frontend / Database 实现、Technical Spike、数据迁移或 Goal 激活。

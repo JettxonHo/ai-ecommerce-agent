@@ -7,9 +7,9 @@
 - Last Updated: 2026-08-07
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-062
+- Related Decisions: DEC-039～DEC-066
 - Frontend Proposal Status: P-36～P-41 全部 Accepted；Frontend Architecture overall Accepted
-- Current Planning Gate: RFC-004（Product Specification 已于 2026-08-07 整体闭合；随后依次为 RFC-005、RFC-007）
+- Current Planning Gate: RFC-005（Product Specification 与 RFC-004 已于 2026-08-07 整体闭合；随后为 RFC-007）
 - Product Closure Status: P-42～P-47 = Accepted；Product Specification Final Consistency Review = PASS；User Overall Acceptance = Accepted
 
 ## Context
@@ -1388,3 +1388,23 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - RFC-004 状态为 `IN REVIEW — USER OVERALL ACCEPTANCE PENDING`；PR #55 保持 Draft，Issue #54 保持 Open。
 - 下一步单独请求用户：接受 RFC-004 整体，并允许合并 PR #55、关闭 Issue #54、进入 RFC-005 策划 Gate。
 - 即使用户批准上述 Gate，也不授权 OpenAPI / API / Frontend / Database 实现、Technical Spike 或 Goal 激活。
+
+## RFC-004 Overall Acceptance and RFC-005 Gate Handoff（2026-08-07）
+
+### User Decision
+
+- 用户明确回复：「接受 RFC-004 整体，允许合并 PR #55、关闭 Issue #54，并进入 RFC-005 策划 Gate。」
+- 该决定只接受 RFC-004 架构基线并授权完成当前文档 PR 的合并 / Issue 关闭与下一策划 Gate 切换；不授权 OpenAPI Artifact、API、Frontend、Database、Migration、Technical Spike、业务实现或 Goal 激活。
+
+### Archive Result
+
+- `RFC-004 = ACCEPTED`；P-48A～P-57A / DQ-01～10 的权威 Decision 仍为 DEC-063～066，历史 Proposal / Alternative 不改写。
+- RFC-004 Final Consistency Review 保持 `PASS`；用户整体接受状态更新为 `ACCEPTED`。
+- PR #55 获准在 Required Checks 全部通过后合并；Issue #54 获准随后关闭。
+- Current Planning Gate 切换为 RFC-005 Source Processing and Retrieval Architecture。RFC-005 尚为 `PROPOSED`，其后续方案必须逐项获得用户明确接受后才能进入 Current Truth。
+
+### Authorization Boundary
+
+- 不创建或修改 `contracts/openapi/openapi.yaml`、API Route、Handler、generated client、Frontend、Database、Migration、测试实现或生产文件。
+- 不执行 TS-01～TS-05、Live Provider 调用或任何新 Technical Spike。
+- 不创建或激活实际长期 Goal；仍需完成 RFC-005、RFC-007、Readiness、Testing、Development Plan、Goal 文本与最终 Implementation Readiness Review，并获得用户明确「进入 Goal 执行阶段」批准。

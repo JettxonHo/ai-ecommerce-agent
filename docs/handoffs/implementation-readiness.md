@@ -4,7 +4,7 @@
 >
 > Foundation、RFC-001～003 与 RFC-006 已完成，但 Business / Production Implementation、TS-01～TS-05 执行和实际 Goal 均未授权。已完成的 Spike-001 不在本禁令所指范围内。
 >
-> **Current Gate（2026-08-07）：** Product Specification 已整体闭合，PR #53 已合并且 Issue #52 已关闭；Issue #54 / Draft PR #55 承载 RFC-004 策划，RFC-005 / 007 = `PROPOSED`。P-48A～P-57A / DQ-01～10 已由 DEC-063～066 接受且 RFC-004 Final Consistency Review = PASS；RFC-004 = `IN REVIEW — USER OVERALL ACCEPTANCE PENDING`。用户接受前不合并 PR #55、不关闭 Issue #54、不进入 RFC-005，也不授权 Technical Spike、业务实现或 Goal 激活。
+> **Current Gate（2026-08-07）：** Product Specification 与 RFC-004 已整体闭合；RFC-004 P-48A～P-57A / DQ-01～10 已由 DEC-063～066 接受且 Final Consistency Review = PASS，用户已允许合并 PR #55、关闭 Issue #54 并进入 RFC-005 策划 Gate。RFC-005 / 007 = `PROPOSED`；当前只授权继续策划，不授权 Technical Spike、业务实现或 Goal 激活。
 
 进入开发至少需要以下条件**全部**满足，并须先通过 Implementation Readiness Review（见 [../reviews/](../reviews/)），再由用户明确批准。
 
@@ -43,6 +43,7 @@
 - [x] RFC-004 不可变 Brief / Comparison / typed revise / Markdown Export Snapshot、有限 RFC 9457 Problem action 与 fixed-workspace loopback same-origin transport 已确认（DEC-065；DQ-07～09）
 - [x] RFC-004 单一 OpenAPI entry、有限 Operation / Schema / state catalog、有界最近窗口、additive compatibility、generated-client clean diff 与分层 Contract Tests 已确认（DEC-066；DQ-10）
 - [x] RFC-004 Final Consistency Review 已通过
+- [x] 用户已于 2026-08-07 明确接受 RFC-004 整体
 - [x] 关键 Agent、Workflow、Human Review 与 Skill 边界已确认
 - [x] Retrieval / Evidence 与 Skill 的概念职责已确认
 - [x] 外部 Skill 供体的 Adapt / Reference 策略已确认
@@ -65,10 +66,10 @@
 - **Architecture Readiness:** CONDITIONALLY READY
 - **Development Status:** CONDITIONALLY READY（仅策划与治理）
 - **Spike-001:** COMPLETED
-- **RFC:** RFC-001 / RFC-002 / RFC-003 / RFC-006 = ACCEPTED；RFC-004 = IN REVIEW（DQ-01～10 accepted by DEC-063～066，Final Review = PASS，overall acceptance pending）；RFC-005 / 007 = PROPOSED
+- **RFC:** RFC-001 / RFC-002 / RFC-003 / RFC-004 / RFC-006 = ACCEPTED；RFC-005 / 007 = PROPOSED
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
-- **产品交互与验收:** 单任务工作台、确认式局部重跑、输入门禁、审核 / Brief / Evidence / Recovery / Markdown 导出 = ACCEPTED（DEC-044～048）；产品 / 技术权威边界、虚构 Anchor SKU、有限结构化 Needs Input、证据约束声明完整性、Task 范围资料与可逆移除、最小最近任务入口 = ACCEPTED（DEC-057～062）；前端应用 / 状态 / Contract Generation / Verification Foundation = ACCEPTED（DEC-055）；深 TaskWorkbench、Primitive / Styling、私有投影、revision-safe Autosave / Diff、Accessibility / Browser / Reflow / Performance = ACCEPTED，外层 Router 由 DEC-062 增加 `/tasks` 入口（DEC-056 / 062）。Product Final Consistency Review = PASS，Product Specification 整体闭合已由用户接受；API 主协议与最终 OpenAPI Operation / Schema / state / adoption closure 已由 DEC-063～066 接受，RFC-004 Final Review = PASS、整体接受仍待用户决定；物理生命周期与 Fixture 载体仍待 Readiness / Testing Strategy
+- **产品交互与验收:** 单任务工作台、确认式局部重跑、输入门禁、审核 / Brief / Evidence / Recovery / Markdown 导出 = ACCEPTED（DEC-044～048）；产品 / 技术权威边界、虚构 Anchor SKU、有限结构化 Needs Input、证据约束声明完整性、Task 范围资料与可逆移除、最小最近任务入口 = ACCEPTED（DEC-057～062）；前端应用 / 状态 / Contract Generation / Verification Foundation = ACCEPTED（DEC-055）；深 TaskWorkbench、Primitive / Styling、私有投影、revision-safe Autosave / Diff、Accessibility / Browser / Reflow / Performance = ACCEPTED，外层 Router 由 DEC-062 增加 `/tasks` 入口（DEC-056 / 062）。Product Final Consistency Review = PASS，Product Specification 整体闭合已由用户接受；API 主协议与最终 OpenAPI Operation / Schema / state / adoption closure 已由 DEC-063～066 接受，RFC-004 Final Review = PASS，用户已明确接受 RFC-004 整体；物理生命周期与 Fixture 载体仍待 Readiness / Testing Strategy
 - **Workflow Runtime:** 独立 PostgreSQL Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Current-Truth-first Reconciliation = ACCEPTED（DEC-049 / RFC-003）；PostgreSQL Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token、协作式 Cancellation / Supersession + Commit Fence = ACCEPTED（DEC-050 / RFC-003）；显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、Forward Repair 与风险切片证据边界 = ACCEPTED（DEC-051 / RFC-003）。精确实施版本、最终公共字段与运维参数仍待实施证据、RFC-004 / 007
 - **LLM Runtime:** OpenAI Responses API + `gpt-5.6-terra`、typed sync Port、Adapter 隔离、Strict Output → 项目 Schema → Domain Validator、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute、断网三层 Contract Tests 与单次人工 RC Smoke = ACCEPTED（DEC-052～054 / RFC-006）；精确实施版本、Token / Timeout 与实际 Provider 兼容性仍待实施证据
 - **允许工作:** 产品规格、Architecture RFC、Readiness Artifact / Spike Charter 规划、测试策略、开发计划、Goal 文档与一致性 Review
