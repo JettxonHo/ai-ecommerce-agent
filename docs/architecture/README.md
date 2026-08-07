@@ -7,11 +7,11 @@
 ## 定位
 
 - 架构规格描述「系统当前应该怎样工作」，其内容只能来自用户明确接受的 Decision。
-- **已确认：** Modular Monolith、Python 后端、LangGraph StateGraph 确定性编排、版本化 Domain State 与紧凑 Workflow State、Source / Fragment / Evidence Link、按需混合检索、单一 Human Review、API / Worker / CLI 进程边界、模块依赖规则、PostgreSQL + SQLAlchemy 2.x Sync + Psycopg 3 Sync + Alembic 持久化栈，以及 DEC-055～056 的 React / Vite SPA、深 TaskWorkbench、显式状态所有权、OpenAPI 类型生成、revision-safe 交互与适度 Web 质量边界。
+- **已确认：** Modular Monolith、Python 后端、LangGraph StateGraph 确定性编排、版本化 Domain State 与紧凑 Workflow State、Source / Fragment / Evidence Link、按需混合检索、单一 Human Review、API / Worker / CLI 进程边界、模块依赖规则、PostgreSQL + SQLAlchemy 2.x Sync + Psycopg 3 Sync + Alembic 持久化栈，以及 DEC-055～056 的 React / Vite SPA 边界。DEC-067 已进一步冻结 revisioned TaskSourceAssociation、逐资料 Durable Processing、六值 processing lifecycle、SourceSet reference manifest、格式感知 Fragment / Locator 与无 Evidence Package `package_hash` 的重现方式。
 - **已完成：** RFC-001、RFC-002、RFC-003、Spike-001 与 FND-001～003。
 - **已接受的 RFC-003：** DEC-049 已冻结同 PostgreSQL Service 下的独立 Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Business-Current-Truth-first Reconciliation；DEC-050 已冻结 PostgreSQL Durable Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token 与协作式取消 / Supersession；DEC-051 已冻结显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移和 Forward Repair 证据边界。RFC-003 的 DQ-01～09 已闭合，并于 2026-08-06 被用户整体接受。
 - **已接受的 RFC-006 架构：** DEC-052 已冻结单一 OpenAI Responses API / `gpt-5.6-terra` 基线、窄型同步 Model Runtime Port 与 Structured Output；DEC-053 已冻结有界 Recovery、可读 Version Tuple、五个固定 Profile 与确定性 Context Assembly；DEC-054 已冻结 Adapter Secret / Payload Allowlist、同 Port Scripted Substitute、断网 Contract Tests 与单次人工 RC Smoke。DQ-01～08 已闭合、Final Consistency Review = PASS，用户已于 2026-08-06 明确接受 RFC-006 整体。
-- **仍待闭合：** RFC-004 DQ-01～10、Final Consistency Review 与整体接受均已完成；RFC-005 / 007、Retrieval Backend、Observability 产品、部署方式与精确实施版本仍待完成。Frontend Architecture P-36～P-41、Final Consistency Review 与整体接受均已完成。
+- **仍待闭合：** RFC-004 已整体接受；RFC-005 DQ-01～03 已由 DEC-067 接受，DQ-04～10 与 RFC-005 整体仍待策划；RFC-007、Retrieval Backend、Observability、部署方式与精确实施版本仍待完成。Frontend Architecture 已整体接受。
 - 业务与生产实现未授权；概念架构 Accepted 不等于对应生产模块已经实现。
 
 ---

@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- **Status:** DRAFTING — PROPOSAL ROUND 1；USER DECISIONS PENDING
+- **Status:** DRAFTING — ROUND 1 ACCEPTED；PROPOSAL ROUND 2 USER DECISIONS PENDING
 - **Date:** 2026-08-07
 - **Issue:** [#56](https://github.com/JettxonHo/ai-ecommerce-agent/issues/56)
 - **Pull Request:** [#57](https://github.com/JettxonHo/ai-ecommerce-agent/pull/57)（Draft）
@@ -44,6 +44,7 @@ Product Specification、RFC-002、RFC-003、RFC-004、RFC-006 与 Frontend Archi
 ### Current official capability evidence
 
 - PostgreSQL 的 [`tsvector` / `tsquery`](https://www.postgresql.org/docs/current/datatype-textsearch.html) 与 [GIN](https://www.postgresql.org/docs/current/textsearch-indexes.html) 为关系库内全文检索提供原生能力；官方文档把 GIN 作为常规全文检索的首选索引类型。该事实只证明能力存在，不自动决定本 RFC 的最终词法配置、语言配置或排名策略。
+- PostgreSQL 的 [`pg_trgm`](https://www.postgresql.org/docs/current/pgtrgm.html) 扩展提供基于 trigram 的相似度与 GIN / GiST 索引操作符，可作为 CJK / identifier-heavy 输入的 PostgreSQL-native 词法候选能力。是否采用及其阈值仍须由本 RFC 的用户 Decision 与固定评测证据决定。
 - [pgvector 官方说明](https://github.com/pgvector/pgvector)提供 PostgreSQL 内 exact nearest-neighbor、HNSW / IVFFlat、metadata filter 配合方式与 Hybrid Search 组合能力，也明确 approximate index 的过滤 / recall 取舍。该事实只支持候选可行性，精确扩展版本、Embedding 维度、距离函数与 ANN 参数必须留给获授权后的兼容证据和 Retrieval Evaluation。
 
 ## Goals
@@ -83,12 +84,12 @@ RFC-002 remains authority for PostgreSQL transactions, storage classification, a
 
 | Decision Question | Topic | Status |
 |---|---|---|
-| DQ-01 | Source authority, Task association, version / artifact manifest and reproducibility identity | PROPOSED as P-58A / B / C |
-| DQ-02 | Registration, processing lifecycle, partial acceptance and typed item outcome | PROPOSED as P-59A / B / C |
-| DQ-03 | Format-aware Fragment and Locator contract | PROPOSED as P-60A / B / C |
-| DQ-04 | PostgreSQL Lexical / Vector topology and Exact / ANN boundary | PENDING |
-| DQ-05 | Embedding, index entry versioning, update / rebuild and consistency | PENDING |
-| DQ-06 | Planner, Query Rewrite, fusion, Top-K and optional reranking | PENDING |
+| DQ-01 | Source authority, Task association, version / artifact manifest and reproducibility identity | ACCEPTED — P-58A / DEC-067 |
+| DQ-02 | Registration, processing lifecycle, partial acceptance and typed item outcome | ACCEPTED — P-59A / DEC-067 |
+| DQ-03 | Format-aware Fragment and Locator contract | ACCEPTED — P-60A / DEC-067 |
+| DQ-04 | PostgreSQL Lexical / Vector topology and Exact / ANN boundary | PROPOSED as P-61A / B / C |
+| DQ-05 | Embedding, index entry versioning, update / rebuild and consistency | PROPOSED as P-62A / B / C |
+| DQ-06 | Planner, Query Rewrite, fusion, Top-K and optional reranking | PROPOSED as P-63A / B / C |
 | DQ-07 | Scope filtering, Source Set Version and public Source / Evidence transport | PENDING |
 | DQ-08 | Retrieval Run, Evidence Package, Dataset Statistic and Formal Evidence Link | PENDING |
 | DQ-09 | Retrieval evaluation, fallback, degraded behavior and quality gates | PENDING |
@@ -209,10 +210,127 @@ Choose P-60A. It is the smallest design that preserves honest citations and coun
 
 ## Round 1 decision status and next gate
 
-- `P-58 / P-59 / P-60 = PROPOSED`；none is Accepted until the user explicitly chooses an option.
-- Recommended combination: `P-58A + P-59A + P-60A`.
-- If accepted, archive the three decisions in one RFC-005 Decision Record, update only accepted Current Truth, and proceed to DQ-04～06 covering retrieval topology, component versions and deterministic planning / fusion.
+- `P-58A + P-59A + P-60A = ACCEPTED` by explicit user decision on 2026-08-07 and archived in [DEC-067](../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md).
+- P-58A explicitly amends DEC-032 by removing the Evidence Package `package_hash` step / field. Existing RFC-002 object-integrity controls remain private, algorithm-neutral and unchanged; no new Hash / SHA-256 or public digest is introduced.
+- P-59A makes `registered / processing / ready / ready_with_rejections / failed / superseded` the Source Version processing lifecycle and keeps association / availability / integrity as separate dimensions.
+- P-60A freezes four supported format-aware Fragment / Locator lanes without OCR or a generic document platform.
 - This round does not create Source schemas, database tables, object storage, parser code, Embeddings, indexes, API operations, frontend components, fixtures, dependencies, Technical Spikes or a Goal.
+
+## Proposal Round 2
+
+### P-61 — PostgreSQL Lexical / Vector Topology and Exact / ANN Boundary
+
+#### P-61A — PostgreSQL-native Derived Retrieval Plane + Exact-first Vector Search（推荐）
+
+- Keep one PostgreSQL service as the production data platform already accepted by RFC-002. Authoritative Source / Fragment / association / availability records remain owned by the Source / Evidence capability; lexical and vector entries live in separate retrieval-owned derived tables / schema and remain rebuildable, non-authoritative projections.
+- Use a PostgreSQL-native lexical lane rather than a second search service. Exact identifiers and normalized keys use deterministic equality / prefix lookup. Language-configured text may use `tsvector` + GIN where its tokenizer is proven suitable; CJK / identifier-heavy text uses a bounded `pg_trgm` GIN lane so Chinese ecommerce material is not forced through an unsuitable word tokenizer. Both representations point to the same eligible Fragment identity and preserve channel-specific ranks.
+- Use `pgvector` for the semantic lane in the same PostgreSQL service. The first-Goal baseline uses filtered exact nearest-neighbor queries, with ordinary indexes on authoritative filter columns / joins. Mandatory Task, Source Set Version, association, Source Scope, product / competitor identity, Source Version and availability predicates are part of the SQL candidate relation before relevance ordering; application-side post-filtering of a broad cross-scope result is prohibited.
+- HNSW / IVFFlat are not enabled by default. ANN becomes an optional later optimization only when the accepted fixture / expected data envelope shows exact search misses a documented latency budget and an isolated evaluation proves filtered recall, no cross-scope candidate exposure, explainable fallback and rebuild behavior. Enabling ANN requires its own focused Issue / PR and cannot weaken mandatory filters.
+- Direct / Exact / bounded reads and lexical retrieval remain available when Embedding or vector search is unavailable. A semantic outage cannot cause a switch to an external vector database, cross-task scope, or a fabricated result.
+- Exact PostgreSQL / extension patch versions, index DDL and query plans are compatibility evidence for the authorized Goal, not choices for an implementation Agent to invent. The RFC freezes topology and activation gates, not speculative scale tuning.
+
+**优点：** one operational data service, transactional identity joins, CJK-aware lexical behavior, simplest isolation proof and no premature ANN / external search infrastructure.
+
+**代价：** exact vector search may eventually need optimization at larger scale; the lexical lane has two deterministic representations instead of pretending one tokenizer fits every supported language.
+
+#### P-61B — PostgreSQL FTS + ANN from Day One
+
+Use only `tsvector` / GIN for all languages and create an HNSW vector index before any measured need.
+
+**优点：** familiar single lexical path and immediately available approximate search.
+
+**代价：** risks weak Chinese tokenization, adds recall / filtering behavior before the local MVP needs it, and makes mandatory scope proof harder because pgvector documents that approximate-index filtering occurs after index scan.
+
+#### P-61C — Dedicated External Search / Vector Service
+
+Replicate Source / Fragment metadata into an external full-text and vector platform and query it as the primary retrieval engine.
+
+**优点：** mature large-scale search features and independent scaling.
+
+**代价：** creates a second consistency plane, new credentials / deployment / reconciliation, and cross-service scope-filter risk without a first-Goal scale requirement.
+
+#### Recommendation
+
+Choose P-61A. It is the smallest topology that honestly supports Chinese / identifier-heavy material, semantic retrieval and authoritative filtering while keeping ANN as evidence-driven optimization rather than assumed infrastructure.
+
+### P-62 — Embedding Profile, Index Versioning and Reconciliation
+
+#### P-62A — Single Versioned Embedding Profile + Immutable Index Generations + Eligibility-first Switching（推荐）
+
+- Define a narrow Retrieval-owned Embedding Port with one active OpenAI Embeddings adapter / profile for the first Goal, aligned with the already accepted single-Provider boundary. No second Provider, automatic failover or direct SDK use outside the adapter is allowed. The exact current model identifier and dimensions must be frozen in RFC-005's final contract closure from official compatibility evidence; an implementation Issue cannot choose or change them.
+- An `EmbeddingProfileVersion` is readable and at least identifies provider family, model identifier, output dimensions, distance / normalization policy, input-normalization version and batching policy. It contains no Secret and is not a public Product status.
+- Every lexical / vector `RetrievalIndexEntry` references the exact Fragment, Source Version, Derived Artifact / Fragmenter version, index generation and applicable lexical / embedding profile. One Retrieval Run uses one compatible profile per channel; it never mixes vector dimensions or silently combines entries from different Embedding profiles.
+- New Source Version or new Derived Artifact creates new entries. remove / replace / restriction changes authoritative eligibility immediately, so stale entries become unqueryable through the authoritative candidate relation even before physical cleanup. Reparse, refragment, model or profile change creates a new immutable generation; it does not overwrite old provenance.
+- Build and reconcile a new generation side-by-side. Only after every expected eligible Fragment is accounted for and representative retrieval checks pass may one atomic current-generation pointer / equivalent eligibility switch make it active. Failed or partial builds remain non-current and cannot be blended into results.
+- Historical Retrieval Runs retain profile / generation references. Old generations are cleaned only under later retention rules; rebuild loss or index corruption never changes Source, Evidence Link or Business Current Truth.
+- Reconciliation compares readable identities, expected / present / missing / extra entry sets and eligibility state. It does not add a package digest, general integrity framework or low-probability test matrix.
+
+**优点：** reproducible profile changes, no mixed-vector ambiguity, immediate removal safety through authoritative eligibility and rollback by pointer without treating the index as truth.
+
+**代价：** side-by-side rebuild temporarily uses extra storage; the exact model ID still needs a time-sensitive final closure check before RFC acceptance.
+
+#### P-62B — Mutable In-place Re-embedding
+
+Update embeddings and lexical fields on existing entries whenever Parser, Fragmenter or model configuration changes.
+
+**优点：** minimal temporary storage and no generation switch.
+
+**代价：** old Retrieval Runs become irreproducible, partial updates can mix dimensions / versions, and rollback is unclear.
+
+#### P-62C — Multiple Embedding Providers with Runtime Failover
+
+Maintain two providers / profiles and fail over automatically when one is unavailable.
+
+**优点：** higher theoretical availability.
+
+**代价：** score spaces, dimensions and behavior differ; it violates the single-Provider MVP boundary and adds recovery complexity unsupported by the demo goal.
+
+#### Recommendation
+
+Choose P-62A. It creates one auditable change / rebuild path and keeps eligibility authoritative without inventing multi-provider resilience. The exact OpenAI embedding model remains a named final-closure evidence item, not an implementation-time choice.
+
+### P-63 — Deterministic Planner, Fusion, Candidate Bounds and Reranking
+
+#### P-63A — Rule-based Direct-first Planner + Rank Fusion + No Baseline Reranker（推荐）
+
+- Use a versioned deterministic strategy catalog: `direct`, `exact`, `bounded_document`, `lexical`, `semantic`, `hybrid`. Structured / exact / bounded paths win whenever they satisfy the request; evidence discovery uses hybrid by default only after mandatory scope and eligibility are fixed.
+- The first Goal does not use LLM Query Rewrite. Query construction is deterministic from retrieval purpose, user / Skill query, structured aliases and exact identifiers; exact identifiers are preserved byte-for-byte. A later LLM rewrite path requires evaluation evidence and an RFC amendment because it changes reproducibility and Model Runtime use.
+- Lexical and semantic channels run independently against the same authorized candidate relation, deduplicate by stable Fragment identity, and preserve channel ranks / matched queries. Hybrid uses Reciprocal Rank Fusion rather than adding incomparable lexical and vector scores.
+- Seed configuration is bounded and versioned: at most 4 deterministic query variants, at most 20 candidates per retrieval channel, RRF rank constant `60`, and at most 12 fused Candidate Fragments returned to coverage checks / Evidence Package assembly. These are retrieval candidate limits, not evidence strength, dataset frequency or mechanical acceptance scores; the fixed evaluation set may justify a documented change before implementation activation.
+- Reranking is not part of the first-Goal baseline. It may be proposed only if the accepted evaluation set shows a material relevance failure that deterministic planning + RRF cannot resolve; it may only reorder already allowed candidates and must fall back to fusion.
+- Zero eligible / relevant results return `insufficient_information`; semantic failure degrades explicitly to Direct / Exact / Lexical when those lanes are valid. No fallback expands scope, changes Source Set Version or turns a rank into Formal Evidence.
+- Planner and fusion tests cover the strategy table, exact-identifier preservation, mandatory-filter application, stable dedup / RRF behavior, bounded candidates, semantic fallback and zero-result behavior. They do not enumerate arbitrary query permutations.
+
+**优点：** reproducible, easy to test, avoids a second LLM decision loop and combines channel ranks without false score equivalence; bounded candidates control latency and review load.
+
+**代价：** deterministic rewrite handles fewer linguistic variations than an LLM planner; the seed limits require evaluation against the fixed Anchor SKU set before activation.
+
+#### P-63B — Weighted Raw-score Fusion + Mandatory Cross-encoder Reranker
+
+Normalize or directly weight channel scores, then require a reranker on every hybrid request.
+
+**优点：** potentially stronger ranking after careful calibration.
+
+**代价：** introduces calibration, latency, another model profile and failure path before the fixture proves need; direct raw-score addition would violate DEC-032.
+
+#### P-63C — LLM-generated Query Plan and Dynamic Candidate Budget
+
+Let the LLM decide strategy, query rewrites, candidate count and whether to rerank for every request.
+
+**优点：** flexible natural-language planning.
+
+**代价：** less reproducible, can drift from exact identifiers / scope, expands Model Runtime coupling and makes latency / candidate volume unpredictable.
+
+#### Recommendation
+
+Choose P-63A. It preserves the already accepted deterministic planner boundary, gives implementers an explicit bounded baseline and leaves reranking / LLM rewrite behind evidence rather than speculation.
+
+## Round 2 decision status and next gate
+
+- `P-61 / P-62 / P-63 = PROPOSED`; none is Accepted until the user explicitly chooses an option.
+- Recommended combination: `P-61A + P-62A + P-63A`.
+- If accepted, archive the three decisions in one RFC-005 Decision Record, freeze the exact current OpenAI Embedding model evidence item during final RFC closure, update only accepted Current Truth, and proceed to DQ-07～09 covering mandatory scope / public transport, Evidence Package contracts and Retrieval Evaluation / degraded behavior.
+- This round does not install PostgreSQL extensions, call OpenAI, create indexes / schemas / migrations / retrieval code, execute evaluation or Technical Spikes, or activate the Goal.
 
 ## Risks and stop conditions
 
@@ -228,7 +346,7 @@ Choose P-60A. It is the smallest design that preserves honest citations and coun
 
 RFC-005 remains `DRAFTING`. Proposal text is not Current Truth and does not authorize implementation. Overall RFC acceptance requires all DQ decisions, downstream document synchronization, local-link and Required Check success, an independent Sol/xhigh five-axis Final Consistency Review, and a separate explicit user decision.
 
-Even if P-58A / P-59A / P-60A are accepted, the following remain `NOT GRANTED`:
+Even though P-58A / P-59A / P-60A are accepted, the following remain `NOT GRANTED`:
 
 - RFC-005 overall acceptance;
 - dependency installation or exact version locking;
@@ -238,4 +356,4 @@ Even if P-58A / P-59A / P-60A are accepted, the following remain `NOT GRANTED`:
 
 ## Outcome
 
-PENDING USER DECISIONS FOR P-58～P-60.
+P-58A / P-59A / P-60A ACCEPTED AND ARCHIVED AS DEC-067. PENDING USER DECISIONS FOR P-61～P-63.

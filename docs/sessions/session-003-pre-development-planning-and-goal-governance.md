@@ -1440,3 +1440,37 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `P-58 / P-59 / P-60 = PROPOSED`；推荐组合为 `P-58A + P-59A + P-60A`。
 - 用户明确接受前，不创建 DEC，不把推荐写入 Current Truth，不进入 DQ-04～06 的 Retrieval Topology / Component Version / Planner & Fusion 决策。
 - 本轮不授权 RFC-005 整体、实现、依赖、Technical Spike、RFC-007 或 Goal。
+
+## RFC-005 Round 1 Acceptance and Proposal Round 2（2026-08-07）
+
+### User Decision and Archive Result
+
+- 用户明确回复：「接受 P-58A、P-59A、P-60A」。
+- P-58A / P-59A / P-60A 已归档为 [DEC-067](../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)，RFC-005 DQ-01～03 = `ACCEPTED`。
+- P-58A 明确修订 DEC-032：Evidence Package 不再计算或公开 `package_hash`，可复现性由 Source Set manifest、Retrieval Run / Plan identity 与可读组件版本说明。RFC-002 已接受的对象完整性边界保持私有、算法中立，不向公共契约扩散。
+- P-59A 冻结逐 Source 原子登记、耐久异步处理、typed per-item result 与 `registered / processing / ready / ready_with_rejections / failed / superseded` 生命周期；association / availability / integrity 继续分离。
+- P-60A 冻结表单 / 手工文本、TXT / Markdown、文本型 PDF、评论 CSV 四条格式感知 Fragment / Locator Lane；不新增 OCR、图片理解或通用文档平台。
+
+### P-61 — PostgreSQL Retrieval Topology
+
+- **P-61A（推荐）：** Retrieval 使用同 PostgreSQL Service 下独立、可重建的 derived plane；Exact / key lookup + 语言适配的 `tsvector` / GIN，并为 CJK / identifier-heavy 文本提供有界 `pg_trgm` / GIN lane；Semantic 使用 `pgvector` filtered exact nearest-neighbor 作为首 Goal 基线。Mandatory Task / Source Set / Association / Scope / Product / Version / Availability predicate 在 SQL candidate relation 内先于排名；ANN 只有在实际延迟与 filtered recall 证据证明需要后，才经独立 Issue / PR 启用。
+- **P-61B：** 所有语言只用 PostgreSQL FTS，并从第一天启用 ANN；路径少，但中文召回与 approximate filter / recall 均存在核心风险。
+- **P-61C：** 使用独立外部 Search / Vector Service；扩展能力强，但为本地 MVP 增加第二一致性平面、凭证与跨服务 Scope 风险。
+
+### P-62 — Embedding and Index Generation
+
+- **P-62A（推荐）：** Retrieval-owned 窄 Embedding Port + 单一 OpenAI Embeddings Adapter / Profile；exact model / dimensions 在 RFC-005 最终闭合时根据当时官方兼容证据冻结，Implementation Agent 不得选择。Index Entry 固定 Fragment / Source Version / Derived Artifact / Generation / Profile；新 Generation 旁路构建并在完整对账后原子切换，旧 Provenance 不覆盖；remove / replace / restriction 先由权威 eligibility 排除，不等待物理清理。
+- **P-62B：** 原地更新 Embedding / Index Entry；省空间但混合版本、破坏历史重放且难回滚。
+- **P-62C：** 多 Embedding Provider 自动 Failover；理论可用性更高，但违反单 Provider MVP 并引入不可比向量空间。
+
+### P-63 — Deterministic Planner and Fusion
+
+- **P-63A（推荐）：** 使用 versioned rule-based Direct-first strategy catalog；首 Goal 不使用 LLM Query Rewrite，Exact identifier 原样保留；Lexical / Semantic 共享同一 authorized candidate relation，按 Fragment 去重并用 RRF 融合，不直接相加不同量纲分数。Seed bound 为最多 4 个确定性 query variant、每通道 20 个候选、RRF constant 60、最终 12 个候选；这些只限制 Retrieval candidate，不是 Evidence strength、统计频率或机械验收分。首 Goal不设强制 Reranker，zero result 返回 `insufficient_information`。
+- **P-63B：** Weighted raw-score fusion + mandatory reranker；可能提高相关性，但需额外校准 / 模型 / 延迟，且 raw score 直接组合违反既有边界。
+- **P-63C：** LLM 动态决定 Query Plan / Rewrite / Candidate Budget；灵活但难复现、可能漂移 exact identifier / scope，并增加不必要 Model Runtime 耦合。
+
+### Proposal Status and Authorization Boundary
+
+- `P-61 / P-62 / P-63 = PROPOSED`；推荐组合为 `P-61A + P-62A + P-63A`。
+- 用户明确接受前，不创建对应 DEC，不把 PostgreSQL retrieval topology、OpenAI Embedding profile、RRF 或 seed bounds 写成 Accepted Current Truth。
+- 本轮不接受 RFC-005 整体，不安装扩展 / 依赖，不创建 Schema / Migration / Index / Parser / Embedding / Retrieval / API / Frontend，不调用 OpenAI，不执行 Evaluation / Technical Spike，也不创建或激活 Goal。

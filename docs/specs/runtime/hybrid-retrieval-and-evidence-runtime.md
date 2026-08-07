@@ -1,7 +1,7 @@
 # Hybrid Retrieval and Evidence Runtime — 概念 Specification
 
-> **Status: CONCEPTUAL（概念）**
-> 来源决定：[DEC-032 — Hybrid Retrieval and Evidence Runtime 采用 Direct-first 检索、确定性检索规划、强制权限与版本过滤与可复现证据装配](../../decisions/dec-032-hybrid-retrieval-and-evidence-runtime-architecture.md)（Accepted，Runtime Architecture / Retrieval Architecture / Evidence Architecture，2026-07-29）。Amends DEC-014。
+> **Status: CONCEPTUAL WITH ACCEPTED AMENDMENT（概念；DEC-067 已修订 Evidence Package 重现方式）**
+> 来源决定：[DEC-032 — Hybrid Retrieval and Evidence Runtime](../../decisions/dec-032-hybrid-retrieval-and-evidence-runtime-architecture.md) 与 [DEC-067 — Versioned Source Intake and Format-aware Fragment Contract](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)（Accepted）。DEC-067 移除旧概念 `package_hash`，以 Source Set manifest、Retrieval Plan / Run identity 与可读组件版本保持重现；DEC-032 其余边界不变。
 > 本文件是 DEC-032 的**概念结构化记录**，**不是最终实现契约**。所有字段名、枚举、Schema、阈值、算法、Prompt、模型均未确认。
 > Development Status: **NOT READY**。
 
@@ -337,9 +337,8 @@ Evidence Package 是 Skill 的可复现证据输入。构建流程（概念步�
 9.  Coverage 检查
 10. Conflict 检查（记录 known_conflicts[]）
 11. 装配 Evidence Package
-12. 计算 package_hash
-13. 记录 RetrievalRun / 组件版本
-14. 返回 Skill
+12. 固定 Source Set manifest、RetrievalPlan / RetrievalRun identity 与可读组件版本
+13. 返回 Skill
 ```
 
 **EvidencePackage（概念字段）：**
@@ -359,8 +358,9 @@ Evidence Package 是 Skill 的可复现证据输入。构建流程（概念步�
 - coverage_summary
 - evidence_limitations[]
 - generated_at
-- package_hash
 ```
+
+Evidence Package 不新增或公开 `package_hash`、SHA-256 或 client-visible digest；其可复现性由结构化 identity / version references 解释，接受 / 质量 / Evidence strength 不由 digest 推断。
 
 ---
 
