@@ -73,6 +73,7 @@
 | DEC-060 | 采用证据约束的声明完整性边界，不建设通用合规引擎 | Product / Claim Integrity / Evidence / Proportional Risk Control | Accepted | 2026-08-07 | Session-003 | RFC-004 / RFC-005 / RFC-007 | 接受 P-45A；Verified Fact 可作 Proof Point，Documented Claim 不得升格；无依据高风险声明阻断进入 Current Brief，有诚实替代时 Task 继续，只有策略必须依赖且无替代时 Needs Input。不提供法律或平台保证。Amends DEC-007 / 026 / 030 / 031。 |
 | DEC-061 | 用户资料采用 Task 范围私有与可逆移除，不提供首个 Goal 的永久删除界面 | Product / Data Scope / Source Lifecycle / Reversible Removal | Accepted | 2026-08-07 | Session-003 | RFC-004 / RFC-005 / RFC-007 / ARP-08 | 接受 P-46A；用户资料默认 Task-scoped，不静默跨任务复用；移除 / 替换创建版本变化和影响预览，不等于物理永久删除。物理保留、Hold、清理与删除安全由后续权威文档冻结。Amends DEC-014 / 025 / 041 / 044。 |
 | DEC-062 | 采用最小最近任务入口与稳定深链，不建设运营 Dashboard | Product / Navigation / Cross-session Recovery / Frontend Boundary | Accepted | 2026-08-07 | Session-003 | RFC-004 | 接受 P-47A；`/tasks` 提供创建与最近任务摘要，稳定深链返回同一 TaskWorkbench；不建设搜索、高级筛选、批量、归档、统计或 Dashboard。Amends DEC-044 / 056。 |
+| DEC-063 | 采用 Contract-first Typed API、语义并发与耐久异步接受协议 | API Architecture / Public Contract / Concurrency / Idempotency / Async Processing | Accepted | 2026-08-07 | Session-003 | RFC-004 | 接受 P-48A / P-49A / P-50A；OpenAPI 3.1 + `/api/v1`、窄 Resource + typed Command、语义 revision / 项目定义 Idempotency-Key、首次 `202` / 重放 `200` 的不可变 Receipt、canonical Run Monitor、Capability allowlist 与 RFC 9457 Problem Details。DQ-04～10 与 RFC 整体仍待接受，不授权实现。 |
 
 ---
 
@@ -86,7 +87,9 @@
 
 > **Product specification authority note：** DEC-057 明确产品规格以稳定用户语义和行为闭合；RFC-004 / 005 / 007 与 Testing Strategy 分别拥有公共 HTTP、Retrieval / Evidence 传输、Observability 和测试物理载体。RFC 必须实现 Accepted Product Behavior，不能因技术方案静默修改产品范围或用户流程。
 
-> **Product closure note：** P-42～P-47 已全部由用户接受并归档为 DEC-057～062，Product Specification Final Consistency Review = PASS。产品层已无未接受 Proposal；仍需用户整体接受，才结束 Issue #52 并进入 RFC-004 Gate。该状态不授权业务实现、Technical Spike 或 Goal 激活。
+> **Product closure note：** P-42～P-47 已全部由用户接受并归档为 DEC-057～062，Product Specification Final Consistency Review = PASS，用户已于 2026-08-07 接受 Product Specification 整体闭合；PR #53 已合并，Issue #52 已关闭，当前已进入 RFC-004 策划 Gate。该状态不授权业务实现、Technical Spike 或 Goal 激活。
+
+> **RFC-004 partial acceptance note：** DEC-063 已接受 P-48A～P-50A，冻结 Contract-first Typed API、语义 revision / Idempotency 与 Durable `202` + Run Monitor 基础。DQ-04～DQ-10、RFC-004 Final Consistency Review 与整体接受仍待后续 Gate；Partial Decision Acceptance 不等于 RFC Accepted 或实现授权。
 
 > **Workflow runtime amendment note：** DEC-013 的任务级跨会话恢复与 DEC-033 的安全恢复 / 幂等契约保持有效；生产 Checkpoint 拓扑、`sync` durability、可重入 Node 和 Current-Truth-first Reconciliation 以 DEC-049 为准，Durable Work Intent 调度、Lease / fencing 所有权和协作式取消以 DEC-050 为准，显式 Compatibility Tuple、七动作 Safe Resume Matrix、迁移 / 回滚和验收证据边界以 DEC-051 为准。RFC-003 的 DQ-01～DQ-09 已闭合，Final Consistency Review 已通过，用户已于 2026-08-06 明确接受 RFC-003 整体；Implementation、Spike Execution 与 Goal Activation 仍未授权。
 

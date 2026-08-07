@@ -71,12 +71,12 @@ RFC-005 owns Source / Fragment / Evidence Locator, retrieval, ranking, evidence 
 
 | Decision Question | Topic | Status |
 |---|---|---|
-| DQ-01 | Contract authority, namespace and Resource / Command topology | PROPOSED as P-48 |
-| DQ-02 | Revision preconditions, idempotency and conflict semantics | PROPOSED as P-49 |
-| DQ-03 | Durable asynchronous acceptance, polling and capability projection | PROPOSED as P-50 |
-| DQ-04 | Task creation, recent-task index and Workbench read models | PENDING |
-| DQ-05 | Needs Input, Source-facing task actions, cancel, resume, rerun and recovery commands | PENDING |
-| DQ-06 | Review Package, Review Draft, Review Decision and Approved Strategy protocol | PENDING |
+| DQ-01 | Contract authority, namespace and Resource / Command topology | ACCEPTED as P-48A（DEC-063） |
+| DQ-02 | Revision preconditions, idempotency and conflict semantics | ACCEPTED as P-49A（DEC-063） |
+| DQ-03 | Durable asynchronous acceptance, polling and capability projection | ACCEPTED as P-50A（DEC-063） |
+| DQ-04 | Task creation, recent-task index and Workbench read models | PROPOSED as P-51 |
+| DQ-05 | Needs Input, Source-facing task actions, cancel, resume, rerun and recovery commands | PROPOSED as P-52 |
+| DQ-06 | Review Package, Review Draft, Review Decision and Approved Strategy protocol | PROPOSED as P-53 |
 | DQ-07 | Brief versions, comparison, Current Truth result and Markdown export snapshot | PENDING |
 | DQ-08 | Problem types, HTTP status mapping and user / retry action semantics | PENDING |
 | DQ-09 | Fixed-workspace identity, transport and proportional authorization boundary | PENDING |
@@ -197,12 +197,129 @@ Return a receipt and require an SSE or WebSocket channel for subsequent state ch
 
 Choose P-50A. It is the minimum design that keeps `accepted != completed`, supports durable Run identity, and gives the Frontend explicit status / capability ownership without adding push infrastructure.
 
-## Proposal status and next gate
+## Round 1 decision status and next gate
 
-- P-48 / P-49 / P-50 are `PROPOSED`.
-- No Current Truth document may describe any option as Accepted before explicit user confirmation.
-- After this round, the next proposal group will cover DQ-04 through DQ-06: Task / Workbench query shape, recovery commands, and Human Review protocol.
-- This draft does not authorize OpenAPI generation, code, dependency installation, tests, Technical Spikes or Goal activation.
+- 用户于 2026-08-07 明确接受 P-48A / P-49A / P-50A，三项归档为 [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md)。
+- `DQ-01 / DQ-02 / DQ-03 = ACCEPTED`；该部分接受不等于 RFC-004 整体接受。
+- 下一提案组覆盖 DQ-04～DQ-06：Task / Workbench Query、Recovery Command 与 Human Review Protocol。
+- 本 Draft 不授权 OpenAPI 生成、代码、依赖安装、测试实现、Technical Spike 或 Goal 激活。
+
+## Proposal Round 2
+
+### P-51 — Task Creation, Recent-task Index and Workbench Read Model
+
+#### P-51A — Synchronous Task Creation + Bounded Recent Index + Narrow Task Overview（推荐）
+
+- `POST /api/v1/tasks` 只创建 Task identity 与初始业务上下文，不隐式启动 Workflow。请求携带已接受的 Task 名称 / 临时名称、商品品类和推广目标语义，并要求 `Idempotency-Key`；首次成功返回 `201 Created`、稳定 Task identity、Task Overview 与 `Location`，同 Key / 同输入重放返回 `200` 和同一 Task identity。
+- `GET /api/v1/tasks` 只返回固定工作区的 server-bounded recent-task window，按后端权威最近更新时间倒序投影；首个 Goal 不提供全文搜索、高级筛选、批量、归档、统计、总数承诺或分页优化。精确默认 / 最大窗口值留给 DQ-10 的 OpenAPI Closure 冻结。
+- `TaskSummary` 只表达稳定 Task identity、显示名称、商品品类、当前阶段或等待语义、后端权威更新时间、当前 Task revision、Primary Action 与绑定该 revision 的小型 Capability allowlist。列表不携带 Source、Evidence、Review 或 Brief 正文；列表 Capability 仍是 advisory，执行前由 Command 原子复核。
+- `GET /api/v1/tasks/{taskId}` 返回窄 `TaskOverview`：Task identity / lifecycle、当前 revision、Stage summaries、当前活动或最近 Run reference、当前 Needs Input / Review reference、Current Truth result references、Primary Action 与 Capability。它不嵌入完整 Run history、Review Package、Evidence collection 或 Brief body。
+- Task Overview 中的 Reference 只是稳定 Resource identity，不是 ORM Foreign Key、Checkpoint ID 或前端 Route State。Frontend 使用独立 Query 读取当前 Panel 真正需要的 Resource，再派生私有 `WorkbenchProjection`。
+- Empty recent list 是 `200` + empty items；不存在的稳定 Task identity 是 typed `404`。暂时读取失败使用 DQ-08 的 Problem Details，不把 stale cache 推断为 Current Truth。
+
+**优点：** 同时满足创建、跨会话返回和深工作台导航，保持 Task 为窄导航主轴；不会为了一个页面制造 mega-snapshot，也不会要求前端盲目扇出所有资源。
+
+**代价：** 打开具体 Panel 需要额外窄查询；Recent Window 之外的 Task 只可通过稳定深链进入，首个 Goal 不承诺完整任务管理体验。
+
+#### P-51B — Expanded Task Overview with Embedded Latest Resource Summaries
+
+Task Overview 除 Stage / Reference 外，还嵌入最新 Source、Review、Approved Strategy、Brief 和 Export 的摘要或部分正文；详情正文仍由独立 Resource 提供。
+
+**优点：** 首屏请求较少，工作台可用一个响应渲染更多内容。
+
+**代价：** 摘要与独立 Resource 容易产生新鲜度和字段重复；每个下游模块变更都会扩大 Task Contract，使 Task 逐步退化为半个 Workbench mega-payload。
+
+#### P-51C — Fully Decomposed Reads without Task Overview
+
+只提供 Task identity 和最近列表；进入 Task 后由前端并行读取 Stage、Run、Needs Input、Review、Brief 等所有资源并自行决定主要状态。
+
+**优点：** 每个 Resource 最窄，Task Contract 最小。
+
+**代价：** Frontend 必须从多个不同时间点的响应推断导航状态与 Primary Action，增加短暂矛盾和启动请求数量，也更容易形成第二套业务状态机。
+
+#### Recommendation
+
+Choose P-51A. A narrow server-owned overview is the minimum coherent navigation projection, while independent resources keep review, evidence and result bodies authoritative and separately refreshable.
+
+### P-52 — Needs Input, Source-facing Actions and Runtime Recovery Commands
+
+#### P-52A — Revision-bound Action Request + Explicit Preview / Confirm and Run Commands（推荐）
+
+- 当前真实阻断通过 task-scoped `NeedsInputActionRequest` Resource 表达。它具有稳定 identity、当前 revision、阻断类型与原因、受影响阶段、可见 Source / 冲突值 Reference、允许的 typed Resolution、预期恢复 / 重跑范围和当前状态；上游变化后旧请求变为 superseded，不能继续提交。
+- Resolution 使用与该 Action Request 类型匹配的 discriminated request，例如补充资料 Reference、选择现有值、提交纠正值、确认已知限制或取消当前路径；自由文本只能是说明，不能成为唯一不可追踪的业务事实。Command 必须携带 Action Request revision 和 `Idempotency-Key`。
+- Resolution 本身先同步提交业务输入 / 裁决并返回更新后的 Action Request / Task references。只有当服务端重新计算后提供 `resume` / `rerun` Capability，客户端才可调用对应 typed Command；Frontend 可以在一次用户动作内顺序执行，但不得在 Resolution 成功前或没有 Capability 时乐观 Resume。
+- Source Association remove / replace 遵循 typed preview → confirm：Preview 是无副作用的影响计算，并返回 typed `SourceChangeBasis`，至少绑定当前 Task revision、目标 Source Association revision、当前 Source Version identity，以及实际受影响的 Stage / Current Truth / Review Package / Brief version 或 revision references。Confirm Command 回传同一 Basis、目标 Source Association identity、Replacement reference（如适用）与 `Idempotency-Key`；服务端重新计算并验证全部适用 Basis，任一已变化即返回 typed conflict 且不提交。该 Basis 只引用 RFC-005 拥有的 Source identity / version，不定义其内容 Schema，也不使用 Hash / Digest 或通用 Diff Token。
+- `cancel` 明确针对当前 Run identity；成功接受只表示 `cancellation_requested` 已耐久记录，直到 Run Monitor 表达 terminal cancellation 前不得显示“已取消完成”。
+- `resume` 只用于服务端 Capability 明确允许继续的兼容 `thread_id` / execution context，并为该次恢复创建新的 Run identity 与 Attempt，可引用来源 Run；`confirmed-rerun` 明确携带 Task revision、最早重跑 Stage 与用户已看到的受影响 Stage set，服务端复核影响集合后同样创建新 Run identity。二者不得复用为模糊 `retry`，也不得复用旧 Run identity。
+- Manual Recovery 只暴露与 DEC-051 当前 Recovery Decision 对应的少量用户可执行 typed Commands；Checkpoint identity、Lease、Fencing Token、Worker Attempt 或内部七动作枚举不进入公共 Request。
+- Source 内容、解析状态与异步 Source lifecycle 由 RFC-005 冻结；RFC-004 只拥有 Task-facing Command、前置条件、Receipt / Problem 映射和对 Run / Task 的影响。
+
+**优点：** 用户看到的阻断、预览与动作具有同一 revision 基础；Frontend 不负责推演恢复状态，Source 变更和 Run 控制仍保持明确意图与可审计性。
+
+**代价：** Resolution 与后续 Resume / Rerun 是两个公共 Command；客户端需要按服务端 Capability 安全串联，而不是只调用一个万能恢复接口。
+
+#### P-52B — One Generic Recovery Command
+
+使用一个 `/recovery-actions` Endpoint，Request 传 `actionType` 和可变 Payload，统一处理补料、冲突、Source 变化、Cancel、Resume 与 Rerun。
+
+**优点：** 路由少，服务端可集中调度。
+
+**代价：** 与 DEC-063 的 explicit typed Command 冲突，Payload union 会不断扩大，并把 Source / Review / Workflow 的前置条件藏进通用 Dispatcher。
+
+#### P-52C — Frontend-orchestrated Recovery
+
+服务端只提供细粒度 Source mutation 和 Run mutation；Frontend 根据页面状态自行决定顺序、何时恢复、从哪个 Stage 重跑以及失败后如何补偿。
+
+**优点：** 后端公共 Operation 较少，交互迭代看似更快。
+
+**代价：** 把业务恢复状态机移到浏览器，容易在响应丢失、跨会话或多标签场景重复执行，并违反 Server-owned Current Truth / Capability 边界。
+
+#### Recommendation
+
+Choose P-52A. It keeps user actions narrow and reviewable, supports confirmed invalidation without opaque integrity machinery, and makes the server—not the screen—the authority for whether work may resume or rerun.
+
+### P-53 — Human Review Package, Draft, Decision and Approved Strategy Protocol
+
+#### P-53A — Immutable Package + Full-snapshot Draft Save + Explicit Outcome Commands（推荐）
+
+- `ReviewPackage` 是不可变、按 `reviewId + packageVersion` 读取的审核输入快照，公开已接受的七个产品语义组和精确上游 Version references。上游变化不会改写旧 Package，而是使其 superseded 并创建新 Package。
+- 每个当前 Review Package 最多有一个 active `ReviewDraft` Resource。Draft 只保存当前结构化 Strategy Draft、Candidate selection / merge provenance、Hypothesis decisions、Proof Point decisions、Evidence Limitation decisions 与 User Notes；服务端从 revision history 生成 Audit，不要求客户端回传完整历史事件。
+- Autosave 使用 full structured snapshot `PUT`，不采用 JSON Patch。首次创建使用 `expectedRevision = 0`，后续保存携带当前 revision；每次成功保存返回 canonical Draft snapshot 和更高 revision。所有保存使用 `Idempotency-Key`，同 Key / 同输入重放同一保存结果；stale revision 返回 typed `409`，不覆盖较新 Draft。
+- `select / edit / merge / reject candidate` 是 Draft 内容与 provenance，不等于批准。`submit` 是独立 typed Command，必须携带 `reviewId`、`packageVersion`、最新 Draft revision 与 `Idempotency-Key`；服务端重新验证 Package、上游版本、Draft 和全部业务不变量后，在一个事务中创建不可变 `ReviewDecision`、新的 `ApprovedStrategy` Domain Version、Current Truth Pointer 与 Stage updates。
+- `submit` 的同一原子事务必须同时提交 Review Decision、Approved Strategy、Current Truth / Stage updates、Audit、幂等结果与唯一 Durable Resume Work Intent；客户端不再发送第二个 Resume Command。首次成功返回 `201 Created` 的 Approved Strategy / Review Decision references，并携带该 continuation 的不可变 Command Receipt、新 Run identity 与 canonical Run monitor reference；同输入重放返回 `200` 的同一完整结果且不得重复调度。`201` 表达主 Resource 已同步创建，Receipt 只表达下游 continuation 已耐久接受，不表示 Brief 已生成。
+- `request-more-information`、`reject-all-and-request-regeneration` 与 `withdraw-approved-strategy` 是各自 typed Outcome Command，不伪装为 `submit`。Request More Information 同步记录 Review outcome 并创建 / 关联 Needs Input Action Request，不创建 Approved Strategy 或 Work Intent。Reject-all-and-request-regeneration 原子记录拒绝、幂等结果与唯一 Durable Work Intent，首次返回 `202` + 新 Run Receipt，重放返回 `200` 同一 Receipt，不创建 Approved Strategy。Withdraw 保留原 Approved Strategy history、清理 Current Pointer、失效下游并创建新 Review Cycle，不自动重跑；它须使用当前 Strategy Version / Task revision 与 `Idempotency-Key`。
+- 所有 state-changing Review Outcome 均继承 RFC-002 对其适用 Business State、State Transition / Audit 与 Idempotency Result 的原子参与者规则；上述公共响应描述不构成内部事务记录的穷举清单。
+- Approved Strategy 只能按稳定 Version identity 读取；Current Strategy 通过 Task 的 Current Truth reference 发现。Review Package、Draft、Decision 与 Approved Strategy 身份、version / revision 和生命周期保持分离。
+
+**优点：** 与前端 latest-buffer autosave 完全一致；一个可预测的 Draft Snapshot Contract 比 JSON Patch 更易生成类型和恢复冲突，同时保留不可变 Package、Decision 与 Approved Strategy 的业务边界。
+
+**代价：** 每次保存发送完整 Draft；服务端需要保存 revision history / audit，并为 Submit、Request More Information、Regeneration 与 Withdraw 维护多个明确 Command。
+
+#### P-53B — JSON Patch Review Draft + Submit Command
+
+Draft 保存使用 RFC 6902-style Patch，按 revision 应用细粒度操作；Package、Submit 与 Approved Strategy 边界保持不变。
+
+**优点：** 大 Draft 的传输量较小，单项变更表达精确。
+
+**代价：** 数组索引、Candidate merge、冲突重放和生成 Client 类型更复杂；首个单 Review 工作台没有证据表明 Draft 大到需要维护 Patch 语言。
+
+#### P-53C — Review Operation Log as the Public Write Model
+
+客户端分别发送 select / edit-field / merge / decide-hypothesis / reject-proof-point 等 Operation，服务端从 Event Log 还原 Draft；Submit 再冻结 Approved Strategy。
+
+**优点：** 审核操作天然可审计，并可支持细粒度协作。
+
+**代价：** 把公共 API 扩展为事件编辑协议，增加顺序、撤销、重放和兼容复杂度；首个 Goal 不做多人协作，内部 Audit 不需要成为公共 Event Sourcing Contract。
+
+#### Recommendation
+
+Choose P-53A. A full-snapshot, revision-guarded Draft is the shallowest transport that preserves the accepted autosave and stale-conflict behavior; explicit terminal commands keep approval, more-information, regeneration and withdrawal semantically distinct.
+
+## Round 2 proposal status and next gate
+
+- P-51 / P-52 / P-53 are `PROPOSED`; no option is Accepted until the user explicitly confirms it and a Decision record is archived.
+- P-51A does not create a full Task dashboard or final pagination platform. P-52A does not preempt RFC-005 Source schemas. P-53A does not authorize API, database or frontend implementation.
+- If this round is accepted, the next proposal group will cover DQ-07～DQ-09: Brief / Export, Problem taxonomy and fixed-workspace identity / transport.
 
 ## Risks and stop conditions
 

@@ -1262,3 +1262,40 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `P-48 / P-49 / P-50 = PROPOSED`；用户明确接受前不得创建 DEC 或同步为 Accepted Current Truth。
 - 本轮只创建 RFC Draft、更新 Proposal / Current Gate 状态并提出方案；不创建 OpenAPI Artifact、API / Frontend / Worker / Database / Migration / Test Implementation，不安装依赖，不执行 Technical Spike，不创建或激活 Goal。
 - 用户完成本轮 Decision Gate 后，下一轮才继续 DQ-04～06：Task / Workbench Query、Recovery Command 与 Human Review Protocol。
+
+## RFC-004 Acceptance Archive I and Proposal Round II（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 `P-48A`：OpenAPI 3.1 `/api/v1` 作为唯一公共 HTTP Contract；使用窄 Resource Query 与逐项 typed Command，不公开 Workbench mega-payload、通用 Action Dispatcher 或内部 Runtime 类型。
+- 用户明确接受 `P-49A`：使用业务语义 precondition、单调 revision 与项目定义完整语义的 `Idempotency-Key`；同 Key / 同输入重放优先于 revision 重检，真正 stale 与 Key reuse 使用 typed `409`，公共契约不暴露 Hash / Digest。
+- 用户明确接受 `P-50A`：真正异步操作在耐久接受后返回 `202` Receipt + canonical Run Monitor；同输入重放固定 `200` 同一 Receipt；Frontend 活动期轮询窄 Run，Capability 为 revision-bound advisory allowlist，4xx / 5xx 使用 RFC 9457 Problem Details。
+
+### Archive Result
+
+- `P-48 / P-49 / P-50 = ACCEPTED`；DEC-063 是三项权威 Decision，RFC-004 DQ-01～03 已闭合。
+- RFC-004 仍为 `DRAFTING`；DQ-04～10、Final Consistency Review 与用户整体接受仍未完成。
+- 接受只授权策划文档同步，不创建 OpenAPI、API、Client、Database / Migration、测试实现、Technical Spike 或 Goal。
+
+### P-51 — Task Creation, Recent Index and Workbench Read Model
+
+- **P-51A（推荐）：** 同步创建 Task（首次 `201`、重放 `200` 同一 identity），提供 server-bounded 最近任务列表和窄 Task Overview；列表只含名称、品类、阶段 / 等待语义、更新时间、Task revision 与绑定该 revision 的主要 Capability，详情正文仍由独立 Resource 读取。
+- **P-51B：** Task Overview 嵌入多个最新 Resource Summary；首屏请求少，但产生重复和半 mega-payload。
+- **P-51C：** 无 Task Overview，Frontend 扇出所有 Resource 并自行推断导航状态；Resource 最窄，但容易形成第二套状态机。
+
+### P-52 — Needs Input and Recovery Commands
+
+- **P-52A（推荐）：** revision-bound Needs Input Action Request + typed Resolution；Source remove / replace 使用无副作用 Preview + 完整 typed version / revision Basis 的 Confirm；Cancel、Resume、confirmed Rerun 与 Manual Recovery 保持显式 typed Command，由服务端 Capability 决定是否合法。Resume 保留兼容 execution context 但创建新 Run / Attempt，不复用旧 Run identity。
+- **P-52B：** 单一 Generic Recovery Command；路由少但违反 DEC-063 typed Command 边界。
+- **P-52C：** Frontend 自行编排 Source mutation / Resume / Rerun；会把恢复状态机移到浏览器。
+
+### P-53 — Human Review Protocol
+
+- **P-53A（推荐）：** 不可变 Review Package + 每 Package 一个 active Review Draft；Autosave 发送 revision-guarded full structured snapshot，Submit / Request More Information / Regeneration / Withdraw 使用独立 typed Outcome Command。Submit 原子创建不可变 Review Decision / Approved Strategy 与唯一 Durable Resume Work Intent，并返回 `201` 主结果 + continuation Receipt；客户端不再另发 Resume。Reject-all-and-request-regeneration 使用 `202` 新 Run Receipt，Request More Information 与 Withdraw 不自动调度。
+- **P-53B：** JSON Patch Draft；传输小，但数组 / merge / conflict 和类型生成复杂度不相称。
+- **P-53C：** Public Review Operation Log；审计细，但扩大为 Event Editing Protocol 和协作模型。
+
+### Proposal Status and Next Gate
+
+- `P-51 / P-52 / P-53 = PROPOSED`；未获用户确认，不能同步为 Accepted Current Truth。
+- 接受后只归档 DQ-04～06，并继续 DQ-07～09；不合并 PR #55、不关闭 Issue #54、不接受 RFC 整体、不实现 API 或启动 Goal。

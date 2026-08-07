@@ -1,9 +1,9 @@
 # Frontend Architecture
 
 > **Status: ACCEPTED PRE-DEVELOPMENT CURRENT TRUTH — P-36～P-41 accepted; Final Consistency Review passed; Frontend Architecture overall accepted; public HTTP contract and implementation pending**
-> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · product inputs [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md)
+> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · product inputs [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) · API input [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md)
 
-本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。最终 HTTP Resource / 字段 / 状态 / 错误 / revision / 幂等 / Conflict / Pagination / 下载协议、精确依赖版本、实现与运行证据仍未完成，不得从本文空白处推断实现事实。整体接受不授权依赖安装或实现。
+本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。RFC-004 DQ-01～03 已由 DEC-063 冻结 Contract-first Resource / typed Command、语义 revision / Idempotency、耐久 `202` Receipt、Run Monitor、Capability 与 Problem Details 基础；最终 Task / Review / Brief / Export Resource 字段、完整状态 / Problem Type / Pagination / 下载协议、精确依赖版本、实现与运行证据仍未完成，不得从本文空白处推断实现事实。整体接受与部分 API Decision 接受均不授权依赖安装或实现。
 
 ## 1. Application Shape
 
@@ -25,17 +25,17 @@
 | 可链接 Task / Stage / Panel 选择 | URL Route / Search Params | 刷新和深链后可恢复位置，不保存业务内容 |
 | 展开、焦点等短命视觉状态 | React local state | 不引入 Redux / Zustand |
 
-轮询终止条件必须来自 RFC-004 接受的状态 / 能力契约及当前 Mutation 状态，前端不得发明业务终态。
+轮询只针对 DEC-063 接受的窄 Run Resource，并在活动状态结束、Needs Input、waiting Review、manual recovery 或终态停止；精确公共状态名仍由 RFC-004 DQ-08 冻结。Stage / 终态变化后刷新 Task Overview 与受影响 Resource，再派生私有投影，前端不得发明业务终态。
 
 ## 3. HTTP Contract and Adapter Seam
 
-- RFC-004 的已提交 OpenAPI 3.1 Artifact 是唯一 HTTP Contract Source of Truth。
+- RFC-004 的已提交 OpenAPI 3.1 Artifact 是唯一 HTTP Contract Source of Truth，使用 `/api/v1` 单一当前主版本；查询使用窄 Resource，业务状态变化使用 typed Command。
 - `openapi-typescript` 生成不可手改的派生类型；`openapi-fetch` 提供类型化原生 Fetch Client。
 - 生成文件随 Contract 变更提交，并由重新生成后的 Clean Diff Gate 检查漂移。
 - React Module 不直接使用原始 `fetch`；窄型 Client / Query Adapter 负责传输、标准错误归一化和 DTO → View Projection。
 - 前端校验服务即时 UX；后端与公共 Contract 是最终权威。不建立第二套手写 DTO，也不机械复制全部后端 Schema 为 Zod。
 
-最终资源、路径、字段、状态、错误、revision、幂等、Conflict 和下载协议仍由 RFC-004 冻结。
+语义 `revision`、项目定义 `Idempotency-Key`、stale / key-reuse 的 typed `409`、首次异步 `202` / 同输入重放 `200` Receipt 与 canonical Run Monitor 已由 DEC-063 冻结；最终 Resource 路径 / 字段、完整状态 / Problem Type 和下载协议仍由 RFC-004 后续 DQ 冻结。
 
 ## 4. Verification
 
