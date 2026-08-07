@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- **Status:** DRAFTING — ROUNDS 1～3 ACCEPTED；FINAL PROPOSAL ROUND 4 USER DECISION PENDING
+- **Status:** FINAL CONSISTENCY REVIEW PASS — DQ-01～10 ACCEPTED；RFC OVERALL USER ACCEPTANCE PENDING
 - **Date:** 2026-08-07
 - **Issue:** [#56](https://github.com/JettxonHo/ai-ecommerce-agent/issues/56)
 - **Pull Request:** [#57](https://github.com/JettxonHo/ai-ecommerce-agent/pull/57)（Draft）
@@ -93,7 +93,7 @@ RFC-002 remains authority for PostgreSQL transactions, storage classification, a
 | DQ-07 | Scope filtering, Source Set Version and public Source / Evidence transport | ACCEPTED — P-64A / DEC-069 |
 | DQ-08 | Retrieval Run, Evidence Package, Dataset Statistic and Formal Evidence Link | ACCEPTED — P-65A / DEC-069 |
 | DQ-09 | Retrieval evaluation, fallback, degraded behavior and quality gates | ACCEPTED — P-66A / DEC-069 |
-| DQ-10 | Exact Embedding Profile, public contract closure, adoption order, reconciliation and verification evidence | PROPOSED as P-67A / B / C |
+| DQ-10 | Exact Embedding Profile, public contract closure, adoption order, reconciliation and verification evidence | ACCEPTED — P-67A with explicit MVP-0 staging amendment / DEC-070 |
 
 No item in this table is Accepted until the user explicitly accepts the corresponding proposal and it is archived in a Decision record.
 
@@ -531,9 +531,9 @@ Keep only conceptual Source / Retrieval types and let the OpenAPI, persistence a
 
 #### Recommendation and next gate
 
-Choose P-67A. It is the smallest profile and contract set that closes DQ-10 without adding ANN, a second Provider, a generic search API or a new speculative Technical Spike.
+P-67A was recommended as the smallest profile and contract set that closes DQ-10 without adding ANN, a second Provider, a generic search API or a new speculative Technical Spike.
 
-If P-67A is accepted, archive it as one final RFC-005 Decision Record, mark DQ-01～10 closed, synchronize Current Truth, and run the RFC-005 Final Consistency Review plus all Required Checks. P-67A acceptance alone still does not accept RFC-005 overall, merge PR #57, close Issue #56, implement anything or activate Goal. After the review report, RFC-005 overall requires a separate explicit user acceptance.
+The user accepted P-67A together with the accelerated MVP-0 Gate. [DEC-070](../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md) freezes the target profile and public catalog while explicitly amending adoption order: MVP-0 may deliver verified Direct / Exact / PostgreSQL Lexical retrieval before text PDF、Embedding / Semantic / Hybrid, which move to MVP-1 without changing Scope / Evidence / public identity contracts. DQ-01～10 are closed and the [RFC-005 Final Consistency Review](../reviews/review-2026-08-07-rfc-005-final-consistency.md) is PASS. RFC-005 overall still requires a separate explicit user acceptance before PR #57 merge or Issue #56 closure.
 
 ## Risks and stop conditions
 
@@ -547,9 +547,9 @@ If P-67A is accepted, archive it as one final RFC-005 Decision Record, mark DQ-0
 
 ## Acceptance and authorization boundary
 
-RFC-005 remains `DRAFTING`. Proposal text is not Current Truth and does not authorize implementation. Overall RFC acceptance requires all DQ decisions, downstream document synchronization, local-link and Required Check success, an independent Sol/xhigh five-axis Final Consistency Review, and a separate explicit user decision.
+RFC-005 DQ-01～10 are Accepted and Final Consistency Review is PASS, but RFC-005 overall remains pending a separate explicit user decision. Accepted Decision text is Current Truth; historical Proposal alternatives do not authorize implementation. Overall acceptance still requires local-link and Required Check success plus the separate user decision.
 
-Even though P-58A～P-66A are accepted, the following remain `NOT GRANTED`:
+Even though P-58A～P-67A are accepted, the following remain `NOT GRANTED`:
 
 - RFC-005 overall acceptance;
 - dependency installation or exact version locking;
@@ -559,4 +559,4 @@ Even though P-58A～P-66A are accepted, the following remain `NOT GRANTED`:
 
 ## Outcome
 
-P-58A～P-60A ACCEPTED AND ARCHIVED AS DEC-067. P-61A～P-63A ACCEPTED AND ARCHIVED AS DEC-068. P-64A～P-66A ACCEPTED AND ARCHIVED AS DEC-069. P-67A / B / C REMAIN PROPOSED; RFC-005 OVERALL REMAINS NOT ACCEPTED.
+P-58A～P-60A ACCEPTED AND ARCHIVED AS DEC-067. P-61A～P-63A ACCEPTED AND ARCHIVED AS DEC-068. P-64A～P-66A ACCEPTED AND ARCHIVED AS DEC-069. P-67A ACCEPTED WITH EXPLICIT MVP-0 STAGING AMENDMENT AND ARCHIVED AS DEC-070; P-67B / C REJECTED AS CURRENT DIRECTION. FINAL CONSISTENCY REVIEW = PASS. RFC-005 OVERALL REMAINS PENDING USER ACCEPTANCE.

@@ -1,7 +1,7 @@
 # Source and Evidence Specification（来源与证据规格 — 概念）
 
-> **Status: PARTIALLY FROZEN — DEC-025 概念层 + DEC-067～069 RFC-005 DQ-01～09 当前契约。**
-> **本文件是 Current Truth Layer 的一部分。** 来源 / Evidence 基础来自 [DEC-025](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)，产品展示投影来自 [DEC-047](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)，Source association / processing / Fragment / Locator 现行边界来自 [DEC-067](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)，Retrieval-derived artifact / index generation 边界来自 [DEC-068](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)，权威 Scope、公共投影、引用式 EvidencePackage 与 Formal Evidence commit 边界来自 [DEC-069](../../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md)（均 Accepted）。
+> **Status: FROZEN BY DEC-025 / DEC-067～070；RFC-005 整体接受待用户决定。**
+> **本文件是 Current Truth Layer 的一部分。** DEC-067～069 冻结 Source / Processing / Fragment、Retrieval、Scope、Evidence 与 evaluation；[DEC-070](../../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md) 冻结 exact target Embedding Profile 与公共 Operation catalog，并定义 MVP-0 Direct / Exact / Lexical、MVP-1 PDF + Semantic / Hybrid 的分阶段 Capability。
 > 本文件**不**包含：最终数据库表、Parser 代码、OCR、RAG 代码、Embedding、Vector Store、Web Scraper、Review Importer、最终 Evidence UI、正式 API。所有结构名为**概念示意，非最终数据契约 / 最终实现**。
 
 ---
@@ -22,6 +22,7 @@
 - [DEC-067 — 版本化 Source 关联、逐资料耐久处理与格式感知 Fragment 契约](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)
 - [DEC-068 — PostgreSQL-native、版本化且确定性的 Retrieval 基线](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)
 - [DEC-069 — 权威检索范围、引用式 Evidence Package 与显式降级](../../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md)
+- [DEC-070 — 固定 Embedding 契约与快速 MVP-0 分阶段交付](../../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md)
 
 > DEC-067 明确修订 DEC-025 的 Task 成员关系与 Fragment / Locator 细节：Source 不直接承载可变 Task membership，processing / association / availability / integrity 状态分离。旧概念示例与现行条款冲突时以 DEC-067 为准。
 
@@ -117,7 +118,7 @@ SourceVersion
 
 Parsed text、normalized search text、Record / Fragment set 与后续 lexical / embedding output 都是精确 Source Version 的版本化派生产物。Processor / Parser / Fragmenter 配置变化创建新 Derived Artifact version 和新 Fragment identity，不覆盖历史 Provenance。
 
-Retrieval Index 是同 PostgreSQL Service 下可重建、非权威的派生平面。每个 lexical / vector entry 必须引用精确 Fragment、Source Version、Derived Artifact / Fragmenter version、index generation 与适用 lexical / Embedding Profile。新 generation 旁路构建并完成 expected / present / missing / extra entry 对账后才原子切换；remove / replace / restriction 先由权威 eligibility 排除，不等待物理 cleanup。首个 Goal 使用 `pgvector` filtered exact NN，不默认启用 ANN。
+Retrieval Index 是同 PostgreSQL Service 下可重建、非权威的派生平面。每个 lexical / vector entry 必须引用精确 Fragment、Source Version、Derived Artifact / Fragmenter version、index generation 与适用 lexical / Embedding Profile。目标 vector Profile 为 `openai-text-embedding-3-small-1536-cosine-v1`；不默认启用 ANN。快速 MVP-0 只启用 Direct / Exact / PostgreSQL Lexical；vector generation、Semantic / Hybrid 与 text PDF 进入 MVP-1，在启用前 Capability 必须保持不可用。
 
 ---
 
@@ -611,7 +612,7 @@ New Source Version
 - 直接证据可显示短摘录，综合判断可显示忠实摘要和主要依据，不强制逐句引用。
 - 不显示未经校准数字置信度或机械证据覆盖总分。
 
-本节只定义业务数据向用户交互的投影要求；工作台与证据交互边界已由 DEC-055 / DEC-056 冻结，四类 Locator 语义已由 DEC-067 冻结。DEC-069 已冻结 Task-scoped Source / Evidence 窄投影、opaque cursor keyset pagination（默认 20、最大 50）与禁止暴露 vector / raw index / Provider payload / private storage reference / rank-as-confidence；最终 Operation / Schema catalog 仍待 RFC-005 DQ-10 用户决策。
+本节只定义业务数据向用户交互的投影要求。DEC-069 已冻结 Task-scoped 窄投影、opaque cursor pagination（默认 20、最大 50）与禁止暴露项；DEC-070 已冻结 Source intake read / write、association / version read 与 Evidence Link read Operation family。MVP-0 只在 Capability 中开放 JSON / text / TXT / Markdown / CSV；text PDF 作为 additive MVP-1 capability。
 
 ---
 

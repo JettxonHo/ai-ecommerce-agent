@@ -80,6 +80,7 @@ DEC-067 已冻结版本化 Source 图、逐资料耐久处理与格式感知 Fra
 - **Complements [DEC-063](dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md)、[DEC-064](dec-064-task-recovery-and-human-review-public-protocol.md)、[DEC-065](dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md) 与 [DEC-066](dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md)：** 只填充 RFC-004 已委托的 Source / Evidence refs、collection 与 lifecycle transport，不改变既有 Operation / Problem / workspace authority。
 - **Conforms to [DEC-039](dec-039-proportional-validation-and-review-governance.md)：** 使用真实 Scope、事务与代表性评测门禁，不新增 Hash / SHA-256、机械总分或泛化安全平台。
 - **Input to [RFC-005](../rfcs/rfc-005-source-processing-and-retrieval-architecture.md)：** 接受 DQ-07～09，并开放 DQ-10 的最终闭合提案。
+- **Extended by [DEC-070](dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md)：** 后续已冻结 exact Embedding Profile、公共 Operation catalog，并以显式快速 MVP-0 amendment 分阶段采用 Direct / Exact / Lexical 与 Semantic / Hybrid。
 
 ## Authorization Boundary
 

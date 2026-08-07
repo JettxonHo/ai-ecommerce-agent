@@ -1,8 +1,8 @@
 # Hybrid Retrieval and Evidence Runtime — 概念 Specification
 
-> **Status: PARTIALLY FROZEN（DEC-067～069 已接受；RFC-005 DQ-10 待闭合）**
-> 来源决定：[DEC-032 — Hybrid Retrieval and Evidence Runtime](../../decisions/dec-032-hybrid-retrieval-and-evidence-runtime-architecture.md)、[DEC-067 — Versioned Source Intake and Format-aware Fragment Contract](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)、[DEC-068 — PostgreSQL-native Versioned and Deterministic Retrieval Baseline](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md) 与 [DEC-069 — Authoritative Retrieval Scope, Referenced Evidence and Explicit Degradation](../../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md)（Accepted）。DEC-067 移除旧概念 `package_hash`；DEC-068 冻结 PostgreSQL-native derived retrieval plane、单一版本化 Embedding Profile、immutable index generation、Direct-first deterministic Planner、RRF、seed bounds 与 no-baseline-reranker；DEC-069 冻结 server-derived authorized candidate relation、引用式 EvidencePackage、Formal Evidence atomic commit、代表性评测硬门禁与显式降级。
-> 本文件仍不是最终实现 Schema。exact Embedding model / dimensions、公共 Operation / Schema catalog、采用顺序与 RFC closure 尚待 DQ-10 用户决策。
+> **Status: FROZEN BY DEC-067～070；RFC-005 整体接受待用户决定**
+> 来源决定：[DEC-032](../../decisions/dec-032-hybrid-retrieval-and-evidence-runtime-architecture.md)、[DEC-067](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)、[DEC-068](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)、[DEC-069](../../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md) 与 [DEC-070](../../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md)（Accepted）。DEC-067～069 冻结 Source / Retrieval / Evidence 基线；DEC-070 冻结 exact Profile / catalog 并定义快速分阶段采用。
+> DEC-070 已冻结 `text-embedding-3-small` / 1536 / cosine 与公共 catalog，并将快速 MVP-0 限于 Direct / Exact / Lexical；text PDF、Embedding / Semantic / Hybrid 后移 MVP-1。本文件仍不是物理实现 Schema。
 > Development Status: **NOT READY**。
 
 ---
@@ -470,15 +470,14 @@ Formal Evidence Link 仅在 Skill 输出通过 Evidence Validator 后才创建�
 
 ## Open Questions
 
-以下为 DEC-067～069 后仍**未确认**的项目，须由 DQ-10、Testing Strategy 或后续证据决定：
+以下为 DEC-067～070 后仍**未确认**的实施参数，须由 Testing Strategy、Goal Issue 或后续证据决定：
 
-- exact Embedding model identifier / dimensions；
 - PostgreSQL extension / package exact versions、tokenizer 与 trigram threshold；
 - ANN 是否需要及其参数（默认不启用）；
 - Reranker / LLM Query Rewrite 是否由未来评测解锁（默认不启用）；
 - Chunk Size / Chunk Overlap；
 - 缓存技术（Cache Technology）；
-- 公共 Source / Evidence exact Operation / Schema catalog；
+- MVP-1 Semantic / Hybrid 的实施 Issue 与启用时点（目标 Profile 已冻结）；
 - 性能目标（延迟 / 成本阈值）；
 - 最终字段名称、Schema、枚举；
 - 最终错误代码；

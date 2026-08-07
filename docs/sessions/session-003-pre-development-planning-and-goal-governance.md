@@ -1542,3 +1542,19 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `P-67A / B / C = PROPOSED`；推荐 P-67A。
 - 用户接受 P-67A 后，只归档 DQ-10、同步 Current Truth 并执行 RFC-005 Final Consistency Review + Required Checks；仍须另行明确接受 RFC-005 整体，才可合并 PR #57、关闭 Issue #56、进入 RFC-007 Gate。
 - P-67A 接受本身不授权实现、Technical Spike、Live Provider、依赖安装、Migration 或 Goal。
+
+## Rapid MVP-0 Gate and RFC-005 Final Closure Decision（2026-08-07）
+
+### User Decision
+
+用户明确回复：
+
+> “确认接受快速 MVP-0 Gate；接受 P-67A；允许完成 RFC-005 最终审查，并按最小范围策划 RFC-007、Development Plan、Testing Strategy、Goal 与精简 Readiness Review。完成展示前不启动开发。”
+
+### Archive Result
+
+- P-67A 已以快速 MVP-0 staging amendment 归档为 [DEC-070](../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md)，RFC-005 DQ-10 = `ACCEPTED`。
+- exact target Profile 固定为 OpenAI Embeddings `text-embedding-3-small`、explicit 1536 dimensions、float、cosine 与 readable version；公共 Source intake / association / version / Evidence Link catalog 已冻结。
+- 为解决 P-67A 原始采用顺序与快速路线的冲突，DEC-070 显式修订：MVP-0 使用具备相同 server-derived Scope、Source Set、Validator 与 atomic Evidence commit 的 Direct / Exact / PostgreSQL Lexical；text PDF、Embedding / Semantic / Hybrid 后移 MVP-1，Capability 不得提前宣称可用。
+- [RFC-005 Final Consistency Review](../reviews/review-2026-08-07-rfc-005-final-consistency.md) = `PASS`，无阻塞 Finding；RFC-005 整体仍需用户单独接受后才可合并 PR #57 / 关闭 Issue #56。
+- 快速 Gate 只授权继续策划最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review；完整展示前不启动开发、不创建实际 Goal、不执行 Spike / Live Provider、不安装依赖。
