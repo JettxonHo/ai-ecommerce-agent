@@ -1,6 +1,6 @@
 # Hybrid Retrieval and Evidence Runtime — 概念 Specification
 
-> **Status: FROZEN BY DEC-067～070；RFC-005 整体接受待用户决定**
+> **Status: FROZEN BY DEC-067～070；RFC-005 ACCEPTED 2026-08-07**
 > 来源决定：[DEC-032](../../decisions/dec-032-hybrid-retrieval-and-evidence-runtime-architecture.md)、[DEC-067](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)、[DEC-068](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)、[DEC-069](../../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md) 与 [DEC-070](../../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md)（Accepted）。DEC-067～069 冻结 Source / Retrieval / Evidence 基线；DEC-070 冻结 exact Profile / catalog 并定义快速分阶段采用。
 > DEC-070 已冻结 `text-embedding-3-small` / 1536 / cosine 与公共 catalog，并将快速 MVP-0 限于 Direct / Exact / Lexical；text PDF、Embedding / Semantic / Hybrid 后移 MVP-1。本文件仍不是物理实现 Schema。
 > Development Status: **NOT READY**。

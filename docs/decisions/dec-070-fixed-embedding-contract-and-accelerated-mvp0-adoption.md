@@ -96,3 +96,7 @@ RFC-004 的单一 `contracts/openapi/openapi.yaml` 在相应 Contract Issue 中�
 
 - 用户于 2026-08-07 明确回复：“确认接受快速 MVP-0 Gate；接受 P-67A；允许完成 RFC-005 最终审查，并按最小范围策划 RFC-007、Development Plan、Testing Strategy、Goal 与精简 Readiness Review。完成展示前不启动开发。”
 - [RFC-005 P-67A](../rfcs/rfc-005-source-processing-and-retrieval-architecture.md#p-67a--contract-first-closure--text-embedding-3-small-1536-cosine--bounded-verification推荐)。
+
+## Subsequent RFC Outcome
+
+RFC-005 Final Consistency Review 通过后，用户于 2026-08-07 明确接受 RFC-005 整体，并授权合并 PR #57、关闭 Issue #56、继续最小 RFC-007 与快速 MVP-0 策划包。该后续接受没有改变本 Decision 的 MVP-0 / MVP-1 分期，也没有授权实现、Spike、Live Provider 或实际 Goal。

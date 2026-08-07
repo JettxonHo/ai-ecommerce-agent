@@ -4,7 +4,7 @@
 
 > **当前阶段：** RFC Planning and Dependency Order（DEC-038 已接受）。  
 > **状态：** Architecture Readiness = `CONDITIONALLY READY` · Development Status = `CONDITIONALLY READY`。  
-> **当前状态：** RFC-003 / 004 / 006 已接受；Product Specification 已整体闭合。[RFC-005](rfc-005-source-processing-and-retrieval-architecture.md) 的 P-58A～P-67A / DQ-01～10 已由 DEC-067～070 接受，Final Consistency Review = PASS，整体仍待用户接受。用户已确认快速 MVP-0 Gate；最小 RFC-007 与快速策划包可继续策划，Implementation、Spike Execution 与 Goal Activation 仍未授权。
+> **当前状态：** Product Specification 与 RFC-001～006 已整体接受；[RFC-005](rfc-005-source-processing-and-retrieval-architecture.md) Final Consistency Review = PASS。用户已确认快速 MVP-0 Gate；最小 RFC-007 与快速策划包可继续策划，Implementation、Spike Execution 与 Goal Activation 仍未授权。
 
 ---
 
@@ -86,7 +86,7 @@ Merge RFC PR
 | RFC-002 | Persistence and Transaction Architecture | Wave 1 | `ACCEPTED` |
 | RFC-003 | LangGraph Runtime and Checkpoint Architecture | Wave 2 | `ACCEPTED` |
 | RFC-004 | [API and Human Review Architecture](rfc-004-api-and-human-review-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受） |
-| RFC-005 | [Source Processing and Retrieval Architecture](rfc-005-source-processing-and-retrieval-architecture.md) | Wave 3 | `FINAL REVIEW PASS`（DQ-01～10 Accepted by DEC-067～070；整体待用户接受） |
+| RFC-005 | [Source Processing and Retrieval Architecture](rfc-005-source-processing-and-retrieval-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受；Final Review PASS） |
 | RFC-006 | LLM Runtime and Structured Output | Wave 2 | `ACCEPTED`（2026-08-06 用户明确整体接受） |
 | RFC-007 | Observability and Runtime Operations | Wave 4 | `PROPOSED` |
 
@@ -270,6 +270,6 @@ RFC Agent 不得：
 | RFC-002 | Persistence and Transaction Architecture | Wave 1 | `ACCEPTED` |
 | RFC-003 | LangGraph Runtime and Checkpoint Architecture | Wave 2 | [`ACCEPTED`](rfc-003-langgraph-runtime-and-checkpoint-architecture.md) |
 | RFC-004 | [API and Human Review Architecture](rfc-004-api-and-human-review-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受） |
-| RFC-005 | [Source Processing and Retrieval Architecture](rfc-005-source-processing-and-retrieval-architecture.md) | Wave 3 | `FINAL REVIEW PASS`（DQ-01～10 Accepted by DEC-067～070；整体待用户接受） |
+| RFC-005 | [Source Processing and Retrieval Architecture](rfc-005-source-processing-and-retrieval-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受；Final Review PASS） |
 | RFC-006 | [LLM Runtime and Structured Output](rfc-006-llm-runtime-and-structured-output.md) | Wave 2 | `ACCEPTED`（2026-08-06 用户明确整体接受） |
 | RFC-007 | Observability and Runtime Operations | Wave 4 | `PROPOSED` |

@@ -1,6 +1,6 @@
 # Source and Evidence Specification（来源与证据规格 — 概念）
 
-> **Status: FROZEN BY DEC-025 / DEC-067～070；RFC-005 整体接受待用户决定。**
+> **Status: FROZEN BY DEC-025 / DEC-067～070；RFC-005 ACCEPTED 2026-08-07。**
 > **本文件是 Current Truth Layer 的一部分。** DEC-067～069 冻结 Source / Processing / Fragment、Retrieval、Scope、Evidence 与 evaluation；[DEC-070](../../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md) 冻结 exact target Embedding Profile 与公共 Operation catalog，并定义 MVP-0 Direct / Exact / Lexical、MVP-1 PDF + Semantic / Hybrid 的分阶段 Capability。
 > 本文件**不**包含：最终数据库表、Parser 代码、OCR、RAG 代码、Embedding、Vector Store、Web Scraper、Review Importer、最终 Evidence UI、正式 API。所有结构名为**概念示意，非最终数据契约 / 最终实现**。
 

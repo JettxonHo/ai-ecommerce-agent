@@ -1,6 +1,6 @@
 # RFC-005 Final Consistency Review
 
-> **Status:** PASS — USER OVERALL ACCEPTANCE PENDING
+> **Status:** PASS — USER OVERALL ACCEPTANCE GRANTED 2026-08-07
 > **Date:** 2026-08-07
 > **Scope:** Issue #56 / Draft PR #57；P-58A～P-67A；DEC-067～070；RFC-005 与 Product / Persistence / Workflow / Model / API / Frontend / RFC-007 handoff
 > **Reviewer:** GPT-5.6 Sol，`xhigh`，逻辑角色 `ORCHESTRATOR_REVIEWER`；审阅实际 RFC、Accepted Decisions、Current Truth、Testing、Readiness、Traceability 与分支差异
@@ -75,6 +75,6 @@
 
 **Verdict：PASS。**
 
-**RFC-005 Overall Acceptance：PENDING USER DECISION。**
+**RFC-005 Overall Acceptance：ACCEPTED BY USER — 2026-08-07。**
 
-RFC-005 已具备整体接受条件。整体接受后才允许合并 PR #57、关闭 Issue #56，并进入最小 RFC-007 策划。即使整体接受，也不授权实现、Spike、Live Provider 或实际 Goal；开发仍受快速 MVP-0 完整策划包展示与用户最终“进入 MVP-0 Goal”指令约束。
+用户已明确接受 RFC-005 整体，并授权合并 PR #57、关闭 Issue #56、继续最小 RFC-007 与快速 MVP-0 策划包。该接受不授权实现、Spike、Live Provider 或实际 Goal；开发仍受快速 MVP-0 完整策划包展示与用户最终“进入 MVP-0 Goal”指令约束。

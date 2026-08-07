@@ -2,9 +2,9 @@
 
 > **Status: CONDITIONALLY READY — PRE-DEVELOPMENT PLANNING ONLY**
 >
-> Foundation、Product Specification、RFC-001～004 / 006 已完成；RFC-005 Final Review 已通过但整体待接受。Business / Production Implementation、Spike / Live call 和实际 Goal 均未授权。
+> Foundation、Product Specification、RFC-001～006 已完成。Business / Production Implementation、Spike / Live call 和实际 Goal 均未授权。
 >
-> **Current Gate（2026-08-07）：** P-58A～P-67A / RFC-005 DQ-01～10 已由 DEC-067～070 接受，Final Consistency Review = PASS，等待 RFC-005 整体接受。用户已确认快速 MVP-0 Gate：之后只闭合最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review。完整展示前不启动开发。
+> **Current Gate（2026-08-07）：** RFC-005 已整体接受，Final Consistency Review = PASS。用户已确认快速 MVP-0 Gate：之后只闭合最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review。完整展示前不启动开发。
 
 进入开发至少需要以下条件**全部**满足，并须先通过 Implementation Readiness Review（见 [../reviews/](../reviews/)），再由用户明确批准。
 
@@ -48,7 +48,7 @@
 - [x] RFC-005 PostgreSQL-native retrieval topology、单一版本化 Embedding Profile、immutable index generation、确定性 Planner / RRF 与有界候选已确认（DEC-068；DQ-04～06）
 - [x] RFC-005 server-derived Scope、窄 Source / Evidence transport、immutable RetrievalRun + referenced EvidencePackage、Formal Evidence atomic commit、代表性评测与显式降级已确认（DEC-069；DQ-07～09）
 - [x] RFC-005 exact Embedding Profile、Source / Evidence Operation / Schema catalog 与快速 MVP-0 staging 已接受（DEC-070；P-67A / DQ-10）；Final Consistency Review = PASS
-- [ ] 用户已明确接受 RFC-005 整体
+- [x] 用户已明确接受 RFC-005 整体（2026-08-07）
 - [ ] 最小 RFC-007（日志、correlation、有限 timeout / retry / backoff、错误与 Secret redaction；无完整 telemetry platform）已接受
 - [x] 关键 Agent、Workflow、Human Review 与 Skill 边界已确认
 - [x] Retrieval / Evidence 与 Skill 的概念职责已确认
@@ -73,7 +73,7 @@
 - **Architecture Readiness:** CONDITIONALLY READY
 - **Development Status:** CONDITIONALLY READY（仅策划与治理）
 - **Spike-001:** COMPLETED
-- **RFC:** RFC-001～004 / 006 = ACCEPTED；RFC-005 = FINAL REVIEW PASS（DQ-01～10 accepted by DEC-067～070；整体待接受）；RFC-007 = PROPOSED（快速最小范围）
+- **RFC:** RFC-001～006 = ACCEPTED；RFC-005 Final Review = PASS；RFC-007 = PROPOSED（快速最小范围）
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
 - **产品交互与验收:** 单任务工作台、确认式局部重跑、输入门禁、审核 / Brief / Evidence / Recovery / Markdown 导出 = ACCEPTED（DEC-044～048）；产品 / 技术权威边界、虚构 Anchor SKU、有限结构化 Needs Input、证据约束声明完整性、Task 范围资料与可逆移除、最小最近任务入口 = ACCEPTED（DEC-057～062）；前端应用 / 状态 / Contract Generation / Verification Foundation = ACCEPTED（DEC-055）；深 TaskWorkbench、Primitive / Styling、私有投影、revision-safe Autosave / Diff、Accessibility / Browser / Reflow / Performance = ACCEPTED，外层 Router 由 DEC-062 增加 `/tasks` 入口（DEC-056 / 062）。Product Final Consistency Review = PASS，Product Specification 整体闭合已由用户接受；API 主协议与最终 OpenAPI Operation / Schema / state / adoption closure 已由 DEC-063～066 接受，RFC-004 Final Review = PASS，用户已明确接受 RFC-004 整体；物理生命周期与 Fixture 载体仍待 Readiness / Testing Strategy

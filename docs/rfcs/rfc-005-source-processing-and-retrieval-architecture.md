@@ -2,11 +2,11 @@
 
 ## Metadata
 
-- **Status:** FINAL CONSISTENCY REVIEW PASS — DQ-01～10 ACCEPTED；RFC OVERALL USER ACCEPTANCE PENDING
+- **Status:** ACCEPTED — 2026-08-07 USER OVERALL ACCEPTANCE
 - **Date:** 2026-08-07
 - **Issue:** [#56](https://github.com/JettxonHo/ai-ecommerce-agent/issues/56)
-- **Pull Request:** [#57](https://github.com/JettxonHo/ai-ecommerce-agent/pull/57)（Draft）
-- **RFC Acceptance:** NOT GRANTED
+- **Pull Request:** [#57](https://github.com/JettxonHo/ai-ecommerce-agent/pull/57)
+- **RFC Acceptance:** GRANTED — 2026-08-07
 - **Implementation Authorization:** NOT GRANTED
 - **Spike Execution Authorization:** NOT GRANTED
 - **Goal Activation:** NOT GRANTED
@@ -533,7 +533,7 @@ Keep only conceptual Source / Retrieval types and let the OpenAPI, persistence a
 
 P-67A was recommended as the smallest profile and contract set that closes DQ-10 without adding ANN, a second Provider, a generic search API or a new speculative Technical Spike.
 
-The user accepted P-67A together with the accelerated MVP-0 Gate. [DEC-070](../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md) freezes the target profile and public catalog while explicitly amending adoption order: MVP-0 may deliver verified Direct / Exact / PostgreSQL Lexical retrieval before text PDF、Embedding / Semantic / Hybrid, which move to MVP-1 without changing Scope / Evidence / public identity contracts. DQ-01～10 are closed and the [RFC-005 Final Consistency Review](../reviews/review-2026-08-07-rfc-005-final-consistency.md) is PASS. RFC-005 overall still requires a separate explicit user acceptance before PR #57 merge or Issue #56 closure.
+The user accepted P-67A together with the accelerated MVP-0 Gate. [DEC-070](../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md) freezes the target profile and public catalog while explicitly amending adoption order: MVP-0 may deliver verified Direct / Exact / PostgreSQL Lexical retrieval before text PDF、Embedding / Semantic / Hybrid, which move to MVP-1 without changing Scope / Evidence / public identity contracts. DQ-01～10 are closed, the [RFC-005 Final Consistency Review](../reviews/review-2026-08-07-rfc-005-final-consistency.md) is PASS, and the user accepted RFC-005 overall on 2026-08-07.
 
 ## Risks and stop conditions
 
@@ -547,11 +547,10 @@ The user accepted P-67A together with the accelerated MVP-0 Gate. [DEC-070](../d
 
 ## Acceptance and authorization boundary
 
-RFC-005 DQ-01～10 are Accepted and Final Consistency Review is PASS, but RFC-005 overall remains pending a separate explicit user decision. Accepted Decision text is Current Truth; historical Proposal alternatives do not authorize implementation. Overall acceptance still requires local-link and Required Check success plus the separate user decision.
+RFC-005 DQ-01～10 and RFC-005 overall are Accepted; Final Consistency Review is PASS. Accepted Decision text is Current Truth; historical Proposal alternatives do not authorize implementation.
 
 Even though P-58A～P-67A are accepted, the following remain `NOT GRANTED`:
 
-- RFC-005 overall acceptance;
 - dependency installation or exact version locking;
 - Parser / Fragmenter / Embedding / Index / Retrieval / API / Frontend / Database / Migration implementation;
 - ARP / TS-01～TS-05 execution or any Live Provider call;
@@ -559,4 +558,4 @@ Even though P-58A～P-67A are accepted, the following remain `NOT GRANTED`:
 
 ## Outcome
 
-P-58A～P-60A ACCEPTED AND ARCHIVED AS DEC-067. P-61A～P-63A ACCEPTED AND ARCHIVED AS DEC-068. P-64A～P-66A ACCEPTED AND ARCHIVED AS DEC-069. P-67A ACCEPTED WITH EXPLICIT MVP-0 STAGING AMENDMENT AND ARCHIVED AS DEC-070; P-67B / C REJECTED AS CURRENT DIRECTION. FINAL CONSISTENCY REVIEW = PASS. RFC-005 OVERALL REMAINS PENDING USER ACCEPTANCE.
+P-58A～P-60A ACCEPTED AND ARCHIVED AS DEC-067. P-61A～P-63A ACCEPTED AND ARCHIVED AS DEC-068. P-64A～P-66A ACCEPTED AND ARCHIVED AS DEC-069. P-67A ACCEPTED WITH EXPLICIT MVP-0 STAGING AMENDMENT AND ARCHIVED AS DEC-070; P-67B / C REJECTED AS CURRENT DIRECTION. FINAL CONSISTENCY REVIEW = PASS. RFC-005 OVERALL ACCEPTED BY USER ON 2026-08-07. IMPLEMENTATION / SPIKE / LIVE CALL / GOAL ACTIVATION REMAIN NOT GRANTED.

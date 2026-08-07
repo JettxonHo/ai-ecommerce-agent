@@ -11,7 +11,7 @@
 - **已完成：** RFC-001、RFC-002、RFC-003、Spike-001 与 FND-001～003。
 - **已接受的 RFC-003：** DEC-049 已冻结同 PostgreSQL Service 下的独立 Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Business-Current-Truth-first Reconciliation；DEC-050 已冻结 PostgreSQL Durable Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token 与协作式取消 / Supersession；DEC-051 已冻结显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移和 Forward Repair 证据边界。RFC-003 的 DQ-01～09 已闭合，并于 2026-08-06 被用户整体接受。
 - **已接受的 RFC-006 架构：** DEC-052 已冻结单一 OpenAI Responses API / `gpt-5.6-terra` 基线、窄型同步 Model Runtime Port 与 Structured Output；DEC-053 已冻结有界 Recovery、可读 Version Tuple、五个固定 Profile 与确定性 Context Assembly；DEC-054 已冻结 Adapter Secret / Payload Allowlist、同 Port Scripted Substitute、断网 Contract Tests 与单次人工 RC Smoke。DQ-01～08 已闭合、Final Consistency Review = PASS，用户已于 2026-08-06 明确接受 RFC-006 整体。
-- **仍待闭合：** RFC-005 DQ-01～10 已由 DEC-067～070 接受且 Final Review = PASS，只剩整体用户接受；之后闭合最小 RFC-007、快速 MVP-0 策划包、精简 Readiness Review 与最终启动 Gate。部署方式与精确实施版本仍待 Goal Issue 证据。
+- **仍待闭合：** Product Specification 与 RFC-001～006 已整体接受；之后闭合最小 RFC-007、快速 MVP-0 策划包、精简 Readiness Review 与最终启动 Gate。部署方式与精确实施版本仍待 Goal Issue 证据。
 - 业务与生产实现未授权；概念架构 Accepted 不等于对应生产模块已经实现。
 
 ---

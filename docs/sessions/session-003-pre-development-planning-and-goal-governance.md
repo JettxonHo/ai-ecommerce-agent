@@ -1558,3 +1558,17 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - 为解决 P-67A 原始采用顺序与快速路线的冲突，DEC-070 显式修订：MVP-0 使用具备相同 server-derived Scope、Source Set、Validator 与 atomic Evidence commit 的 Direct / Exact / PostgreSQL Lexical；text PDF、Embedding / Semantic / Hybrid 后移 MVP-1，Capability 不得提前宣称可用。
 - [RFC-005 Final Consistency Review](../reviews/review-2026-08-07-rfc-005-final-consistency.md) = `PASS`，无阻塞 Finding；RFC-005 整体仍需用户单独接受后才可合并 PR #57 / 关闭 Issue #56。
 - 快速 Gate 只授权继续策划最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review；完整展示前不启动开发、不创建实际 Goal、不执行 Spike / Live Provider、不安装依赖。
+
+## RFC-005 Overall Acceptance（2026-08-07）
+
+### User Decision
+
+用户明确回复：
+
+> “接受 RFC-005 整体，允许合并 PR #57、关闭 Issue #56，并继续执行已授权的最小 RFC-007 与快速 MVP-0 策划包。”
+
+### Archive Result
+
+- RFC-005 Overall Status = `ACCEPTED`；DQ-01～10 继续由 DEC-067～070 支撑，Final Consistency Review = `PASS`。
+- 用户授权合并 PR #57、关闭 Issue #56，并继续最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review。
+- 此接受仍不授权业务实现、Technical Spike、Live Provider、依赖安装或实际 Goal；必须先展示完整快速策划包，并再次获得“进入 MVP-0 Goal”的明确批准。
