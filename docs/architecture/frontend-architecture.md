@@ -1,9 +1,9 @@
 # Frontend Architecture
 
 > **Status: ACCEPTED PRE-DEVELOPMENT CURRENT TRUTH — P-36～P-41 accepted; Final Consistency Review passed; Frontend Architecture overall accepted; public HTTP contract and implementation pending**
-> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · product inputs [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) · API inputs [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) · [DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md) · [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md)
+> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · product inputs [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) · API inputs [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) · [DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md) · [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md) · [DEC-066](../decisions/dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md)
 
-本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。RFC-004 DQ-01～09 已由 DEC-063～065 冻结 Contract-first Resource / typed Command、语义 revision / Idempotency、耐久 Run Monitor、窄 Task / Recovery / Review、不可变 Brief / Export、有限 Problem action 与 fixed-workspace same-origin transport；最终 Operation / Schema catalog、默认窗口、兼容、Generated Client adoption、Contract Tests、精确依赖版本与运行证据仍未完成。整体接受与部分 API Decision 接受均不授权依赖安装或实现。
+本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。RFC-004 DQ-01～10 已由 DEC-063～066 冻结 Contract-first Resource / typed Command、语义 revision / Idempotency、耐久 Run Monitor、窄 Task / Recovery / Review、不可变 Brief / Export、有限 Problem action、fixed-workspace same-origin transport，以及最终 Operation / Schema / state catalog、有界窗口、兼容、Generated Client adoption 与 Contract Tests；RFC-004 Final Consistency Review = PASS，但 RFC 整体仍待用户接受，精确依赖版本与运行证据仍未完成。整体接受与 API Decision 接受均不授权依赖安装或实现。
 
 ## 1. Application Shape
 
@@ -35,7 +35,7 @@
 - React Module 不直接使用原始 `fetch`；窄型 Client / Query Adapter 负责传输、标准错误归一化和 DTO → View Projection。
 - 前端校验服务即时 UX；后端与公共 Contract 是最终权威。不建立第二套手写 DTO，也不机械复制全部后端 Schema 为 Zod。
 
-语义 `revision`、项目定义 `Idempotency-Key`、首次异步 `202` / 同输入重放 `200` Receipt 与 canonical Run Monitor 已由 DEC-063 冻结；Task / Recovery / Review 已由 DEC-064 冻结；Brief / Export、typed Problem / action 与 fixed-workspace transport 已由 DEC-065 冻结。最终 Operation / Schema、窗口、兼容、生成采用与 Contract Tests 仍由 RFC-004 DQ-10 冻结。
+语义 `revision`、项目定义 `Idempotency-Key`、首次异步 `202` / 同输入重放 `200` Receipt 与 canonical Run Monitor 已由 DEC-063 冻结；Task / Recovery / Review 已由 DEC-064 冻结；Brief / Export、typed Problem / action 与 fixed-workspace transport 已由 DEC-065 冻结；最终 Operation / Schema / state catalog、窗口、兼容、生成采用与 Contract Tests 已由 DEC-066 冻结。
 
 ## 4. Verification
 
@@ -127,9 +127,9 @@ UI 与 Styling：
 
 完整数据库 / API / Worker / Frontend 一键启动命令由 Development Plan 在 RFC-004 / 005 / 007 后冻结，但必须复用这些前端标准脚本并正确回收子进程。
 
-## 10. Open Questions
+## 10. Remaining Planning Handoffs
 
-- RFC-004：DQ-10 的最终 OpenAPI operation / schema / default window / compatibility / generated-client adoption / Contract Test closure，以及 Final Consistency Review 与整体接受。
+- RFC-004：DQ-01～10 已闭合且 Final Consistency Review = PASS；整体接受仍待用户决定。
 - RFC-005：Source / Evidence Pagination 与 Retrieval Contract。
 - Development Plan：精确依赖版本、本地进程编排、CI Job 分组和一键启动。
 - Testing Strategy：Fixture 实例、最终浏览器 E2E 步骤 / 证据格式与 RC 运行手册。

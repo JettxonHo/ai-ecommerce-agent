@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- **Status:** Accepted
+- **Status:** Accepted — Extended by [DEC-066](dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md)
 - **Date:** 2026-08-07
 - **Decision Type:** API Architecture / Brief and Export / Error Contract / Local Transport Boundary
 - **Source:** Session-003；用户明确接受 `P-54A / P-55A / P-56A`
@@ -65,7 +65,7 @@
 
 ## Consequences
 
-- RFC-004 DQ-07～09 已闭合；DQ-10 仍须冻结最终 Operation / Schema catalog、默认最近任务窗口、兼容规则、Generated Client adoption、Contract Tests 与 RFC Final Consistency Review readiness。
+- RFC-004 DQ-07～09 已闭合；DQ-10 后由 DEC-066 冻结最终 Operation / Schema catalog、默认最近任务窗口、兼容规则、Generated Client adoption 与 Contract Tests。Final Consistency Review 已通过，RFC 整体仍待用户接受。
 - RFC-005 继续拥有 Source / Fragment / Evidence Locator、上传与处理结果、检索和外部对象权限过滤；RFC-007 继续拥有 Retry / Poll 参数、Trace / correlation、Redaction 与运维阈值。
 - Contract / Application / Frontend / Browser Tests 必须覆盖 Brief Current Truth、版本比较、revise 影响、Export Preview conflict、Snapshot 重放、Problem action、正常业务状态非 Problem、fixed-workspace scope 与 same-origin write boundary。
 - OpenAPI Artifact、API Handler、Frontend Client、数据库记录、导出文件实现与测试均尚未创建。
@@ -75,7 +75,7 @@
 - **Concretizes [DEC-046](dec-046-review-brief-and-export-product-contract.md) / [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) / [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)：** 将 Brief 版本、比较、影响和 Markdown 导出映射为公共协议。
 - **Concretizes [DEC-041](dec-041-end-to-end-demo-mvp-delivery-envelope.md) / [DEC-061](dec-061-task-scoped-private-material-and-reversible-removal.md)：** 明确本地固定工作区与物理数据生命周期之间的边界。
 - **Extends [DEC-063](dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) / [DEC-064](dec-064-task-recovery-and-human-review-public-protocol.md)：** 闭合 RFC-004 DQ-07～09，不改变既有 Resource / Command、revision、idempotency、Run、Task、Recovery 或 Review 协议。
-- **Input to [RFC-004](../rfcs/rfc-004-api-and-human-review-architecture.md)：** DQ-10、Final Consistency Review 与 RFC 整体仍待后续 Gate。
+- **Input to [RFC-004](../rfcs/rfc-004-api-and-human-review-architecture.md)：** DQ-10 后由 DEC-066 接受，Final Consistency Review 已通过；RFC 整体仍待用户决定。
 
 ## Authorization Boundary
 
@@ -84,7 +84,7 @@
 - 不接受 RFC-004 整体；
 - 不授权创建 OpenAPI Artifact、Schema、API Route、Handler、Frontend Client、Export Implementation、Database Record、Migration 或 Test Implementation；
 - 不授权安装依赖、执行 Technical Spike、业务实现、生产实现或长期 Goal；
-- DQ-10、Final Consistency Review 与用户 RFC 整体接受仍是后续 Gate。
+- DQ-10 后由 DEC-066 接受，Final Consistency Review 已通过；用户 RFC 整体接受仍是后续 Gate。
 
 ## Accepted From
 

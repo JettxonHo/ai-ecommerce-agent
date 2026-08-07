@@ -2,11 +2,12 @@
 
 ## Metadata
 
-- **Status:** DRAFTING
+- **Status:** IN REVIEW — FINAL CONSISTENCY REVIEW PASS；USER OVERALL ACCEPTANCE PENDING
 - **Date:** 2026-08-07
 - **Issue:** [#54](https://github.com/JettxonHo/ai-ecommerce-agent/issues/54)
 - **Pull Request:** [#55](https://github.com/JettxonHo/ai-ecommerce-agent/pull/55)（Draft）
 - **RFC Acceptance:** NOT GRANTED
+- **Final Consistency Review:** PASS（2026-08-07）
 - **Implementation Authorization:** NOT GRANTED
 - **Spike Execution Authorization:** NOT GRANTED
 - **Goal Activation:** NOT GRANTED
@@ -80,7 +81,7 @@ RFC-005 owns Source / Fragment / Evidence Locator, retrieval, ranking, evidence 
 | DQ-07 | Brief versions, comparison, Current Truth result and Markdown export snapshot | ACCEPTED as P-54A（DEC-065） |
 | DQ-08 | Problem types, HTTP status mapping and user / retry action semantics | ACCEPTED as P-55A（DEC-065） |
 | DQ-09 | Fixed-workspace identity, transport and proportional authorization boundary | ACCEPTED as P-56A（DEC-065） |
-| DQ-10 | OpenAPI operation / schema closure, compatibility, tests and adoption | PROPOSED as P-57 |
+| DQ-10 | OpenAPI operation / schema closure, compatibility, tests and adoption | ACCEPTED as P-57A（DEC-066） |
 
 No item in this table is Accepted until the user explicitly accepts the corresponding proposal and it is archived in a Decision record.
 
@@ -552,11 +553,12 @@ Choose P-56A. It states the honest security boundary of the local demo, prevents
 
 Choose P-57A. It closes the public contract tightly enough for independent implementation and testing while keeping RFC-005 / 007 handoffs explicit and avoiding an oversized speculative API platform.
 
-## Round 4 proposal status and next gate
+## Round 4 decision status and next gate
 
-- P-57A / B / C are `PROPOSED`; no option is Accepted until the user explicitly confirms it and a Decision record is archived.
-- 当前 DQ-01～09 已由 DEC-063～065 接受；DQ-10、Final Consistency Review 与 RFC-004 整体接受仍未完成。
-- 用户若接受 P-57A，下一步只归档 DQ-10 并执行 RFC-004 Final Consistency Review；仍不创建 OpenAPI Artifact、不合并 PR #55、不关闭 Issue #54、不启动实现或 Goal。
+- 用户于 2026-08-07 明确接受 P-57A，并归档为 [DEC-066](../decisions/dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md)；P-57B / P-57C 保留为未采用 Alternative。
+- `DQ-10 = ACCEPTED`；RFC-004 的 DQ-01～10 均已有 Accepted Decision。
+- Final Consistency Review 已于 2026-08-07 通过；下一 Gate 只请求用户接受 RFC-004 整体，并决定是否允许合并 PR #55、关闭 Issue #54、进入 RFC-005 策划。
+- 本状态仍不创建 OpenAPI Artifact、不合并 PR #55、不关闭 Issue #54、不启动实现或 Goal。
 
 ## Risks and stop conditions
 
@@ -566,6 +568,50 @@ Choose P-57A. It closes the public contract tightly enough for independent imple
 - Stop if a public contract requires login, RBAC, multi-tenancy, push transport, broad compliance or physical purge in the first Goal.
 - Stop if implementation evidence later proves the accepted OpenAPI toolchain cannot represent the contract without weakening it; propose an RFC amendment rather than silently hand-writing a second client contract.
 
+## Final Consistency Review（PASS，2026-08-07）
+
+### Review scope
+
+- P-48A～P-57A、DEC-063～066 与 DQ-01～10 的完整性和双向追踪；
+- Product Specification、Frontend Architecture、RFC-001 / 002 / 003 / 006 的已接受上游不变量；
+- RFC-005 的 Source / Fragment / Evidence 所有权与 RFC-007 的 Observability / operational 参数所有权；
+- Resource / typed Command topology、identity / revision / idempotency、async receipt / Run、Task / Recovery / Review、Brief / Export、Problem、fixed-workspace 与 OpenAPI adoption；
+- Testing Strategy、Implementation Readiness、Traceability、授权边界与 PR #55 的实际文档差异。
+
+### Findings
+
+- Critical：0
+- Important：0
+- Suggestion：0
+- Decision Conflict：NONE FOUND
+
+没有发现需要新产品取舍、改变已接受架构或降低验收标准的问题。本轮只把用户接受的 P-57A 归档、消除 DQ-10 与入口状态的陈旧描述，并未改变 P-57A 的规范性内容。
+
+### Consistency conclusions
+
+| Review surface | Conclusion |
+|---|---|
+| Decision closure | DQ-01～10 分别由 DEC-063～066 支撑，未把 Proposal 或 Alternative 误标为 Accepted |
+| Product behavior | Task 创建不隐式启动；Needs Input、Human Review、Brief version、证据限制、局部重跑与 Markdown export 均保持 Accepted Product Behavior |
+| Identity and concurrency | stable identity、Domain Version、mutable revision、Idempotency Key、Command、Run 与 Attempt 职责分离；无 Hash / Digest 公共要求 |
+| Async and recovery | `202` 只表示耐久接受；同输入重放、Run polling stop、Cancel requested、Resume / Rerun 新 Run 与 typed recovery 一致 |
+| Human Review | QC / validation 不等于 approval；immutable Package、revision-safe Draft、explicit outcomes、Approved Strategy 与 atomic continuation 一致 |
+| Contract boundary | RFC-004 拥有 HTTP topology / public semantics；RFC-005 / 007 可填充其已委托 Schema / operational extension，但不能创建第二 envelope 或改变所有权 |
+| Frontend adoption | private WorkbenchProjection、generated client、unknown read-only fallback 与 clean-diff 顺序一致，不建立平行 DTO 或前端业务状态机 |
+| Security and scope | fixed Workspace + loopback same-origin 边界诚实，不伪装登录 / RBAC / 多租户；校验与本地演示风险相称 |
+| Verification | Contract / Backend / Frontend / Browser 分层覆盖代表性路径和关键不变量，不堆叠低概率字段矩阵 |
+| Authorization | 未创建 OpenAPI、API、Client、DB、Migration、Spike 或 Goal；Final Review PASS 不等于 RFC Accepted 或实现授权 |
+
+### Five-axis verdict
+
+- **Correctness：PASS。** Operation、状态、错误、版本、幂等、Review 与 Export 语义完整承接 Accepted Decisions。
+- **Readability：PASS。** 公共所有权、精确目录、状态目录、Non-goals 与后续 Gate 可独立读取。
+- **Architecture：PASS。** Contract-first、模块边界、Current-Truth ownership 与 RFC-005 / 007 handoff 无冲突。
+- **Security：PASS。** 没有 Secret、伪认证、越权 Workspace selector 或不成比例的防御设计。
+- **Performance：PASS。** 最近 Task / Brief 窗口有界，轮询只在活动 Run 状态进行，没有无界列表或 Push 基础设施扩张。
+
+完整可持续审查记录见 [RFC-004 Final Consistency Review](../reviews/review-2026-08-07-rfc-004-final-consistency.md)。
+
 ## Outcome
 
-Pending. RFC-004 remains Drafting and has no implementation authorization.
+DQ-01～10 已全部闭合，Final Consistency Review = PASS。RFC-004 仍等待用户整体接受；PR #55 保持 Draft，Issue #54 保持 Open，Implementation / Spike Execution / Goal Activation 均未授权。

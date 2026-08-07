@@ -1362,3 +1362,29 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `P-57 = PROPOSED`；未获用户确认，不能同步为 Accepted Current Truth 或 DEC。
 - 当前 DQ-01～09 已接受；接受 P-57A 后只归档 DQ-10 并执行 RFC-004 Final Consistency Review。
 - Final Review 完成后仍须单独取得用户对 RFC-004 整体的明确接受，才可合并 PR #55、关闭 Issue #54 并进入 RFC-005 Gate；本轮不实现 API 或启动 Goal。
+
+## RFC-004 Acceptance Archive IV and Final Consistency Review（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 `P-57A`：首个 Goal 的公共 HTTP 契约采用单一 `contracts/openapi/openapi.yaml` entry authority、有界 exact Operation / Schema / state catalog、Task `20 / 50` 与 Brief `10 / 25` 最近窗口、`/api/v1` additive compatibility、generated-client clean diff、Contract-first 实施顺序与适度分层 Contract Tests。
+- 用户没有接受 P-57B / P-57C；两者只作为未采用 Alternative 保留。
+
+### Archive Result
+
+- `P-57A = ACCEPTED`；[DEC-066](../decisions/dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md) 是权威 Decision，RFC-004 `DQ-10 = ACCEPTED`。
+- DQ-01～10 均已有 Accepted Decision；该状态不等于 RFC-004 整体 Accepted。
+- 接受只授权策划、Decision、Current Truth、Readiness、Testing、Traceability 与 Review 文档同步；不创建 OpenAPI、API、Client、Database / Migration、测试实现、Technical Spike 或 Goal。
+
+### Final Consistency Review
+
+- Sol / `xhigh` 按 Decision closure、Product / Architecture alignment、identity / concurrency、async / recovery、Human Review、Brief / Export、Problem、fixed-workspace、RFC-005 / 007 handoff、Contract adoption、proportionate verification 与 Authorization Boundary 审阅实际文档和分支差异。
+- 最终结果：`Critical = 0`、`Important = 0`、`Suggestion = 0`、`Decision Conflict = NONE FOUND`；正确性、可读性、架构、安全与性能五轴均 PASS。
+- `RFC-004 Final Consistency Review = PASS`；完整记录见 [Review Record](../reviews/review-2026-08-07-rfc-004-final-consistency.md)。
+- Review PASS 只表示 RFC 已具备请求整体接受的条件，不替代用户决定。
+
+### Next Gate
+
+- RFC-004 状态为 `IN REVIEW — USER OVERALL ACCEPTANCE PENDING`；PR #55 保持 Draft，Issue #54 保持 Open。
+- 下一步单独请求用户：接受 RFC-004 整体，并允许合并 PR #55、关闭 Issue #54、进入 RFC-005 策划 Gate。
+- 即使用户批准上述 Gate，也不授权 OpenAPI / API / Frontend / Database 实现、Technical Spike 或 Goal 激活。
