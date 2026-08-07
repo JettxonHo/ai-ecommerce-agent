@@ -1408,3 +1408,167 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - 不创建或修改 `contracts/openapi/openapi.yaml`、API Route、Handler、generated client、Frontend、Database、Migration、测试实现或生产文件。
 - 不执行 TS-01～TS-05、Live Provider 调用或任何新 Technical Spike。
 - 不创建或激活实际长期 Goal；仍需完成 RFC-005、RFC-007、Readiness、Testing、Development Plan、Goal 文本与最终 Implementation Readiness Review，并获得用户明确「进入 Goal 执行阶段」批准。
+
+## RFC-005 Planning Gate Launch and Proposal Round 1（2026-08-07）
+
+### Gate Transition
+
+- PR #55 已在 8 / 8 Required Checks 通过后合并，merge commit 为 `edeb93b`；Issue #54 已关闭。
+- 创建 [Issue #56](https://github.com/JettxonHo/ai-ecommerce-agent/issues/56) / [Draft PR #57](https://github.com/JettxonHo/ai-ecommerce-agent/pull/57) 承载 RFC-005 Source Processing and Retrieval Architecture；当前只授权文档策划。
+- 新建独立分支 `codex/rfc-005-source-retrieval`；未创建 Parser、Fragmenter、Embedding、Index、Retrieval、API、Frontend、Database、Migration、依赖或 Spike。
+
+### P-58 — Source Authority, Association and Reproducible Manifest
+
+- **P-58A（推荐）：** 保持 PostgreSQL 权威 Source / Evidence 图与 RFC-002 Inline / External 分类；分离 Source、不可变 Source Version、可变 Task Source Association revision 与版本化 Derived Artifact；Source Set manifest 固定精确 Version 输入；Evidence Package 使用可读 identity / version manifest，不新增 `package_hash`、SHA-256 或公共 Digest，并在接受时显式修订 DEC-032 的概念 `package_hash`。
+- **P-58B：** 每个 Evidence Package 复制全部候选正文形成自包含快照；易查看但重复私有资料、增加保留 / 移除风险并模糊权威图。
+- **P-58C：** 只存 Source identity、读取时解析最新版本；最省引用但破坏历史可复现性。
+
+### P-59 — Registration, Processing and Partial Acceptance
+
+- **P-59A（推荐）：** 多项输入采用每 Source 原子登记 + Durable Processing + typed per-item result；有效项不因兄弟项失败回滚；评论 CSV 可在有效子集诚实时接受合法行并报告有界 row issues，TXT / Markdown / PDF 不制造页级伪部分成功；处理成功不等于 Fact / QC / Approval。
+- **P-59B：** 整批全成全败；简单但违反已接受的部分接受与恢复边界。
+- **P-59C：** 上传请求内同步完成全部解析 / Fragment / Index；隐藏中间态但不适合 PDF / CSV，且绕过 Durable Processing。
+
+### P-60 — Fragment and Locator
+
+- **P-60A（推荐）：** 四类格式使用结构感知确定性 Lane：表单字段、TXT / Markdown heading + line range、文本 PDF page + block / character range、评论 CSV row + column；Fragment 不跨 Source Version / Record / PDF page，展示原文与检索归一文本分离，Fragmenter 改变创建新 Derived Artifact / Fragment identities，不新增 OCR。
+- **P-60B：** 所有输入统一固定 token + overlap；实现简单但破坏 CSV 计数、PDF 页定位与 Markdown 结构。
+- **P-60C：** 查询时临时生成 Fragment；无需持久 Fragment，但无法稳定支撑 Evidence Link 与历史引用。
+
+### Proposal Status and Next Gate
+
+- `P-58 / P-59 / P-60 = PROPOSED`；推荐组合为 `P-58A + P-59A + P-60A`。
+- 用户明确接受前，不创建 DEC，不把推荐写入 Current Truth，不进入 DQ-04～06 的 Retrieval Topology / Component Version / Planner & Fusion 决策。
+- 本轮不授权 RFC-005 整体、实现、依赖、Technical Spike、RFC-007 或 Goal。
+
+## RFC-005 Round 1 Acceptance and Proposal Round 2（2026-08-07）
+
+### User Decision and Archive Result
+
+- 用户明确回复：「接受 P-58A、P-59A、P-60A」。
+- P-58A / P-59A / P-60A 已归档为 [DEC-067](../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)，RFC-005 DQ-01～03 = `ACCEPTED`。
+- P-58A 明确修订 DEC-032：Evidence Package 不再计算或公开 `package_hash`，可复现性由 Source Set manifest、Retrieval Run / Plan identity 与可读组件版本说明。RFC-002 已接受的对象完整性边界保持私有、算法中立，不向公共契约扩散。
+- P-59A 冻结逐 Source 原子登记、耐久异步处理、typed per-item result 与 `registered / processing / ready / ready_with_rejections / failed / superseded` 生命周期；association / availability / integrity 继续分离。
+- P-60A 冻结表单 / 手工文本、TXT / Markdown、文本型 PDF、评论 CSV 四条格式感知 Fragment / Locator Lane；不新增 OCR、图片理解或通用文档平台。
+
+### P-61 — PostgreSQL Retrieval Topology
+
+- **P-61A（推荐）：** Retrieval 使用同 PostgreSQL Service 下独立、可重建的 derived plane；Exact / key lookup + 语言适配的 `tsvector` / GIN，并为 CJK / identifier-heavy 文本提供有界 `pg_trgm` / GIN lane；Semantic 使用 `pgvector` filtered exact nearest-neighbor 作为首 Goal 基线。Mandatory Task / Source Set / Association / Scope / Product / Version / Availability predicate 在 SQL candidate relation 内先于排名；ANN 只有在实际延迟与 filtered recall 证据证明需要后，才经独立 Issue / PR 启用。
+- **P-61B：** 所有语言只用 PostgreSQL FTS，并从第一天启用 ANN；路径少，但中文召回与 approximate filter / recall 均存在核心风险。
+- **P-61C：** 使用独立外部 Search / Vector Service；扩展能力强，但为本地 MVP 增加第二一致性平面、凭证与跨服务 Scope 风险。
+
+### P-62 — Embedding and Index Generation
+
+- **P-62A（推荐）：** Retrieval-owned 窄 Embedding Port + 单一 OpenAI Embeddings Adapter / Profile；exact model / dimensions 在 RFC-005 最终闭合时根据当时官方兼容证据冻结，Implementation Agent 不得选择。Index Entry 固定 Fragment / Source Version / Derived Artifact / Generation / Profile；新 Generation 旁路构建并在完整对账后原子切换，旧 Provenance 不覆盖；remove / replace / restriction 先由权威 eligibility 排除，不等待物理清理。
+- **P-62B：** 原地更新 Embedding / Index Entry；省空间但混合版本、破坏历史重放且难回滚。
+- **P-62C：** 多 Embedding Provider 自动 Failover；理论可用性更高，但违反单 Provider MVP 并引入不可比向量空间。
+
+### P-63 — Deterministic Planner and Fusion
+
+- **P-63A（推荐）：** 使用 versioned rule-based Direct-first strategy catalog；首 Goal 不使用 LLM Query Rewrite，Exact identifier 原样保留；Lexical / Semantic 共享同一 authorized candidate relation，按 Fragment 去重并用 RRF 融合，不直接相加不同量纲分数。Seed bound 为最多 4 个确定性 query variant、每通道 20 个候选、RRF constant 60、最终 12 个候选；这些只限制 Retrieval candidate，不是 Evidence strength、统计频率或机械验收分。首 Goal不设强制 Reranker，zero result 返回 `insufficient_information`。
+- **P-63B：** Weighted raw-score fusion + mandatory reranker；可能提高相关性，但需额外校准 / 模型 / 延迟，且 raw score 直接组合违反既有边界。
+- **P-63C：** LLM 动态决定 Query Plan / Rewrite / Candidate Budget；灵活但难复现、可能漂移 exact identifier / scope，并增加不必要 Model Runtime 耦合。
+
+### Proposal Status and Authorization Boundary
+
+- `P-61 / P-62 / P-63 = PROPOSED`；推荐组合为 `P-61A + P-62A + P-63A`。
+- 用户明确接受前，不创建对应 DEC，不把 PostgreSQL retrieval topology、OpenAI Embedding profile、RRF 或 seed bounds 写成 Accepted Current Truth。
+- 本轮不接受 RFC-005 整体，不安装扩展 / 依赖，不创建 Schema / Migration / Index / Parser / Embedding / Retrieval / API / Frontend，不调用 OpenAI，不执行 Evaluation / Technical Spike，也不创建或激活 Goal。
+
+## RFC-005 Round 2 Acceptance and Proposal Round 3（2026-08-07）
+
+### User Decision and Archive Result
+
+- 用户明确回复：「接受 P-61A、P-62A、P-63A」。
+- P-61A / P-62A / P-63A 已归档为 [DEC-068](../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)，RFC-005 DQ-04～06 = `ACCEPTED`。
+- P-61A 冻结同 PostgreSQL Service 的非权威 derived retrieval plane：Exact / key、语言适配 `tsvector` / GIN、CJK / identifier-heavy bounded `pg_trgm` / GIN，以及首 Goal `pgvector` filtered exact NN；mandatory scope / eligibility 在 SQL candidate relation 中先于 ranking，ANN 不默认启用。
+- P-62A 冻结 Retrieval-owned 单一 OpenAI Embedding Port / Profile、可读 profile version、immutable index generation、side-by-side reconcile + atomic switch 与 eligibility-first removal；exact model identifier / dimensions 必须在 RFC-005 final closure 冻结，Implementation Agent 不得选择。
+- P-63A 冻结 deterministic Direct-first strategy catalog、首 Goal 无 LLM Query Rewrite、按 Fragment 去重、RRF 与 4 query variants / 20 candidates per channel / RRF constant 60 / 12 fused candidates 的 seed bounds；这些数字不是 Evidence strength、frequency 或机械 acceptance score，首 Goal 无 baseline Reranker。
+- 接受不授权 PostgreSQL extension / dependency 安装、Schema / Migration / Index / Retrieval / API / Frontend、Live Provider、Evaluation / Spike 或 Goal。
+
+### P-64 — Authoritative Scope and Public Transport
+
+- **P-64A（推荐）：** Workspace / Task / Source Scope 由服务端从 accepted Task、Skill Contract、TaskSourceAssociation 与 SourceSetVersion 推导；所有 channel 复用同一 SQL authorized candidate relation。只填充 RFC-004 已委托的 Source intake / item result、Source summary / version processing、Source / Evidence collections，并使用 opaque cursor keyset pagination（默认 20、最大 50）；公共投影不暴露 vectors、index rows、Provider payload、private storage refs 或 rank-as-confidence。RFC-004 的 Source remove / replace Preview / Confirm operations 不变。
+- **P-64B：** Client-selected Scope + offset pagination；灵活但把授权范围交给不可信客户端，异步列表也易漂移。
+- **P-64C：** broad retrieval + application post-filter + public index details；调试方便但内容先越过边界，且泄漏实现与混淆 rank / evidence。
+
+### P-65 — Retrieval Record, Evidence Package and Formal Evidence
+
+- **P-65A（推荐）：** immutable RetrievalRun 记录 Plan / SourceSet / authorized filter summary / component generation / candidate summary / degradation；EvidencePackage 用 immutable references 固定 Skill input，不复制整库正文或使用 digest；DatasetStatistic 只来自 complete countable Record set 的 deterministic analysis；Evidence Validator 后在一个业务事务内原子创建 Domain Version + Formal Evidence Link + Current Truth / audit，不允许部分提交。Retrieval rank 留在解释记录，不成为 Evidence confidence。
+- **P-65B：** fully copied Evidence Package as Business Truth；读取简单但重复私有正文、混淆 Candidate / Formal Evidence / Current Truth。
+- **P-65C：** one generic mutable Evidence object；Schema 少但压扁不同生命周期、事务与可信度。
+
+### P-66 — Evaluation and Explicit Degradation
+
+- **P-66A（推荐）：** 复用虚构 Anchor SKU 的三个变体 + mutation，覆盖 exact、CJK lexical、semantic / hybrid / counter-evidence、scope isolation、dataset statistic、zero result、remove / replace、semantic outage 与 incomplete generation。Scope / stale / Top-K extrapolation / fabricated zero-result / deterministic replay / Formal Evidence commit 为行为硬门禁；Recall@K / reciprocal-rank / coverage + 人工 `PASS / FAIL` 共同判断可用性，不合成机械总分。Fallback 显式传播 limitation、绝不扩大 Scope 或切换到不安全 generation；ANN / Reranker / LLM rewrite 只由 before / after 证据解锁。
+- **P-66B：** one aggregate retrieval score；报告简单但可让严重 leakage 被其他分数抵消。
+- **P-66C：** live-provider-only evaluation + silent fallback；接近实时但不可重复，且会掩盖证据覆盖缺口。
+
+### Proposal Status and Next Gate
+
+- `P-64 / P-65 / P-66 = PROPOSED`；推荐组合为 `P-64A + P-65A + P-66A`。
+- 用户明确接受前，不创建对应 DEC，不把 public projection、pagination、Evidence commit 或 evaluation / degraded contract 写成 Current Truth。
+- 接受后只归档 DQ-07～09，并进入 DQ-10 adoption / exact Embedding profile evidence / reconciliation / test slices / RFC closure 提案；不接受 RFC-005 整体、不合并 PR #57、不关闭 Issue #56、不实现或启动 Goal。
+
+## RFC-005 Round 3 Acceptance and Final Proposal Round 4（2026-08-07）
+
+### User Decision and Archive Result
+
+- 用户明确回复：「接受 P-64A、P-65A、P-66A」。
+- P-64A / P-65A / P-66A 已归档为 [DEC-069](../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md)，RFC-005 DQ-07～09 = `ACCEPTED`。
+- P-64A 冻结 server-derived Workspace / Task / Product / Source Scope 与所有 channel 共享的 SQL authorized candidate relation；Source / Evidence 公共投影保持 Task-scoped、窄字段与 opaque cursor 20 / 50，不暴露 vector、raw index、private storage ref、Provider payload 或 rank-as-confidence。
+- P-65A 冻结 immutable RetrievalRun、reference-based EvidencePackage、complete countable DatasetStatistic，以及 Evidence Validator 后 Domain Version + Formal Evidence Link + Current Truth + audit 的原子提交；Candidate / rank / QC 不成为 approval。
+- P-66A 冻结 Anchor SKU 代表性 Retrieval evaluation、不可协商行为硬门禁、Recall@K / reciprocal-rank / coverage + 人工 `PASS / FAIL` 的非机械判断，以及不扩大 Scope、不切换不安全 generation 的显式降级。
+- 接受不授权 RFC-005 整体、PR #57 合并、Issue #56 关闭、OpenAPI / Schema / Migration / Retrieval / API / Frontend、依赖 / extension 安装、Technical Spike、Live Provider 或 Goal。
+
+### Current Official Compatibility Evidence
+
+- OpenAI 当前 Embeddings guide 记录 `text-embedding-3-small` 默认输出 1536 维，并支持第三代模型的 `dimensions` 参数；官方 FAQ 推荐 cosine，并说明 OpenAI embeddings 归一化为长度 1。
+- pgvector 官方文档支持 `vector(1536)`、cosine `<=>`、默认 exact nearest-neighbor 与 filtered query；ANN 会改变 recall 并引入过滤取舍，因此没有证据支持首 Goal 默认启用。
+- 这些资料只用于 DQ-10 策划证据，不授权依赖安装或 Live call。Goal 实施时仍须记录实际锁定 PostgreSQL / pgvector / driver / OpenAI SDK 版本及兼容证据。
+
+### P-67 — Exact Profile, Public Contract and Adoption Closure
+
+- **P-67A（推荐）：** 冻结 `openai` Embeddings / `text-embedding-3-small` / explicit 1536 dimensions / float / cosine `<=>`，可读 Profile identity 为 `openai-text-embedding-3-small-1536-cosine-v1`；不做第二应用归一化，只在 Provider 边界验证数量、维度、有限数值与顺序。未来 profile change 创建新 generation，不原地混合。
+- P-67A 同时补齐 RFC-004 委托的 exact Source / Evidence catalog：Source intake POST + read、Task Source Association list / detail、Source Version history / detail、Task Evidence Link list / detail；Source / Evidence collection 使用 cursor 20 / 50，不创建 public Fragment search、raw Candidate / RetrievalRun / EvidencePackage、index admin、purge 或跨 Task Operation。
+- Source intake 支持 JSON 手工 / 表单和 bounded multipart files；要求 Idempotency-Key。全同步首次 `201`，存在异步处理首次 `202` + immutable Receipt + Location，同输入重放 `200` 同一 Receipt；SourceIntake 只投影各 SourceVersion canonical processing status，不创建第二通用 Operation 状态机。
+- P-67A 的采用顺序为：唯一 OpenAPI Contract → real-PostgreSQL bounded compatibility subtask → authoritative Source graph + four processing lanes → immutable index generation / reconciliation → deterministic retrieval + fixed evaluation → referenced Evidence / atomic commit → API / generated client / Workbench integration。无官方证据缺口时不另建泛化 Technical Spike；兼容子任务失败即停止下游生产 Issue 并回到 RFC Gate。
+- P-67A 的有限证据为 OpenAPI / generated-client clean diff、真实 PostgreSQL 1536-cosine / pre-ranking Scope / generation switch 测试、确定性 processing / planner / RRF / Validator tests、DEC-069 固定 Retrieval evaluation，以及使用虚构非敏感文本的一次 opt-in RC Embedding smoke。
+- **P-67B：** 使用 `text-embedding-3-large` 3072 cosine，其余 contract-first 顺序相同；可能提高通用 benchmark，但向量宽度、Provider / storage / transfer 成本增加，且无项目 Fixture 证据证明必要。
+- **P-67C：** 把 model / dimensions、paths、pagination 和验证顺序留给实现 Issue；最快但违反 P-62A 与 contract-first 边界，并让并行 Agent 无共享契约。
+
+### Proposal Status and Authorization Boundary
+
+- `P-67A / B / C = PROPOSED`；推荐 P-67A。
+- 用户接受 P-67A 后，只归档 DQ-10、同步 Current Truth 并执行 RFC-005 Final Consistency Review + Required Checks；仍须另行明确接受 RFC-005 整体，才可合并 PR #57、关闭 Issue #56、进入 RFC-007 Gate。
+- P-67A 接受本身不授权实现、Technical Spike、Live Provider、依赖安装、Migration 或 Goal。
+
+## Rapid MVP-0 Gate and RFC-005 Final Closure Decision（2026-08-07）
+
+### User Decision
+
+用户明确回复：
+
+> “确认接受快速 MVP-0 Gate；接受 P-67A；允许完成 RFC-005 最终审查，并按最小范围策划 RFC-007、Development Plan、Testing Strategy、Goal 与精简 Readiness Review。完成展示前不启动开发。”
+
+### Archive Result
+
+- P-67A 已以快速 MVP-0 staging amendment 归档为 [DEC-070](../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md)，RFC-005 DQ-10 = `ACCEPTED`。
+- exact target Profile 固定为 OpenAI Embeddings `text-embedding-3-small`、explicit 1536 dimensions、float、cosine 与 readable version；公共 Source intake / association / version / Evidence Link catalog 已冻结。
+- 为解决 P-67A 原始采用顺序与快速路线的冲突，DEC-070 显式修订：MVP-0 使用具备相同 server-derived Scope、Source Set、Validator 与 atomic Evidence commit 的 Direct / Exact / PostgreSQL Lexical；text PDF、Embedding / Semantic / Hybrid 后移 MVP-1，Capability 不得提前宣称可用。
+- [RFC-005 Final Consistency Review](../reviews/review-2026-08-07-rfc-005-final-consistency.md) = `PASS`，无阻塞 Finding；RFC-005 整体仍需用户单独接受后才可合并 PR #57 / 关闭 Issue #56。
+- 快速 Gate 只授权继续策划最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review；完整展示前不启动开发、不创建实际 Goal、不执行 Spike / Live Provider、不安装依赖。
+
+## RFC-005 Overall Acceptance（2026-08-07）
+
+### User Decision
+
+用户明确回复：
+
+> “接受 RFC-005 整体，允许合并 PR #57、关闭 Issue #56，并继续执行已授权的最小 RFC-007 与快速 MVP-0 策划包。”
+
+### Archive Result
+
+- RFC-005 Overall Status = `ACCEPTED`；DQ-01～10 继续由 DEC-067～070 支撑，Final Consistency Review = `PASS`。
+- 用户授权合并 PR #57、关闭 Issue #56，并继续最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review。
+- 此接受仍不授权业务实现、Technical Spike、Live Provider、依赖安装或实际 Goal；必须先展示完整快速策划包，并再次获得“进入 MVP-0 Goal”的明确批准。

@@ -1,7 +1,7 @@
 # Source and Evidence Specification（来源与证据规格 — 概念）
 
-> **Status: CONCEPTUAL — 仅记录概念 Schema、来源类型、状态、Evidence 关系与边界。**
-> **本文件是 Current Truth Layer 的一部分。** 其数据结构内容来自 [DEC-025](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)，产品展示投影来自 [DEC-047](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)（均 Accepted）。
+> **Status: FROZEN BY DEC-025 / DEC-067～070；RFC-005 ACCEPTED 2026-08-07。**
+> **本文件是 Current Truth Layer 的一部分。** DEC-067～069 冻结 Source / Processing / Fragment、Retrieval、Scope、Evidence 与 evaluation；[DEC-070](../../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md) 冻结 exact target Embedding Profile 与公共 Operation catalog，并定义 MVP-0 Direct / Exact / Lexical、MVP-1 PDF + Semantic / Hybrid 的分阶段 Capability。
 > 本文件**不**包含：最终数据库表、Parser 代码、OCR、RAG 代码、Embedding、Vector Store、Web Scraper、Review Importer、最终 Evidence UI、正式 API。所有结构名为**概念示意，非最终数据契约 / 最终实现**。
 
 ---
@@ -19,8 +19,12 @@
 - [DEC-017 — Customer Insight Skill Adapt](../../decisions/dec-017-adapt-product-review-analysis-for-customer-insight-skill.md)
 - [DEC-018 — Product Positioning Skill Adapt](../../decisions/dec-018-adapt-product-differentiation-for-positioning-skill.md)
 - [DEC-024 — 版本化领域状态与紧凑 LangGraph State](../../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)
+- [DEC-067 — 版本化 Source 关联、逐资料耐久处理与格式感知 Fragment 契约](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)
+- [DEC-068 — PostgreSQL-native、版本化且确定性的 Retrieval 基线](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)
+- [DEC-069 — 权威检索范围、引用式 Evidence Package 与显式降级](../../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md)
+- [DEC-070 — 固定 Embedding 契约与快速 MVP-0 分阶段交付](../../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md)
 
-> 当本规格与 DEC-025 冲突时，以 DEC-025 为准。本规格为 DEC-025 的概念展开，**不**新增任何决定。
+> DEC-067 明确修订 DEC-025 的 Task 成员关系与 Fragment / Locator 细节：Source 不直接承载可变 Task membership，processing / association / availability / integrity 状态分离。旧概念示例与现行条款冲突时以 DEC-067 为准。
 
 ---
 
@@ -53,7 +57,6 @@ Source
 ```text
 Source
 ├── source_id
-├── task_id
 ├── source_type
 ├── source_scope
 ├── ownership
@@ -66,9 +69,26 @@ Source
 └── metadata
 ```
 
-Source 可以包括：用户手动输入；用户上传文档；用户上传表格；当前商品页面；当前商品评论；竞品商品页面；竞品评论；用户访谈；问卷回答；内部业务文档；平台运营规则；公开网页；确定性系统统计。
+Source 的历史概念分类可以覆盖手工输入、上传资料、评论、访谈、规则或网页等来源；但首个 Goal 的已接受 intake 仅为结构化表单 / 手工文本、TXT / Markdown、文本型 PDF 与评论 CSV，且全部由用户提供。网页抓取、访谈采集、OCR、图片与通用办公文件不因该概念分类获得授权。
 
 Source 是**逻辑身份**，不直接代表某一次不可变化的内容快照。
+
+### 3.1 Task Source Association（现行契约）
+
+```text
+TaskSourceAssociation
+├── task_source_association_id
+├── task_id
+├── source_id
+├── active_source_version_id
+├── membership_state           (active / removed / replaced)
+├── revision
+├── replacement_reference
+├── changed_at
+└── changed_by
+```
+
+Task-scoped 使用范围、移除与替换由该关联表达。关联变化不改写 Source / Source Version，也不等于物理删除；后续 SourceSetVersion 必须固定关联 identity、revision 与精确 Source Version。
 
 ---
 
@@ -81,23 +101,30 @@ SourceVersion
 ├── source_version_id
 ├── source_id
 ├── version_number
-├── content_hash
 ├── captured_at
 ├── effective_at
 ├── supersedes_version_id
 ├── storage_ref
-├── parsing_status
+├── processing_status
 ├── availability_status
 └── metadata
 ```
 
 业务结果必须引用具体 `source_version_id`，而**不能**只引用可能持续变化的 `source_id`。旧 Source Version 可保留用于审计，但不一定继续允许用于新的分析。
 
+`processing_status` 使用 DEC-067 的 `registered / processing / ready / ready_with_rejections / failed / superseded`。ContentObject 的既有私有完整性记录由 RFC-002 管理，不扩散成公共 Source / Evidence digest。
+
+### 4.1 Derived Artifact（现行契约）
+
+Parsed text、normalized search text、Record / Fragment set 与后续 lexical / embedding output 都是精确 Source Version 的版本化派生产物。Processor / Parser / Fragmenter 配置变化创建新 Derived Artifact version 和新 Fragment identity，不覆盖历史 Provenance。
+
+Retrieval Index 是同 PostgreSQL Service 下可重建、非权威的派生平面。每个 lexical / vector entry 必须引用精确 Fragment、Source Version、Derived Artifact / Fragmenter version、index generation 与适用 lexical / Embedding Profile。目标 vector Profile 为 `openai-text-embedding-3-small-1536-cosine-v1`；不默认启用 ANN。快速 MVP-0 只启用 Direct / Exact / PostgreSQL Lexical；vector generation、Semantic / Hybrid 与 text PDF 进入 MVP-1，在启用前 Capability 必须保持不可用。
+
 ---
 
 ## 5. Document（概念）
 
-Document 适用于长文本或文件类来源（PDF / Word / Markdown / 网页快照 / 商品说明书 / 检测报告 / 内部运营文档）。
+Document 适用于长文本或文件类来源。首个 Goal 只实现 TXT / Markdown 与文本型 PDF；Word、网页快照、扫描文件及其他办公格式仍是历史概念示例，不在当前实现范围。
 
 ```text
 Document
@@ -139,15 +166,16 @@ Fragment 是系统能够精确引用、检索和向用户展示的最小原始�
 ```text
 Fragment
 ├── fragment_id
-├── task_id
 ├── source_id
 ├── source_version_id
+├── derived_artifact_version_id
 ├── document_id_or_record_id
 ├── fragment_type
-├── content
+├── verbatim_content
+├── normalized_search_text
 ├── locator
-├── content_hash
 ├── parser_version
+├── fragmenter_version
 ├── created_at
 └── status
 ```
@@ -158,18 +186,18 @@ Fragment **必须**能够回到真实原文位置。
 
 | 来源类型 | Locator 概念字段 |
 |----------|------------------|
-| PDF | `page` / `paragraph_index` / `bounding_box` |
-| Web Page | `url` / `heading_path` / `paragraph_index` / `captured_at` |
-| Review Dataset | `review_id` / `product_id` / `row_number` |
-| Spreadsheet | `sheet` / `row` / `column` |
-| Manual Input | `form_section` / `field_name` |
-| Interview | `speaker` / `timestamp` / `response_number` |
+| Structured Form / Manual Text | `formSection` / `fieldName` |
+| TXT / Markdown | `headingPath` / normalized `lineStart` / `lineEnd` |
+| Text PDF | `pageNumber` / extracted-text `block` or `characterRange` |
+| Review CSV | `sourceRowNumber` / stable `columnNames` / parent `recordId` |
 
-最终 Locator Schema **尚未确认**，但必须满足可追溯与可返回原文要求。
+Fragment 不跨 Source Version、Record 或 PDF page。Text PDF 不承诺 OCR bounding box / image coordinate；其他历史来源类型不属于首个 Goal 的可实现 Locator 范围。
 
 ---
 
 ## 8. Source Type（概念枚举）
+
+下列是 DEC-025 的历史概念全集，不是首个 Goal 的 importer 清单。当前可实现 subset 以 DEC-067 与 Product Specification 为准；任何网页 / 平台来源都不得被解释为自动抓取授权。
 
 ```text
 manual_input
@@ -381,38 +409,38 @@ SourceSetVersion
 ├── source_set_version_id
 ├── task_id
 ├── purpose
-├── source_version_ids[]
+├── association_manifest[]     (association identity + revision + exact source_version_id + eligibility)
 ├── created_at
-└── content_hash
+└── component_versions
 ```
 
-对应 Insights Version 应记录 `based_on_source_set_version_id`（如 `customer_insight_source_set_v3`）。用户新增评论 / 访谈 / 竞品资料后应生成新的 Source Set Version。旧业务结果可据此判断是否基于旧来源集合。Source Set Version **不复制**所有来源内容，只固定参与分析的具体 Source Version 集合。
+对应 Insights Version 应记录 `based_on_source_set_version_id`（如 `customer_insight_source_set_v3`）。用户新增、移除、替换资料后应生成新的 Source Set Version。旧业务结果可据此判断是否基于旧来源集合。Source Set Version **不复制**所有来源内容，也不使用额外 package digest；它固定参与分析的关联 revision、精确 Source Version、eligibility 与可读组件版本。
 
 ---
 
 ## 18. Source Status（概念枚举）
 
-### 18.1 Source Version Status
+### 18.1 Source Version Processing Status
 
 ```text
-available
+registered
 processing
-invalid
-unavailable
+ready
+ready_with_rejections
+failed
 superseded
-deleted
-restricted
 ```
 
 | 取值 | 含义 |
 |------|------|
-| `available` | 当前可正常访问和引用 |
-| `processing` | 尚未完成解析或索引 |
-| `invalid` | 解析失败、内容损坏或已确认不可信 |
-| `unavailable` | 暂时无法访问，但历史快照可能仍存在 |
-| `superseded` | 已有新版本替代，旧版本保留审计 |
-| `deleted` | 用户要求删除，不允许用于新的分析 |
-| `restricted` | 来源存在，但当前任务、用户或 Skill 没有权限 |
+| `registered` | 已原子登记，等待或准备处理 |
+| `processing` | 正在耐久处理，客户端不得推断完成 |
+| `ready` | 当前 Source Version 已完整产生 eligible output |
+| `ready_with_rejections` | 评论 CSV 的合法 Record 子集诚实可用，并有有界 row issues |
+| `failed` | 处理失败；保留登记与失败摘要，不产生 eligible Fragment |
+| `superseded` | 已由新 Source Version 替代，历史仍可解释 |
+
+association 的 `active / removed / replaced`、availability、integrity 与 processing status 分属不同维度，不能用一个枚举互相代替。
 
 ### 18.2 Source Conflict（概念）
 
@@ -453,7 +481,7 @@ EvidencePackage
 └── generated_at
 ```
 
-Evidence Package：是一次执行输入快照；不是新的 Source；不修改原始来源；限制模型可见证据范围；支持 Skill 独立测试；支持重现模型当时看到了什么；支持确定性引用校验；支持上下文控制。
+Evidence Package：是一次 immutable、reference-based 执行输入快照；不是新的 Source，不复制整套私有正文，不修改原始来源；它引用 Source Set、Retrieval Run、Candidate Fragment 与可读组件版本，限制模型可见证据范围并支持确定性引用校验。Availability 变化可阻止新的业务使用，但不得把历史 Package latest-at-read 改绑到新 Source Version。
 
 Skill 输出中的 Fragment ID 必须来自对应 Evidence Package 的允许集合。
 
@@ -480,9 +508,9 @@ Insight 的主要证据来源失效
 
 ## 21. Data Isolation（概念）
 
-所有以下对象必须关联当前任务或合法 Workspace：Source / Source Version / Document / Record / Fragment / Evidence Link / Source Set Version / Evidence Package。
+所有以下对象必须关联当前任务或固定 Workspace：Source / Source Version / Document / Record / Fragment / Evidence Link / Source Set Version / Evidence Package。
 
-检索、模型调用和 Skill Runtime **不能**跨任务召回其他用户的私有资料。即使 Fragment ID 真实存在，如果不属于当前授权范围，也必须拒绝引用。
+检索、模型调用和 Skill Runtime **不能**跨任务召回其他用户的私有资料。Workspace / Task / Product / Source Scope、TaskSourceAssociation、SourceSetVersion、Source Version、availability 与 eligibility 由服务端从 Accepted Task / Skill Contract / 权威 Source 图推导，并形成所有检索 channel 共同使用的 SQL authorized candidate relation，在 ranking 前生效。即使 Fragment ID 真实存在，如果不属于当前授权范围，也必须拒绝引用；Browser、Skill 或 Provider 不能扩大范围。
 
 ---
 
@@ -584,7 +612,7 @@ New Source Version
 - 直接证据可显示短摘录，综合判断可显示忠实摘要和主要依据，不强制逐句引用。
 - 不显示未经校准数字置信度或机械证据覆盖总分。
 
-本节只定义业务数据向用户交互的投影要求；工作台与证据交互边界已由 DEC-055 / DEC-056 冻结，最终 Locator Schema、权限映射与 Evidence API 仍待 RFC-004 / RFC-005。
+本节只定义业务数据向用户交互的投影要求。DEC-069 已冻结 Task-scoped 窄投影、opaque cursor pagination（默认 20、最大 50）与禁止暴露项；DEC-070 已冻结 Source intake read / write、association / version read 与 Evidence Link read Operation family。MVP-0 只在 Capability 中开放 JSON / text / TXT / Markdown / CSV；text PDF 作为 additive MVP-1 capability。
 
 ---
 

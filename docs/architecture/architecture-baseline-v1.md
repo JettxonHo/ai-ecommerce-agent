@@ -1,10 +1,10 @@
 # Architecture Baseline v1
 
-> **Status: ACTIVE PRE-DEVELOPMENT BASELINE（已同步至 DEC-066、RFC-001～RFC-004 与 RFC-006；RFC-005 / 007 仍待完成）**
+> **Status: ACTIVE PRE-DEVELOPMENT BASELINE（已同步至 DEC-070 / RFC-005 Accepted；最小 RFC-007 待闭合）**
 > **治理来源：** 本文件综合当前**已接受**的 DEC 与 Specs，形成 Current Architecture Truth。**不发明任何新的生产技术选择。**
 > **关联：** [../readiness/architecture-readiness-report-v1.md](../readiness/architecture-readiness-report-v1.md) · [../rfcs/rfc-register.md](../rfcs/rfc-register.md) · Spike-001（MERGED）
 > **Base Commit：** `a60ff3b6a24bf8b35e1c2ba1031038bb7123a578`
-> **Current sync（2026-08-07）：** RFC-002 已选定 PostgreSQL + SQLAlchemy 2.x Sync + Psycopg 3 Sync + Alembic；DEC-049～051 与 RFC-003 已冻结 Checkpoint、Durable Dispatch、Fenced Ownership、兼容与 Safe Resume。DEC-052～054 与 RFC-006 已冻结单一 OpenAI Responses / `gpt-5.6-terra`、窄型同步 Port、Structured Output、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute 与单次人工 RC Smoke；RFC-006 DQ-01～08 已闭合且 Final Review = PASS，用户已于 2026-08-06 明确接受 RFC 整体。RFC-003 的 DQ-01～09 已闭合，并于同日被用户整体接受；DEC-055～056 已冻结 `apps/web/` React / Vite SPA、Frontend 状态所有权、OpenAPI 类型生成、深 TaskWorkbench、revision-safe 交互与适度 Web 质量边界，P-36～P-41、Final Consistency Review 与 Frontend Architecture 整体接受均已完成；DEC-063～066 已闭合 RFC-004 DQ-01～10，Final Review = PASS，用户已于 2026-08-07 明确接受 RFC-004 整体；FND-001～003 已完成。正文中仍标为 `PENDING RFC` 的数据库、Checkpointer、Worker、LLM Runtime、Frontend 或 Foundation 状态是历史快照，以最新 Accepted Decision、RFC 与本说明为准。
+> **Current sync（2026-08-07）：** RFC-002～006 与 Frontend Architecture 已整体接受。DEC-067～069 冻结 Source / Processing / Retrieval / Scope / Evidence；DEC-070 冻结 `text-embedding-3-small` / 1536 / cosine 与 Source / Evidence public catalog，并将快速 MVP-0 限于 Direct / Exact / PostgreSQL Lexical + JSON / text / TXT / Markdown / CSV，text PDF 与 Semantic / Hybrid 后移 MVP-1。RFC-005 Final Review = PASS。用户已确认快速 MVP-0 Gate，但实际 Goal 与实现仍未授权。正文旧 `PENDING` 为历史快照，以最新 Accepted Decision、RFC 与本说明为准。
 > **Product input sync（2026-08-07）：** DEC-057～062 已冻结产品 / 技术权威边界、Anchor SKU、Needs Input、Claim Integrity、Task-scoped Source 生命周期与最小最近任务入口；这些约束是 RFC-004 / 005 / 007 的上游输入，不代表对应公共契约、物理清理或实现已经完成。
 > **Historical expansion note：** 正文按 DEC 与 Foundation 的形成顺序累积；其中 `IN REVIEW`、`NOT AUTHORIZED`、旧 PENDING 表和 `Next Topic` 只记录当时状态，不是当前授权或执行指令。当前状态仅以上述 Current sync、[AGENTS.md](../../AGENTS.md) 与 [Implementation Readiness](../handoffs/implementation-readiness.md) 为准。
 

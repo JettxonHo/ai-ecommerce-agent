@@ -1,7 +1,7 @@
 # MVP Testing Strategy
 
 > **Status: PARTIAL — product acceptance baseline accepted; implementation tooling and executable suites pending RFC / Goal**
-> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) · [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · [DEC-058](../decisions/dec-058-fictional-anchor-sku-acceptance-fixture-strategy.md) · [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) · [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) · [DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md) · [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md) · [DEC-066](../decisions/dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md)
+> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) · [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · [DEC-058](../decisions/dec-058-fictional-anchor-sku-acceptance-fixture-strategy.md) · [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) · [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) · [DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md) · [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md) · [DEC-066](../decisions/dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md) · [DEC-067](../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md) · [DEC-068](../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md) · [DEC-069](../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md) · [DEC-070](../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md)
 
 本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前固化已接受的产品验收基线、DEC-052～054 / RFC-006 的模型契约，以及 DEC-055～056 的前端工具、交互与 Web 质量验证边界；不授权业务实现，也不提前冻结公共接口、Fixture 或未实例化的测试步骤。
 
@@ -47,9 +47,23 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 - 覆盖事务原子性、幂等、版本 Pointer、陈旧 Review、Interrupt / Resume、Cancel、Retry / Rerun、Stage Invalidation 和恢复；
 - Checkpoint 不得被测试误当 Business Current Truth。
 
-最终工具、命令、Fixture 装载方式与故障注入边界在 RFC-003 / 004 接受后补充。
+最终命令、Fixture 装载方式与故障注入边界由后续 Readiness / Development Plan / Goal Issue 补充；RFC-003 / 004 的架构与公共行为已接受。
 
-### 3.3 前端与端到端
+### 3.3 Source 与 Retrieval
+
+- **MVP-0 Gate：** 覆盖 JSON / text / TXT / Markdown / CSV、六值 processing、Direct / Exact / PostgreSQL Lexical、server-derived Scope、Evidence Validator 与 atomic commit；不要求 PDF、pgvector、Embedding / Semantic / Hybrid。
+- 每 Source 原子登记与处理测试覆盖合法兄弟项不因失败项回滚、六值 processing lifecycle、CSV 合法行 / 有界 row issues，以及 TXT / Markdown 不制造伪部分成功；文本 PDF 的代表性处理进入 MVP-1。
+- MVP-0 format-aware lane 验证 Fragment 不跨 Source Version / CSV Record，原文展示与 normalized search text 分离；PDF page Locator 在 MVP-1 补齐。不扩展 OCR、任意办公格式或低概率字符矩阵。
+- MVP-0 PostgreSQL Integration 使用同一 authorized candidate relation 验证 Direct、Exact、`tsvector` / GIN 与 bounded `pg_trgm` / GIN 的 scope / eligibility；应用层 post-filter 不作为通过路径。`pgvector` filtered exact NN 属 MVP-1。
+- MVP-1 immutable vector generation 测试覆盖 expected / present / missing / extra reconciliation、部分 generation 不切换、原子 current-generation switch、remove / replace / restriction 立即从 eligibility 排除，以及历史 Retrieval Run 保留 generation / profile reference；
+- MVP-0 deterministic Planner 测试覆盖 Direct-first、exact identifier 原样保留、Lexical candidate bounds、stable Fragment dedup 与 zero-result `insufficient_information`；MVP-1 再覆盖最多 4 query variants、每通道 20、RRF 60、最多 12 fused、Semantic fallback。这些是行为边界，不计算机械质量总分；
+- server-derived Scope 测试验证 Browser / Skill / Provider input 不能扩大 Workspace / Task / Product / Source 范围，所有 channel 在 ranking 前复用同一 SQL authorized candidate relation；公共投影不暴露 vector、raw index、private storage ref、Provider payload 或 rank-as-confidence；
+- RetrievalRun / EvidencePackage / DatasetStatistic / Formal Evidence 测试验证 immutable run、reference-based package、完整可计数数据集、Evidence Validator，以及 Domain Version + Formal Evidence Link + Current Truth + audit 原子提交；Candidate / rank / QC 不得提前变成 Formal Evidence 或 approval；
+- 固定 Retrieval evaluation 的 MVP-0 Slice 覆盖 exact、CJK lexical、counter-evidence、scope isolation、complete statistic、zero result、remove / replace 与 deterministic order；MVP-1 增加 semantic / hybrid、semantic outage 与 vector generation。Scope / stale / Top-K extrapolation / fabricated zero-result / exact identifier / atomic Formal Evidence 始终是硬门禁；Relevance 不合成机械总分；
+- degraded behavior 必须传播 limitation，不扩大 Scope、不使用 incomplete / unsafe generation。没有安全兼容 generation 时返回 temporary unavailable / actionable recovery，不允许 Frontend 模拟服务端终态；
+- 首个 Goal 不测试或实现 baseline ANN、LLM Query Rewrite、Reranker、多 Embedding Provider 或外部 Search / Vector Service。若固定评测后来证明需要，必须通过独立提案和 before / after evidence 解锁。
+
+### 3.4 前端与端到端
 
 - 前端静态与构建基线使用 Prettier、ESLint、`tsc --noEmit` 与 Vite Production Build；
 - Unit / Module / State Transition 使用 Vitest + React Testing Library / `user-event`；类型化 Client Contract 使用注入式 Typed Transport / Fixture；
@@ -73,7 +87,7 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 - 正式支持当前稳定 Desktop Chrome；Edge / Firefox / Safari 为 Best-effort。Firefox / WebKit、Visual Regression 和手机矩阵不机械加入首个 Goal；
 - 首个完整纵向切片建立固定本地性能 Profile，Release Candidate 同 Profile 复测。输入卡顿 / 丢失、轮询整页闪烁、无界 Fetch / Render、Focus 丢失或 Evidence 阻塞主操作是 Blocking Finding；先 Profile 再优化，不使用无实现基线的机械分数。
 
-### 3.4 真实 Provider Smoke
+### 3.5 真实 Provider Smoke
 
 - 仅在 Release Candidate 使用 `fixture-sufficient-v1` 执行一次完整端到端 Smoke；
 - Bootstrap 只选择 Credential Reference，Infrastructure Adapter 在自身边界解析环境 Secret；Secret 不写入仓库、Fixture、日志或导出；
@@ -93,6 +107,7 @@ Goal 完成前必须同时满足：
 - 必需语义组存在，或诚实标记资料不足 / 不适用；
 - Claim / Fact / Proof Point 未越权升格，无依据高风险声明不进入 Current Brief，有诚实替代时 Task 不被过度阻断；
 - 从当前 Task 移除的 Source 不再支撑 Current Truth，界面未把可逆移除伪装为物理永久删除；
+- 跨 Task / Scope / Product leakage、stale / unavailable / non-current-generation candidate、Top-K frequency extrapolation、zero-result fabrication 与 Validator 前 Formal Evidence 数量均为零；
 - 用户可以从最小最近任务入口通过稳定深链返回持久 Task；
 - 当前有效 Marketing Brief 与 Xiaohongshu Brief 的 Markdown Export Snapshot 与版本引用一致；
 - Release Candidate Live Smoke 通过；

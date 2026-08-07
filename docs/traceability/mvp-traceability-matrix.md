@@ -111,7 +111,10 @@
 | Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
 |---|---|---|---|---|---|---|---|
 | On-demand Hybrid RAG + 分层数据访问 | DEC-014, DEC-032 | [Hybrid Retrieval](../specs/runtime/hybrid-retrieval-and-evidence-runtime.md) | spike-09 | test_failure_recovery::spike09（degraded 不伪造） | RFC-005 | _(placeholder)_ | _(placeholder)_ |
-| Versioned Sources / Fragments / Evidence Links + Task-scoped reversible removal | DEC-025, DEC-061 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | spike-01 | commit.py evidence_links + business_audit + DEC-061 | RFC-004, RFC-005, RFC-007 / ARP-08 | _(placeholder)_ | Removed Source excluded from Current Truth; physical purge handled separately _(planned)_ |
+| Versioned Sources / Task Associations / Durable Processing / Format-aware Fragments / Evidence Links + reversible removal | DEC-025, DEC-061, DEC-067 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | spike-01 | commit.py evidence_links + business_audit + DEC-061 / 067 | RFC-004, RFC-005, RFC-007 / ARP-08 | _(placeholder)_ | Per-source partial acceptance + six-state processing + four locator lanes + removed Source excluded from Current Truth; physical purge handled separately _(planned)_ |
+| PostgreSQL-native retrieval plane + versioned index generation + deterministic RRF baseline | DEC-032, DEC-068 | [Hybrid Retrieval](../specs/runtime/hybrid-retrieval-and-evidence-runtime.md) | — | DEC-068 + Issue #56 / Draft PR #57 | RFC-005 | _(placeholder)_ | Same authorized candidate relation + exact / CJK lexical / semantic / hybrid + generation reconcile / switch + 4 / 20 / 60 / 12 bounds + no baseline reranker _(planned)_ |
+| Server-derived retrieval scope + referenced Evidence Package + atomic Formal Evidence + explicit degradation | DEC-058, DEC-061, DEC-069 | [Hybrid Retrieval](../specs/runtime/hybrid-retrieval-and-evidence-runtime.md), [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | — | DEC-069 + Issue #56 / Draft PR #57 | RFC-005 / RFC-007 | _(placeholder)_ | SQL pre-ranking scope isolation + narrow Source / Evidence projection + immutable RetrievalRun / referenced package + complete DatasetStatistic + Validator atomic commit + representative hard gates / human relevance + explicit limitation _(planned)_ |
+| Fixed Embedding target + Source / Evidence public catalog + accelerated MVP-0 profile | DEC-070 | [Hybrid Retrieval](../specs/runtime/hybrid-retrieval-and-evidence-runtime.md), [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | bounded TS-01 / TS-03 inside foundation Issues | DEC-070 + RFC-005 Final Review | RFC-005 | MVP-0 Contract / Retrieval foundation | MVP-0 Direct / Exact / Lexical + JSON / text / TXT / MD / CSV; MVP-1 text PDF + `text-embedding-3-small` 1536 cosine / Semantic / Hybrid |
 | 分层证据 + 可追溯结论 + 渐进式证据披露 | DEC-008, DEC-047 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | — | runtime-evidence.md + DEC-047 | RFC-004, RFC-005 | _(placeholder)_ | Five-class badge + truthful locator + no fabricated confidence _(planned)_ |
 
 ### E. 运行时可靠性（失败/恢复/重试/可观测）
@@ -150,12 +153,14 @@
 - Spike-001 的临时实现（`spikes/spike-001-*/**`）**不**作为生产模块；Future Epic 实现对应 Skill / Runtime 时应基于 Accepted DEC + RFC 重新实现，而非直接迁移 Spike 代码。
 - `Future Epic` / `Future Test` 全部为空占位；只有在完整策划文档包与 Goal 文本被用户接受、最终 Implementation Readiness Review 通过，并收到用户明确的“进入 Goal 执行阶段”指令后方可实例化。RFC Acceptance 是必要条件，不是充分条件。
 
-## Current Status（2026-08-06）
+## Current Status（2026-08-07）
 
 ```text
 Spike-001 = COMPLETED
 RFC-001 / RFC-002 / RFC-003 / RFC-006 = ACCEPTED
-RFC-004 / RFC-005 / RFC-007 = PROPOSED
+RFC-004 = ACCEPTED
+RFC-005 = ACCEPTED (2026-08-07; DQ-01～10 by DEC-067～070; Final Review PASS)
+RFC-007 = PROPOSED
 FND-001 / FND-002 / FND-003 = COMPLETED
 
 ARP-01 / ARP-04 / ARP-10 = ACCEPTED (full declared scope)
