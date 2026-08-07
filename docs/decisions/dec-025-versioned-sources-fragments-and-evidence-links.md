@@ -1,13 +1,14 @@
 # DEC-025：采用版本化来源、可定位 Fragment 与显式 Evidence Link 的证据架构
 
 > **Type:** Data Architecture / Reliability Architecture
-> **Status:** Accepted
+> **Status:** Accepted — Amended by DEC-061
 > **Date:** 2026-07-28
 > **Related Session:** [Session-002 — Agent 工作流、可靠性架构与技术能力需求](../sessions/session-002-agent-workflow-reliability-and-technical-capabilities.md)
 > **Related Specification:** [Source and Evidence Specification（概念）](../specs/evidence/source-and-evidence-specification.md)
 > **Related RFC:** None
 > **Supersedes:** None
 > **Amends:** DEC-008 and DEC-014 by defining detailed source, fragment and formal evidence boundaries.
+> **Amended By:** [DEC-061](dec-061-task-scoped-private-material-and-reversible-removal.md)（冻结产品层从当前 Task 有效资料集移除与物理永久删除的区别；物理保留、Hold 与删除政策仍待后续权威文档）
 
 ---
 

@@ -6,9 +6,9 @@ Product
 
 ## Status
 
-Accepted — Amended by DEC-047
+Accepted — Amended by DEC-047 / DEC-060
 
-> **Current amendment:** [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 冻结异常暂停后的用户可见原因、业务影响和行动导向恢复交互；本决定以下原文保留为 2026-07-27 的原则层历史记录。
+> **Current amendments:** [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 冻结异常暂停后的用户可见原因、业务影响和行动导向恢复交互；[DEC-060](dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) 将“高风险表达可触发暂停”收紧为证据约束和声明级阻断优先，只有策略必须依赖且没有可信替代表达时才进入 Needs Input。本决定以下原文保留为 2026-07-27 的原则层历史记录。
 
 ## Decision
 

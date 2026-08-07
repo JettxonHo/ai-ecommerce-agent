@@ -6,9 +6,9 @@ Product / Interaction / Input Gate / Versioning / Rerun
 
 ## Status
 
-Accepted — Amended by DEC-045 / DEC-047
+Accepted — Amended by DEC-045 / DEC-047 / DEC-059 / DEC-061 / DEC-062
 
-> **Current amendments:** [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md) 冻结 Task 创建门禁、Fact Stage 最低条件、演示默认文件限制与分级冲突处理；[DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 具体化渐进式证据、编辑影响、阶段进度和行动导向恢复。以下原文保留为本决定的原则层记录。
+> **Current amendments:** [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md) 冻结 Task 创建门禁、Fact Stage 最低条件、演示默认文件限制与分级冲突处理；[DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 具体化渐进式证据、编辑影响、阶段进度和行动导向恢复；[DEC-059](dec-059-targeted-needs-input-action-request-model.md) 将 Needs Input 具体化为由当前真实阻断派生的有限结构化行动请求；[DEC-061](dec-061-task-scoped-private-material-and-reversible-removal.md) 补充 Task 范围资料的可逆移除 / 替换；[DEC-062](dec-062-minimal-recent-task-index-and-stable-deep-links.md) 补充跨会话返回 Task 的最小最近任务入口。以下原文保留为本决定的原则层记录。
 
 ## Decision
 
@@ -42,7 +42,7 @@ Accepted — Amended by DEC-045 / DEC-047
 
 当运行中需要用户补充资料时，工作台进入用户可见的 **Needs Input（需要补充资料）** 交互态，展示：阻塞原因、受影响阶段、需要补充或确认的内容，以及补充后如何继续。该名称是产品交互语言；最终 API / 数据库状态枚举及其与既有 `waiting_for_input` / `waiting_input` 概念状态的映射由 RFC-003 / RFC-004 冻结。
 
-最低字段与文件限制后来由 DEC-045 补全；具体公共字段名、数据类型、API / 数据库枚举和前端控件仍是开放问题。
+最低字段与文件限制后来由 DEC-045 补全；Needs Input 行动请求模型后来由 DEC-059 补全。具体公共字段名、数据类型与 API / 数据库枚举由 RFC-004 / 005 冻结，前端组件组合留给实现 Issue。
 
 ### 版本、失效预览与确认式局部重跑
 
@@ -126,6 +126,7 @@ None.
 
 - [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md)：补全 Task / Fact Stage 门禁、默认文件限制与分级冲突行为。
 - [DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)：补全证据披露、修改影响识别、进度、错误、恢复与导出确认交互。
+- [DEC-059](dec-059-targeted-needs-input-action-request-model.md)：补全由真实阻断派生的行动请求内容与结构化恢复动作。
 
 ## Notes
 

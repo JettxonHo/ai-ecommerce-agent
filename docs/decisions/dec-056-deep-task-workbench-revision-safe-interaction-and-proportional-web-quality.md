@@ -2,12 +2,13 @@
 
 ## Metadata
 
-- **Status:** Accepted
+- **Status:** Accepted — Amended by DEC-062
 - **Date:** 2026-08-06
 - **Decision Type:** Frontend Architecture / Workbench Module / Interaction Projection / Accessibility / Performance
 - **Source:** Session-003；用户明确接受 `P-39A + P-40A + P-41A`
 - **Related Issue:** [#50](https://github.com/JettxonHo/ai-ecommerce-agent/issues/50)
 - **Related PR:** [#51](https://github.com/JettxonHo/ai-ecommerce-agent/pull/51)（Draft；Final Consistency Review = PASS，Frontend Architecture 整体已于 2026-08-07 接受）
+- **Amended By:** [DEC-062](dec-062-minimal-recent-task-index-and-stable-deep-links.md)（外层 Router 增加最小 `/tasks` 最近任务入口；TaskWorkbench 内部 Module 与 Router-thin 原则不变）
 
 ## Context
 

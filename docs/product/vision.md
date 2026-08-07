@@ -1,6 +1,6 @@
 # Product Vision
 
-> **Status: ACTIVE PRE-DEVELOPMENT PRODUCT VISION — 产品定位、Persona / JTBD 假设策略、行为型成功边界与 Frontend 交互架构已确认；最终公共契约与验收实例仍待策划**
+> **Status: READY FOR USER OVERALL ACCEPTANCE — P-42～P-47 已接受；Product Specification Final Consistency Review = PASS**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
 > 当前已确认：项目总体导向（DEC-001）、MVP 首要用户（DEC-002）、MVP 核心任务（DEC-003）、平台范围（DEC-004）、本地演示包络（DEC-041）、证据驱动商品上新策略工作台定位、复合 Persona / JTBD 假设策略和行为型演示成功标准（DEC-042），以及 Frontend 应用、工作台、交互与适度 Web 质量边界（DEC-055 / 056）。
 
@@ -47,31 +47,38 @@
 - **Persona 策略：** 一个复合主 Persona，商品运营与内容运营作为职责视角；详细画像继续标为假设，真实访谈是 Beta 前门禁。
 - **成功边界：** 以本地可启动、端到端闭环、结果可理解 / 审核 / 追溯 / 恢复 / 导出和人工可用性为主，不以机械总分或销量承诺自动接受。
 
-> 注：统一单 Agent、LangGraph StateGraph、按需混合 Retrieval、4 个 Core Skills、Xiaohongshu Adapter、PostgreSQL 持久化、RFC-003 Workflow Runtime、RFC-006 LLM Runtime、Frontend 应用 / 深工作台 / 交互投影 / 质量边界，以及首个演示的代表性验收包、行为门禁和 Markdown-first 用户导出均已确认；仍待策划的是输入与 Brief 最终公共字段、Fixture 实例、最终 E2E 证据格式，以及 RFC-004 / 005 / 007（见 [mvp-scope.md](mvp-scope.md)）。
+### DEC-060～062 — 诚实结果、受控资料与可返回任务（Accepted，2026-08-07）
+
+- **声明完整性：** Verified Fact 才能成为 Proof Point；无依据高风险声明不得进入 Current Brief。有诚实替代路径时 Task 继续，不建设通用法律或平台合规引擎。
+- **资料范围：** 用户资料默认只属于当前 Task，可逆移除 / 替换不等于物理永久删除；首个 Goal 不建设登录、RBAC、跨任务默认复用或用户侧 Purge UI。
+- **跨会话返回：** 固定工作区提供最小最近任务入口与稳定 Task 深链；不建设搜索、批量、归档、统计或完整运营 Dashboard。
+
+> 注：统一单 Agent、LangGraph StateGraph、按需混合 Retrieval、4 个 Core Skills、Xiaohongshu Adapter、PostgreSQL 持久化、RFC-003 Workflow Runtime、RFC-006 LLM Runtime、Frontend Architecture，以及首个演示的虚构 Anchor SKU、代表性验收包、行为门禁、有限结构化 Needs Input、Markdown-first 用户导出、证据约束声明完整性、Task 范围资料生命周期和最小最近任务入口均已确认。根据 DEC-057，最终公共字段、Fixture 物理文件和 E2E 证据格式分别属于 RFC-004 / 005 与 Testing Strategy；当前产品层已无未接受 Proposal（见 [mvp-scope.md](mvp-scope.md)）。
 
 ---
 
 ## 当前状态
 
 - 项目处于 **Pre-development Planning（正式开发前策划）阶段**；业务实现与长期 Goal 均未启动。
-- 已确认总体导向、首要用户、核心任务、平台范围、产品定位、复合 Persona / JTBD 假设策略、行为型演示成功边界、Agent / Workflow / Retrieval 概念架构、生产持久化基础、本地演示包络与 Frontend 交互架构；详细用户研究证据与公共契约仍待策划。
-- 其余具体内容，必须等到对应 Proposed Decision 被用户明确接受并记为 Accepted Decision（见 [../decisions/](../decisions/)）后，才能写入。
+- 已确认总体导向、首要用户、核心任务、平台范围、产品定位、复合 Persona / JTBD 假设策略、行为型演示成功边界、Agent / Workflow / Retrieval 概念架构、生产持久化基础、本地演示包络、Frontend Architecture、Anchor SKU、Needs Input、声明完整性、Task 范围资料生命周期与最近任务入口；详细用户研究证据留待 Beta，公共契约由下游 RFC 冻结。
+- 后续若改变已确认定位、用户或范围，必须通过新的 Accepted Decision 明确 Amend / Supersede；Beta 研究结论和下游公共契约不得静默写成产品事实。
 
 ---
 
-## 待讨论的开放问题（Vision 相关）
+## 产品愿景闭合状态与下游交接
 
-> 以下事项尚未确认，列出以便后续讨论，**不构成已接受决定**：
+> 产品层当前没有未接受的 Vision Proposal。下列条目区分已关闭产品事项、Beta 研究假设与下游技术 / 测试交接：
 
 - 最终目标用户：**MVP 首要用户已确认**（DEC-002）；Persona 细节见 [user-personas.md](user-personas.md)。
 - 商家端 / 消费者端：**已确认商家端**（DEC-002）。
 - 要解决的核心业务问题：**已确认**（DEC-003）。
 - 最终产品定位与差异化价值：**已确认**为证据驱动商品上新策略工作台（DEC-042）；品牌命名和对外文案不是当前阻塞项。
 - Persona / JTBD：复合 Persona 结构与基线假设已确认；画像具体取值和真实证据待 Beta 前访谈。
-- 演示成功标准：行为与人工可用性边界、三个固定资料包 + 一个变更脚本、必要行为门禁、人工 `PASS / FAIL` 与 Release Candidate Live Smoke 已确认（DEC-042 / DEC-048）；Frontend 核心测试、WCAG / Chrome / Reflow 与性能证据边界已由 DEC-055 / 056 确认，Fixture 实例和最终 E2E 步骤 / 证据格式仍待 Testing Strategy 补全。
+- 演示成功标准：行为与人工可用性边界、虚构“城市通勤双肩包”Anchor SKU 的三个资料变体 + 一个 mutation、必要行为门禁、人工 `PASS / FAIL` 与 Release Candidate Live Smoke 已确认（DEC-042 / DEC-048 / DEC-058）；Frontend 核心测试、WCAG / Chrome / Reflow 与性能证据边界已由 DEC-055 / 056 确认，物理 Fixture 和最终 E2E 证据格式由 Testing Strategy 补全。
 - Agent / Workflow：**已确认**为一个统一用户侧 Agent + LangGraph StateGraph 确定性工作流，不采用 Multi-Agent 主架构或 LLM Supervisor（DEC-021 / DEC-023）。
 - Retrieval / Skills：**已确认**按需混合 Retrieval 概念边界、4 个 Core Skills 与 1 个 Xiaohongshu Adapter（DEC-014 / DEC-020 / DEC-026～032）；单一 OpenAI Provider / `gpt-5.6-terra`、窄型同步 Port、Structured Output、有界 Recovery、可读版本元组、确定性 Profile、Adapter Secret / Payload Allowlist、同 Port 测试替身与单次人工 RC Smoke 已由 DEC-052～054 与 RFC-006 冻结。索引仍待 RFC-005；实现仍待完整策划包和 Goal 激活。
 - 平台范围：**已确认**核心中立 + 小红书 Brief 映射；其他平台、完整平台正文与自动发布不进入首个 Goal（DEC-004 / DEC-031 / DEC-041）。
+- 产品开放 Proposal：**当前无**。声明完整性与高风险表达、受控本地数据生命周期体验、跨会话任务返回入口已由 DEC-060～062 接受；Final Consistency Review 已通过，当前只待用户整体接受。
 
 这些问题的讨论与提案记录在 [../sessions/](../sessions/)；确认后的决定记录在 [../decisions/](../decisions/) 并同步回本文件。
 

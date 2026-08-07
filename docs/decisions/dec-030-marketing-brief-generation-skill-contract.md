@@ -1,14 +1,14 @@
 # DEC-030：Marketing Brief Generation 采用 Approved Strategy 锁定、平台无关信息架构与证据限制传播契约
 
 > **Type:** Skill Contract / Marketing Architecture
-> **Status:** Accepted — Amended by DEC-046
+> **Status:** Accepted — Amended by DEC-046 / DEC-060
 > **Date:** 2026-07-28
 > **Related Session:** [Session-002 — Agent 工作流、可靠性架构与技术能力需求](../sessions/session-002-agent-workflow-reliability-and-technical-capabilities.md)
 > **Related Specification:** [../specs/skills/marketing-brief-generation-skill.md](../specs/skills/marketing-brief-generation-skill.md)（概念 Skill Spec，仅概念）
 > **Related RFC:** None
 > **Supersedes:** None
 > **Amends:** [DEC-006](dec-006-four-layer-structured-marketing-brief.md) by defining the formal Strategy-to-Execution Brief boundary（在 DEC-006「四层结构化营销 Brief」的执行层基础上，正式定义 Strategy-to-Execution Brief 的概念层边界与契约，**不推翻** DEC-006 的四层输出主结构）与 [DEC-019](dec-019-adapt-ecommerce-visual-copywriting-for-execution-brief-skills.md) by defining the Marketing Brief Generation contract（在 DEC-019「Marketing Brief Generation Skill 次目标 Partial Adapt，吸收 Feature-to-Benefit·证据边界·风险·缺失信息·免责等机制」基础上，正式定义该 Skill 的概念层执行契约，**不推翻** DEC-019 的评估结论与 Adapt 方向）。
-> **Amended By:** [DEC-046](dec-046-review-brief-and-export-product-contract.md)（将既有概念输出收束为六个稳定的产品语义组，并冻结正式 Brief 的不可变版本行为；不冻结最终公共 Schema）
+> **Amended By:** [DEC-046](dec-046-review-brief-and-export-product-contract.md)（将既有概念输出收束为六个稳定的产品语义组，并冻结正式 Brief 的不可变版本行为；不冻结最终公共 Schema）；[DEC-060](dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md)（补充无依据高风险声明的声明级阻断和任务继续边界，不建设通用合规引擎）
 
 ---
 

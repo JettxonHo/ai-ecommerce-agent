@@ -103,4 +103,4 @@ None.
 
 “证据驱动”表示结论须遵守既有 Evidence 与 Human Review 契约，不代表新增泛化安全工程、哈希要求或机械证据评分。
 
-本决定接受时留给 Testing Strategy 的 Fixture、必要阈值和执行方法已由 DEC-048 在首个演示范围内解决；具体测试工具与 Fixture 内容仍待后续实例化。
+本决定接受时留给 Testing Strategy 的 Fixture、必要阈值和执行方法已由 DEC-048 在首个演示范围内解决；DEC-058 进一步冻结虚构“城市通勤双肩包”Anchor SKU。具体测试工具、Fixture 物理内容与执行证据仍待后续实例化。

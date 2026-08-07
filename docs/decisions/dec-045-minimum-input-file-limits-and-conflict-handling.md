@@ -6,7 +6,9 @@ Product / Input Contract / File Limits / Conflict Handling
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-059
+
+> **Current amendment:** [DEC-059](dec-059-targeted-needs-input-action-request-model.md) 将缺失与冲突的 Needs Input 交互具体化为由当前真实阻断派生的有限结构化行动请求；本决定的最低输入、文件限制和冲突分级保持有效。
 
 ## Decision
 
@@ -125,6 +127,10 @@ None.
 
 - [DEC-026](dec-026-product-intake-and-fact-extraction-skill-contract.md)：Fact Stage 最低可运行条件保持不变；本决定将其明确为产品门禁。
 - DEC-041：允许输入格式和不做 OCR / 图片理解的范围保持不变。
+
+## Amended By
+
+- [DEC-059](dec-059-targeted-needs-input-action-request-model.md)：补全阻断性缺失或冲突的结构化用户行动和恢复范围，不改变阻断判断。
 
 ## Notes
 
