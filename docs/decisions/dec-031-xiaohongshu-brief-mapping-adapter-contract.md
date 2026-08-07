@@ -1,14 +1,14 @@
 # DEC-031：Xiaohongshu Brief Mapping Adapter 采用 Brief 锁定、版本化平台政策快照、真实体验边界与方向化输出契约
 
 > **Type:** Platform Adapter Contract / Platform Architecture
-> **Status:** Accepted — Amended by DEC-046
+> **Status:** Accepted — Amended by DEC-046 / DEC-060
 > **Date:** 2026-07-29
 > **Related Session:** [Session-002 — Agent 工作流、可靠性架构与技术能力需求](../sessions/session-002-agent-workflow-reliability-and-technical-capabilities.md)
 > **Related Specification:** [../specs/adapters/xiaohongshu-brief-mapping-adapter.md](../specs/adapters/xiaohongshu-brief-mapping-adapter.md)（概念 Platform Adapter Spec，仅概念）
 > **Related RFC:** None
 > **Supersedes:** None
 > **Amends:** [DEC-004](dec-004-platform-neutral-core-xiaohongshu-demo.md) by defining the Xiaohongshu platform mapping layer（在 DEC-004「核心平台中立 + 小红书首个 MVP 演示场景」基础上，正式定义小红书平台映射层的概念层边界与契约，**不推翻** DEC-004 的平台中立核心）与 [DEC-020](dec-020-mvp-four-core-skills-and-xiaohongshu-adapter.md) by defining the Xiaohongshu Brief Mapping Adapter contract（在 DEC-020「4 Core Skills + 1 Platform Adapter」结构基础上，正式定义该「+1 Platform Adapter」的概念层执行契约，完成 DEC-020 核心链路，**不推翻** DEC-020 的 Skill 清单与裁剪结论）。
-> **Amended By:** [DEC-046](dec-046-review-brief-and-export-product-contract.md)（将既有概念输出收束为六个稳定的产品语义组，并冻结正式 Xiaohongshu Brief 的不可变版本行为；不冻结最终公共 Schema）
+> **Amended By:** [DEC-046](dec-046-review-brief-and-export-product-contract.md)（将既有概念输出收束为六个稳定的产品语义组，并冻结正式 Xiaohongshu Brief 的不可变版本行为；不冻结最终公共 Schema）；[DEC-060](dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md)（将平台风险限制在已提供或已接受的版本化约束，不授权通用平台合规引擎）
 
 ---
 

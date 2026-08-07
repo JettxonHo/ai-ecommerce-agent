@@ -1,7 +1,7 @@
 # Frontend Architecture
 
 > **Status: ACCEPTED PRE-DEVELOPMENT CURRENT TRUTH — P-36～P-41 accepted; Final Consistency Review passed; Frontend Architecture overall accepted; public HTTP contract and implementation pending**
-> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · product input [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md)
+> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · product inputs [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md)
 
 本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。最终 HTTP Resource / 字段 / 状态 / 错误 / revision / 幂等 / Conflict / Pagination / 下载协议、精确依赖版本、实现与运行证据仍未完成，不得从本文空白处推断实现事实。整体接受不授权依赖安装或实现。
 
@@ -9,7 +9,7 @@
 
 - 唯一前端根：`apps/web/`（RFC-001）。
 - Runtime：React 19 + TypeScript + Vite 8 的纯浏览器 SPA。
-- Routing：React Router Declarative Mode，只表达可链接的 Task / Stage / Panel 位置。
+- Routing：React Router Declarative Mode；外层拥有 `/tasks` 最小最近任务入口、`/tasks/new` 与稳定 Task / Stage / Panel 位置。
 - Backend：浏览器只访问同源 API Base Path；开发期由 Vite Proxy 转发到独立 Python API。
 - 不进入首个 Goal：SSR、React Server Components、React Router Framework Mode、Next.js、Node Production API Server。
 
@@ -19,7 +19,7 @@
 
 | State class | Owner | Rule |
 |---|---|---|
-| Task / Run / Source / Review / Brief 远程资源 | TanStack Query v5 + Backend | 后端是 Current Truth；Query 管理 Cache、Mutation、失效与自适应轮询 |
+| Task Summary / Task / Run / Source / Review / Brief 远程资源 | TanStack Query v5 + Backend | 后端是 Current Truth；Query 管理 Cache、Mutation、失效与自适应轮询；最近任务列表不成为第二套状态 |
 | 已保存 Review Draft / revision | Backend remote resource | 支持跨标签 / 跨会话恢复；陈旧保存或提交由后端拒绝 |
 | 尚未保存的表单编辑缓冲 | React Hook Form v7 | 只服务当前编辑会话，不得成为业务状态来源 |
 | 可链接 Task / Stage / Panel 选择 | URL Route / Search Params | 刷新和深链后可恢复位置，不保存业务内容 |
@@ -45,13 +45,15 @@
 - Contract：类型化 Client Contract Tests，使用注入式 Typed Transport / Fixture。
 - Build：Vite Production Build。
 - Browser：Playwright Chromium；相关 PR 跑受影响纵向切片，Release Candidate 跑完整固定 Browser E2E。
+- 最小 Browser 路径覆盖 `/tasks` 空状态、创建 / 最近任务返回稳定深链、TaskWorkbench 闭环与暂时读取失败；不建立搜索、分页、批量或 Dashboard 测试矩阵。
 - Determinism：Playwright 使用本地确定性 API / Model Substitute；普通前端测试不得访问真实 Provider。
 
 首个 Goal 不建设通用 MSW 平台、每 PR Firefox / WebKit 矩阵或 Visual Regression 平台。若未来发布目标或代表性缺陷需要这些能力，必须提交独立提案。
 
 ## 5. TaskWorkbench Module and Visual Boundary
 
-- `app` 层只负责 Composition、Provider、`/tasks/new` 与稳定 Task Route 的匹配和 Task Identity 提取。
+- `app` 层只负责 Composition、Provider、`/tasks` 最小 Task Index、`/tasks/new` 与稳定 Task Route 的匹配和 Task Identity 提取。
+- Task Index 只显示 RFC-004 提供的名称 / 临时名称、品类、当前阶段或等待状态、最近更新时间和主要下一步 Capability；不通过 Cache 残留或文案猜测终态，不增加搜索、批量、归档、统计或 Dashboard Module。
 - 一个深 `TaskWorkbench Module` 负责 Task 内 Stage / Panel 位置的校验 / 规范化与 Active Workspace 投影；Router 不学习 Upload、Start、Resume、Review、Rerun 或 Export 的逐动作回调。
 - Workbench 私有 Module 固定为 Intake、Progress / Recovery、Review、Results / Export、Evidence / Context；它们消费私有 `WorkbenchProjection`、产生语义化 `WorkbenchIntent`，不直接消费 HTTP DTO 或互相导入 Implementation。
 - Remote Seam 只有生成 Client 驱动的 Typed HTTP Adapter 与固定资料包 / 变更脚本驱动的 Deterministic Test Adapter；TanStack Query 包装该 Seam。
@@ -87,6 +89,8 @@ UI 与 Styling：
 - Mutation 不乐观制造 Current Truth；成功后统一失效 / 刷新。轮询只在需要远程变化的模式继续，并在业务等待、审核、终态或明确错误时停止。
 - Field Error 紧邻字段，单文件拒绝留在文件行，Needs Input / Review / Invalidation 是正常 Workspace；暂时读取失败保留快照、更新时间与重试。Toast 不作为错误、Conflict、未保存或恢复状态的唯一载体。
 - Needs Input Workspace 只投影 RFC-004 / 005 提供的当前真实阻断：缺失 / 冲突、影响、来源 / 冲突值、允许动作和恢复范围；非阻断增强资料仍是建议，前端不创建完整问卷、自由聊天或虚构恢复能力。
+- Claim Integrity 只投影 RFC-004 / 005 提供的 Fact / Claim / Proof Point、Prohibited Claim、风险、限制与合法动作。有诚实替代时只阻断相关声明进入 Current Brief；前端不得把 QC / Human Review 呈现为法律或平台审核保证，也不创建通用 Compliance Dashboard。
+- Source 移除 / 替换使用既有 Invalidation Preview 与 Confirmation；界面必须区分“从当前 Task 有效资料集移除”和“物理永久删除”。首个 Goal 不显示 Purge / 永久清除能力。
 
 ### 6.1 Revision-safe Review Draft
 
@@ -125,7 +129,7 @@ UI 与 Styling：
 
 ## 10. Open Questions
 
-- RFC-004：最终 HTTP Resource / Command / Error / Conflict Contract。
+- RFC-004：最终 HTTP Resource / Command / Error / Conflict，以及最小 Task List / Summary / Capability、Claim Risk 与 Source Remove / Replace 公共契约。
 - RFC-005：Source / Evidence Pagination 与 Retrieval Contract。
 - Development Plan：精确依赖版本、本地进程编排、CI Job 分组和一键启动。
 - Testing Strategy：Fixture 实例、最终浏览器 E2E 步骤 / 证据格式与 RC 运行手册。

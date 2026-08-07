@@ -6,9 +6,9 @@ Product / Interaction / Input Gate / Versioning / Rerun
 
 ## Status
 
-Accepted — Amended by DEC-045 / DEC-047 / DEC-059
+Accepted — Amended by DEC-045 / DEC-047 / DEC-059 / DEC-061 / DEC-062
 
-> **Current amendments:** [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md) 冻结 Task 创建门禁、Fact Stage 最低条件、演示默认文件限制与分级冲突处理；[DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 具体化渐进式证据、编辑影响、阶段进度和行动导向恢复；[DEC-059](dec-059-targeted-needs-input-action-request-model.md) 将 Needs Input 具体化为由当前真实阻断派生的有限结构化行动请求。以下原文保留为本决定的原则层记录。
+> **Current amendments:** [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md) 冻结 Task 创建门禁、Fact Stage 最低条件、演示默认文件限制与分级冲突处理；[DEC-047](dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) 具体化渐进式证据、编辑影响、阶段进度和行动导向恢复；[DEC-059](dec-059-targeted-needs-input-action-request-model.md) 将 Needs Input 具体化为由当前真实阻断派生的有限结构化行动请求；[DEC-061](dec-061-task-scoped-private-material-and-reversible-removal.md) 补充 Task 范围资料的可逆移除 / 替换；[DEC-062](dec-062-minimal-recent-task-index-and-stable-deep-links.md) 补充跨会话返回 Task 的最小最近任务入口。以下原文保留为本决定的原则层记录。
 
 ## Decision
 

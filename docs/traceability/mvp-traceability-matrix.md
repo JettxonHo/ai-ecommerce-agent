@@ -33,7 +33,7 @@
 | Local end-to-end demo MVP envelope | DEC-041 | [MVP Scope](../product/mvp-scope.md) | — | DEC-041 | RFC-003—RFC-007 | _(placeholder)_ | Browser E2E + release smoke _(planned)_ |
 | Evidence-driven launch strategy workbench positioning, composite Persona assumptions and behavior-based demo success | DEC-042 | [PRD](../product/prd.md) | — | DEC-042 | RFC-003—RFC-007 | _(placeholder)_ | Browser E2E + human usability review _(planned)_ |
 | Sol/Luna/Terra task routing, thread isolation and review independence | DEC-043 | [Collaboration Model](../governance/collaboration-model.md) | — | DEC-043 + Issue #34 | All | Goal governance | Actual model disclosure + independent reviewer + Required Checks |
-| Single-task workbench, two-level input gate, Needs Input and confirmed partial rerun | DEC-044 | [User Flows](../product/user-flows.md) | — | DEC-044 + Issue #36 | RFC-003, RFC-004, RFC-005 | _(placeholder)_ | Browser E2E + state / stale-review contract tests _(planned)_ |
+| Single-task workbench, two-level input gate, Needs Input, reversible Source change and confirmed partial rerun | DEC-044, DEC-059, DEC-061 | [User Flows](../product/user-flows.md) | — | DEC-044 + DEC-059 + DEC-061 | RFC-003, RFC-004, RFC-005 | _(placeholder)_ | Browser E2E + action-request + Source remove / replace + state / stale-review tests _(planned)_ |
 | Task / Fact Stage minimum gates, demo file limits and classified conflict handling | DEC-045 | [PRD](../product/prd.md) | — | DEC-045 + Issue #38 / PR #39 | RFC-003, RFC-004, RFC-005 | _(placeholder)_ | Input contract + partial file acceptance + conflict behavior tests _(planned)_ |
 | Review / Brief semantic groups, immutable domain versions, draft revision and export snapshot | DEC-046 | [PRD](../product/prd.md) | — | DEC-046 + Issue #40 / PR #41 | RFC-004, RFC-006 | _(placeholder)_ | Semantic contract + stale-revision + export snapshot tests _(planned)_ |
 | Progressive evidence, edit intent, stage progress, actionable recovery and export confirmation | DEC-047 | [User Flows](../product/user-flows.md) | — | DEC-047 + Issue #42 / PR #43 | RFC-003, RFC-004, RFC-005, RFC-007 | _(placeholder)_ | Browser evidence / edit / recovery / export interaction E2E _(planned)_ |
@@ -45,10 +45,13 @@
 | Bounded Model Recovery, readable Version Tuple and five deterministic invocation profiles | DEC-053 | [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) | spike-03（test-design evidence only） | DEC-053 + Issue #48 / PR #49 | RFC-006（ACCEPTED） | _(placeholder)_ | Retry / recovery budget + version snapshot + profile / context contract _(planned)_ |
 | Adapter Secret / Payload allowlist, deterministic model substitute and one manual RC smoke | DEC-054 | [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) | spike-03（test-design evidence only） | DEC-054 + Issue #48 / PR #49 | RFC-006（ACCEPTED） | _(placeholder)_ | Secret boundary + payload-free ledger / telemetry + offline contract layers + opt-in live smoke _(planned)_ |
 | React / Vite SPA, explicit frontend state ownership, generated OpenAPI client and proportional Chromium verification | DEC-055 | [Frontend Architecture](../architecture/frontend-architecture.md) | — | DEC-055 + Issue #50 / Draft PR #51 | RFC-004 | _(placeholder)_ | Static / type / module / client-contract / build + key Playwright Chromium E2E _(planned)_ |
-| Deep TaskWorkbench, revision-safe interaction projection and proportional web quality boundary | DEC-056 | [Frontend Architecture](../architecture/frontend-architecture.md) | — | DEC-056 + Issue #50 / Draft PR #51 | RFC-004 / RFC-005 | _(placeholder)_ | Projection priority + latest-buffer revision chain + submit blocking + representative WCAG / Chrome / Reflow / performance evidence _(planned)_ |
-| Product semantics / technical contract authority separation | DEC-057 | [PRD](../product/prd.md) | — | DEC-057 + Issue #52 / Draft PR #53 | RFC-004 / RFC-005 / RFC-007 | Planning governance | Product Final Consistency Review + RFC traceability checks _(planned)_ |
+| Deep TaskWorkbench, minimal Task Index, revision-safe interaction projection and proportional web quality boundary | DEC-056, DEC-062 | [Frontend Architecture](../architecture/frontend-architecture.md) | — | DEC-056 / DEC-062 + Issues #50 / #52 | RFC-004 / RFC-005 | _(placeholder)_ | Task return + projection priority + latest-buffer revision chain + submit blocking + representative WCAG / Chrome / Reflow / performance evidence _(planned)_ |
+| Product semantics / technical contract authority separation | DEC-057 | [PRD](../product/prd.md) | — | DEC-057 + Issue #52 / Draft PR #53 | RFC-004 / RFC-005 / RFC-007 | Planning governance | Product Final Consistency Review = PASS；user overall acceptance pending |
 | One fictional “城市通勤双肩包” Anchor SKU across three variants and one mutation | DEC-058 | [Testing Strategy](../development/testing-strategy.md) | — | DEC-058 + Issue #52 / Draft PR #53 | RFC-004 / RFC-005 / RFC-006 | _(placeholder)_ | 3 fixed Anchor SKU variants + mutation + RC sufficient-variant smoke _(planned)_ |
 | Targeted finite Needs Input action request derived from a real blocker | DEC-059 | [User Flows](../product/user-flows.md) | — | DEC-059 + Issue #52 / Draft PR #53 | RFC-004 / RFC-005 | _(placeholder)_ | Missing-input / conflict action request + non-blocking suggestion + recovery behavior tests _(planned)_ |
+| Evidence-bound Claim Integrity without a generic compliance engine | DEC-060 | [PRD](../product/prd.md) | — | DEC-060 + Issue #52 / Draft PR #53 | RFC-004 / RFC-005 / RFC-007 | _(placeholder)_ | Verified Fact / Claim-to-verify + claim-level block + honest alternative + Needs Input boundary _(planned)_ |
+| Task-scoped private material, reversible remove / replace and no user purge UI | DEC-061 | [User Flows](../product/user-flows.md) | — | DEC-061 + Issue #52 / Draft PR #53 | RFC-004 / RFC-005 / RFC-007 / ARP-08 | _(placeholder)_ | Task scope + remove / replace invalidation + no false permanent-delete claim _(planned)_ |
+| Minimal recent-task index and stable deep links | DEC-062 | [Frontend Architecture](../architecture/frontend-architecture.md) | — | DEC-062 + Issue #52 / Draft PR #53 | RFC-004 | _(placeholder)_ | Empty list + recent task summary + stable return link + transient read recovery _(planned)_ |
 | RFC Planning and Dependency Order | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | DEC-038 decision file | RFC-001—RFC-007 | _(placeholder)_ | _(placeholder)_ |
 | Repository and Application Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 | Persistence and Transaction Architecture Gate | DEC-038 | [RFC Planning](../specs/governance/rfc-planning-and-dependency-order.md) | — | architecture-baseline-v1 §9 | RFC-002 | _(placeholder)_ | _(placeholder)_ |
@@ -73,7 +76,7 @@
 |---|---|---|---|---|---|---|---|
 | 确定性 Workflow 编排（LLM 受约束） | DEC-011, DEC-023 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-01 | test_skeleton::test_normal_workflow_end_to_end | RFC-001, RFC-003 | _(placeholder)_ | _(placeholder)_ |
 | 任务级持久状态 + 跨会话 Resume | DEC-013, DEC-024, DEC-049, DEC-050, DEC-051 | [Workflow State](../specs/workflow/workflow-state-specification.md) | spike-05, spike-08 | test_review_safety::spike05/spike08 + DEC-049 / DEC-050 / DEC-051 | RFC-003 | _(placeholder)_ | PostgresSaver interrupt / resume + Current Truth reconciliation + fenced ownership + recovery action matrix _(planned)_ |
-| 单审查节点 + 异常暂停 | DEC-007 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | spike-01, spike-05 | test_skeleton / test_review_safety | RFC-004 | _(placeholder)_ | _(placeholder)_ |
+| 单审查节点 + 异常暂停 + 声明级阻断优先 | DEC-007, DEC-060 | [Human Review](../specs/workflow/human-review-and-approved-strategy-contract.md) | spike-01, spike-05 | test_skeleton / test_review_safety + DEC-060 | RFC-004 | _(placeholder)_ | Honest alternative continues; strategy-dependent claim enters Needs Input _(planned)_ |
 | MVP 不用 Multi-Agent（Bounded Worker） | DEC-021 | [System Architecture](../architecture/system-architecture.md) | — | architecture-baseline-v1 | RFC-001 | _(placeholder)_ | _(placeholder)_ |
 
 ### B. 状态、版本与事务
@@ -104,7 +107,7 @@
 | Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
 |---|---|---|---|---|---|---|---|
 | On-demand Hybrid RAG + 分层数据访问 | DEC-014, DEC-032 | [Hybrid Retrieval](../specs/runtime/hybrid-retrieval-and-evidence-runtime.md) | spike-09 | test_failure_recovery::spike09（degraded 不伪造） | RFC-005 | _(placeholder)_ | _(placeholder)_ |
-| Versioned Sources / Fragments / Evidence Links | DEC-025 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | spike-01 | commit.py evidence_links + business_audit | RFC-005 | _(placeholder)_ | _(placeholder)_ |
+| Versioned Sources / Fragments / Evidence Links + Task-scoped reversible removal | DEC-025, DEC-061 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | spike-01 | commit.py evidence_links + business_audit + DEC-061 | RFC-004, RFC-005, RFC-007 / ARP-08 | _(placeholder)_ | Removed Source excluded from Current Truth; physical purge handled separately _(planned)_ |
 | 分层证据 + 可追溯结论 + 渐进式证据披露 | DEC-008, DEC-047 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | — | runtime-evidence.md + DEC-047 | RFC-004, RFC-005 | _(placeholder)_ | Five-class badge + truthful locator + no fabricated confidence _(planned)_ |
 
 ### E. 运行时可靠性（失败/恢复/重试/可观测）
@@ -122,10 +125,10 @@
 
 | Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
 |---|---|---|---|---|---|---|---|
-| Product Intake & Fact Extraction Skill | DEC-026 | [Product Intake](../specs/skills/product-intake-and-fact-extraction-skill.md) | spike-01（骨架） | graph.py extract_facts（临时） | RFC-006 | _(placeholder)_ | _(placeholder)_ |
+| Product Intake & Fact Extraction Skill + Fact / Claim integrity | DEC-026, DEC-060 | [Product Intake](../specs/skills/product-intake-and-fact-extraction-skill.md) | spike-01（骨架） | graph.py extract_facts（临时）+ DEC-060 | RFC-004, RFC-005, RFC-006 | _(placeholder)_ | Verified Fact vs Documented Claim and no unsupported promotion _(planned)_ |
 | Customer Insight Analysis Skill | DEC-027 | [Customer Insight](../specs/skills/customer-insight-analysis-skill.md) | spike-01（骨架） | graph.py analyze_insights（临时） | RFC-005, RFC-006 | _(placeholder)_ | _(placeholder)_ |
 | Product Positioning Skill | DEC-028 | [Product Positioning](../specs/skills/product-positioning-skill.md) | spike-01（骨架） | graph.py generate_positioning（临时） | RFC-006 | _(placeholder)_ | _(placeholder)_ |
-| Marketing Brief Generation Skill + 六组产品语义 + 下游失效 | DEC-030, DEC-046, DEC-047 | [Marketing Brief](../specs/skills/marketing-brief-generation-skill.md) | spike-01（骨架） | graph.py generate_marketing_brief（临时）+ DEC-046 / 047 | RFC-004, RFC-006 | _(placeholder)_ | Six-group contract + strategy-lock versioning + XHS invalidation _(planned)_ |
+| Marketing Brief Generation Skill + 六组产品语义 + 声明完整性 + 下游失效 | DEC-030, DEC-046, DEC-047, DEC-060 | [Marketing Brief](../specs/skills/marketing-brief-generation-skill.md) | spike-01（骨架） | graph.py generate_marketing_brief（临时）+ DEC-046 / 047 / 060 | RFC-004, RFC-005, RFC-006 | _(placeholder)_ | Six-group contract + claim-level exclusion + strategy-lock versioning + XHS invalidation _(planned)_ |
 | 四层结构化 Marketing Brief | DEC-006 | [Marketing Brief](../specs/skills/marketing-brief-generation-skill.md) | — | DEC-006 | RFC-006 | _(placeholder)_ | _(placeholder)_ |
 
 ### G. 平台 Adapter
@@ -133,7 +136,7 @@
 | Requirement | DEC | Spec | Spike Scenario | Evidence | Required RFC | Future Epic | Future Test |
 |---|---|---|---|---|---|---|---|
 | 平台中立核心 + Xiaohongshu Demo | DEC-004 | [Integration Boundaries](../architecture/integration-boundaries.md) | — | DEC-004 | RFC-004 | _(placeholder)_ | _(placeholder)_ |
-| Xiaohongshu Brief Mapping Adapter + 六组产品语义 + 自身编辑边界 | DEC-031, DEC-046, DEC-047 | [Xiaohongshu Adapter](../specs/adapters/xiaohongshu-brief-mapping-adapter.md) | — | DEC-031 spec + DEC-046 / 047 | RFC-004, RFC-006 | _(placeholder)_ | Six-group mapping + brief-lock versioning + no upstream invalidation _(planned)_ |
+| Xiaohongshu Brief Mapping Adapter + 六组产品语义 + Claim 继承 + 自身编辑边界 | DEC-031, DEC-046, DEC-047, DEC-060 | [Xiaohongshu Adapter](../specs/adapters/xiaohongshu-brief-mapping-adapter.md) | — | DEC-031 spec + DEC-046 / 047 / 060 | RFC-004, RFC-005, RFC-006 | _(placeholder)_ | Six-group mapping + no prohibited-claim evasion + brief-lock versioning _(planned)_ |
 
 ---
 

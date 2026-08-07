@@ -7,10 +7,10 @@
 - Last Updated: 2026-08-07
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-059
+- Related Decisions: DEC-039～DEC-062
 - Frontend Proposal Status: P-36～P-41 全部 Accepted；Frontend Architecture overall Accepted
 - Current Planning Gate: 产品规格闭合 → RFC-004 → RFC-005 → RFC-007（用户于 2026-08-07 明确确认）
-- Product Closure Proposal Status: P-42～P-44 = Accepted；P-45～P-47 = Proposed
+- Product Closure Proposal Status: P-42～P-47 = Accepted；Product Specification Final Consistency Review = Pending
 
 ## Context
 
@@ -94,7 +94,7 @@
 - 当前无未接受的 Frontend Architecture Proposal；P-36～P-41 的完整提案与接受过程保留在下方各 Decision Round。
 - Frontend Architecture 整体接受不授权安装依赖、生成脚手架或编写前端，未接受的 RFC-004 / 005 / 007 公共契约不得被提前写成实现事实。
 - 产品规格闭合首轮 `P-42A / P-43A / P-44A` 已由用户明确接受并归档为 DEC-057～059。
-- 产品开放问题复核后形成第二轮 `P-45A / P-46A / P-47A` 推荐方案；用户明确接受前保持 Proposed，不同步为 Current Truth。
+- 产品开放问题复核后形成的第二轮 `P-45A / P-46A / P-47A` 已由用户明确接受并归档为 DEC-060～062；当前不再存在未接受的产品 Proposal，等待 Product Specification Final Consistency Review。
 
 ## Accepted Decisions
 
@@ -119,6 +119,9 @@
 - [DEC-057](../decisions/dec-057-product-semantics-and-technical-contract-authority-boundary.md) — 以稳定产品语义闭合产品规格，并将公共 API、Retrieval、Observability 和测试物理载体交给各自权威文档（用户于 2026-08-07 接受 P-42A）。
 - [DEC-058](../decisions/dec-058-fictional-anchor-sku-acceptance-fixture-strategy.md) — 采用同一虚构“城市通勤双肩包”Anchor SKU 的三个资料变体与一个 mutation（用户于 2026-08-07 接受 P-43A；Amends DEC-048）。
 - [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) — Needs Input 采用由当前真实阻断派生的有限结构化行动请求（用户于 2026-08-07 接受 P-44A；Amends DEC-044 / 045 / 047）。
+- [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) — 采用证据约束的声明完整性与适度合规边界（用户于 2026-08-07 接受 P-45A；Amends DEC-007 / 026 / 030 / 031）。
+- [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) — 用户资料采用 Task 范围私有与可逆移除，不提供首个 Goal 的永久删除界面（用户于 2026-08-07 接受 P-46A；Amends DEC-014 / 025 / 041 / 044）。
+- [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) — 采用最小最近任务入口与稳定深链，不建设运营 Dashboard（用户于 2026-08-07 接受 P-47A；Amends DEC-044 / 056）。
 
 ## Rejected Approaches
 
@@ -130,7 +133,7 @@
 ## Open Questions
 
 - 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 / 059 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决；代表性验收包与 Anchor SKU、必要行为门禁和 Markdown-first 用户导出由 DEC-048 / 058 解决。
-- 仍需产品决定：声明风险的最小产品边界、受控本地演示的数据生命周期体验，以及跨会话返回任务的最小入口（P-45～P-47）。
+- 声明风险的最小产品边界、受控本地演示的数据生命周期体验，以及跨会话返回任务的最小入口已由 DEC-060～062 解决；产品规格仅待 Current Truth 全量同步和 Final Consistency Review，不再有未接受的产品 Proposal。
 - 根据 DEC-057，下列均为下游技术或实例化交接，不再冒充产品开放问题：Review / Brief 最终公共字段、API / 数据库 Schema、并发实现、公共 Change Set、状态 / 错误映射、Markdown 模板与下载协议；Fixture 物理数据、测试工具、最终浏览器 E2E 步骤和 Live Smoke 手册。
 - RFC-003、RFC-006 与 Frontend Architecture 均已整体接受；RFC-004 / 005 / 007、精确实施版本、最终公共字段与运维参数仍开放。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
@@ -152,6 +155,7 @@
 - 新增 DEC-052～054，接受 RFC-006 DQ-01～08；完成 Final Consistency Review、用户整体接受、PR #49 合并和 Issue #48 关闭。
 - 新增 DEC-055 / DEC-056，接受 Frontend Architecture P-36A～P-41A，完成 Final Consistency Review 与整体接受，并同步 `docs/architecture/frontend-architecture.md` Current Truth。
 - 新增 DEC-057～059，接受 P-42A～P-44A，明确产品 / RFC 权威边界、虚构 Anchor SKU 验收策略和 Needs Input 行动请求模型。
+- 新增 DEC-060～062，接受 P-45A～P-47A，冻结声明完整性、Task 范围资料生命周期与最小最近任务入口，并显式修订既有 Product / Skill / Frontend Decision。
 
 ## Synchronization Checklist
 
@@ -1171,7 +1175,36 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 ### Proposal Status and Next Decision Gate
 
-- `P-45 / P-46 / P-47 = PROPOSED`；推荐项分别为 `P-45A / P-46A / P-47A`，用户尚未接受。
-- 用户接受后才创建或修订 DEC，并同步 Product Current Truth；P-47 若接受必须显式 Amend DEC-056 的 Router 边界，不静默改写已接受 Frontend Architecture。
-- 第二轮接受并归档后，执行 Product Specification Final Consistency Review；只有 Review 无阻塞、文档状态与开放问题清理一致时，才结束 Issue #52 并进入 RFC-004 Gate。
-- 本轮不创建页面、API、Fixture、数据库或删除实现，不执行测试、Spike 或 Goal。
+- 用户于 2026-08-07 明确接受 `P-45A / P-46A / P-47A`；三项分别归档为 DEC-060 / DEC-061 / DEC-062，并同步 Product、Frontend、Testing、Readiness 与 Traceability Current Truth。
+- DEC-062 显式 Amend DEC-056 的 Router 边界；历史 Frontend Architecture 不被静默改写，深 TaskWorkbench 与 Router-thin 原则保持不变。
+- 第二轮接受归档后执行 Product Specification Final Consistency Review；只有 Review 无阻塞、文档状态与开放问题清理一致且用户明确接受产品规格闭合，才结束 Issue #52 并进入 RFC-004 Gate。
+- 本轮不创建页面、API、Fixture、数据库、索引或删除实现，不执行 Technical Spike 或 Goal。
+
+## Acceptance Archive — Product Specification Closure II（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 `P-45A`：首个 Goal 采用证据约束的声明完整性，只阻断无依据高风险声明进入 Current Brief；有诚实替代路径时 Task 继续，不建设通用法律或平台合规引擎。
+- 用户明确接受 `P-46A`：用户资料默认只属于当前 Task，可逆移除 / 替换创建版本变化和影响预览；首个 Goal 不提供用户侧永久删除，物理保留与清理由后续权威文档冻结。
+- 用户明确接受 `P-47A`：固定工作区提供最小最近任务入口和稳定深链；不建设搜索、批量、归档、统计或完整运营 Dashboard。
+
+### Archive Result
+
+- `P-45 / P-46 / P-47 = ACCEPTED`；DEC-060～062 为对应权威 Decision。
+- DEC-060 显式修订 DEC-007 / 026 / 030 / 031；DEC-061 显式修订 DEC-014 / 025 / 041 / 044；DEC-062 显式修订 DEC-044 / 056。
+- 产品层已无未接受 Proposal；公共字段、API、Retrieval、Observability、物理删除 / 清理和测试实例化仍按 DEC-057 交给 RFC-004 / 005 / 007、ARP-08、Development Plan 与 Testing Strategy。
+- 下一动作是 Product Specification Final Consistency Review；通过并经用户接受前，Issue #52 / PR #53 保持开放，RFC-004 不启动。
+
+## Product Specification Final Consistency Review（2026-08-07）
+
+### Review Findings and Remediation
+
+- 独立 GPT-5.6 Sol / `xhigh` Reviewer 首轮发现：PRD、User Flows 与 Vision 将已确认事项 / 下游交接保留在“待讨论的开放问题”标题下；User Flows 的旧 Needs Input 图只表达补料；部分 RFC 交接仍把已接受的 RFC-003 / 006 写成待定。
+- 已修正三份产品文档的分型标题与旧占位表述，将 Needs Input 同步为补充 / 选择 / 纠正 / 确认 / 取消，并精确区分 RFC-002 / 003 / 004 / 005 / 006 / 007 与实施 Issue 的权威范围。
+- 定点复审后 `Critical = 0`、`Important = 0`、`Suggestion = 0`，五轴 Review 全部 PASS，无阻塞 Finding。
+
+### Review Result
+
+- `Product Specification Final Consistency Review = PASS`；详见 [Review Record](../reviews/review-2026-08-07-product-specification-final-consistency.md)。
+- `Ready for User Overall Acceptance = YES`，但 Review PASS 不是用户整体接受。
+- 用户整体接受前，PR #53 / Issue #52 保持开放，RFC-004 不启动；业务实现、Technical Spike 与 Goal 继续未授权。

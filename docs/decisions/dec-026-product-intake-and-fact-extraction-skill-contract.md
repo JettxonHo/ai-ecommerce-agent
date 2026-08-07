@@ -1,11 +1,12 @@
 # DEC-026 — Product Intake & Fact Extraction Skill 采用分层输入完整度、零无来源事实与冲突暂停契约
 
 - **Type:** Skill Contract / Reliability Architecture
-- **Status:** Accepted
+- **Status:** Accepted — Amended by DEC-060
 - **Date:** 2026-07-28
 - **Related Session:** [../sessions/session-002-agent-workflow-reliability-and-technical-capabilities.md](../sessions/session-002-agent-workflow-reliability-and-technical-capabilities.md)（Session-002）
 - **Related Specification:** [../specs/skills/product-intake-and-fact-extraction-skill.md](../specs/skills/product-intake-and-fact-extraction-skill.md)
 - **Related Product Gate:** [DEC-045](dec-045-minimum-input-file-limits-and-conflict-handling.md)（将本决定的 Fact Stage Minimum Runnable Input 暴露为产品门禁，并区分阻断 / 非阻断冲突；不改变本 Skill Contract）
+- **Related Claim Boundary:** [DEC-060](dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md)（补充 Claim 分类后的声明级阻断与任务继续边界；不改变零无来源事实和关键事实冲突暂停）
 - **Related RFC:** None
 - **Supersedes:** None
 - **Amends:** [DEC-005](dec-005-layered-mvp-inputs.md) by defining the minimum runnable input contract in more detail.

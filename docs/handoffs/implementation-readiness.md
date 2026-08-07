@@ -4,7 +4,7 @@
 >
 > Foundation、RFC-001～003 与 RFC-006 已完成，但 Business / Production Implementation、TS-01～TS-05 执行和实际 Goal 均未授权。已完成的 Spike-001 不在本禁令所指范围内。
 >
-> **Current Gate（2026-08-07）：** 用户已确认按“产品规格闭合 → RFC-004 → RFC-005 → RFC-007”推进；产品规格 P-42～P-44 已接受为 DEC-057～059，当前等待 P-45～P-47 与 Product Final Consistency Review。Issue #52 仍是唯一活动策划项，后三份 RFC 仍为 `PROPOSED`。
+> **Current Gate（2026-08-07）：** 用户已确认按“产品规格闭合 → RFC-004 → RFC-005 → RFC-007”推进；产品规格 P-42～P-47 已接受为 DEC-057～062，Product Specification Final Consistency Review 已通过，当前等待用户整体接受。Issue #52 仍是唯一活动策划项，后三份 RFC 仍为 `PROPOSED`。
 
 进入开发至少需要以下条件**全部**满足，并须先通过 Implementation Readiness Review（见 [../reviews/](../reviews/)），再由用户明确批准。
 
@@ -24,7 +24,9 @@
 - [x] 产品语义与 RFC / Testing 下游权威边界已确认（DEC-057）
 - [x] 虚构“城市通勤双肩包”Anchor SKU、三个资料变体与一个 mutation 已确认（DEC-058）
 - [x] Needs Input 的有限结构化行动请求模型已确认（DEC-059）
-- [ ] 声明风险、受控数据生命周期体验和跨会话任务返回入口已确认（P-45～P-47）
+- [x] 声明风险、受控数据生命周期体验和跨会话任务返回入口已确认（DEC-060～062）
+- [x] Product Specification Final Consistency Review 已通过
+- [ ] 用户明确接受 Product Specification 整体闭合
 - [x] RFC-003 的 Checkpointer 拓扑、同步持久性、可重入 Node 与 Business-Current-Truth-first Reconciliation 已确认（DEC-049）
 - [x] RFC-003 的 PostgreSQL Durable Dispatch、数据库权威 Lease / Heartbeat / Fencing Token 与协作式取消 / Supersession 已确认（DEC-050）
 - [x] RFC-003 的显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、前向恢复与风险切片证据边界已确认（DEC-051）
@@ -61,7 +63,7 @@
 - **RFC:** RFC-001 / RFC-002 / RFC-003 / RFC-006 = ACCEPTED；RFC-004 / 005 / 007 = PROPOSED
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
-- **产品交互与验收:** 单任务工作台、确认式局部重跑、输入门禁、审核 / Brief / Evidence / Recovery / Markdown 导出 = ACCEPTED（DEC-044～048）；产品 / 技术权威边界、虚构 Anchor SKU 与有限结构化 Needs Input 行动请求 = ACCEPTED（DEC-057～059）；前端应用 / 状态 / Contract Generation / Verification Foundation = ACCEPTED（DEC-055）；深 TaskWorkbench、Primitive / Styling、私有投影、revision-safe Autosave / Diff、Accessibility / Browser / Reflow / Performance = ACCEPTED（DEC-056）。P-45～P-47 和 Product Final Consistency Review 尚未完成；公共 Schema、状态 / 错误 / Conflict / Pagination / 下载协议与 Fixture 物理载体分别待 RFC / Testing Strategy
+- **产品交互与验收:** 单任务工作台、确认式局部重跑、输入门禁、审核 / Brief / Evidence / Recovery / Markdown 导出 = ACCEPTED（DEC-044～048）；产品 / 技术权威边界、虚构 Anchor SKU、有限结构化 Needs Input、证据约束声明完整性、Task 范围资料与可逆移除、最小最近任务入口 = ACCEPTED（DEC-057～062）；前端应用 / 状态 / Contract Generation / Verification Foundation = ACCEPTED（DEC-055）；深 TaskWorkbench、Primitive / Styling、私有投影、revision-safe Autosave / Diff、Accessibility / Browser / Reflow / Performance = ACCEPTED，外层 Router 由 DEC-062 增加 `/tasks` 入口（DEC-056 / 062）。Product Final Consistency Review = PASS，当前等待用户整体接受；公共 Schema、状态 / 错误 / Conflict / Pagination / 下载协议、物理生命周期与 Fixture 载体分别待 RFC / Readiness / Testing Strategy
 - **Workflow Runtime:** 独立 PostgreSQL Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Current-Truth-first Reconciliation = ACCEPTED（DEC-049 / RFC-003）；PostgreSQL Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token、协作式 Cancellation / Supersession + Commit Fence = ACCEPTED（DEC-050 / RFC-003）；显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、Forward Repair 与风险切片证据边界 = ACCEPTED（DEC-051 / RFC-003）。精确实施版本、最终公共字段与运维参数仍待实施证据、RFC-004 / 007
 - **LLM Runtime:** OpenAI Responses API + `gpt-5.6-terra`、typed sync Port、Adapter 隔离、Strict Output → 项目 Schema → Domain Validator、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute、断网三层 Contract Tests 与单次人工 RC Smoke = ACCEPTED（DEC-052～054 / RFC-006）；精确实施版本、Token / Timeout 与实际 Provider 兼容性仍待实施证据
 - **允许工作:** 产品规格、Architecture RFC、Readiness Artifact / Spike Charter 规划、测试策略、开发计划、Goal 文档与一致性 Review

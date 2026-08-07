@@ -6,7 +6,9 @@ Architecture
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-061
+
+> **Current amendment:** [DEC-061](dec-061-task-scoped-private-material-and-reversible-removal.md) 明确用户商品资料默认只属于当前 Task 的有效资料集，不静默提升为跨任务共享知识；通用运营知识层与商品任务证据保持逻辑分离。以下原文继续定义访问策略。
 
 ## Decision
 

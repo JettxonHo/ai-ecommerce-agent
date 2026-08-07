@@ -6,9 +6,9 @@ Product / Scope / Delivery
 
 ## Status
 
-Accepted — Amended by DEC-044
+Accepted — Amended by DEC-044 / DEC-061
 
-> **Current amendment:** [DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) 将本决定的“引导式任务工作台”具体化为单任务工作台、两级输入门禁与确认式局部重跑交互，不扩大演示范围。
+> **Current amendments:** [DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) 将本决定的“引导式任务工作台”具体化为单任务工作台、两级输入门禁与确认式局部重跑交互；[DEC-061](dec-061-task-scoped-private-material-and-reversible-removal.md) 补充受控单工作区的 Task 范围资料与可逆移除体验，不引入登录、RBAC、多租户或用户侧永久删除。二者均不扩大演示交付边界。
 
 ## Decision
 
@@ -64,7 +64,7 @@ DEC-004、DEC-005、DEC-006、DEC-010、DEC-020 与 DEC-021：在不推翻其原
 
 ## Amended By
 
-[DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)
+[DEC-044](dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)、[DEC-061](dec-061-task-scoped-private-material-and-reversible-removal.md)
 
 ## Notes
 
