@@ -1414,7 +1414,7 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 ### Gate Transition
 
 - PR #55 已在 8 / 8 Required Checks 通过后合并，merge commit 为 `edeb93b`；Issue #54 已关闭。
-- 创建 [Issue #56](https://github.com/JettxonHo/ai-ecommerce-agent/issues/56) 承载 RFC-005 Source Processing and Retrieval Architecture；当前只授权文档策划。
+- 创建 [Issue #56](https://github.com/JettxonHo/ai-ecommerce-agent/issues/56) / [Draft PR #57](https://github.com/JettxonHo/ai-ecommerce-agent/pull/57) 承载 RFC-005 Source Processing and Retrieval Architecture；当前只授权文档策划。
 - 新建独立分支 `codex/rfc-005-source-retrieval`；未创建 Parser、Fragmenter、Embedding、Index、Retrieval、API、Frontend、Database、Migration、依赖或 Spike。
 
 ### P-58 — Source Authority, Association and Reproducible Manifest
