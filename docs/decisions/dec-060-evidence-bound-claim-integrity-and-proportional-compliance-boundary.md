@@ -65,7 +65,7 @@ Accepted
 
 ## Related RFC
 
-RFC-004、RFC-005、RFC-007；均仍待策划与用户接受。
+RFC-004 已于 2026-08-07 被用户整体接受；RFC-005、RFC-007 仍待各自策划与用户接受。
 
 ## Supersedes
 

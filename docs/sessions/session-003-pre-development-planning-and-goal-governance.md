@@ -7,9 +7,9 @@
 - Last Updated: 2026-08-07
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-062
+- Related Decisions: DEC-039～DEC-066
 - Frontend Proposal Status: P-36～P-41 全部 Accepted；Frontend Architecture overall Accepted
-- Current Planning Gate: RFC-004（Product Specification 已于 2026-08-07 整体闭合；随后依次为 RFC-005、RFC-007）
+- Current Planning Gate: RFC-005（Product Specification 与 RFC-004 已于 2026-08-07 整体闭合；随后为 RFC-007）
 - Product Closure Status: P-42～P-47 = Accepted；Product Specification Final Consistency Review = PASS；User Overall Acceptance = Accepted
 
 ## Context
@@ -1222,3 +1222,189 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - PR #53 可在最新 Required Checks 通过且合并前五轴 Review 无阻塞 Finding 后合并；Issue #52 随后关闭。
 - 下一活动 Gate 为 RFC-004 API and Human Review Architecture 策划。RFC-004 本身仍为 `PROPOSED`，必须继续经过方案、用户 Decision、Final Consistency Review 与整体接受流程。
 - 本接受不授权 RFC-005、RFC-007、Technical Spike、依赖安装、业务实现、数据迁移、Goal 创建 / 激活或发布。
+
+## RFC-004 Gate Start and Proposal Round I（2026-08-07）
+
+### Gate Transition
+
+- PR #53 已在最新 8 项 Required Checks 全部通过、独立 Sol / `xhigh` 五轴 Review 无阻塞 Finding后合并；Merge Commit 为 `ff4a178`。
+- Issue #52 已关闭；[Issue #54](https://github.com/JettxonHo/ai-ecommerce-agent/issues/54) 成为 RFC-004 的独立策划事实来源，分支为 `codex/rfc-004-api-human-review`。
+- [RFC-004 Draft](../rfcs/rfc-004-api-and-human-review-architecture.md) 已创建，状态为 `DRAFTING`；创建 Draft 与进入 Gate 不等于接受 RFC 或任一 Proposal。
+
+### Standards and Project Evidence
+
+- OpenAPI 3.1 的语言无关 HTTP Contract、OAS feature version 与 API 自身版本分离能力来自官方 OpenAPI Specification；项目已由 DEC-055 接受 OpenAPI 3.1 → TypeScript Generated Client 边界。
+- `202 Accepted`、strong ETag / `If-Match` 和 `Retry-After` 的标准语义来自 RFC 9110；`202` 只表示请求已接受处理，不表示处理完成。
+- 公共错误共同形态参考 RFC 9457 `application/problem+json`；Human-readable detail 不作为机器控制数据。
+- `Idempotency-Key` 在本次核验时仍只是 2026-04-18 已过期的 IETF Internet-Draft，不是最终 RFC。若项目采用该字段名，完整行为必须由 RFC-002 DQ-08 与 RFC-004 自行冻结，不依赖草案状态。
+
+### P-48 — Contract Authority, Namespace and Interface Topology
+
+- **P-48A（推荐）：** OpenAPI 3.1 Contract-first；`/api/v1` 单一当前主版本；查询使用显式 Resource，状态修改使用逐项 typed Command；拒绝让客户端 Patch 状态或调用 generic action dispatcher。
+- **P-48B：** Pure REST Resource Mutation；路径较统一，但容易把非法状态转换和业务 Command 伪装为普通字段更新。
+- **P-48C：** One Workbench Endpoint + Generic Action Dispatcher；路由少，但耦合 UI、削弱类型生成并形成不受控通用入口。
+
+### P-49 — Revision Preconditions, Idempotency and Conflict
+
+- **P-49A（推荐）：** 受保护写操作携带真正需要的 semantic precondition；可重试非幂等 Command 使用项目自定义完整语义的 `Idempotency-Key`；stale precondition 返回 typed `409`，不在首 Goal 强制维护第二套 ETag write authority。异步命令首次接受返回 `202`，已提交的同 Key / 同输入重放固定返回 `200` + 完全相同的不可变 Command Receipt 与 monitor identity；当前 Run 状态只从 `Location` 获取，响应 Schema 不随时间改变。
+- **P-49B：** 所有受保护写使用 strong ETag / `If-Match`，非幂等操作另加 Idempotency Key；更 HTTP-native，但多资源业务 Command 和前端 revision-safe 编辑需要额外 Transport Validator 状态。
+- **P-49C：** 单资源编辑使用 ETag / `If-Match`，多资源 Command 使用 Body precondition；能够精细采用 HTTP 条件请求，但形成 `409 / 412` 两套冲突与两个并发 Transport，对首个受控客户端不相称。
+- 幂等重放必须在已知 Key 场景先于当前 revision 重检，否则“首次提交成功但响应丢失”的重试会被错误判定为 stale；Public Contract 不暴露 Hash / Digest，Idempotency Key 与 Command / Run / Attempt Identity 分离。
+
+### P-50 — Durable Async Acceptance, Polling and Error Projection
+
+- **P-50A（推荐）：** 只有真正异步的 Start / Resume / Rerun / Cancel 等操作在权威耐久接受记录提交后返回 `202` + Command Receipt + canonical Run monitor；Start / Resume / Rerun 提交 Durable Work Intent，Cancel 提交 `cancellation_requested`，不要求 Cancel 新建第二个 Work Intent。Draft Save 等同步写使用真实 `200 / 201`。活动期窄轮询 Run，阶段 / 终态变化后刷新窄 Task Overview 与受影响 Resource，由前端重新派生私有 WorkbenchProjection；Capability 是 revision-bound advisory allowlist，不是授权凭证。4xx / 5xx 采用 RFC 9457 Problem Details，Needs Input / Review Wait / Manual Recovery 和已接受后的 Run Failure 属于 Resource 状态而非 HTTP Error。
+- **P-50B：** `202` + Task Snapshot only；资源少，但 Run / retry / rerun / cancel / receipt replay 语义被迫挤进 Task。
+- **P-50C：** Push-first SSE / WebSocket；更新更即时，但扩大连接、部署、恢复和测试范围，不符合首个本地单工作区 Goal。
+
+### Proposal Status and Authorization Boundary
+
+- `P-48 / P-49 / P-50 = PROPOSED`；用户明确接受前不得创建 DEC 或同步为 Accepted Current Truth。
+- 本轮只创建 RFC Draft、更新 Proposal / Current Gate 状态并提出方案；不创建 OpenAPI Artifact、API / Frontend / Worker / Database / Migration / Test Implementation，不安装依赖，不执行 Technical Spike，不创建或激活 Goal。
+- 用户完成本轮 Decision Gate 后，下一轮才继续 DQ-04～06：Task / Workbench Query、Recovery Command 与 Human Review Protocol。
+
+## RFC-004 Acceptance Archive I and Proposal Round II（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 `P-48A`：OpenAPI 3.1 `/api/v1` 作为唯一公共 HTTP Contract；使用窄 Resource Query 与逐项 typed Command，不公开 Workbench mega-payload、通用 Action Dispatcher 或内部 Runtime 类型。
+- 用户明确接受 `P-49A`：使用业务语义 precondition、单调 revision 与项目定义完整语义的 `Idempotency-Key`；同 Key / 同输入重放优先于 revision 重检，真正 stale 与 Key reuse 使用 typed `409`，公共契约不暴露 Hash / Digest。
+- 用户明确接受 `P-50A`：真正异步操作在耐久接受后返回 `202` Receipt + canonical Run Monitor；同输入重放固定 `200` 同一 Receipt；Frontend 活动期轮询窄 Run，Capability 为 revision-bound advisory allowlist，4xx / 5xx 使用 RFC 9457 Problem Details。
+
+### Archive Result
+
+- `P-48 / P-49 / P-50 = ACCEPTED`；DEC-063 是三项权威 Decision，RFC-004 DQ-01～03 已闭合。
+- RFC-004 仍为 `DRAFTING`；DQ-04～10、Final Consistency Review 与用户整体接受仍未完成。
+- 接受只授权策划文档同步，不创建 OpenAPI、API、Client、Database / Migration、测试实现、Technical Spike 或 Goal。
+
+### P-51 — Task Creation, Recent Index and Workbench Read Model
+
+- **P-51A（推荐）：** 同步创建 Task（首次 `201`、重放 `200` 同一 identity），提供 server-bounded 最近任务列表和窄 Task Overview；列表只含名称、品类、阶段 / 等待语义、更新时间、Task revision 与绑定该 revision 的主要 Capability，详情正文仍由独立 Resource 读取。
+- **P-51B：** Task Overview 嵌入多个最新 Resource Summary；首屏请求少，但产生重复和半 mega-payload。
+- **P-51C：** 无 Task Overview，Frontend 扇出所有 Resource 并自行推断导航状态；Resource 最窄，但容易形成第二套状态机。
+
+### P-52 — Needs Input and Recovery Commands
+
+- **P-52A（推荐）：** revision-bound Needs Input Action Request + typed Resolution；Source remove / replace 使用无副作用 Preview + 完整 typed version / revision Basis 的 Confirm；Cancel、Resume、confirmed Rerun 与 Manual Recovery 保持显式 typed Command，由服务端 Capability 决定是否合法。Resume 保留兼容 execution context 但创建新 Run / Attempt，不复用旧 Run identity。
+- **P-52B：** 单一 Generic Recovery Command；路由少但违反 DEC-063 typed Command 边界。
+- **P-52C：** Frontend 自行编排 Source mutation / Resume / Rerun；会把恢复状态机移到浏览器。
+
+### P-53 — Human Review Protocol
+
+- **P-53A（推荐）：** 不可变 Review Package + 每 Package 一个 active Review Draft；Autosave 发送 revision-guarded full structured snapshot，Submit / Request More Information / Regeneration / Withdraw 使用独立 typed Outcome Command。Submit 原子创建不可变 Review Decision / Approved Strategy 与唯一 Durable Resume Work Intent，并返回 `201` 主结果 + continuation Receipt；客户端不再另发 Resume。Reject-all-and-request-regeneration 使用 `202` 新 Run Receipt，Request More Information 与 Withdraw 不自动调度。
+- **P-53B：** JSON Patch Draft；传输小，但数组 / merge / conflict 和类型生成复杂度不相称。
+- **P-53C：** Public Review Operation Log；审计细，但扩大为 Event Editing Protocol 和协作模型。
+
+### Proposal Status and Next Gate
+
+- `P-51 / P-52 / P-53 = PROPOSED`；未获用户确认，不能同步为 Accepted Current Truth。
+- 接受后只归档 DQ-04～06，并继续 DQ-07～09；不合并 PR #55、不关闭 Issue #54、不接受 RFC 整体、不实现 API 或启动 Goal。
+
+## RFC-004 Acceptance Archive II and Proposal Round III（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 `P-51A`：同步创建 Task，提供 server-bounded 最近任务列表和窄、revision-bound Task Summary / Overview；Frontend 不从多个 Resource 猜测主要业务状态。
+- 用户明确接受 `P-52A`：使用 revision-bound Needs Input Action Request、typed Resolution、Source Preview / Confirm basis，以及显式 Cancel / Resume / confirmed Rerun / Manual Recovery；每次 Resume / Rerun 创建新 Run identity。
+- 用户明确接受 `P-53A`：使用不可变 Review Package、revision-guarded full-snapshot Draft 与显式 Outcome Commands；Review Submit 原子提交 Approved Strategy 与唯一 Durable Resume Work Intent，客户端不再另发 Resume。
+
+### Archive Result
+
+- `P-51 / P-52 / P-53 = ACCEPTED`；[DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md) 是三项权威 Decision，RFC-004 DQ-04～06 已闭合。
+- RFC-004 仍为 `DRAFTING`；DQ-07～10、Final Consistency Review 与用户整体接受仍未完成。
+- 接受只授权策划文档同步，不创建 OpenAPI、API、Client、Database / Migration、测试实现、Technical Spike 或 Goal。
+
+### P-54 — Brief Version, Comparison and Markdown Export
+
+- **P-54A（推荐）：** Marketing Brief / Xiaohongshu Brief 使用独立不可变 Version Resource 与 Task Current Truth references；同 family 版本可请求无副作用的 semantic-group Comparison；用户编辑使用 typed revise Command；导出使用 Preview → Confirm 创建可重放的单 Brief UTF-8 Markdown Export Snapshot，固定模板和服务端文件名，不新增 PDF / JSON、异步文档任务或内容 Hash。
+- **P-54B：** Mutable Current Brief + 下载时即时导出；接口少，但无法可靠解释历史版本或重放相同文件。
+- **P-54C：** 异步多格式 Export Job；扩展性强，但扩大为 PDF / JSON、Job、对象存储与保留平台。
+
+### P-55 — Problem Types and Recovery Actions
+
+- **P-55A（推荐）：** RFC 9457 + 小型稳定 Problem Catalog；只为客户端真实可执行的 `correct / refresh / compare / retry later / open current / contact operator` 行为提供 typed context，区分有限 `400 / 404 / 409 / 413 / 415 / 422 / 429 / 500 / 503`，不暴露内部异常矩阵。
+- **P-55B：** Status + free-text only；简单，但 Frontend 只能解析文案或猜动作。
+- **P-55C：** 穷举内部 Domain / Workflow / Provider Error；诊断细但泄漏实现、扩大兼容承诺并违反适度校验。
+
+### P-56 — Fixed-workspace Identity and Transport
+
+- **P-56A（推荐）：** Workspace identity 由服务端固定配置注入，Browser 不选择 Workspace；API 默认 loopback + same-origin `/api/v1`、CORS closed，并对 Browser state-changing Origin 做适度匹配。首个 Goal 不建设 Login、Cookie / Token、RBAC、多租户或多人审核，也不把该边界描述为公网认证。
+- **P-56B：** Client-supplied Workspace Header；看似便于扩展，但未认证 Header 会制造伪多租户和错误安全感。
+- **P-56C：** Local Login / Shared API Token；更像远程服务，但没有真实账号 / 租户需求却增加 Credential 与权限矩阵。
+
+### Proposal Status and Next Gate
+
+- `P-54 / P-55 / P-56 = PROPOSED`；未获用户确认，不能同步为 Accepted Current Truth。
+- 接受后只归档 DQ-07～09，并进入 DQ-10 OpenAPI Closure / Adoption / Contract Test 最终提案；不合并 PR #55、不关闭 Issue #54、不接受 RFC 整体、不实现 API 或启动 Goal。
+
+## RFC-004 Acceptance Archive III and Final Proposal Round（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 `P-54A`：Marketing Brief / Xiaohongshu Brief 使用独立不可变 Version Resource、Task Current Truth references、semantic-group Comparison 与 typed revise；导出通过 Preview → Confirm 创建可重放的单 Brief UTF-8 Markdown Export Snapshot，不增加 PDF / JSON、异步文档任务或内容 Hash。
+- 用户明确接受 `P-55A`：所有 4xx / 5xx 使用 RFC 9457 Problem Details，采用有限稳定 Problem Type / typed action catalog；正常 Needs Input、waiting Review、manual recovery 与 failed Run 保持 Resource state，不暴露内部异常矩阵。
+- 用户明确接受 `P-56A`：Workspace 由服务端固定配置，Browser 不选择 Workspace；首个 Goal 采用 loopback + same-origin `/api/v1`、CORS closed 与 state-changing Origin 匹配，不建设 Login、Token、RBAC、多租户或公网认证。
+
+### Archive Result
+
+- `P-54 / P-55 / P-56 = ACCEPTED`；[DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md) 是三项权威 Decision，RFC-004 DQ-07～09 已闭合。
+- RFC-004 仍为 `DRAFTING`；DQ-10、Final Consistency Review 与用户整体接受仍未完成。
+- 接受只授权策划文档同步，不创建 OpenAPI、API、Client、Export / Database / Migration、测试实现、Technical Spike 或 Goal。
+
+### P-57 — OpenAPI Closure, Compatibility, Generated Client and Contract Tests
+
+- **P-57A（推荐）：** Goal 激活后先创建唯一 `contracts/openapi/openapi.yaml` entry contract；冻结 Task、Run / Recovery、Needs Input、Source-change、Review、Brief 与 Export 的 first-Goal Operation catalog，Task recent 默认 / 最大窗口 `20 / 50`、Brief history `10 / 25`，以及 Task / Stage / Run、Resource / Command / Problem Schema family；只允许 `/api/v1` additive evolution，公共 enum 新值须同 PR 更新 unknown fallback；使用 `openapi-typescript` + `openapi-fetch` 派生不可手改客户端并执行 clean-diff，Contract Tests 验证 OAS、examples、status / media、幂等 / conflict、Review / Export 与 fixed-workspace 代表性行为。RFC-005 / 007 只补齐各自拥有的 refs / extensions，不创建第二 Contract authority。
+- **P-57B：** 先实现 Handler，再从 Backend implementation 生成 OpenAPI 并复制给 Frontend；启动快，但把实现变为事实源、Contract Review 后置且易产生快照漂移。
+- **P-57C：** 开发前穷举 Source / Evidence / Observability / Auth / Tenant / Retention / Search / Push / 全部内部错误；表面完整，但越过 RFC-005 / 007 与 MVP 范围并制造无需求依据的长期兼容承诺。
+
+### Proposal Status and Next Gate
+
+- `P-57 = PROPOSED`；未获用户确认，不能同步为 Accepted Current Truth 或 DEC。
+- 当前 DQ-01～09 已接受；接受 P-57A 后只归档 DQ-10 并执行 RFC-004 Final Consistency Review。
+- Final Review 完成后仍须单独取得用户对 RFC-004 整体的明确接受，才可合并 PR #55、关闭 Issue #54 并进入 RFC-005 Gate；本轮不实现 API 或启动 Goal。
+
+## RFC-004 Acceptance Archive IV and Final Consistency Review（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 `P-57A`：首个 Goal 的公共 HTTP 契约采用单一 `contracts/openapi/openapi.yaml` entry authority、有界 exact Operation / Schema / state catalog、Task `20 / 50` 与 Brief `10 / 25` 最近窗口、`/api/v1` additive compatibility、generated-client clean diff、Contract-first 实施顺序与适度分层 Contract Tests。
+- 用户没有接受 P-57B / P-57C；两者只作为未采用 Alternative 保留。
+
+### Archive Result
+
+- `P-57A = ACCEPTED`；[DEC-066](../decisions/dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md) 是权威 Decision，RFC-004 `DQ-10 = ACCEPTED`。
+- DQ-01～10 均已有 Accepted Decision；该状态不等于 RFC-004 整体 Accepted。
+- 接受只授权策划、Decision、Current Truth、Readiness、Testing、Traceability 与 Review 文档同步；不创建 OpenAPI、API、Client、Database / Migration、测试实现、Technical Spike 或 Goal。
+
+### Final Consistency Review
+
+- Sol / `xhigh` 按 Decision closure、Product / Architecture alignment、identity / concurrency、async / recovery、Human Review、Brief / Export、Problem、fixed-workspace、RFC-005 / 007 handoff、Contract adoption、proportionate verification 与 Authorization Boundary 审阅实际文档和分支差异。
+- 最终结果：`Critical = 0`、`Important = 0`、`Suggestion = 0`、`Decision Conflict = NONE FOUND`；正确性、可读性、架构、安全与性能五轴均 PASS。
+- `RFC-004 Final Consistency Review = PASS`；完整记录见 [Review Record](../reviews/review-2026-08-07-rfc-004-final-consistency.md)。
+- Review PASS 只表示 RFC 已具备请求整体接受的条件，不替代用户决定。
+
+### Next Gate
+
+- RFC-004 状态为 `IN REVIEW — USER OVERALL ACCEPTANCE PENDING`；PR #55 保持 Draft，Issue #54 保持 Open。
+- 下一步单独请求用户：接受 RFC-004 整体，并允许合并 PR #55、关闭 Issue #54、进入 RFC-005 策划 Gate。
+- 即使用户批准上述 Gate，也不授权 OpenAPI / API / Frontend / Database 实现、Technical Spike 或 Goal 激活。
+
+## RFC-004 Overall Acceptance and RFC-005 Gate Handoff（2026-08-07）
+
+### User Decision
+
+- 用户明确回复：「接受 RFC-004 整体，允许合并 PR #55、关闭 Issue #54，并进入 RFC-005 策划 Gate。」
+- 该决定只接受 RFC-004 架构基线并授权完成当前文档 PR 的合并 / Issue 关闭与下一策划 Gate 切换；不授权 OpenAPI Artifact、API、Frontend、Database、Migration、Technical Spike、业务实现或 Goal 激活。
+
+### Archive Result
+
+- `RFC-004 = ACCEPTED`；P-48A～P-57A / DQ-01～10 的权威 Decision 仍为 DEC-063～066，历史 Proposal / Alternative 不改写。
+- RFC-004 Final Consistency Review 保持 `PASS`；用户整体接受状态更新为 `ACCEPTED`。
+- PR #55 获准在 Required Checks 全部通过后合并；Issue #54 获准随后关闭。
+- Current Planning Gate 切换为 RFC-005 Source Processing and Retrieval Architecture。RFC-005 尚为 `PROPOSED`，其后续方案必须逐项获得用户明确接受后才能进入 Current Truth。
+
+### Authorization Boundary
+
+- 不创建或修改 `contracts/openapi/openapi.yaml`、API Route、Handler、generated client、Frontend、Database、Migration、测试实现或生产文件。
+- 不执行 TS-01～TS-05、Live Provider 调用或任何新 Technical Spike。
+- 不创建或激活实际长期 Goal；仍需完成 RFC-005、RFC-007、Readiness、Testing、Development Plan、Goal 文本与最终 Implementation Readiness Review，并获得用户明确「进入 Goal 执行阶段」批准。

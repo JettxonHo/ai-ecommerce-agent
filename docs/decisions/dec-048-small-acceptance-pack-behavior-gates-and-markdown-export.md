@@ -61,7 +61,7 @@ DEC-010 的事实来源可追溯、无依据事实、语义完整与下游失效
 - 用户侧 PDF 与 JSON 文件导出不进入首个 Goal；API 是否使用 JSON 由 RFC-004 独立决定，不受本文件格式决定限制；
 - 导出不新增内容哈希、SHA-256 或指纹要求。
 
-本文接受时把最终文件名、Markdown 模板、元数据排版、下载协议与视觉样式留给 Frontend Architecture / RFC-004；后续 DEC-056 已冻结前端视觉边界，最终文件名、模板、元数据排版与下载协议仍待 RFC-004。
+本文接受时把最终文件名、Markdown 模板、元数据排版、下载协议与视觉样式留给 Frontend Architecture / RFC-004；后续 DEC-056 已冻结前端视觉边界，DEC-065 / DEC-066 与已接受的 RFC-004 已冻结文件名、固定模板版本、元数据语义与下载协议。实际模板内容仍待 Goal 激活后的独立 Contract / Export 实施 Issue，且不得改变本决定的 Markdown-first 用户边界。
 
 ## Alternatives Considered
 

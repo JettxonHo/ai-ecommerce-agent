@@ -57,7 +57,7 @@ Accepted
 
 ## Related RFC and Readiness
 
-RFC-004、RFC-005、RFC-007、ARP-08；均仍待对应 Gate。
+RFC-004 已于 2026-08-07 被用户整体接受；RFC-005、RFC-007 与 ARP-08 仍待对应 Gate。
 
 ## Supersedes
 

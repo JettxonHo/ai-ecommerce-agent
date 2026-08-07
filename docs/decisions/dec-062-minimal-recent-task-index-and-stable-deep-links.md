@@ -61,7 +61,7 @@ Accepted
 
 ## Related RFC
 
-RFC-004；仍待策划与用户接受。
+RFC-004；已于 2026-08-07 完成策划、Final Consistency Review 与用户整体接受。
 
 ## Supersedes
 
