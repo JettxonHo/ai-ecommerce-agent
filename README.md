@@ -11,7 +11,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 首个交付目标是**本地可复现、受控单工作区的端到端演示 MVP**。产品使用带阶段导航、当前工作区和可收起证据 / 上下文面板的单任务工作台；聊天记录不作为业务 Current Truth。名称 / 品类 / 推广目标用于创建任务，满足 DEC-026 的最小事实资料后运行 Fact Stage；真实阻塞进入 Needs Input，并显示由当前阻断派生的有限结构化行动请求，非阻断差异继续但显式说明限制。资料或上游内容变化先展示影响范围，由用户确认后局部重跑。
 
-权威定位、范围和交互边界见 [DEC-042](docs/decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md)、[DEC-041](docs/decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)、[DEC-044](docs/decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)、[DEC-045](docs/decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md)、[DEC-046](docs/decisions/dec-046-review-brief-and-export-product-contract.md)、[DEC-047](docs/decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)、[DEC-048](docs/decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) 与 [DEC-057～062](docs/decisions/decision-log.md)。生产 Workflow / LLM Runtime 与 Frontend Architecture 分别见 DEC-049～056。产品与技术契约的权威边界已冻结：最终公共 HTTP、Retrieval、Observability、物理数据生命周期与测试物理载体分别由 RFC-004 / 005 / 007、ARP-08 / Development Plan 和 Testing Strategy 完成；产品规格 P-42～P-47 已全部接受，Final Consistency Review 已通过，当前等待用户整体接受。接受不代表实现授权。
+权威定位、范围和交互边界见 [DEC-042](docs/decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md)、[DEC-041](docs/decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md)、[DEC-044](docs/decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md)、[DEC-045](docs/decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md)、[DEC-046](docs/decisions/dec-046-review-brief-and-export-product-contract.md)、[DEC-047](docs/decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)、[DEC-048](docs/decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) 与 [DEC-057～062](docs/decisions/decision-log.md)。生产 Workflow / LLM Runtime 与 Frontend Architecture 分别见 DEC-049～056。产品与技术契约的权威边界已冻结：最终公共 HTTP、Retrieval、Observability、物理数据生命周期与测试物理载体分别由 RFC-004 / 005 / 007、ARP-08 / Development Plan 和 Testing Strategy 完成；Product Specification 已于 2026-08-07 整体闭合。该接受不代表实现授权。
 
 ---
 
@@ -38,7 +38,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 当前策划缺口
 
-当前 Gate 顺序已由用户于 2026-08-07 明确确认为：**产品规格闭合 → RFC-004 → RFC-005 → RFC-007**。产品规格 P-42～P-47 已全部接受且 Final Consistency Review 已通过，当前只等待用户整体接受；四项分别使用独立 Issue / Branch / PR 与用户 Decision Gate。当前仅处理产品规格 Issue #52，不代表后三份 RFC 已接受或实现已获授权。
+当前 Gate 顺序已由用户于 2026-08-07 明确确认为：**产品规格闭合 → RFC-004 → RFC-005 → RFC-007**。Product Specification 整体闭合已接受，当前进入 RFC-004 策划 Gate；RFC-004 / 005 / 007 仍分别使用独立 Issue / Branch / PR 与用户 Decision Gate。进入策划 Gate 不代表 RFC 已接受或实现已获授权。
 
 - 任务工作台的最终公共字段、API 状态 / 错误 / Conflict / Pagination / 下载协议，以及 Persona / JTBD 的后续研究证据；产品与 Frontend P-36～P-41 已由 DEC-045～048、DEC-055～056 冻结；
 - RFC-004 API / Human Review、RFC-005 Source / Retrieval、RFC-007 Observability；

@@ -32,4 +32,4 @@
 
 ## 当前审查记录
 
-- [2026-08-07 Product Specification Final Consistency Review](review-2026-08-07-product-specification-final-consistency.md)：`PASS`，等待用户整体接受；这不是 Implementation Readiness Review，也不授权开发。
+- [2026-08-07 Product Specification Final Consistency Review](review-2026-08-07-product-specification-final-consistency.md)：`PASS`，用户整体接受已记录；这不是 Implementation Readiness Review，也不授权开发。

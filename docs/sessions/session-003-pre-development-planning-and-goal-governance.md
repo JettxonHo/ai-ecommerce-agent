@@ -9,8 +9,8 @@
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
 - Related Decisions: DEC-039～DEC-062
 - Frontend Proposal Status: P-36～P-41 全部 Accepted；Frontend Architecture overall Accepted
-- Current Planning Gate: 产品规格闭合 → RFC-004 → RFC-005 → RFC-007（用户于 2026-08-07 明确确认）
-- Product Closure Proposal Status: P-42～P-47 = Accepted；Product Specification Final Consistency Review = Pending
+- Current Planning Gate: RFC-004（Product Specification 已于 2026-08-07 整体闭合；随后依次为 RFC-005、RFC-007）
+- Product Closure Status: P-42～P-47 = Accepted；Product Specification Final Consistency Review = PASS；User Overall Acceptance = Accepted
 
 ## Context
 
@@ -1208,3 +1208,17 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `Product Specification Final Consistency Review = PASS`；详见 [Review Record](../reviews/review-2026-08-07-product-specification-final-consistency.md)。
 - `Ready for User Overall Acceptance = YES`，但 Review PASS 不是用户整体接受。
 - 用户整体接受前，PR #53 / Issue #52 保持开放，RFC-004 不启动；业务实现、Technical Spike 与 Goal 继续未授权。
+
+## Product Specification Overall Acceptance Gate（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 Product Specification 整体闭合。
+- 用户明确授权合并 PR #53、关闭 Issue #52，并进入 RFC-004 策划 Gate。
+
+### Archive Result
+
+- `Product Specification Overall Closure = ACCEPTED`；P-42～P-47、DEC-057～062 与 Final Consistency Review 共同构成该闭合证据。
+- PR #53 可在最新 Required Checks 通过且合并前五轴 Review 无阻塞 Finding 后合并；Issue #52 随后关闭。
+- 下一活动 Gate 为 RFC-004 API and Human Review Architecture 策划。RFC-004 本身仍为 `PROPOSED`，必须继续经过方案、用户 Decision、Final Consistency Review 与整体接受流程。
+- 本接受不授权 RFC-005、RFC-007、Technical Spike、依赖安装、业务实现、数据迁移、Goal 创建 / 激活或发布。
