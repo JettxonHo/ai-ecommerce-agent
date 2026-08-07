@@ -71,7 +71,7 @@
 - Unit Tests：6 passed；Contract Tests：3 passed；Fast Suite：36 passed，1 deselected；
 - `uv lock --check`：通过；Package Build 与隔离 Wheel Import：通过；
 - Dependency Audit：No known vulnerabilities found；
-- GitHub 8 项 Required Checks：提交并推送本轮归档后重新确认。
+- GitHub 8 项 Required Checks：归档提交 `79ce7e5` 全部通过（Format、Lint、Typecheck、Architecture、Unit / Contract、Package Build、Dependency Audit、Secret Detection）。
 
 最终证据必须在 PR #55 合并前全部通过；失败不得隐藏，也不得通过降低 Gate 解决。
 
