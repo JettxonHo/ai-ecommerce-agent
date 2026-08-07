@@ -1,9 +1,9 @@
 # Frontend Architecture
 
 > **Status: ACCEPTED PRE-DEVELOPMENT CURRENT TRUTH — P-36～P-41 accepted; Final Consistency Review passed; Frontend Architecture overall accepted; public HTTP contract and implementation pending**
-> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · product inputs [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) · API input [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md)
+> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · product inputs [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) · API inputs [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) · [DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md)
 
-本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。RFC-004 DQ-01～03 已由 DEC-063 冻结 Contract-first Resource / typed Command、语义 revision / Idempotency、耐久 `202` Receipt、Run Monitor、Capability 与 Problem Details 基础；最终 Task / Review / Brief / Export Resource 字段、完整状态 / Problem Type / Pagination / 下载协议、精确依赖版本、实现与运行证据仍未完成，不得从本文空白处推断实现事实。整体接受与部分 API Decision 接受均不授权依赖安装或实现。
+本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。RFC-004 DQ-01～06 已由 DEC-063 / DEC-064 冻结 Contract-first Resource / typed Command、语义 revision / Idempotency、耐久 Run Monitor、窄 Task Overview、revision-bound Needs Input / Recovery、Review Package / Draft / Outcome 主协议；最终 Brief / Export、完整 Problem Type、固定工作区 transport、OpenAPI Closure / Pagination / 下载协议、精确依赖版本、实现与运行证据仍未完成。整体接受与部分 API Decision 接受均不授权依赖安装或实现。
 
 ## 1. Application Shape
 
@@ -25,7 +25,7 @@
 | 可链接 Task / Stage / Panel 选择 | URL Route / Search Params | 刷新和深链后可恢复位置，不保存业务内容 |
 | 展开、焦点等短命视觉状态 | React local state | 不引入 Redux / Zustand |
 
-轮询只针对 DEC-063 接受的窄 Run Resource，并在活动状态结束、Needs Input、waiting Review、manual recovery 或终态停止；精确公共状态名仍由 RFC-004 DQ-08 冻结。Stage / 终态变化后刷新 Task Overview 与受影响 Resource，再派生私有投影，前端不得发明业务终态。
+轮询只针对 DEC-063 接受的窄 Run Resource，并在活动状态结束、Needs Input、waiting Review、manual recovery 或终态停止；DEC-064 已冻结 Task / Needs Input / Review 的 Resource 边界，精确公共状态名仍由 RFC-004 DQ-08 冻结。Stage / 终态变化后刷新 Task Overview 与受影响 Resource，再派生私有投影，前端不得发明业务终态。
 
 ## 3. HTTP Contract and Adapter Seam
 
@@ -35,7 +35,7 @@
 - React Module 不直接使用原始 `fetch`；窄型 Client / Query Adapter 负责传输、标准错误归一化和 DTO → View Projection。
 - 前端校验服务即时 UX；后端与公共 Contract 是最终权威。不建立第二套手写 DTO，也不机械复制全部后端 Schema 为 Zod。
 
-语义 `revision`、项目定义 `Idempotency-Key`、stale / key-reuse 的 typed `409`、首次异步 `202` / 同输入重放 `200` Receipt 与 canonical Run Monitor 已由 DEC-063 冻结；最终 Resource 路径 / 字段、完整状态 / Problem Type 和下载协议仍由 RFC-004 后续 DQ 冻结。
+语义 `revision`、项目定义 `Idempotency-Key`、stale / key-reuse 的 typed `409`、首次异步 `202` / 同输入重放 `200` Receipt 与 canonical Run Monitor 已由 DEC-063 冻结；Task 创建 / 最近列表 / Overview、Needs Input / Source / Recovery Commands 和 Review Draft / Outcome 已由 DEC-064 冻结。最终 Brief / Export、完整 Problem Type、fixed-workspace transport 与 OpenAPI Closure 仍由 RFC-004 后续 DQ 冻结。
 
 ## 4. Verification
 
@@ -129,7 +129,7 @@ UI 与 Styling：
 
 ## 10. Open Questions
 
-- RFC-004：最终 HTTP Resource / Command / Error / Conflict，以及最小 Task List / Summary / Capability、Claim Risk 与 Source Remove / Replace 公共契约。
+- RFC-004：Brief / Export、完整 Problem Type、固定工作区 transport，以及最终 OpenAPI operation / schema / compatibility / adoption closure。
 - RFC-005：Source / Evidence Pagination 与 Retrieval Contract。
 - Development Plan：精确依赖版本、本地进程编排、CI Job 分组和一键启动。
 - Testing Strategy：Fixture 实例、最终浏览器 E2E 步骤 / 证据格式与 RC 运行手册。

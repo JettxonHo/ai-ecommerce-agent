@@ -33,15 +33,15 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 - Business Current Truth 的生产持久化栈已由 RFC-002 选定为 PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；SQLite 不作为持久化验收引擎；
 - FND-001～003 已完成，仓库已有 Python 后端 Package、质量工具、架构测试、CI 与 Repository Protection 基础。
 - Frontend Architecture P-36～P-41 及整体已接受：`apps/web/` React / Vite SPA、显式状态职责、OpenAPI 生成、一个深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有交互投影、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance；依赖尚未安装，前端尚未实现。
-- RFC-004 DQ-01～03 已由 DEC-063 接受：OpenAPI 3.1 `/api/v1` 是唯一公共 HTTP Contract，查询使用窄 Resource、状态变更使用 typed Command；受保护写使用语义 revision / 项目定义的 `Idempotency-Key`，真正异步操作使用耐久 `202` Receipt + canonical Run Monitor，公共错误采用 RFC 9457 Problem Details；OpenAPI 与 API 尚未实现。
+- RFC-004 DQ-01～06 已由 DEC-063 / DEC-064 接受：OpenAPI 3.1 `/api/v1` 是唯一公共 HTTP Contract，查询使用窄 Resource、状态变更使用 typed Command；语义 revision / 项目定义的 `Idempotency-Key`、耐久 `202` Receipt + canonical Run Monitor、窄 Task Summary / Overview、revision-bound Needs Input / Source Preview-Confirm / Run recovery，以及不可变 Review Package + full-snapshot Draft + 原子 Review Submit continuation 已冻结；OpenAPI 与 API 尚未实现。
 
 ---
 
 ## 当前策划缺口
 
-当前 Gate 顺序已由用户于 2026-08-07 明确确认为：**产品规格闭合 → RFC-004 → RFC-005 → RFC-007**。Product Specification 整体闭合已接受，PR #53 已合并且 Issue #52 已关闭；当前由 [Issue #54](https://github.com/JettxonHo/ai-ecommerce-agent/issues/54) 承载 RFC-004 策划，RFC-004 = `DRAFTING`，P-48A～P-50A 已接受但 DQ-04～10 和 RFC 整体仍待闭合。RFC-005 / 007 仍为 `PROPOSED`；部分 Decision 接受不代表 RFC 已接受或实现已获授权。
+当前 Gate 顺序已由用户于 2026-08-07 明确确认为：**产品规格闭合 → RFC-004 → RFC-005 → RFC-007**。Product Specification 整体闭合已接受，PR #53 已合并且 Issue #52 已关闭；当前由 [Issue #54](https://github.com/JettxonHo/ai-ecommerce-agent/issues/54) 承载 RFC-004 策划，RFC-004 = `DRAFTING`，P-48A～P-53A / DQ-01～06 已接受，DQ-07～10 与 RFC 整体仍待闭合。RFC-005 / 007 仍为 `PROPOSED`；部分 Decision 接受不代表 RFC 已接受或实现已获授权。
 
-- 任务工作台的最终公共字段、Task / Review / Brief / Export 协议、剩余状态 / Problem Type / Pagination / 下载协议，以及 Persona / JTBD 的后续研究证据；API 拓扑、语义并发 / 幂等和耐久异步接受基础已由 DEC-063 冻结；
+- Brief / Export、完整 Problem Type、固定工作区 transport、OpenAPI Closure / Pagination / 下载协议，以及 Persona / JTBD 的后续研究证据；Task / Review / Recovery 主协议已由 DEC-063 / DEC-064 冻结；
 - RFC-004 API / Human Review、RFC-005 Source / Retrieval、RFC-007 Observability；
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；
 - MVP Development Plan、Testing Strategy 的技术层补全与长期 Goal 最终文本。

@@ -1299,3 +1299,40 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 - `P-51 / P-52 / P-53 = PROPOSED`；未获用户确认，不能同步为 Accepted Current Truth。
 - 接受后只归档 DQ-04～06，并继续 DQ-07～09；不合并 PR #55、不关闭 Issue #54、不接受 RFC 整体、不实现 API 或启动 Goal。
+
+## RFC-004 Acceptance Archive II and Proposal Round III（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 `P-51A`：同步创建 Task，提供 server-bounded 最近任务列表和窄、revision-bound Task Summary / Overview；Frontend 不从多个 Resource 猜测主要业务状态。
+- 用户明确接受 `P-52A`：使用 revision-bound Needs Input Action Request、typed Resolution、Source Preview / Confirm basis，以及显式 Cancel / Resume / confirmed Rerun / Manual Recovery；每次 Resume / Rerun 创建新 Run identity。
+- 用户明确接受 `P-53A`：使用不可变 Review Package、revision-guarded full-snapshot Draft 与显式 Outcome Commands；Review Submit 原子提交 Approved Strategy 与唯一 Durable Resume Work Intent，客户端不再另发 Resume。
+
+### Archive Result
+
+- `P-51 / P-52 / P-53 = ACCEPTED`；[DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md) 是三项权威 Decision，RFC-004 DQ-04～06 已闭合。
+- RFC-004 仍为 `DRAFTING`；DQ-07～10、Final Consistency Review 与用户整体接受仍未完成。
+- 接受只授权策划文档同步，不创建 OpenAPI、API、Client、Database / Migration、测试实现、Technical Spike 或 Goal。
+
+### P-54 — Brief Version, Comparison and Markdown Export
+
+- **P-54A（推荐）：** Marketing Brief / Xiaohongshu Brief 使用独立不可变 Version Resource 与 Task Current Truth references；同 family 版本可请求无副作用的 semantic-group Comparison；用户编辑使用 typed revise Command；导出使用 Preview → Confirm 创建可重放的单 Brief UTF-8 Markdown Export Snapshot，固定模板和服务端文件名，不新增 PDF / JSON、异步文档任务或内容 Hash。
+- **P-54B：** Mutable Current Brief + 下载时即时导出；接口少，但无法可靠解释历史版本或重放相同文件。
+- **P-54C：** 异步多格式 Export Job；扩展性强，但扩大为 PDF / JSON、Job、对象存储与保留平台。
+
+### P-55 — Problem Types and Recovery Actions
+
+- **P-55A（推荐）：** RFC 9457 + 小型稳定 Problem Catalog；只为客户端真实可执行的 `correct / refresh / compare / retry later / open current / contact operator` 行为提供 typed context，区分有限 `400 / 404 / 409 / 413 / 415 / 422 / 429 / 500 / 503`，不暴露内部异常矩阵。
+- **P-55B：** Status + free-text only；简单，但 Frontend 只能解析文案或猜动作。
+- **P-55C：** 穷举内部 Domain / Workflow / Provider Error；诊断细但泄漏实现、扩大兼容承诺并违反适度校验。
+
+### P-56 — Fixed-workspace Identity and Transport
+
+- **P-56A（推荐）：** Workspace identity 由服务端固定配置注入，Browser 不选择 Workspace；API 默认 loopback + same-origin `/api/v1`、CORS closed，并对 Browser state-changing Origin 做适度匹配。首个 Goal 不建设 Login、Cookie / Token、RBAC、多租户或多人审核，也不把该边界描述为公网认证。
+- **P-56B：** Client-supplied Workspace Header；看似便于扩展，但未认证 Header 会制造伪多租户和错误安全感。
+- **P-56C：** Local Login / Shared API Token；更像远程服务，但没有真实账号 / 租户需求却增加 Credential 与权限矩阵。
+
+### Proposal Status and Next Gate
+
+- `P-54 / P-55 / P-56 = PROPOSED`；未获用户确认，不能同步为 Accepted Current Truth。
+- 接受后只归档 DQ-07～09，并进入 DQ-10 OpenAPI Closure / Adoption / Contract Test 最终提案；不合并 PR #55、不关闭 Issue #54、不接受 RFC 整体、不实现 API 或启动 Goal。

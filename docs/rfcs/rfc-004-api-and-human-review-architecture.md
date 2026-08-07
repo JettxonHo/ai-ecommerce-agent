@@ -74,12 +74,12 @@ RFC-005 owns Source / Fragment / Evidence Locator, retrieval, ranking, evidence 
 | DQ-01 | Contract authority, namespace and Resource / Command topology | ACCEPTED as P-48A（DEC-063） |
 | DQ-02 | Revision preconditions, idempotency and conflict semantics | ACCEPTED as P-49A（DEC-063） |
 | DQ-03 | Durable asynchronous acceptance, polling and capability projection | ACCEPTED as P-50A（DEC-063） |
-| DQ-04 | Task creation, recent-task index and Workbench read models | PROPOSED as P-51 |
-| DQ-05 | Needs Input, Source-facing task actions, cancel, resume, rerun and recovery commands | PROPOSED as P-52 |
-| DQ-06 | Review Package, Review Draft, Review Decision and Approved Strategy protocol | PROPOSED as P-53 |
-| DQ-07 | Brief versions, comparison, Current Truth result and Markdown export snapshot | PENDING |
-| DQ-08 | Problem types, HTTP status mapping and user / retry action semantics | PENDING |
-| DQ-09 | Fixed-workspace identity, transport and proportional authorization boundary | PENDING |
+| DQ-04 | Task creation, recent-task index and Workbench read models | ACCEPTED as P-51A（DEC-064） |
+| DQ-05 | Needs Input, Source-facing task actions, cancel, resume, rerun and recovery commands | ACCEPTED as P-52A（DEC-064） |
+| DQ-06 | Review Package, Review Draft, Review Decision and Approved Strategy protocol | ACCEPTED as P-53A（DEC-064） |
+| DQ-07 | Brief versions, comparison, Current Truth result and Markdown export snapshot | PROPOSED as P-54 |
+| DQ-08 | Problem types, HTTP status mapping and user / retry action semantics | PROPOSED as P-55 |
+| DQ-09 | Fixed-workspace identity, transport and proportional authorization boundary | PROPOSED as P-56 |
 | DQ-10 | OpenAPI compatibility, tests, adoption and RFC closure | PENDING |
 
 No item in this table is Accepted until the user explicitly accepts the corresponding proposal and it is archived in a Decision record.
@@ -315,11 +315,138 @@ Draft 保存使用 RFC 6902-style Patch，按 revision 应用细粒度操作；P
 
 Choose P-53A. A full-snapshot, revision-guarded Draft is the shallowest transport that preserves the accepted autosave and stale-conflict behavior; explicit terminal commands keep approval, more-information, regeneration and withdrawal semantically distinct.
 
-## Round 2 proposal status and next gate
+## Round 2 decision status and next gate
 
-- P-51 / P-52 / P-53 are `PROPOSED`; no option is Accepted until the user explicitly confirms it and a Decision record is archived.
-- P-51A does not create a full Task dashboard or final pagination platform. P-52A does not preempt RFC-005 Source schemas. P-53A does not authorize API, database or frontend implementation.
-- If this round is accepted, the next proposal group will cover DQ-07～DQ-09: Brief / Export, Problem taxonomy and fixed-workspace identity / transport.
+- 用户于 2026-08-07 明确接受 P-51A / P-52A / P-53A，三项归档为 [DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md)。
+- `DQ-04 / DQ-05 / DQ-06 = ACCEPTED`；该部分接受不等于 RFC-004 整体接受。
+- 下一提案组覆盖 DQ-07～DQ-09：Brief / Export、Problem taxonomy 与固定工作区 identity / transport。
+- P-51A 不创建完整 Task Dashboard 或最终 Pagination 平台；P-52A 不抢占 RFC-005 Source Schema；P-53A 不授权 API、Database 或 Frontend 实现。
+
+## Proposal Round 3
+
+### P-54 — Brief Version, Comparison, Current Truth and Markdown Export
+
+#### P-54A — Immutable Brief Resources + Typed Revision Command + Confirmed Export Snapshot（推荐）
+
+- `MarketingBriefVersion` 与 `XiaohongshuBriefVersion` 是两个独立的不可变 Resource family。每个版本公开稳定 identity、Task identity、对象类型、单调 Domain Version number、有效性、创建来源、创建时间、必要上游 Version references、六个已接受产品语义组，以及 Hypotheses / Evidence Limitations / Risks / Evidence references。它们不公开 Prompt、Provider payload、ORM、Checkpoint 或内部 Validator record。
+- Task Overview 的 Current Truth references 是“当前有效结果”的唯一发现入口。按稳定 Version identity 读取历史版本不会使其重新成为 Current Truth；服务端限制的版本历史只用于查看 / 比较，不承诺首个 Goal 的无限历史管理、搜索或批量恢复。
+- 同一 Task、同一 Brief family 的两个版本可以请求无副作用的 typed `BriefComparison`。Comparison 绑定 base / target Version identities，按语义组和 field path 返回 before / after、model / user origin、edit intent 与确定性阶段影响；长文本的词 / 行差异仍只是 Frontend 视觉辅助。Comparison 不是新 Domain Version、Audit authority 或字段级依赖图。
+- 用户编辑通过 family-specific typed `revise` Command 提交完整结构化候选、base Version identity、当前 Task revision、明确的 `business_change` 或 `presentation_polish` intent 与 `Idempotency-Key`。歧义自由文本由用户在界面确认 intent，LLM 不替用户作最终分类。服务端仍验证 Strategy / Brief lock、证据与声明边界，不能只相信 intent 字符串绕过业务约束。
+- Marketing Brief 的业务修改首次成功同步创建新的不可变 Marketing Brief Version、更新 Current Truth 并使当前 Xiaohongshu Brief 失效；Xiaohongshu Brief 的业务修改只创建自身新版本，不反向失效上游。明确的展示性润色仍创建可追溯的新 Brief Version，但不触发业务重跑；若修改触及结构化业务字段或既有锁定边界，则不得以 `presentation_polish` 绕过应有的影响确认。
+- 重跑生成的 Brief 继续由 Workflow 的原子 Business Commit 创建，并通过 Run Monitor 暴露；HTTP revise Command 不伪装模型生成，也不把生成成功等同于 Current Truth promotion 之外的人工批准。
+- 导出采用无副作用 `ExportPreview` → typed `confirm-export`。Preview 冻结待确认的 Task revision、Brief family / Version identity、必要上游 references、Hypotheses、Evidence Limitations、Risks 与导出范围；Confirm 必须回传该 typed basis 和 `Idempotency-Key`。Current Truth 或任一适用 basis 已变化时返回 conflict，不为旧结果创建“当前导出”。
+- Confirm 首次成功同步创建不可变 `ExportSnapshot` 并返回 `201 Created`；同输入重放返回 `200 OK` 同一 Snapshot。Snapshot 记录 Task、Brief Version、必要上游、导出时间和模板版本，但不创建新的业务事实、不改变 Current Truth，也不使用 Hash / SHA-256 / Digest。
+- 每个 Snapshot 只包含一个当前有效 Marketing Brief 或一个当前有效 Xiaohongshu Brief，使用固定 UTF-8 Markdown 模板：标题与 Brief 类型 → Task / Version / 上游上下文 → 六个产品语义组 → Hypotheses / Evidence Limitations / Risks → Evidence references → Export metadata。无适用项诚实显示“无 / 不适用”，不得为模板完整制造内容。
+- Snapshot content 通过稳定下载 Operation 返回 `text/markdown; charset=utf-8` 和 attachment disposition。服务端生成 ASCII-safe 文件名 `task-{taskId}-{briefKind}-v{versionNumber}-{exportedAtUtc}.md`，其中时间使用 `YYYYMMDDTHHMMSSZ`。已创建 Snapshot 后续不会因 Current Truth 前进而改变；它可以作为明确标识的历史快照读取，但不得被界面继续标成当前结果。物理保留 / 清理由 ARP-08 与 Development Plan 决定。
+
+**优点：** 将 Current Truth、历史版本、用户修改、版本比较和用户文件快照分离；可以可靠重放导出又不引入第二套 JSON 用户导出、内容哈希或异步文件任务。
+
+**代价：** 用户编辑和导出各有显式 basis / command；Frontend 需要在确认前展示版本上下文，并在冲突后刷新 / 比较。
+
+#### P-54B — Mutable Current Brief + Export Current on Download
+
+只公开一个可覆盖的 Current Brief；下载时即时把当前内容渲染为 Markdown，不创建 Export Snapshot。
+
+**优点：** Resource 和 Operation 最少，下载实现直接。
+
+**代价：** 无法解释历史编辑、失效、重跑和已下载文件对应哪个版本；响应丢失或 Current Truth 变化时不能可靠重放同一导出，违反已接受的不可变 Domain Version / Export Snapshot 行为。
+
+#### P-54C — Asynchronous Export Job + Multi-format Artifact
+
+所有导出均创建异步 Job，可生成 Markdown、JSON 与 PDF，并提供 Artifact history。
+
+**优点：** 适合未来大文件、多格式和后台渲染。
+
+**代价：** 首个 Goal 的单份结构化 Brief 很小；该方案会增加新的 Job 状态机、PDF / JSON 用户契约、对象存储和保留问题，扩大已明确排除的范围。
+
+#### Recommendation
+
+Choose P-54A. It is the smallest protocol that preserves immutable Brief history, user-visible comparison, Current Truth, confirmed Markdown export and reliable replay without creating a new document platform.
+
+### P-55 — Problem Types, HTTP Mapping and Recovery Actions
+
+#### P-55A — Small Stable Problem Catalog + Typed Context and Action（推荐）
+
+- 所有 API 4xx / 5xx 使用 RFC 9457 `application/problem+json`，共同字段为 `type`、`title`、`status`、`detail`、`instance`；机器行为只依赖稳定 `type` 与窄型扩展，不解析人类文案。Problem Type 使用部署无关的项目 URN，例如 `urn:ai-ecommerce-agent:problem:revision-conflict`。
+- 公共目录只包含真实改变客户端行为的有限类型：
+  - `malformed-request` → `400`：请求语法、JSON 或查询形态无法读取；
+  - `not-found` → `404`：当前固定工作区内不存在该 Resource；
+  - `payload-too-large` → `413`、`unsupported-media-type` → `415`：整个上传 / 请求边界不被接受；单文件部分接受细节仍由 RFC-005 的 typed item result 表达；
+  - `validation-failed` → `422`：请求可读取，但字段或业务候选不满足当前 Contract；包含有限 field issues，不返回内部 Validator dump；
+  - `revision-conflict`、`idempotency-conflict`、`superseded-resource`、`capability-conflict` 与 `operation-in-progress` → `409`：分别表达 stale base、同 Key 不同输入、旧 Package / Action / Version、动作已不合法，以及同一逻辑操作仍由有效 Attempt 执行；
+  - `rate-limited` → `429`：只用于当前 HTTP 边界真实限流，不把异步 Provider 的 Run failure 倒映成原请求 429；
+  - `internal-error` → `500`、`service-unavailable` → `503`：请求本身无法完成；不暴露 Exception、SQLSTATE、Provider payload、Secret、Checkpoint 或 Worker internals。
+- Conflict 扩展只返回安全恢复所需的 current Resource / revision / Version reference、冲突字段或 basis summary，以及一个 typed `action`：`correct_input`、`refresh`、`refresh_and_compare`、`open_current`、`retry_later`、`contact_operator` 或 `none`。不存在通用 arbitrary metadata bag，也不把 Rubric 分数作为接受条件。
+- `operation-in-progress` 只用于尚无可重放 committed result 的并发窗口；若命令已经提交 Durable Acceptance 或最终结果，同 Key / 同输入必须按 DEC-063 重放 `200` 的同一结果，而不是继续报冲突。可合理估计时，`429`、`503` 或 `operation-in-progress` 使用 `Retry-After`；精确等待与 Backoff 仍由 RFC-007 冻结。
+- Field validation 问题定位到公共 field path 与稳定 reason code；`detail` 只供人阅读。Trace / correlation reference 可作为可选安全扩展，但生成、记录和 Redaction 由 RFC-007 拥有。
+- Needs Input、waiting Review、manual recovery、cancellation requested、failed Run、superseded result 与 Evidence Limitation 是正常 Resource state / representation，不用 HTTP Problem 伪装。成功读取失败 Run 仍是 `200`。
+- Frontend 已有成功快照而 refresh 得到暂时性 Problem 时保留 stale snapshot 与本地编辑缓冲，暂停依赖新鲜前置条件的写入并提供匹配动作；Toast 不得成为错误或 Conflict 的唯一载体。
+
+**优点：** 一个错误形态与有限机器语义足以覆盖真实恢复路径；不会把内部异常分类、每个业务状态或低概率变体机械展开为公共错误矩阵。
+
+**代价：** 不同 `409` 需要稳定 Problem Type 和少量 typed context；实现与 Contract Tests 必须验证其动作语义，而不能只断言状态码。
+
+#### P-55B — HTTP Status + Free-text Detail Only
+
+只使用状态码和文字错误，不维护稳定 Problem Type 或扩展字段。
+
+**优点：** Contract 最小，后端实现快。
+
+**代价：** Frontend 只能解析文案或自行猜测刷新、比较、修正与重试动作；多语言或文案调整会变成破坏性 API 变化。
+
+#### P-55C — Exhaustive Domain Error Enumeration
+
+为每个内部 Validator、Workflow node、Provider error、SQLSTATE、Stage state 和异常分支定义独立公共 Problem Type 与错误码。
+
+**优点：** 分类非常细，诊断表面完整。
+
+**代价：** 泄漏内部实现、扩大兼容承诺并制造大量首个 Goal 不会发生或客户端无法处理的分支，违反适度校验和稳定边界原则。
+
+#### Recommendation
+
+Choose P-55A. It gives the Workbench stable recovery semantics while keeping the public catalog proportional to actions the controlled client can actually perform.
+
+### P-56 — Fixed-workspace Identity, Transport and Proportional Authorization
+
+#### P-56A — Server-bound Workspace + Loopback Same-origin Transport（推荐）
+
+- 首个 Goal 只有一个由本地 Bootstrap / Configuration 选择的固定 Workspace。Workspace identity 由服务端请求上下文注入；Browser 不选择 Workspace，不提交任意 `workspaceId` Header / Body，也不能仅凭 Task ID 改变 Workspace scope。
+- Task、Run、Review、Brief 与 Export Query / Command 始终由服务端限定在该固定 Workspace。不存在或不属于当前 scope 的 identity 统一映射为 `404`；公共 DTO 不暴露内部数据库 scope key，也不预先设计 Tenant selector。
+- 浏览器只使用同源 `/api/v1`；Vite development proxy 保持 Frontend 与 API 的同源调用形态。API 默认只绑定 loopback，CORS 默认不开放；本地演示 HTTP 不声称具备公网 TLS、Internet exposure 或远程用户访问能力。
+- Browser state-changing requests 使用明确 JSON / multipart Contract；当请求携带 `Origin` 时，服务端要求它匹配配置的本地 Workbench origin。API 不接受 cross-origin simple-form mutation 作为替代传输。该边界用于防止其他网页驱动本地工作台写入，不扩展为通用身份平台。
+- 首个 Goal 不建设注册、登录、Session Cookie、Bearer Token、API Key、CSRF Token、RBAC、多人审核或 Tenant membership。Audit 中的本地操作者身份由服务端记录为固定受控 Actor context，不信任客户端自报用户 / 角色。
+- OpenAPI / Contract Test 与本地人工 Smoke 可以从同一 loopback 环境调用；Secret、Provider Credential 和数据库 Credential 永不成为 Browser API 身份。Export download 与 Source upload 继续使用同源 API；外部对象访问和 Source 权限过滤由 RFC-005 冻结。
+- 任何非 loopback 绑定、公开部署、第二 Workspace、远程用户、共享环境或真实权限区分都会触发新的 Product / Security / API Decision Gate；不得把 P-56A 静默当作可上线公网的认证方案。
+
+**优点：** 与受控本地单工作区演示完全一致；消除伪多租户 Header 和无实际用户模型的 Login，同时保留对本地跨站写入的适度边界。
+
+**代价：** 不能直接公开部署或支持多用户；未来进入 Beta 时必须引入真正的身份、成员关系和授权设计，而不是复用固定 Actor。
+
+#### P-56B — Client-supplied Workspace Header
+
+Frontend 在每个请求中发送静态 `X-Workspace-Id`，服务端按该 Header 过滤数据；仍不建设登录。
+
+**优点：** 看似便于未来增加多个 Workspace，也便于手工切换测试数据。
+
+**代价：** 未认证 Header 不是授权边界，会制造伪多租户协议和错误安全感；首个 Goal 没有切换 Workspace 的产品需求。
+
+#### P-56C — Local Login or Shared API Token
+
+即使本地单人演示也要求登录或静态 Bearer / API Token，并据此选择 Workspace 与 Actor。
+
+**优点：** 更接近未来远程服务的表面形态。
+
+**代价：** 增加 Credential 生命周期、Session / Token 存储、登录 UX、权限错误和测试矩阵，却没有真实账号、租户或公网部署需求；静态共享 Token 也不能替代未来正式身份模型。
+
+#### Recommendation
+
+Choose P-56A. It states the honest security boundary of the local demo, prevents client-selected workspace scope, and adds only the same-origin protections justified by the actual threat surface.
+
+## Round 3 proposal status and next gate
+
+- P-54 / P-55 / P-56 are `PROPOSED`; no option is Accepted until the user explicitly confirms it and a Decision record is archived.
+- P-54A does not add PDF / JSON user export, asynchronous document jobs or content hashes. P-55A does not expose internal exception matrices. P-56A is not public-deployment authentication.
+- If this round is accepted, the final Decision proposal will cover DQ-10: exact OpenAPI operation / schema closure, compatibility, generated-client adoption, Contract Tests and RFC-004 Final Consistency Review readiness.
 
 ## Risks and stop conditions
 
