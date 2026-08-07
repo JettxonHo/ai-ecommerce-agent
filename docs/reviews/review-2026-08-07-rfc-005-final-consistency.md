@@ -69,7 +69,7 @@
 - `uv lock --check`、Package Build 与隔离 Wheel Import：通过；
 - Dependency Audit：No known vulnerabilities。
 
-远端 Secret Detection 与 8 项 Required Checks 在归档提交推送后验证。失败不得隐藏，也不得通过降低 Gate 解决。
+归档提交 `e48567e` 的 GitHub 8 项 Required Checks 全部通过：Format、Lint、Typecheck、Architecture、Unit / Contract、Package Build、Dependency Audit 与 Secret Detection。失败未被隐藏，也未降低 Gate。
 
 ## 7. Verdict 与下一 Gate
 
