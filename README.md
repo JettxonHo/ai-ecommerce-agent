@@ -40,10 +40,10 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 当前策划缺口
 
-当前 Gate 顺序为：**最小 RFC-007 → 快速 MVP-0 Development Plan / Testing Strategy / Goal → 精简 Readiness Review → 完整展示**。Product Specification 与 RFC-001～006 已整体接受。用户已接受快速 MVP-0 Gate，但完整展示与“进入 MVP-0 Goal”明确指令前不开发。
+当前 Gate 顺序为：**最小 RFC-007 → 快速 MVP-0 Development Plan / Testing Strategy / Goal → 精简 Readiness Review → 完整展示**。Product Specification 与 RFC-001～006 已整体接受；[Issue #58](https://github.com/JettxonHo/ai-ecommerce-agent/issues/58) / RFC-007 正在策划，P-68A / P-69A / P-70A 仍为 Proposed。用户已接受快速 MVP-0 Gate，但完整展示与“进入 MVP-0 Goal”明确指令前不开发。
 
 - Persona / JTBD 的后续研究证据；RFC-004 主协议和 OpenAPI closure 已由 DEC-063～066 冻结并整体接受；
-- RFC-005 Source / Retrieval、RFC-007 Observability；
+- RFC-007 minimal Observability / Runtime Operations；
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；
 - MVP Development Plan、Testing Strategy 的技术层补全与长期 Goal 最终文本。
 

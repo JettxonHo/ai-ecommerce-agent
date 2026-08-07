@@ -88,7 +88,7 @@ Merge RFC PR
 | RFC-004 | [API and Human Review Architecture](rfc-004-api-and-human-review-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受） |
 | RFC-005 | [Source Processing and Retrieval Architecture](rfc-005-source-processing-and-retrieval-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受；Final Review PASS） |
 | RFC-006 | LLM Runtime and Structured Output | Wave 2 | `ACCEPTED`（2026-08-06 用户明确整体接受） |
-| RFC-007 | Observability and Runtime Operations | Wave 4 | `PROPOSED` |
+| RFC-007 | [Minimal Observability and Runtime Operations for MVP-0](rfc-007-observability-and-runtime-operations.md) | Wave 4 | `DRAFTING`（P-68A / P-69A / P-70A proposed） |
 
 完整清单与依赖关系见 [rfc-register.md](rfc-register.md)。
 
@@ -272,4 +272,4 @@ RFC Agent 不得：
 | RFC-004 | [API and Human Review Architecture](rfc-004-api-and-human-review-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受） |
 | RFC-005 | [Source Processing and Retrieval Architecture](rfc-005-source-processing-and-retrieval-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受；Final Review PASS） |
 | RFC-006 | [LLM Runtime and Structured Output](rfc-006-llm-runtime-and-structured-output.md) | Wave 2 | `ACCEPTED`（2026-08-06 用户明确整体接受） |
-| RFC-007 | Observability and Runtime Operations | Wave 4 | `PROPOSED` |
+| RFC-007 | [Minimal Observability and Runtime Operations for MVP-0](rfc-007-observability-and-runtime-operations.md) | Wave 4 | `DRAFTING`（Issue #58；P-68A / P-69A / P-70A proposed） |

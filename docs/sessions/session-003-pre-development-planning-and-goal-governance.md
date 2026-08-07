@@ -1572,3 +1572,32 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - RFC-005 Overall Status = `ACCEPTED`；DQ-01～10 继续由 DEC-067～070 支撑，Final Consistency Review = `PASS`。
 - 用户授权合并 PR #57、关闭 Issue #56，并继续最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review。
 - 此接受仍不授权业务实现、Technical Spike、Live Provider、依赖安装或实际 Goal；必须先展示完整快速策划包，并再次获得“进入 MVP-0 Goal”的明确批准。
+
+## Minimal RFC-007 Proposal Round（2026-08-07）
+
+### Planning authorization
+
+RFC-005 整体接受后，用户授权继续已确认的最小 RFC-007 与快速 MVP-0 策划包。该授权允许起草与审查，不自动接受任何新 Proposal。
+
+### P-68 — Diagnostic plane and correlation
+
+- **P-68A（推荐）：** Python 标准日志输出 allowlisted JSON Lines；Server 生成 correlation 并经 Durable Work Intent / Run 传播；PostgreSQL 保存引用式最小 RuntimeErrorRecord；公共层只暴露 safe correlation reference；Secret / Prompt / Source /评论 / Provider payload 不进入日志；不建设通用 Redaction Engine。
+- **P-68B：** MVP-0 接入 OTel SDK + Collector + Backend；标准完整但扩大依赖与验收面。
+- **P-68C：** 只有 free-text / stack；最少但不能稳定关联异步 Run，也容易泄漏内容。
+
+### P-69 — Timeout, retry and backoff ownership
+
+- **P-69A（推荐）：** 每类 Retry 单一 owner，沿用 RFC-002 / 003 / 006 budgets；OpenAI SDK `max_retries=0`；非 Model Node 最多 1 次额外技术尝试；Frontend active poll 使用 1 / 2 / 5 秒有界 backoff；完整 Circuit Breaker 延后。
+- **P-69B：** 使用各 SDK / framework 默认；实现少但预算嵌套、真实调用次数不可解释。
+- **P-69C：** 完全不自动 Retry；简单但一次瞬时故障即破坏演示并把 Retry 误变 Rerun。
+
+### P-70 — Operational evidence and deferred platform
+
+- **P-70A（推荐）：** Durable records + correlated local timeline + 固定验收 Release Evidence Summary；无 OTel / Metrics Backend / Dashboard / Pager；完整平台能力后移 MVP-1 / deployment Gate。
+- **P-70B：** 先建完整本地 Observability stack；运维完整但把快速 MVP 变成平台项目。
+- **P-70C：** 只有 CI pass / fail；无法解释真实异步运行、Retry、Resume 与 Provider failure。
+
+### Proposal status
+
+- `P-68A / P-69A / P-70A = PROPOSED`；推荐组合尚待用户明确接受。
+- 本轮没有创建 DEC，没有把推荐方案写成 Accepted Current Truth，没有安装依赖、执行 Spike、调用 Live Provider、编写业务代码或创建实际 Goal。

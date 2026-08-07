@@ -73,13 +73,13 @@
 - **Architecture Readiness:** CONDITIONALLY READY
 - **Development Status:** CONDITIONALLY READY（仅策划与治理）
 - **Spike-001:** COMPLETED
-- **RFC:** RFC-001～006 = ACCEPTED；RFC-005 Final Review = PASS；RFC-007 = PROPOSED（快速最小范围）
+- **RFC:** RFC-001～006 = ACCEPTED；RFC-005 Final Review = PASS；RFC-007 = DRAFTING（Issue #58；P-68A / P-69A / P-70A proposed）
 - **Foundation:** FND-001 / FND-002 / FND-003 = COMPLETED
 - **Wave 1 Artifact:** ARP-01 / 04 / 10 完整 Accepted；ARP-02 / 03 / 09 仅 TS-01 Minimum Slice Accepted
 - **产品交互与验收:** 单任务工作台、确认式局部重跑、输入门禁、审核 / Brief / Evidence / Recovery / Markdown 导出 = ACCEPTED（DEC-044～048）；产品 / 技术权威边界、虚构 Anchor SKU、有限结构化 Needs Input、证据约束声明完整性、Task 范围资料与可逆移除、最小最近任务入口 = ACCEPTED（DEC-057～062）；前端应用 / 状态 / Contract Generation / Verification Foundation = ACCEPTED（DEC-055）；深 TaskWorkbench、Primitive / Styling、私有投影、revision-safe Autosave / Diff、Accessibility / Browser / Reflow / Performance = ACCEPTED，外层 Router 由 DEC-062 增加 `/tasks` 入口（DEC-056 / 062）。Product Final Consistency Review = PASS，Product Specification 整体闭合已由用户接受；API 主协议与最终 OpenAPI Operation / Schema / state / adoption closure 已由 DEC-063～066 接受，RFC-004 Final Review = PASS，用户已明确接受 RFC-004 整体；物理生命周期与 Fixture 载体仍待 Readiness / Testing Strategy
 - **Workflow Runtime:** 独立 PostgreSQL Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Current-Truth-first Reconciliation = ACCEPTED（DEC-049 / RFC-003）；PostgreSQL Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token、协作式 Cancellation / Supersession + Commit Fence = ACCEPTED（DEC-050 / RFC-003）；显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、Forward Repair 与风险切片证据边界 = ACCEPTED（DEC-051 / RFC-003）。精确实施版本、最终公共字段与运维参数仍待实施证据、RFC-004 / 007
 - **LLM Runtime:** OpenAI Responses API + `gpt-5.6-terra`、typed sync Port、Adapter 隔离、Strict Output → 项目 Schema → Domain Validator、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute、断网三层 Contract Tests 与单次人工 RC Smoke = ACCEPTED（DEC-052～054 / RFC-006）；精确实施版本、Token / Timeout 与实际 Provider 兼容性仍待实施证据
-- **允许工作:** RFC-005 整体接受 Gate、最小 RFC-007、快速 MVP-0 测试 / 开发 / Goal 文档、精简 Readiness Review 与一致性 Review
+- **允许工作:** 最小 RFC-007、快速 MVP-0 测试 / 开发 / Goal 文档、精简 Readiness Review 与一致性 Review
 - **禁止工作:** Business / Production Implementation、Spike / Live Provider、依赖安装、公开部署、实际 Goal 启动
 - **用户 Goal 指令:** 未下达
 - **Agent 路由:** Luna/max 为首选实现 Agent；当前工具不能创建 Luna 时，可输出外部 Luna 任务包或显式使用 Terra/xhigh 回退，不因 Luna 暂时不可用单独阻塞 Goal，但必须保持任务合同、实际模型披露和 Review 独立性
