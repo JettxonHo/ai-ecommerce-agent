@@ -1,7 +1,7 @@
 # MVP Testing Strategy
 
 > **Status: PARTIAL — product acceptance baseline accepted; implementation tooling and executable suites pending RFC / Goal**
-> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) · [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md)
+> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) · [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · [DEC-058](../decisions/dec-058-fictional-anchor-sku-acceptance-fixture-strategy.md) · [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md)
 
 本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前固化已接受的产品验收基线、DEC-052～054 / RFC-006 的模型契约，以及 DEC-055～056 的前端工具、交互与 Web 质量验证边界；不授权业务实现，也不提前冻结公共接口、Fixture 或未实例化的测试步骤。
 
@@ -20,14 +20,16 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 
 ## 2. 固定验收包
 
+四个场景共享一个明确虚构、非管制类的 Anchor SKU：**城市通勤双肩包**。三个资料包只改变与目标行为相关的完整性、冲突和版本，不用于证明真实用户研究或跨品类泛化。
+
 | ID | 场景 | 必须证明的产品行为 |
 |---|---|---|
 | `fixture-sufficient-v1` | 资料充分的正常任务 | 允许输入可接收；Fact → Insight → Positioning → Human Review → Marketing Brief → Xiaohongshu Brief → Markdown 导出闭环完成；主要结论可追溯。 |
 | `fixture-limited-v1` | 资料不足但可运行 | 缺少增强 / 可选资料不阻塞；Hypotheses、Evidence Limitations 与 Insufficient Information 被诚实表达；不为完整率制造事实或 Proof Point。 |
-| `fixture-conflict-v1` | 阻断性身份 / 关键事实冲突与恢复 | 进入 Needs Input；展示冲突值、来源、影响和用户动作；补料或确认后从正确阶段恢复，旧失效结果不成为 Current Truth。 |
+| `fixture-conflict-v1` | 阻断性身份 / 关键事实冲突与恢复 | 进入 Needs Input；有限行动请求展示冲突、影响、来源 / 冲突值、允许动作与恢复范围；补料或确认后从正确阶段恢复，旧失效结果不成为 Current Truth。 |
 | `mutation-sufficient-v1` | 基于正常任务的版本与重跑脚本 | Source Version 更新、业务语义编辑、影响预览、陈旧 Review 拒绝、用户确认后的局部重跑，以及导出只使用当前有效版本。 |
 
-表中 ID 是产品策划期的可读逻辑标识，不代表实际文件已经创建。具体资料、expected output 和物理目录由 Goal 内独立测试 Issue 实例化并经 Review；版本变更写入变更说明，不使用内容哈希。
+表中 ID 是产品策划期的可读逻辑标识，不代表实际文件已经创建。“城市通勤双肩包”及全部资料必须显式标为虚构测试数据。具体资料、expected output 和物理目录由 Goal 内独立测试 Issue 实例化并经 Review；版本变更写入变更说明，不使用内容哈希。
 
 ## 3. 分层验证
 
@@ -51,7 +53,7 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 
 - 前端静态与构建基线使用 Prettier、ESLint、`tsc --noEmit` 与 Vite Production Build；
 - Unit / Module / State Transition 使用 Vitest + React Testing Library / `user-event`；类型化 Client Contract 使用注入式 Typed Transport / Fixture；
-- 组件与状态转换测试覆盖输入、进度、Needs Input、Review、恢复、结果和导出；
+- 组件与状态转换测试覆盖输入、进度、Needs Input 有限行动请求、Review、恢复、结果和导出；
 - API Contract 测试验证前后端状态、错误和版本映射；
 - Browser E2E 使用 Playwright Chromium 与确定性本地 API / Model Substitute，按固定验收包覆盖正常闭环、冲突恢复和 mutation script；
 - 相关前端 PR 运行受影响的关键 E2E，Release Candidate 运行完整固定 Browser E2E；普通测试不得访问真实 Provider；
@@ -116,7 +118,7 @@ Goal 完成前必须同时满足：
 
 ## 8. 尚待冻结
 
-- Fixture 的具体业务数据、许可、文件布局与 expected-output 表示；
+- Anchor SKU 的具体虚构业务数据、文件布局与 expected-output 表示；
 - 前端精确工具版本、除 `dev` / `build` / `preview` 外的最终命令、CI Job 分组和浏览器证据保存格式；前端框架、核心测试工具、Accessibility / Browser / Reflow / Performance 边界已由 DEC-055 / 056 冻结；
 - Fixture / SDK Stub 的物理实现、Live Smoke 操作手册与证据文件格式；Provider、Version、Profile、Recovery、Secret / Payload / Telemetry、确定性替身分层与 Smoke 触发边界已由 DEC-052～054 冻结；
 - Integration / Migration / concurrency / failure-injection 的最终场景矩阵；
@@ -136,4 +138,4 @@ Goal 完成前必须同时满足：
 
 ## 10. 完成边界
 
-本文只有在架构 RFC、Frontend Architecture、可执行测试命令、Fixture 实例、Goal 验收步骤和最终一致性 Review 均完成后，才能从 `PARTIAL` 更新为最终 Testing Strategy。DEC-048 的产品验收基线已经 Accepted，但实际 Goal 仍未创建或激活。
+本文只有在架构 RFC、Frontend Architecture、可执行测试命令、Fixture 实例、Goal 验收步骤和最终一致性 Review 均完成后，才能从 `PARTIAL` 更新为最终 Testing Strategy。DEC-048 / 058 / 059 的产品验收基线、Anchor SKU 和 Needs Input 行为已经 Accepted，但实际 Goal 仍未创建或激活。

@@ -1,7 +1,7 @@
 # Frontend Architecture
 
 > **Status: ACCEPTED PRE-DEVELOPMENT CURRENT TRUTH — P-36～P-41 accepted; Final Consistency Review passed; Frontend Architecture overall accepted; public HTTP contract and implementation pending**
-> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md)
+> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · product input [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md)
 
 本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。最终 HTTP Resource / 字段 / 状态 / 错误 / revision / 幂等 / Conflict / Pagination / 下载协议、精确依赖版本、实现与运行证据仍未完成，不得从本文空白处推断实现事实。整体接受不授权依赖安装或实现。
 
@@ -86,6 +86,7 @@ UI 与 Styling：
 - 已有成功快照但暂时刷新失败时保持原模式并显示 `stale + retry`；依赖新鲜前置条件的远程写入暂停，本地缓冲保留。
 - Mutation 不乐观制造 Current Truth；成功后统一失效 / 刷新。轮询只在需要远程变化的模式继续，并在业务等待、审核、终态或明确错误时停止。
 - Field Error 紧邻字段，单文件拒绝留在文件行，Needs Input / Review / Invalidation 是正常 Workspace；暂时读取失败保留快照、更新时间与重试。Toast 不作为错误、Conflict、未保存或恢复状态的唯一载体。
+- Needs Input Workspace 只投影 RFC-004 / 005 提供的当前真实阻断：缺失 / 冲突、影响、来源 / 冲突值、允许动作和恢复范围；非阻断增强资料仍是建议，前端不创建完整问卷、自由聊天或虚构恢复能力。
 
 ### 6.1 Revision-safe Review Draft
 

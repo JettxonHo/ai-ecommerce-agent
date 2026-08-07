@@ -7,10 +7,10 @@
 - Last Updated: 2026-08-07
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-056
+- Related Decisions: DEC-039～DEC-059
 - Frontend Proposal Status: P-36～P-41 全部 Accepted；Frontend Architecture overall Accepted
 - Current Planning Gate: 产品规格闭合 → RFC-004 → RFC-005 → RFC-007（用户于 2026-08-07 明确确认）
-- Product Closure Proposal Status: P-42～P-44 = Proposed；未接受
+- Product Closure Proposal Status: P-42～P-44 = Accepted；P-45～P-47 = Proposed
 
 ## Context
 
@@ -93,7 +93,8 @@
 
 - 当前无未接受的 Frontend Architecture Proposal；P-36～P-41 的完整提案与接受过程保留在下方各 Decision Round。
 - Frontend Architecture 整体接受不授权安装依赖、生成脚手架或编写前端，未接受的 RFC-004 / 005 / 007 公共契约不得被提前写成实现事实。
-- 产品规格闭合首轮 `P-42A / P-43A / P-44A` 已形成推荐方案，完整备选与权衡见本 Session 末尾；用户明确接受前均保持 Proposed，不同步为 Current Truth。
+- 产品规格闭合首轮 `P-42A / P-43A / P-44A` 已由用户明确接受并归档为 DEC-057～059。
+- 产品开放问题复核后形成第二轮 `P-45A / P-46A / P-47A` 推荐方案；用户明确接受前保持 Proposed，不同步为 Current Truth。
 
 ## Accepted Decisions
 
@@ -115,6 +116,9 @@
 - [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) — 采用 Adapter Secret / Payload 边界、同 Port Scripted Substitute 与单次人工 RC Smoke（用户于 2026-08-06 接受 P-34A / P-35A；Amends DEC-052 / 053）。
 - [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) — 采用 React / Vite SPA、显式前端状态所有权、OpenAPI 生成与 npm + Vitest / Testing Library + Playwright Chromium 验证基础（用户于 2026-08-06 接受 P-36A / P-37A / P-38A）。
 - [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) — 采用深 TaskWorkbench、revision-safe 交互投影与适度 Web 质量边界（用户于 2026-08-06 接受 P-39A / P-40A / P-41A；2026-08-07 接受 Frontend Architecture 整体）。
+- [DEC-057](../decisions/dec-057-product-semantics-and-technical-contract-authority-boundary.md) — 以稳定产品语义闭合产品规格，并将公共 API、Retrieval、Observability 和测试物理载体交给各自权威文档（用户于 2026-08-07 接受 P-42A）。
+- [DEC-058](../decisions/dec-058-fictional-anchor-sku-acceptance-fixture-strategy.md) — 采用同一虚构“城市通勤双肩包”Anchor SKU 的三个资料变体与一个 mutation（用户于 2026-08-07 接受 P-43A；Amends DEC-048）。
+- [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) — Needs Input 采用由当前真实阻断派生的有限结构化行动请求（用户于 2026-08-07 接受 P-44A；Amends DEC-044 / 045 / 047）。
 
 ## Rejected Approaches
 
@@ -125,9 +129,9 @@
 
 ## Open Questions
 
-- 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决；代表性验收包、必要行为门禁和 Markdown-first 用户导出由 DEC-048 解决。
-- Review / Brief 的最终公共字段、API / 数据库 Schema、并发实现、公共 Change Set、状态 / 错误映射、Markdown 模板与下载协议。
-- Fixture 具体业务数据、测试工具、最终浏览器 E2E 步骤、Live Smoke 手册与 Beta 指标。
+- 产品定位、Persona / JTBD 假设与行为型成功边界已由 DEC-042 解决；工作台、输入和重跑触发已由 DEC-044 / 045 / 059 解决；审核 / Brief / 版本由 DEC-046 解决；证据 / 编辑 / 进度 / 恢复 / 导出确认由 DEC-047 解决；代表性验收包与 Anchor SKU、必要行为门禁和 Markdown-first 用户导出由 DEC-048 / 058 解决。
+- 仍需产品决定：声明风险的最小产品边界、受控本地演示的数据生命周期体验，以及跨会话返回任务的最小入口（P-45～P-47）。
+- 根据 DEC-057，下列均为下游技术或实例化交接，不再冒充产品开放问题：Review / Brief 最终公共字段、API / 数据库 Schema、并发实现、公共 Change Set、状态 / 错误映射、Markdown 模板与下载协议；Fixture 物理数据、测试工具、最终浏览器 E2E 步骤和 Live Smoke 手册。
 - RFC-003、RFC-006 与 Frontend Architecture 均已整体接受；RFC-004 / 005 / 007、精确实施版本、最终公共字段与运维参数仍开放。
 - ARP-02 / 03 / 09 完整 Artifact、ARP-05 至 ARP-08 和 TS-01 至 TS-05 Charter。
 - Luna 不可用时的路由已由 DEC-043 解决为 Terra 显式回退或外部 Luna 任务包；每个实际 Issue 仍需记录所用模型与独立 Reviewer。
@@ -147,6 +151,7 @@
 - 新增 DEC-051，接受 RFC-003 DQ-07～09，将 RFC-003 推进到 `IN REVIEW` 并同步 Compatibility、Safe Resume、迁移 / 回滚和验收证据边界。
 - 新增 DEC-052～054，接受 RFC-006 DQ-01～08；完成 Final Consistency Review、用户整体接受、PR #49 合并和 Issue #48 关闭。
 - 新增 DEC-055 / DEC-056，接受 Frontend Architecture P-36A～P-41A，完成 Final Consistency Review 与整体接受，并同步 `docs/architecture/frontend-architecture.md` Current Truth。
+- 新增 DEC-057～059，接受 P-42A～P-44A，明确产品 / RFC 权威边界、虚构 Anchor SKU 验收策略和 Needs Input 行动请求模型。
 
 ## Synchronization Checklist
 
@@ -1067,6 +1072,106 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 
 ### Proposal Status and Next Decision Gate
 
-- `P-42 / P-43 / P-44 = PROPOSED`；推荐项分别为 `P-42A / P-43A / P-44A`，用户尚未接受。
-- 用户接受后才创建或修订 DEC、更新 Product Current Truth、Testing Strategy 输入、Readiness 与 Traceability；随后继续清理剩余产品 Open Questions，并完成 Product Specification Final Consistency Review。
+- 用户于 2026-08-07 明确接受 `P-42A / P-43A / P-44A`；三项分别归档为 DEC-057 / DEC-058 / DEC-059，并同步 Product Current Truth、Testing Strategy 输入、Readiness 与 Traceability。
+- 接受只关闭本轮三个决定，不自动接受 RFC-004 / 005 / 007，也不自动通过 Product Specification Final Consistency Review。
 - 本轮不创建 Fixture 数据文件，不冻结 OpenAPI / Retrieval / Observability 字段，不执行测试、Spike 或 Goal，不编写任何业务代码。
+
+## Acceptance Archive — Product Specification Closure I（2026-08-07）
+
+### User Decision
+
+- 用户明确接受 `P-42A`：产品规格以稳定用户可见语义和行为不变量闭合，公共 HTTP、Retrieval、Observability 与测试物理载体分别交给 RFC-004 / 005 / 007 和 Testing Strategy。
+- 用户明确接受 `P-43A`：固定虚构非管制商品“城市通勤双肩包”为唯一 Anchor SKU，以三个资料变体和一个重要事实 mutation 验证核心行为。
+- 用户明确接受 `P-44A`：Needs Input 只针对当前真实阻断形成有限结构化行动请求，不建设完整问卷或自由聊天状态机。
+
+### Archive Result
+
+- `P-42 / P-43 / P-44 = ACCEPTED`；DEC-057～059 为对应权威 Decision。
+- Product Current Truth 只同步已接受的权威边界、Fixture 策略和 Needs Input 行为；公共字段、API、索引、状态、错误、下载与运维参数仍未冻结。
+- 产品开放问题复核后，仅保留确有产品取舍的声明风险、数据生命周期体验和任务返回入口；其余公共契约与测试实例化问题按 DEC-057 路由到下游权威文档。
+
+## Proposal Round — Product Specification Closure II（2026-08-07）
+
+### P-45 — Claim Integrity and High-risk Expression Boundary
+
+#### Option A — Evidence-bound Claim Integrity, Not a Compliance Engine（推荐）
+
+- 首个 Goal 只做与当前商品资料和 Brief 诚实性直接相关的声明完整性控制：有直接证据的 verified fact 可以作为 Proof Point；只有商品页自述、但缺少检测或认证资料的内容保持 `documented_claim / claim_to_verify`，不得提升为已验证事实。
+- 对无依据绝对化、功效、认证或贬低式比较声明，只阻断该声明进入 Current Brief；若移除或降级后仍能形成诚实 Brief，任务继续并在 Review 显示风险和建议动作。只有当前策略本身必须依赖该声明、且没有可信替代表达时，才进入 Needs Input。
+- 系统不宣称法律意见、平台审核保证或实时法规合规；首个 Goal 不建设全品类法规库、自动法律分类器、主动联网规则抓取或独立 Compliance Agent。用户提供或已接受的约束、禁用表达和必要免责声明仍可进入结构化 Brief。
+- 优点：保护事实与对外声明的核心可靠性，同时与非管制 Anchor SKU、单一人工审核和适度校验一致。
+- 代价：不能替用户完成特定法域或平台的最终合规判断，需在结果中明确这一限制。
+
+#### Option B — Broad Automated Compliance Gate
+
+- 为所有品类维护法规 / 平台规则并在生成前自动判定允许与否。
+- 优点：表面覆盖更广。
+- 代价：需要实时规则来源、法域、敏感品类分类和专业验证，超出本地演示范围，并易形成过度防御与错误法律保证。
+
+#### Option C — Human Review Only, No Deterministic Claim Boundary
+
+- 所有声明都交给最终审核者判断，系统不区分 verified fact 与 documented claim。
+- 优点：实现最少。
+- 代价：会允许无依据声明进入 Brief 草稿并削弱既有 Fact / Evidence 契约。
+
+#### Recommendation
+
+选择 `P-45A`。它控制真正影响 Brief 诚实性的声明风险，但不把项目扩大为安全攻防或法律合规系统。
+
+### P-46 — Controlled Demo Data Lifecycle Experience
+
+#### Option A — Task-scoped Private Material + Reversible Removal, No Purge UI（推荐）
+
+- 固定单工作区中的用户资料默认只属于当前 Task，不静默提升为跨任务共享知识；通用运营知识与商品任务证据保持逻辑分离。
+- 用户可以把 Source 从当前有效资料集中移除或替换；该操作创建可追踪的版本变化、显示影响预览，并遵守 Current Truth / 局部重跑规则，不等于立即物理擦除历史。
+- 首个 Goal 不建设登录、RBAC、多人权限或不可逆“永久删除”产品按钮。物理保留、Hold、删除安全、开发环境清理与操作员重置方式由 ARP-08、RFC-005 / 007 和开发文档冻结；在这些边界接受前不得把软移除伪装成彻底删除。
+- 优点：用户能纠正当前资料集，同时避免在本地演示中仓促承诺不可逆删除和复杂权限。
+- 代价：首个 Goal 不提供面向最终用户的一键永久清除体验，需要清楚说明本地数据处理边界。
+
+#### Option B — Full User-facing Hard Delete in First Goal
+
+- Task、Source、所有版本、索引、Checkpoint 和导出均提供立即永久删除。
+- 优点：用户控制最直接。
+- 代价：跨存储一致性、恢复、审计和误删风险显著扩大，必须先完成 Retention / Deletion Safety 规划和验证。
+
+#### Option C — Workspace-wide Reuse by Default
+
+- 上传资料默认进入共享知识库，并可被其他任务自动检索。
+- 优点：后续任务可能复用资料。
+- 代价：扩大权限、来源范围、过期和跨商品污染风险，违反受控首个 Goal 的最小边界。
+
+#### Recommendation
+
+选择 `P-46A`。它把“从当前分析移除”和“物理永久删除”明确分开，既支持真实纠错，又把不可逆数据操作留给 Readiness 与人工 Gate。
+
+### P-47 — Cross-session Task Return Entry
+
+#### Option A — Minimal Recent-task Index + Stable Deep Links（推荐）
+
+- 在 `/tasks/new` 与稳定 Task Route 之外，为固定工作区提供一个最小任务入口：创建任务、查看最近任务，并按 Task 名称 / 品类、当前阶段或等待状态、最近更新时间和主要下一步动作返回工作台。
+- 保留稳定深链；首个 Goal 不做全文搜索、高级筛选、批量操作、归档策略、分页优化或运营 Dashboard。任务索引只是跨会话恢复入口，不成为第二套业务状态。
+- 优点：用户无需保存 URL 才能返回持久任务；与任务级跨会话恢复和行动导向状态一致。
+- 代价：RFC-004 需要增加最小 List / Summary 契约，Frontend Architecture 的外层 Router 边界需由新 DEC 显式补充。
+
+#### Option B — Stable Deep Links Only
+
+- 只支持 `/tasks/new` 和已知 `task_id` 的工作台链接。
+- 优点：页面和 API 最少。
+- 代价：用户关闭页面后必须自行保存 URL，削弱跨会话恢复的产品可用性。
+
+#### Option C — Full Operations Dashboard
+
+- 同时提供搜索、筛选、排序、批量操作、统计和异常队列。
+- 优点：更接近成熟运营平台。
+- 代价：明显扩大 MVP，并引入当前没有验收依据的列表、批量和报表需求。
+
+#### Recommendation
+
+选择 `P-47A`。一个最小最近任务入口足以让持久化与 Resume 对目标用户真正可用，不需要建设完整运营 Dashboard。
+
+### Proposal Status and Next Decision Gate
+
+- `P-45 / P-46 / P-47 = PROPOSED`；推荐项分别为 `P-45A / P-46A / P-47A`，用户尚未接受。
+- 用户接受后才创建或修订 DEC，并同步 Product Current Truth；P-47 若接受必须显式 Amend DEC-056 的 Router 边界，不静默改写已接受 Frontend Architecture。
+- 第二轮接受并归档后，执行 Product Specification Final Consistency Review；只有 Review 无阻塞、文档状态与开放问题清理一致时，才结束 Issue #52 并进入 RFC-004 Gate。
+- 本轮不创建页面、API、Fixture、数据库或删除实现，不执行测试、Spike 或 Goal。

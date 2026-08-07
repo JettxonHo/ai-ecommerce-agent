@@ -6,7 +6,9 @@ Product / Acceptance / Testing / Export
 
 ## Status
 
-Accepted
+Accepted — Amended by DEC-058
+
+> **Current amendment:** [DEC-058](dec-058-fictional-anchor-sku-acceptance-fixture-strategy.md) 将三个资料包和一个变更脚本实例化为同一虚构“城市通勤双肩包”Anchor SKU 的三个变体与一个 mutation；本决定的场景语义、行为门禁、人工判断和 Markdown-first 导出保持有效。
 
 ## Decision
 
@@ -19,7 +21,7 @@ Accepted
 3. **阻断性冲突与恢复任务：** 商品身份或形成诚实 Fact Layer 所需的关键事实冲突进入 Needs Input，显示冲突值、来源、影响和所需动作；用户补充或确认资料后可以从相应阶段恢复；
 4. **基于正常任务的变更脚本：** 至少覆盖 Source Version 更新、明确业务语义编辑、影响预览、陈旧 Review 保存或提交拒绝，以及用户确认后的局部重跑。
 
-Fixture 使用可读的 `fixture_id` 与 `fixture_version` 维护。版本变化必须在变更说明中解释，但不要求内容哈希、SHA-256 或指纹。具体商品、文案、文件名与物理目录由后续 Testing Strategy 实例化任务确定，不得改变上述场景语义或扩大产品范围。
+Fixture 使用可读的 `fixture_id` 与 `fixture_version` 维护。版本变化必须在变更说明中解释，但不要求内容哈希、SHA-256 或指纹。本文接受时把具体商品、文案、文件名与物理目录留给后续策划；DEC-058 已将商品策略冻结为同一虚构“城市通勤双肩包”Anchor SKU，具体文案、文件名与物理目录仍由 Testing Strategy 实例化任务确定，不得改变上述场景语义或扩大产品范围。
 
 普通 PR 使用确定性模型替身运行适用验收场景。Release Candidate 使用“资料充分的正常任务”对最终选定的单一真实 Provider 完成一次手动端到端 Smoke；该 Smoke 不进入普通 PR Required Checks，也不把偶发模型措辞变化误判为代码回归。
 
@@ -137,6 +139,10 @@ None.
 - DEC-039：适度校验、禁止普通 Hash / SHA-256 要求和非机械 Rubric 继续有效。
 - DEC-041：受控单工作区、输入格式、单一真实 Provider 和非范围边界保持不变。
 
+## Amended By
+
+- [DEC-058](dec-058-fictional-anchor-sku-acceptance-fixture-strategy.md)：冻结单一虚构 Anchor SKU 策略，不创建实际 Fixture 文件或改变四个验收场景。
+
 ## Decision Boundary
 
 **本决定已经确认：**
@@ -149,9 +155,9 @@ None.
 - 用户侧 PDF / JSON 导出不进入首个 Goal；
 - Fixture 与导出不新增 Hash、SHA-256 或内容指纹。
 
-**本决定尚未确认：**
+**本决定尚未确认 / 下游交接：**
 
-- Fixture 的具体商品、内容、文件名、目录、数据许可证与最终 expected-output 表示；
+- Fixture 商品已由 DEC-058 确认为虚构“城市通勤双肩包”；具体内容、文件名、目录与最终 expected-output 表示仍由 Testing Strategy 实例化；
 - 测试框架、浏览器 E2E 工具、具体命令、并行方式与 CI Job；
 - 最终真实 Provider、模型、Prompt、Structured Output 与 Live Smoke 运行手册；
 - 性能耗时阈值、真实用户样本量、埋点、Dashboard 与 Beta 对照实验；

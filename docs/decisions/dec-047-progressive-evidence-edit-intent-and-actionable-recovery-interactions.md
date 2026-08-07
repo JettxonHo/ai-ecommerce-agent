@@ -6,9 +6,9 @@ Product / Interaction / Evidence / Editing / Recovery / Export
 
 ## Status
 
-Accepted — Amended by DEC-048
+Accepted — Amended by DEC-048 / DEC-059
 
-> **Current amendment:** [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) 冻结代表性验收包、必要行为门禁和 Markdown-first 用户导出；本决定的证据、编辑、进度、恢复与导出确认语义保持有效。
+> **Current amendments:** [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) 冻结代表性验收包、必要行为门禁和 Markdown-first 用户导出；[DEC-059](dec-059-targeted-needs-input-action-request-model.md) 补全 Needs Input 的有限结构化行动请求。本决定的证据、编辑、进度、恢复与导出确认语义保持有效。
 
 ## Decision
 
@@ -139,6 +139,7 @@ None.
 ## Amended By
 
 - [DEC-048](dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md)
+- [DEC-059](dec-059-targeted-needs-input-action-request-model.md)：具体化补料继续与冲突裁决的行动结构。
 
 ## Decision Boundary
 
