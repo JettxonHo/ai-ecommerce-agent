@@ -1,8 +1,8 @@
 # Hybrid Retrieval and Evidence Runtime — 概念 Specification
 
-> **Status: PARTIALLY FROZEN（DEC-067 + DEC-068 已接受；RFC-005 DQ-07～10 待闭合）**
-> 来源决定：[DEC-032 — Hybrid Retrieval and Evidence Runtime](../../decisions/dec-032-hybrid-retrieval-and-evidence-runtime-architecture.md)、[DEC-067 — Versioned Source Intake and Format-aware Fragment Contract](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md) 与 [DEC-068 — PostgreSQL-native Versioned and Deterministic Retrieval Baseline](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)（Accepted）。DEC-067 移除旧概念 `package_hash`；DEC-068 冻结 PostgreSQL-native derived retrieval plane、单一版本化 Embedding Profile、immutable index generation、Direct-first deterministic Planner、RRF、seed bounds 与 no-baseline-reranker。
-> 本文件仍不是最终实现 Schema。公共 Source / Evidence transport、Evidence Package / Formal Evidence Link 最终字段、evaluation / degraded behavior、exact Embedding model / dimensions 与 RFC closure 尚待后续 Decision。
+> **Status: PARTIALLY FROZEN（DEC-067～069 已接受；RFC-005 DQ-10 待闭合）**
+> 来源决定：[DEC-032 — Hybrid Retrieval and Evidence Runtime](../../decisions/dec-032-hybrid-retrieval-and-evidence-runtime-architecture.md)、[DEC-067 — Versioned Source Intake and Format-aware Fragment Contract](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)、[DEC-068 — PostgreSQL-native Versioned and Deterministic Retrieval Baseline](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md) 与 [DEC-069 — Authoritative Retrieval Scope, Referenced Evidence and Explicit Degradation](../../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md)（Accepted）。DEC-067 移除旧概念 `package_hash`；DEC-068 冻结 PostgreSQL-native derived retrieval plane、单一版本化 Embedding Profile、immutable index generation、Direct-first deterministic Planner、RRF、seed bounds 与 no-baseline-reranker；DEC-069 冻结 server-derived authorized candidate relation、引用式 EvidencePackage、Formal Evidence atomic commit、代表性评测硬门禁与显式降级。
+> 本文件仍不是最终实现 Schema。exact Embedding model / dimensions、公共 Operation / Schema catalog、采用顺序与 RFC closure 尚待 DQ-10 用户决策。
 > Development Status: **NOT READY**。
 
 ---
@@ -39,7 +39,7 @@ Skill Retrieval Request
 - 按需提供候选证据（Candidate Fragments）；
 - 确定性规划检索方式（Deterministic Retrieval Planner）；
 - 强制 Permission / Task / Product Identity / Source Scope / Source Version 过滤；
-- 保证可复现性（同 Plan + 同 Source Set Version + 同组件版本 → 复现 Skill 当时看到的证据输入）；
+- 保证可复现性（同 Plan + 同 Source Set Version + 同组件版本 → 稳定 Candidate identity / order 与当时 Evidence Package references；不宣称 Provider output bitwise deterministic）；
 - 保证可解释性（dev / debug / eval 能回答「为什么这个 Fragment 被召回 / 排除」）；
 - 记录检索日志（RetrievalRun）；
 - 装配可复现 Evidence Package；
@@ -388,8 +388,8 @@ Evidence Coverage 不得只展示 Top 10。必须检查并报告：
 
 ## §25 Retrieval Logging
 
-- 每次检索记录一条 RetrievalRun（Plan、过滤条件、组件版本、召回结果概要、时间）；
-- 必须记录适用的 Embedding Profile / index generation / lexical profile / Fusion version；未来获准 Reranker 时才记录其版本；
+- 每次检索记录一条 immutable RetrievalRun（Plan / Source Set reference、授权过滤摘要、query identities、组件 / generation references、candidate summary、degraded outcome、权威时间与 correlation reference）；
+- 必须记录适用的 Embedding Profile / index generation / lexical profile / Fusion version；未来获准 Reranker 时才记录其版本；RetrievalRun 是运行解释记录，不是 Business Current Truth；
 - 本文件暂不选择具体检索日志技术。
 
 ---
@@ -403,10 +403,10 @@ Evidence Coverage 不得只展示 Top 10。必须检查并报告：
 
 ## §27 Failure and Degraded Modes
 
-- **Semantic Retrieval 不可用：** 回退 Structured + Lexical，记录 `semantic_retrieval_unavailable`，传播 Evidence Limitation。
-- **Lexical Retrieval 不可用：** 回退 Semantic，但精确标识符未被完整校验 → `valid_with_limitations` 或暂停。
-- **Reranker 不可用：** Fusion 结果继续，不阻塞。
-- **Vector Index 不完整：** 仅使用 Direct / Structured / Lexical，不得查询不完整索引。
+- **Semantic Retrieval 不可用：** 只运行适用的 Direct / Exact / Lexical，记录 `semantic_retrieval_unavailable` 并传播 Evidence Limitation。
+- **Lexical Retrieval 不可用：** Direct / Exact 保持；Semantic 只有在 authorized candidate relation 与 exact identifier coverage 均成立时继续，否则返回 limitation / `insufficient_information`。
+- **Reranker 不可用：** 首个 Goal baseline 本就不启用；未来获准后失败才回退 Fusion 结果。
+- **Vector Index 不完整：** 不切换该 generation；继续使用仍兼容且 eligibility-current 的上一 generation，或仅使用安全适用的 Direct / Exact / Lexical。没有安全 generation 时返回 temporary unavailable / actionable recovery。
 - **Source Processing 待完成：** 等待 / 返回 incomplete 状态，不作为完整可计数数据集。
 - **Zero Results（零召回）：** 返回 `insufficient_information`，模型不得虚构答案。
 
@@ -443,14 +443,16 @@ Formal Evidence Link 仅在 Skill 输出通过 Evidence Validator 后才创建�
 
 ## §30 Evaluation Metrics
 
-- **Hard Reliability（6 项，全部目标 0%）：**
+- **Behavioral Hard Gates（任一失败阻断对应生产 Slice）：**
   - Cross-task / Cross-scope leakage
   - Current Product / Competitor leakage
-  - Retrieval result treated as Formal Evidence
+  - Stale / unavailable / non-current-generation candidate
   - Top-K frequency extrapolation
   - Fabricated answer on zero retrieval
-  - Stale Source Version used
-- **Retrieval Quality：** Recall@K 等（K 值未确认）、Precision、Coverage 命中率。
+  - Exact identifier mutation / loss
+  - Nondeterministic candidate identity / order for the same manifest + plan + component tuple
+  - Formal Evidence created before Validator + atomic commit
+- **Retrieval Quality：** 代表性 query 的 Recall@K、reciprocal rank、Coverage / counter-evidence 与人工 `PASS / FAIL` 共同判断；K / threshold 待固定 Fixture 内容形成后由 Testing Strategy 冻结，不合成机械总分。
 - **Runtime Metrics：** 延迟、成本、降级频率。
 - **Business Metrics：** 下游 Skill 结论可追溯率、Evidence Validator 通过率。
 
@@ -468,7 +470,7 @@ Formal Evidence Link 仅在 Skill 输出通过 Evidence Validator 后才创建�
 
 ## Open Questions
 
-以下为 DEC-067 / 068 后仍**未确认**的项目，须由后续议题与评测决定：
+以下为 DEC-067～069 后仍**未确认**的项目，须由 DQ-10、Testing Strategy 或后续证据决定：
 
 - exact Embedding model identifier / dimensions；
 - PostgreSQL extension / package exact versions、tokenizer 与 trigram threshold；
@@ -476,7 +478,7 @@ Formal Evidence Link 仅在 Skill 输出通过 Evidence Validator 后才创建�
 - Reranker / LLM Query Rewrite 是否由未来评测解锁（默认不启用）；
 - Chunk Size / Chunk Overlap；
 - 缓存技术（Cache Technology）；
-- DQ-07～09 的 public transport、Evidence Package / Formal Evidence Link 与 evaluation / degraded behavior；
+- 公共 Source / Evidence exact Operation / Schema catalog；
 - 性能目标（延迟 / 成本阈值）；
 - 最终字段名称、Schema、枚举；
 - 最终错误代码；

@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- **Status:** DRAFTING — ROUNDS 1～2 ACCEPTED；PROPOSAL ROUND 3 USER DECISIONS PENDING
+- **Status:** DRAFTING — ROUNDS 1～3 ACCEPTED；FINAL PROPOSAL ROUND 4 USER DECISION PENDING
 - **Date:** 2026-08-07
 - **Issue:** [#56](https://github.com/JettxonHo/ai-ecommerce-agent/issues/56)
 - **Pull Request:** [#57](https://github.com/JettxonHo/ai-ecommerce-agent/pull/57)（Draft）
@@ -90,10 +90,10 @@ RFC-002 remains authority for PostgreSQL transactions, storage classification, a
 | DQ-04 | PostgreSQL Lexical / Vector topology and Exact / ANN boundary | ACCEPTED — P-61A / DEC-068 |
 | DQ-05 | Embedding, index entry versioning, update / rebuild and consistency | ACCEPTED — P-62A / DEC-068 |
 | DQ-06 | Planner, Query Rewrite, fusion, Top-K and optional reranking | ACCEPTED — P-63A / DEC-068 |
-| DQ-07 | Scope filtering, Source Set Version and public Source / Evidence transport | PROPOSED as P-64A / B / C |
-| DQ-08 | Retrieval Run, Evidence Package, Dataset Statistic and Formal Evidence Link | PROPOSED as P-65A / B / C |
-| DQ-09 | Retrieval evaluation, fallback, degraded behavior and quality gates | PROPOSED as P-66A / B / C |
-| DQ-10 | Adoption order, reconciliation, Spike / test evidence and RFC closure | PENDING |
+| DQ-07 | Scope filtering, Source Set Version and public Source / Evidence transport | ACCEPTED — P-64A / DEC-069 |
+| DQ-08 | Retrieval Run, Evidence Package, Dataset Statistic and Formal Evidence Link | ACCEPTED — P-65A / DEC-069 |
+| DQ-09 | Retrieval evaluation, fallback, degraded behavior and quality gates | ACCEPTED — P-66A / DEC-069 |
+| DQ-10 | Exact Embedding Profile, public contract closure, adoption order, reconciliation and verification evidence | PROPOSED as P-67A / B / C |
 
 No item in this table is Accepted until the user explicitly accepts the corresponding proposal and it is archived in a Decision record.
 
@@ -444,10 +444,96 @@ Choose P-66A. It separates non-negotiable correctness from relevance judgment, u
 
 ## Round 3 decision status and next gate
 
-- `P-64 / P-65 / P-66 = PROPOSED`; none is Accepted until the user explicitly chooses an option.
-- Recommended combination: `P-64A + P-65A + P-66A`.
-- If accepted, archive the three decisions in one RFC-005 Decision Record, update only accepted Current Truth, and proceed to DQ-10 covering adoption order, exact Embedding profile closure evidence, reconciliation / test slices and RFC final acceptance readiness.
-- This round does not create OpenAPI, schemas, fixtures, migrations, indexes, evaluation code, Source / Evidence API, Technical Spikes or Goal execution.
+- `P-64A / P-65A / P-66A = ACCEPTED` and archived as [DEC-069](../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md).
+- RFC-005 DQ-07～09 are closed. Acceptance preserves RFC-004 as the HTTP / Problem authority and RFC-007 as the operations / telemetry authority.
+- Round 3 acceptance does not create OpenAPI, schemas, fixtures, migrations, indexes, evaluation code, Source / Evidence API, Technical Spikes or Goal execution.
+
+## Proposal Round 4 — Final Closure
+
+### P-67 — Exact Embedding Profile, Public Contract Catalog and Adoption Evidence
+
+#### Current official compatibility evidence
+
+- OpenAI's current [Embeddings guide](https://developers.openai.com/api/docs/guides/embeddings#how-to-get-embeddings) documents `text-embedding-3-small` with a default 1536-dimensional output and supports an explicit `dimensions` parameter for third-generation models. The current API reference accepts the model identifier, input, dimensions and output encoding as request fields.
+- OpenAI's current [distance FAQ](https://developers.openai.com/api/docs/guides/embeddings#which-distance-function-should-i-use) recommends cosine similarity and states that OpenAI embeddings are normalized to length one. This supports a fixed cosine policy without adding an application-owned normalization heuristic.
+- The pgvector [official project documentation](https://github.com/pgvector/pgvector) supports `vector` dimensions above 1536, cosine distance through `<=>`, exact nearest-neighbor by default and filtered queries. It also confirms that approximate indexes change recall and apply filtering with additional trade-offs, supporting the already accepted exact baseline.
+- These sources establish capability and the profile choice as of 2026-08-07. They do not authorize dependency installation, live calls or a permanent package version. Exact PostgreSQL, pgvector, OpenAI SDK and parser package versions must be recorded from the Goal's locked environment and official compatibility evidence in their implementation PRs.
+
+#### P-67A — Contract-first Closure + `text-embedding-3-small` 1536 Cosine + Bounded Verification（推荐）
+
+##### Exact active Embedding Profile
+
+- Freeze the first-Goal active profile as provider family `openai`, API family `embeddings`, model identifier `text-embedding-3-small`, explicit output dimensions `1536`, `encoding_format=float` and cosine distance. The adapter sends `dimensions=1536`; PostgreSQL stores compatible `vector(1536)` values and exact semantic ordering uses pgvector cosine distance `<=>`.
+- Use the readable profile identity `openai-text-embedding-3-small-1536-cosine-v1`. Its input-normalization version and bounded batching policy remain explicit readable profile fields; batching can improve transport efficiency but cannot change per-input identity, Source / Fragment references or authorized scope.
+- Do not perform a second application normalization pass merely because vectors are stored in PostgreSQL. Boundary validation checks response count, dimensions, finite numeric values and request-to-response order; it does not create a broad statistical validator or repeated low-probability case matrix.
+- Provider responses are not promised bitwise deterministic. PR tests use the accepted deterministic Embedding Port substitute. Live profile verification is one manual opt-in RC smoke, while generation identity, response model metadata and evaluation evidence explain which profile produced a stored entry.
+- A future model, dimension, distance or normalization change creates a new readable `EmbeddingProfileVersion` and immutable generation; it never mixes vectors in place. It requires an explicit Decision / RFC amendment if it changes this active first-Goal contract.
+
+##### Source / Evidence operation catalog delegated by RFC-004
+
+The future single `contracts/openapi/openapi.yaml` must add exactly these RFC-005-owned first-Goal operations without changing RFC-004's existing four Source-change operations:
+
+| Family | Operations frozen for the first Goal |
+|---|---|
+| Source intake | `POST /api/v1/tasks/{taskId}/source-intakes`; `GET /api/v1/source-intakes/{sourceIntakeId}` |
+| Task Source collection / detail | `GET /api/v1/tasks/{taskId}/source-associations`; `GET /api/v1/source-associations/{sourceAssociationId}`; `GET /api/v1/source-associations/{sourceAssociationId}/source-versions`; `GET /api/v1/source-versions/{sourceVersionId}` |
+| Formal Evidence | `GET /api/v1/tasks/{taskId}/evidence-links`; `GET /api/v1/evidence-links/{evidenceLinkId}` |
+
+- `POST .../source-intakes` accepts the supported structured form / manual text as `application/json`, or a bounded `multipart/form-data` intake manifest plus file parts for TXT / Markdown、text PDF and review CSV. It requires `Idempotency-Key`. Envelope-invalid requests use RFC-004 Problem Details; supported sibling items return typed per-item acceptance / rejection rather than all-or-nothing rollback.
+- A fully synchronous accepted intake first returns `201`; an intake with any registered asynchronous processing first returns `202` with one immutable `SourceIntakeReceipt` and `Location` pointing to the `SourceIntake` read resource; a same-key / same-input committed replay returns `200` with the same receipt. `SourceIntake` projects per-item canonical Source Version processing states and does not create a competing generic operation state machine.
+- Source collection, Source Version history and Evidence Link collection use DEC-069's opaque cursor keyset pagination with default `20` and maximum `50`. Detail operations return the narrow Source / Evidence projections accepted in P-64A; there is no public Fragment search, vector, raw Candidate, Retrieval Run, Evidence Package, index administration, delete / purge or cross-Task operation.
+- Schema families are `SourceIntakeRequest` / `SourceFileManifestItem` / `SourceIntakeReceipt` / `SourceItemResult` / `SourceIntake`、`SourceAssociationSummary` / `SourceAssociation` / `SourceVersionSummary` / `SourceVersion` / the six-value `SourceProcessingStatus`、`CursorPage` / `PageCursor`、and `EvidenceLinkSummary` / `EvidenceLink` with format-specific Locator discriminators. RFC-004's Reference、revision、Capability、Problem、Idempotency and fixed-workspace conventions are reused rather than redefined.
+- Read ordering, cursor behavior and public availability are server-owned projections. Unknown additive read-only enum values use RFC-004's safe frontend fallback; new write semantics, Operation paths or Scope behavior require an explicit compatibility review.
+
+##### Adoption order and bounded evidence
+
+After the full planning package and Goal are separately approved, implementation Issues must follow this dependency order:
+
+1. Extend the one OpenAPI authority with the above Source / Evidence paths, schemas, examples and generated-client clean diff; no API or Frontend implementation precedes this contract PR.
+2. In a bounded real-PostgreSQL compatibility subtask, prove the Goal's locked PostgreSQL / pgvector / driver / OpenAI SDK versions support `vector(1536)`, cosine exact ordering and the required parameterized authorized relation. Record official sources and locked versions; do not call the live Provider in PR CI.
+3. Implement the authoritative Source graph, registration / processing lifecycle and four format-aware Parser / Fragment lanes before any index consumer. External-object work remains gated by ARP-05 / TS-02.
+4. Implement lexical / vector derived entries, immutable generation build, expected / present / missing / extra reconciliation, atomic current-generation switch and rollback before enabling Semantic / Hybrid retrieval.
+5. Implement deterministic Planner、Exact / Lexical / Semantic / Hybrid channels、RRF and the DEC-069 fixture evaluation before any Core Skill may consume retrieval output.
+6. Implement referenced Evidence Package、DatasetStatistic、Evidence Validator and atomic Domain Version + Formal Evidence Link commit before exposing Evidence Link reads.
+7. Implement Source / Evidence API handlers and generated-client / TaskWorkbench integration only after owning Application Contracts pass. RFC-007 diagnostics are added through its later accepted extensions, not invented here.
+
+Required evidence is intentionally finite:
+
+- OpenAPI parse / `$ref` / example / operationId / media / status validation and generated-client clean diff;
+- real PostgreSQL Integration Tests for `vector(1536)` cosine exact ordering, SQL pre-ranking scope isolation, Source removal eligibility, generation reconciliation / switch / rollback and concurrent read during switch;
+- deterministic unit / contract tests for four processing lanes、six processing states、planner strategy、RRF tie order、candidate bounds、zero result、degraded limitation and Validator + atomic commit;
+- DEC-058 / DEC-069 representative Retrieval evaluation with behavior hard gates plus non-mechanical human relevance judgment;
+- one opt-in RC live Embedding smoke using non-sensitive fictional Fixture text, verifying response model / 1536 dimensions / finite values without committing Secret or raw provider payload.
+
+No new standalone Technical Spike is required merely to repeat capabilities already established by official documentation. The bounded real-PostgreSQL compatibility subtask is a stop-first slice inside the first authorized Retrieval foundation Issue; if it fails, downstream Retrieval production Issues stop and return to the RFC / architecture Gate.
+
+Stop and request a new decision if the exact model is unavailable, the response cannot honor 1536 dimensions, the locked environment cannot provide required PostgreSQL extensions, the authorized relation cannot filter before ranking, or representative behavior gates fail. Latency evidence may justify an ANN proposal, but never a Scope or correctness relaxation.
+
+**优点：** freezes every implementation-time choice that would otherwise split API, Index and Frontend contracts; uses the smaller documented embedding profile and exact retrieval appropriate to the MVP; makes compatibility failure stop before downstream work while avoiding a speculative standalone Spike.
+
+**代价：** Source / Evidence contract and real-PostgreSQL foundation must land before visible UI work; an embedding profile change requires a new generation and explicit contract update rather than an in-place switch.
+
+#### P-67B — `text-embedding-3-large` 3072 Cosine with the Same Contract-first Order
+
+Use `text-embedding-3-large` with explicit 3072 dimensions and exact cosine retrieval, while keeping the same API catalog and adoption order.
+
+**优点：** current OpenAI documentation reports a stronger general embedding benchmark and the full default dimensions preserve that model's largest representation.
+
+**代价：** doubles vector width relative to P-67A, increases provider / storage / transfer cost, and has no project fixture evidence that the gain matters. Full 3072-dimensional `vector` also exceeds pgvector's current approximate `vector` index dimensional limit, making a later ANN path require dimension reduction or another storage choice. That complexity is unnecessary for the first Goal.
+
+#### P-67C — Defer Model, Paths and Compatibility to Implementation Issues
+
+Keep only conceptual Source / Retrieval types and let the OpenAPI, persistence and retrieval implementers select the model, dimensions, paths, pagination details and verification order.
+
+**优点：** shortest planning phase and maximum local flexibility.
+
+**代价：** violates the accepted contract-first boundary and P-62A requirement, prevents independent Agent tasks from sharing one contract, and reopens high-cost choices inside implementation PRs.
+
+#### Recommendation and next gate
+
+Choose P-67A. It is the smallest profile and contract set that closes DQ-10 without adding ANN, a second Provider, a generic search API or a new speculative Technical Spike.
+
+If P-67A is accepted, archive it as one final RFC-005 Decision Record, mark DQ-01～10 closed, synchronize Current Truth, and run the RFC-005 Final Consistency Review plus all Required Checks. P-67A acceptance alone still does not accept RFC-005 overall, merge PR #57, close Issue #56, implement anything or activate Goal. After the review report, RFC-005 overall requires a separate explicit user acceptance.
 
 ## Risks and stop conditions
 
@@ -463,7 +549,7 @@ Choose P-66A. It separates non-negotiable correctness from relevance judgment, u
 
 RFC-005 remains `DRAFTING`. Proposal text is not Current Truth and does not authorize implementation. Overall RFC acceptance requires all DQ decisions, downstream document synchronization, local-link and Required Check success, an independent Sol/xhigh five-axis Final Consistency Review, and a separate explicit user decision.
 
-Even though P-58A / P-59A / P-60A are accepted, the following remain `NOT GRANTED`:
+Even though P-58A～P-66A are accepted, the following remain `NOT GRANTED`:
 
 - RFC-005 overall acceptance;
 - dependency installation or exact version locking;
@@ -473,4 +559,4 @@ Even though P-58A / P-59A / P-60A are accepted, the following remain `NOT GRANTE
 
 ## Outcome
 
-P-58A～P-60A ACCEPTED AND ARCHIVED AS DEC-067. P-61A～P-63A ACCEPTED AND ARCHIVED AS DEC-068. PENDING USER DECISIONS FOR P-64～P-66.
+P-58A～P-60A ACCEPTED AND ARCHIVED AS DEC-067. P-61A～P-63A ACCEPTED AND ARCHIVED AS DEC-068. P-64A～P-66A ACCEPTED AND ARCHIVED AS DEC-069. P-67A / B / C REMAIN PROPOSED; RFC-005 OVERALL REMAINS NOT ACCEPTED.

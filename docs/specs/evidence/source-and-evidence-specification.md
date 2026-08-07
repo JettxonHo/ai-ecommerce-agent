@@ -1,7 +1,7 @@
 # Source and Evidence Specification（来源与证据规格 — 概念）
 
-> **Status: PARTIALLY FROZEN — DEC-025 概念层 + DEC-067 / 068 RFC-005 DQ-01～06 当前契约。**
-> **本文件是 Current Truth Layer 的一部分。** 来源 / Evidence 基础来自 [DEC-025](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)，产品展示投影来自 [DEC-047](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)，Source association / processing / Fragment / Locator 现行边界来自 [DEC-067](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)，Retrieval-derived artifact / index generation 边界来自 [DEC-068](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)（均 Accepted）。
+> **Status: PARTIALLY FROZEN — DEC-025 概念层 + DEC-067～069 RFC-005 DQ-01～09 当前契约。**
+> **本文件是 Current Truth Layer 的一部分。** 来源 / Evidence 基础来自 [DEC-025](../../decisions/dec-025-versioned-sources-fragments-and-evidence-links.md)，产品展示投影来自 [DEC-047](../../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md)，Source association / processing / Fragment / Locator 现行边界来自 [DEC-067](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)，Retrieval-derived artifact / index generation 边界来自 [DEC-068](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)，权威 Scope、公共投影、引用式 EvidencePackage 与 Formal Evidence commit 边界来自 [DEC-069](../../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md)（均 Accepted）。
 > 本文件**不**包含：最终数据库表、Parser 代码、OCR、RAG 代码、Embedding、Vector Store、Web Scraper、Review Importer、最终 Evidence UI、正式 API。所有结构名为**概念示意，非最终数据契约 / 最终实现**。
 
 ---
@@ -21,6 +21,7 @@
 - [DEC-024 — 版本化领域状态与紧凑 LangGraph State](../../decisions/dec-024-versioned-domain-state-and-compact-langgraph-state.md)
 - [DEC-067 — 版本化 Source 关联、逐资料耐久处理与格式感知 Fragment 契约](../../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md)
 - [DEC-068 — PostgreSQL-native、版本化且确定性的 Retrieval 基线](../../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md)
+- [DEC-069 — 权威检索范围、引用式 Evidence Package 与显式降级](../../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md)
 
 > DEC-067 明确修订 DEC-025 的 Task 成员关系与 Fragment / Locator 细节：Source 不直接承载可变 Task membership，processing / association / availability / integrity 状态分离。旧概念示例与现行条款冲突时以 DEC-067 为准。
 
@@ -479,7 +480,7 @@ EvidencePackage
 └── generated_at
 ```
 
-Evidence Package：是一次执行输入快照；不是新的 Source；不修改原始来源；限制模型可见证据范围；支持 Skill 独立测试；支持重现模型当时看到了什么；支持确定性引用校验；支持上下文控制。
+Evidence Package：是一次 immutable、reference-based 执行输入快照；不是新的 Source，不复制整套私有正文，不修改原始来源；它引用 Source Set、Retrieval Run、Candidate Fragment 与可读组件版本，限制模型可见证据范围并支持确定性引用校验。Availability 变化可阻止新的业务使用，但不得把历史 Package latest-at-read 改绑到新 Source Version。
 
 Skill 输出中的 Fragment ID 必须来自对应 Evidence Package 的允许集合。
 
@@ -506,9 +507,9 @@ Insight 的主要证据来源失效
 
 ## 21. Data Isolation（概念）
 
-所有以下对象必须关联当前任务或合法 Workspace：Source / Source Version / Document / Record / Fragment / Evidence Link / Source Set Version / Evidence Package。
+所有以下对象必须关联当前任务或固定 Workspace：Source / Source Version / Document / Record / Fragment / Evidence Link / Source Set Version / Evidence Package。
 
-检索、模型调用和 Skill Runtime **不能**跨任务召回其他用户的私有资料。即使 Fragment ID 真实存在，如果不属于当前授权范围，也必须拒绝引用。
+检索、模型调用和 Skill Runtime **不能**跨任务召回其他用户的私有资料。Workspace / Task / Product / Source Scope、TaskSourceAssociation、SourceSetVersion、Source Version、availability 与 eligibility 由服务端从 Accepted Task / Skill Contract / 权威 Source 图推导，并形成所有检索 channel 共同使用的 SQL authorized candidate relation，在 ranking 前生效。即使 Fragment ID 真实存在，如果不属于当前授权范围，也必须拒绝引用；Browser、Skill 或 Provider 不能扩大范围。
 
 ---
 
@@ -610,7 +611,7 @@ New Source Version
 - 直接证据可显示短摘录，综合判断可显示忠实摘要和主要依据，不强制逐句引用。
 - 不显示未经校准数字置信度或机械证据覆盖总分。
 
-本节只定义业务数据向用户交互的投影要求；工作台与证据交互边界已由 DEC-055 / DEC-056 冻结，四类 Locator 语义已由 DEC-067 冻结，最终公共字段、权限映射、Pagination 与 Evidence API 仍待 RFC-005 DQ-07～10。
+本节只定义业务数据向用户交互的投影要求；工作台与证据交互边界已由 DEC-055 / DEC-056 冻结，四类 Locator 语义已由 DEC-067 冻结。DEC-069 已冻结 Task-scoped Source / Evidence 窄投影、opaque cursor keyset pagination（默认 20、最大 50）与禁止暴露 vector / raw index / Provider payload / private storage reference / rank-as-confidence；最终 Operation / Schema catalog 仍待 RFC-005 DQ-10 用户决策。
 
 ---
 

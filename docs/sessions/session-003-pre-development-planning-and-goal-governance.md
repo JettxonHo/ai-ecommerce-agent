@@ -1509,3 +1509,36 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - `P-64 / P-65 / P-66 = PROPOSED`；推荐组合为 `P-64A + P-65A + P-66A`。
 - 用户明确接受前，不创建对应 DEC，不把 public projection、pagination、Evidence commit 或 evaluation / degraded contract 写成 Current Truth。
 - 接受后只归档 DQ-07～09，并进入 DQ-10 adoption / exact Embedding profile evidence / reconciliation / test slices / RFC closure 提案；不接受 RFC-005 整体、不合并 PR #57、不关闭 Issue #56、不实现或启动 Goal。
+
+## RFC-005 Round 3 Acceptance and Final Proposal Round 4（2026-08-07）
+
+### User Decision and Archive Result
+
+- 用户明确回复：「接受 P-64A、P-65A、P-66A」。
+- P-64A / P-65A / P-66A 已归档为 [DEC-069](../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md)，RFC-005 DQ-07～09 = `ACCEPTED`。
+- P-64A 冻结 server-derived Workspace / Task / Product / Source Scope 与所有 channel 共享的 SQL authorized candidate relation；Source / Evidence 公共投影保持 Task-scoped、窄字段与 opaque cursor 20 / 50，不暴露 vector、raw index、private storage ref、Provider payload 或 rank-as-confidence。
+- P-65A 冻结 immutable RetrievalRun、reference-based EvidencePackage、complete countable DatasetStatistic，以及 Evidence Validator 后 Domain Version + Formal Evidence Link + Current Truth + audit 的原子提交；Candidate / rank / QC 不成为 approval。
+- P-66A 冻结 Anchor SKU 代表性 Retrieval evaluation、不可协商行为硬门禁、Recall@K / reciprocal-rank / coverage + 人工 `PASS / FAIL` 的非机械判断，以及不扩大 Scope、不切换不安全 generation 的显式降级。
+- 接受不授权 RFC-005 整体、PR #57 合并、Issue #56 关闭、OpenAPI / Schema / Migration / Retrieval / API / Frontend、依赖 / extension 安装、Technical Spike、Live Provider 或 Goal。
+
+### Current Official Compatibility Evidence
+
+- OpenAI 当前 Embeddings guide 记录 `text-embedding-3-small` 默认输出 1536 维，并支持第三代模型的 `dimensions` 参数；官方 FAQ 推荐 cosine，并说明 OpenAI embeddings 归一化为长度 1。
+- pgvector 官方文档支持 `vector(1536)`、cosine `<=>`、默认 exact nearest-neighbor 与 filtered query；ANN 会改变 recall 并引入过滤取舍，因此没有证据支持首 Goal 默认启用。
+- 这些资料只用于 DQ-10 策划证据，不授权依赖安装或 Live call。Goal 实施时仍须记录实际锁定 PostgreSQL / pgvector / driver / OpenAI SDK 版本及兼容证据。
+
+### P-67 — Exact Profile, Public Contract and Adoption Closure
+
+- **P-67A（推荐）：** 冻结 `openai` Embeddings / `text-embedding-3-small` / explicit 1536 dimensions / float / cosine `<=>`，可读 Profile identity 为 `openai-text-embedding-3-small-1536-cosine-v1`；不做第二应用归一化，只在 Provider 边界验证数量、维度、有限数值与顺序。未来 profile change 创建新 generation，不原地混合。
+- P-67A 同时补齐 RFC-004 委托的 exact Source / Evidence catalog：Source intake POST + read、Task Source Association list / detail、Source Version history / detail、Task Evidence Link list / detail；Source / Evidence collection 使用 cursor 20 / 50，不创建 public Fragment search、raw Candidate / RetrievalRun / EvidencePackage、index admin、purge 或跨 Task Operation。
+- Source intake 支持 JSON 手工 / 表单和 bounded multipart files；要求 Idempotency-Key。全同步首次 `201`，存在异步处理首次 `202` + immutable Receipt + Location，同输入重放 `200` 同一 Receipt；SourceIntake 只投影各 SourceVersion canonical processing status，不创建第二通用 Operation 状态机。
+- P-67A 的采用顺序为：唯一 OpenAPI Contract → real-PostgreSQL bounded compatibility subtask → authoritative Source graph + four processing lanes → immutable index generation / reconciliation → deterministic retrieval + fixed evaluation → referenced Evidence / atomic commit → API / generated client / Workbench integration。无官方证据缺口时不另建泛化 Technical Spike；兼容子任务失败即停止下游生产 Issue 并回到 RFC Gate。
+- P-67A 的有限证据为 OpenAPI / generated-client clean diff、真实 PostgreSQL 1536-cosine / pre-ranking Scope / generation switch 测试、确定性 processing / planner / RRF / Validator tests、DEC-069 固定 Retrieval evaluation，以及使用虚构非敏感文本的一次 opt-in RC Embedding smoke。
+- **P-67B：** 使用 `text-embedding-3-large` 3072 cosine，其余 contract-first 顺序相同；可能提高通用 benchmark，但向量宽度、Provider / storage / transfer 成本增加，且无项目 Fixture 证据证明必要。
+- **P-67C：** 把 model / dimensions、paths、pagination 和验证顺序留给实现 Issue；最快但违反 P-62A 与 contract-first 边界，并让并行 Agent 无共享契约。
+
+### Proposal Status and Authorization Boundary
+
+- `P-67A / B / C = PROPOSED`；推荐 P-67A。
+- 用户接受 P-67A 后，只归档 DQ-10、同步 Current Truth 并执行 RFC-005 Final Consistency Review + Required Checks；仍须另行明确接受 RFC-005 整体，才可合并 PR #57、关闭 Issue #56、进入 RFC-007 Gate。
+- P-67A 接受本身不授权实现、Technical Spike、Live Provider、依赖安装、Migration 或 Goal。

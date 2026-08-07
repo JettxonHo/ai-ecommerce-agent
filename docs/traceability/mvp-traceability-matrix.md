@@ -113,6 +113,7 @@
 | On-demand Hybrid RAG + 分层数据访问 | DEC-014, DEC-032 | [Hybrid Retrieval](../specs/runtime/hybrid-retrieval-and-evidence-runtime.md) | spike-09 | test_failure_recovery::spike09（degraded 不伪造） | RFC-005 | _(placeholder)_ | _(placeholder)_ |
 | Versioned Sources / Task Associations / Durable Processing / Format-aware Fragments / Evidence Links + reversible removal | DEC-025, DEC-061, DEC-067 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | spike-01 | commit.py evidence_links + business_audit + DEC-061 / 067 | RFC-004, RFC-005, RFC-007 / ARP-08 | _(placeholder)_ | Per-source partial acceptance + six-state processing + four locator lanes + removed Source excluded from Current Truth; physical purge handled separately _(planned)_ |
 | PostgreSQL-native retrieval plane + versioned index generation + deterministic RRF baseline | DEC-032, DEC-068 | [Hybrid Retrieval](../specs/runtime/hybrid-retrieval-and-evidence-runtime.md) | — | DEC-068 + Issue #56 / Draft PR #57 | RFC-005 | _(placeholder)_ | Same authorized candidate relation + exact / CJK lexical / semantic / hybrid + generation reconcile / switch + 4 / 20 / 60 / 12 bounds + no baseline reranker _(planned)_ |
+| Server-derived retrieval scope + referenced Evidence Package + atomic Formal Evidence + explicit degradation | DEC-058, DEC-061, DEC-069 | [Hybrid Retrieval](../specs/runtime/hybrid-retrieval-and-evidence-runtime.md), [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | — | DEC-069 + Issue #56 / Draft PR #57 | RFC-005 / RFC-007 | _(placeholder)_ | SQL pre-ranking scope isolation + narrow Source / Evidence projection + immutable RetrievalRun / referenced package + complete DatasetStatistic + Validator atomic commit + representative hard gates / human relevance + explicit limitation _(planned)_ |
 | 分层证据 + 可追溯结论 + 渐进式证据披露 | DEC-008, DEC-047 | [Source and Evidence](../specs/evidence/source-and-evidence-specification.md) | — | runtime-evidence.md + DEC-047 | RFC-004, RFC-005 | _(placeholder)_ | Five-class badge + truthful locator + no fabricated confidence _(planned)_ |
 
 ### E. 运行时可靠性（失败/恢复/重试/可观测）
@@ -157,7 +158,7 @@
 Spike-001 = COMPLETED
 RFC-001 / RFC-002 / RFC-003 / RFC-006 = ACCEPTED
 RFC-004 = ACCEPTED
-RFC-005 = DRAFTING (DQ-01～06 accepted by DEC-067 / DEC-068; DQ-07～10 pending)
+RFC-005 = DRAFTING (DQ-01～09 accepted by DEC-067～069; P-67 / DQ-10 proposed)
 RFC-007 = PROPOSED
 FND-001 / FND-002 / FND-003 = COMPLETED
 

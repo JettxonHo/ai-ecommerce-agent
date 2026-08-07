@@ -79,6 +79,7 @@ RFC-002 已将 PostgreSQL 确立为业务 Current Truth，并把 Retrieval Index
 - **Complements [RFC-003](../rfcs/rfc-003-langgraph-runtime-and-checkpoint-architecture.md)：** generation build / reconciliation 的耐久执行仍服从既有 Worker、Retry、Cancel 与 Commit Fence。
 - **Complements [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md)：** Embedding 使用同 Provider family 但独立窄 Port / Profile；不改变 Responses Model Runtime Port 或增加第二 Provider。
 - **Conforms to [DEC-039](dec-039-proportional-validation-and-review-governance.md)：** 不提前建设 ANN、Reranker、多 Provider、通用完整性或不现实测试矩阵。
+- **Extended by [DEC-069](dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md)：** 后续已闭合 server-derived Scope、公共投影、RetrievalRun / EvidencePackage、Formal Evidence commit、evaluation 与 degraded behavior；本决定形成时的 DQ-07～09 pending 状态作为历史保留。
 - **Input to [RFC-005](../rfcs/rfc-005-source-processing-and-retrieval-architecture.md)：** 接受 DQ-04～06，并开放 DQ-07～09 的策划讨论。
 
 ## Authorization Boundary
