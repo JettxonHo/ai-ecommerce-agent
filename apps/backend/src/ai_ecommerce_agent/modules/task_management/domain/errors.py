@@ -47,4 +47,23 @@ class InvalidTransitionError(ProjectError):
         )
 
 
-__all__ = ["InvalidTransitionError", "RevisionConflictError"]
+class OwnershipError(ProjectError):
+    """A Task/Run/Stage relationship crosses its owning Task boundary."""
+
+    def __init__(
+        self,
+        *,
+        resource: str,
+        context: Mapping[str, str] | None = None,
+    ) -> None:
+        values = {"resource": resource}
+        if context is not None:
+            values.update(context)
+        super().__init__(
+            "task_management",
+            "ownership_conflict",
+            _context(values),
+        )
+
+
+__all__ = ["InvalidTransitionError", "OwnershipError", "RevisionConflictError"]
