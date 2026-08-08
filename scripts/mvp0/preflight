@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+host_processes=0
+for arg in "$@"; do
+  case "$arg" in
+    --host-processes)
+      host_processes=1
+      ;;
+    -h|--help)
+      cat <<'USAGE'
+Usage: scripts/mvp0/preflight [--host-processes]
+
+Checks Docker/Compose and the pinned PostgreSQL Compose configuration.
+--host-processes additionally checks the Python/uv/Node/npm tools required by
+future host API, Worker and Web entrypoints; this MVP-0 task does not start
+those processes yet.
+USAGE
+      exit 0
+      ;;
+    *)
+      printf 'ERROR: unknown option %s\n' "$arg" >&2
+      exit 2
+      ;;
+  esac
+done
+
+require_command() {
+  local command_name="$1"
+  local install_hint="$2"
+  command -v "$command_name" >/dev/null 2>&1 || {
+    printf 'ERROR: required command %s is missing. %s\n' "$command_name" "$install_hint" >&2
+    exit 1
+  }
+}
+
+version_parts() {
+  local version="$1"
+  version="${version#v}"
+  version="${version%%-*}"
+  local major="${version%%.*}"
+  local rest="${version#*.}"
+  local minor="${rest%%.*}"
+  printf '%s %s\n' "$major" "$minor"
+}
+
+require_command docker 'Install Docker Desktop or Docker Engine and retry.'
+docker compose version >/dev/null 2>&1 || {
+  printf 'ERROR: Docker Compose v2 is unavailable. Install/enable the Compose plugin.\n' >&2
+  exit 1
+}
+
+compose_version="$(docker compose version --short 2>/dev/null || docker compose version 2>/dev/null)"
+read -r compose_major compose_minor < <(version_parts "$compose_version")
+if [[ ! "$compose_major" =~ ^[0-9]+$ || ! "$compose_minor" =~ ^[0-9]+$ ]] ||
+  (( compose_major < 2 || (compose_major == 2 && compose_minor < 20) )); then
+  printf 'ERROR: Docker Compose >= 2.20 is required for health/readiness handling; found %s.\n' "$compose_version" >&2
+  exit 1
+fi
+
+docker info >/dev/null 2>&1 || {
+  printf 'ERROR: Docker daemon is not reachable. Start Docker Desktop/Engine, then retry.\n' >&2
+  exit 1
+}
+
+mvp0_require_repo
+mvp0_compose config --quiet || {
+  printf 'ERROR: compose.yaml is invalid or its environment values are incomplete.\n' >&2
+  exit 1
+}
+
+configured_images="$(mvp0_compose config --images)"
+if [[ "$configured_images" != 'postgres:16.14-bookworm' ]]; then
+  printf 'ERROR: expected exactly the pinned image postgres:16.14-bookworm; found:\n%s\n' "$configured_images" >&2
+  exit 1
+fi
+
+configured_services="$(mvp0_compose config --services)"
+if [[ "$configured_services" != 'postgres' ]]; then
+  printf 'ERROR: MVP-0 local stack must contain exactly one service named postgres; found:\n%s\n' "$configured_services" >&2
+  exit 1
+fi
+
+printf 'MVP-0 local PostgreSQL preflight: PASS\n'
+printf '  Docker Compose: %s\n' "$compose_version"
+printf '  PostgreSQL image: postgres:16.14-bookworm\n'
+printf '  Compose project: %s\n' "$MVP0_COMPOSE_PROJECT"
+printf '  Service topology: postgres only (API/Worker/Web remain host processes)\n'
+
+if (( host_processes == 1 )); then
+  require_command uv 'Install uv 0.12.x or newer (the repository uses uv sync --locked).'
+  uv_version="$(uv --version | awk '{print $2}')"
+  read -r uv_major uv_minor < <(version_parts "$uv_version")
+  if [[ ! "$uv_major" =~ ^[0-9]+$ || ! "$uv_minor" =~ ^[0-9]+$ ]] ||
+    (( uv_major == 0 && uv_minor < 12 )); then
+    printf 'ERROR: uv >= 0.12.0 is required; found %s.\n' "$uv_version" >&2
+    exit 1
+  fi
+  backend_python="$MVP0_ROOT_DIR/apps/backend/.venv/bin/python"
+  if [[ -x "$backend_python" ]]; then
+    python_version="$("$backend_python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")')"
+  else
+    require_command python3 'Install Python 3.13.x or run uv sync --locked in apps/backend.'
+    python_version="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")')"
+  fi
+  if [[ "$python_version" != 3.13.* ]]; then
+    printf 'ERROR: Python 3.13.x is required by apps/backend; found %s. Run uv sync --locked or install Python 3.13.x.\n' "$python_version" >&2
+    exit 1
+  fi
+  require_command node 'Install Node.js for the future Web host process.'
+  require_command npm 'Install npm for the future Web host process.'
+  printf '  Host tools: uv %s, Python %s, Node %s, npm %s\n' \
+    "$uv_version" "$python_version" "$(node --version)" "$(npm --version)"
+else
+  printf '  Host process tools: not checked (use --host-processes before starting future API/Worker/Web processes)\n'
+fi
