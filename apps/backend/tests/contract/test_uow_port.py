@@ -10,9 +10,21 @@ from sqlalchemy.orm import Session
 
 from ai_ecommerce_agent.application.errors import UnitOfWorkStateError
 from ai_ecommerce_agent.application.ports import UnitOfWork, UnitOfWorkState
+from ai_ecommerce_agent.platform import postgres as postgres_facade
 from ai_ecommerce_agent.platform.postgres.uow import PostgresUnitOfWork
 
 pytestmark = [pytest.mark.unit, pytest.mark.contract]
+
+
+def test_postgres_facade_exposes_only_engine_and_uow_factory() -> None:
+    """The public adapter facade never leaks the concrete UoW/Session seam."""
+
+    assert postgres_facade.__all__ == [
+        "PostgresEngineConfig",
+        "PostgresUnitOfWorkFactory",
+        "create_postgres_engine",
+    ]
+    assert not hasattr(postgres_facade, "PostgresUnitOfWork")
 
 
 class _RecordingSession:

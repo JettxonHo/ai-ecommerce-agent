@@ -9,11 +9,10 @@ from .config import PostgresEngineConfig
 from .engine import (
     create_postgres_engine,
 )
-from .uow import PostgresUnitOfWork, PostgresUnitOfWorkFactory
+from .uow import PostgresUnitOfWorkFactory
 
 __all__ = [
     "PostgresEngineConfig",
-    "PostgresUnitOfWork",
     "PostgresUnitOfWorkFactory",
     "create_postgres_engine",
 ]
