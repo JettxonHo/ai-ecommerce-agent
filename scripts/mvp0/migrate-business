@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Explicit operator entry point only.  Nothing in application, worker, or
+# PostgreSQL lifecycle startup calls this script.  A URL is required to make
+# the target database an intentional operator choice; no demo URL is inferred.
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+REPO_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
+BACKEND_DIR="$REPO_ROOT/apps/backend"
+
+usage() {
+  cat >&2 <<'USAGE'
+Usage: scripts/mvp0/migrate-business <command>
+
+Commands:
+  upgrade-head   Apply the single production Business Alembic head.
+  current       Show the recorded Business Alembic revision.
+  heads         Show Business lineage heads (must be exactly one).
+  check         Check detectable Business metadata drift without changing DB.
+  offline-sql   Render reviewable SQL for upgrade head without connecting.
+
+Required environment:
+  MVP0_BUSINESS_DATABASE_URL=postgresql+psycopg://...
+
+This is an explicit migration command. It never starts PostgreSQL, never runs
+from application/worker startup, and has no reset/down/downgrade operation.
+USAGE
+}
+
+command_name="${1:-}"
+[[ "$#" -eq 1 ]] || {
+  usage
+  exit 2
+}
+
+case "$command_name" in
+  upgrade-head)
+    alembic_args=(upgrade head)
+    ;;
+  current)
+    alembic_args=(current)
+    ;;
+  heads)
+    alembic_args=(heads)
+    ;;
+  check)
+    alembic_args=(check)
+    ;;
+  offline-sql)
+    alembic_args=(upgrade head --sql)
+    ;;
+  -h|--help)
+    usage
+    exit 0
+    ;;
+  *)
+    printf 'ERROR: unknown Business migration command %q\n' "$command_name" >&2
+    usage
+    exit 2
+    ;;
+esac
+
+[[ -n "${MVP0_BUSINESS_DATABASE_URL:-}" ]] || {
+  printf '%s\n' 'ERROR: set MVP0_BUSINESS_DATABASE_URL explicitly before running this command.' >&2
+  exit 2
+}
+
+case "$MVP0_BUSINESS_DATABASE_URL" in
+  postgresql+psycopg://*) ;;
+  *)
+    printf '%s\n' 'ERROR: MVP0_BUSINESS_DATABASE_URL must use postgresql+psycopg://.' >&2
+    exit 2
+    ;;
+esac
+
+cd "$BACKEND_DIR"
+exec uv run --locked alembic "${alembic_args[@]}"
