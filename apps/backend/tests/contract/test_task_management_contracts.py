@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import fields, is_dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import get_type_hints
 
 import pytest
@@ -22,8 +22,6 @@ _PUBLIC_NAMES = {
     "TaskSnapshot",
     "TaskStatus",
 }
-
-_UPDATED_AT = datetime(2026, 8, 8, 0, 0, tzinfo=UTC)
 
 
 def test_task_management_facade_exports_only_a1_contracts() -> None:
@@ -53,4 +51,3 @@ def test_task_management_facade_exports_only_a1_contracts() -> None:
         assert get_type_hints(snapshot)["updated_at"] is datetime
     assert "thread_id" not in public.RunSnapshot.__dataclass_fields__
     assert "last_valid_result" in public.RunSnapshot.__dataclass_fields__
-    assert _UPDATED_AT.tzinfo is UTC
