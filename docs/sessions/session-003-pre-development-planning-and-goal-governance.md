@@ -1601,3 +1601,28 @@ RFC-005 整体接受后，用户授权继续已确认的最小 RFC-007 与快速
 
 - `P-68A / P-69A / P-70A = PROPOSED`；推荐组合尚待用户明确接受。
 - 本轮没有创建 DEC，没有把推荐方案写成 Accepted Current Truth，没有安装依赖、执行 Spike、调用 Live Provider、编写业务代码或创建实际 Goal。
+
+## Agent Model Routing Correction（2026-08-08）
+
+### User Decision
+
+用户明确要求：
+
+- 创建实现 Agent 时使用准确的 Codex 自定义 Agent 名称 `luna-worker`，配置路径 `~/.codex/agents/luna-worker.toml`、模型 `gpt-5.6-luna`、推理强度 `max`、逻辑角色 `IMPLEMENTER`；
+- 停止 Luna 不可用时自动或默认回退 Terra；未经用户对具体任务明确许可不得新建 Terra 实现 Agent；
+- 先保护 Active / Done Terra 成果，Active Terra 生成完整交接检查点并停止后，才可把明确剩余范围交给 `luna-worker`；
+- 每次创建实现 Agent 前区分配置验证和实际运行时模型验证；`luna-worker` 不可发现时输出 `STATUS: BLOCKED_LUNA_WORKER_UNAVAILABLE`，不自动回退或开始新实现；
+- 先输出一次 12 节迁移报告，再从当前持久化项目状态继续，不重新开始 Goal。
+
+### Migration Observation
+
+- 本次协作运行时只显示 Sol 主控，没有 Active 或 Done Terra Agent；因此没有需要收尾、停止或交接的 Terra 任务。
+- 两个历史 `.claude/worktrees` 均干净且对应已合并文档 PR；未识别到可归因于 Terra 的待保护实现成果，未删除、重置或覆盖任何历史分支、Commit、PR 或测试结果。
+- 只读探针已按准确名称成功创建 `luna-worker`，且未修改任何项目状态；配置文件声明 `gpt-5.6-luna` / `max`，但运行环境不暴露实例模型元数据。因此记录为 `CONFIG_VERIFIED / UNVERIFIED_RUNTIME_MODEL`，而非 `RUNTIME_VERIFIED`。
+- 当前没有已授权实现 Issue，MVP-0 Goal 也未激活，因此没有向 `luna-worker` 重新派发代码任务。
+
+### Archive Result
+
+- 用户指令已归档为 [DEC-071](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md)，Amends DEC-040 / DEC-043，并同步 AGENTS、README、Collaboration Model、Decision Log 与 Implementation Readiness。
+- 完整审计见 [Agent 模型路由迁移报告](../handoffs/agent-model-routing-migration-2026-08-08.md) 与 [Issue #61](https://github.com/JettxonHo/ai-ecommerce-agent/issues/61)。
+- 迁移不改变 RFC-007 / MVP-0 范围，不接受 P-68A / P-69A / P-70A，不授权业务实现、Technical Spike、依赖安装、Live Provider 或 Goal 激活。

@@ -20,9 +20,9 @@
 - 路由实现任务，并检查实际 Diff、测试、文档同步和回归风险，完成 PR / 阶段 / Goal Review。
 - 将未确认内容保持为 Proposal、Assumption 或 Open Question，不替用户接受 Decision / RFC。
 - 校验强度遵守 [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md)，不建设泛化过度防御。
-- 原则上不承担普通实现；只在 DEC-043 列出的复杂、阻塞、原型或实现 Agent 不可用等例外下直接修改代码，并交由独立 Agent 或人工最终审查。
+- 原则上不承担普通实现；只在 DEC-043 列出的复杂、阻塞、原型或实现 Agent 不可用等例外下直接修改代码，并交由独立 Agent 或人工最终审查。实现路由不可用时不得把该例外当作静默降级。
 
-### 1.3 首选代码实现 Agent（GPT-5.6 Luna / `max` / `IMPLEMENTER`）
+### 1.3 代码实现 Agent（自定义 Agent `luna-worker` / GPT-5.6 Luna / `max` / `IMPLEMENTER`）
 
 - 仅在规格冻结、Goal 被用户激活且 Issue 可独立验收后介入。
 - 按 Accepted Decision、RFC、Spec、Issue 和任务合同实现；不得临场更换框架、数据库、Provider、公共契约或验收标准。
@@ -31,13 +31,14 @@
 - 不得为了完成任务降低验收标准或扩大产品范围。
 - 需求不明、文档冲突、范围扩大、跨模块失败、公共接口 / 重大依赖 / 数据迁移或产品取舍时，暂停受影响工作并升级给 Sol；可以继续不受影响的独立任务。
 - 不得最终批准或合并自己实现的 PR。
+- 创建线程时必须请求准确名称 `luna-worker`，不得把逻辑角色“Luna Max”或单独模型字符串当作 Agent 名称。
 
-### 1.4 辅助与回退 Agent（GPT-5.6 Terra / `xhigh` / `AUXILIARY_IMPLEMENTER`）
+### 1.4 辅助 Agent（GPT-5.6 Terra / `xhigh` / `AUXILIARY_IMPLEMENTER`）
 
-- 可执行代码库调查、文件 / 符号定位、测试、文档整理、独立分析、边界明确的实现、Bug 初步定位、类型 / 构建修复、测试补充和初步 Review。
-- Luna 不可用时可作为显式实现回退；Issue、任务合同和 PR 必须记录实际模型，不得把 Terra 成果标记为 Luna 完成。
+- 只有用户对具体任务明确许可时，才可执行代码库调查、文件 / 符号定位、测试、文档整理、独立分析、边界明确的实现、Bug 初步定位、类型 / 构建修复、测试补充或初步 Review。
+- 不作为 `luna-worker` 不可用时的自动或默认实现回退；Issue、任务合同和 PR 必须记录实际模型，不得把 Terra 成果标记为 Luna 完成。
 - 不替代 Sol 作产品 / 核心架构决定、高风险拆分、跨模块裁决、最终 PR 批准或 Goal 验收。
-- 回退不改变范围、测试、Review 独立性、验收标准或人工 Gate。
+- 用户明确许可的替代路由也不得改变范围、测试、Review 独立性、验收标准或人工 Gate。
 
 ### 1.5 文档与 Git 操作者
 
@@ -48,7 +49,7 @@
 
 ### 1.6 模型路由与可用性
 
-禁止静默替换和错误归因。Luna 是首选实现 Agent：工具可以创建 Luna 时由 Sol 按任务合同创建；不能创建时，Sol 输出标准化 Luna 任务包供用户、上层调度器或外部编排器创建。当前环境可以创建 Terra 时，可明确回退至 Terra XHigh，不因 Luna 不可用而停止整个项目。Sol 直接实现只适用于 DEC-043 的例外，并必须更换最终 Reviewer。
+禁止静默替换和错误归因。实现任务必须请求准确的自定义 Agent 名称 `luna-worker`，并在创建前记录逻辑角色、配置路径、配置模型、推理强度、实际运行时模型可见性与验证状态。若当前会话无法发现 `luna-worker`，必须输出 `STATUS: BLOCKED_LUNA_WORKER_UNAVAILABLE`、停止新的实现任务并报告上下文；不得自动回退 Terra。Sol 直接实现只适用于 DEC-043 保留的例外，并必须更换最终 Reviewer。详细迁移与失败协议见 DEC-071。
 
 ---
 
@@ -83,7 +84,7 @@ Accepted Goal and authoritative docs
 ↓
 Sol/xhigh creates bounded Issue + task contract + dependency/file boundaries
 ↓
-Luna/max implements; if unavailable, explicitly route to Terra/xhigh
+Sol records model verification and creates exact custom Agent `luna-worker`
 ↓
 Implementer self-check + Required Checks + deterministic tests
 ↓
@@ -106,7 +107,7 @@ high-risk trigger: stop and request user decision
 - Agent 不得为了让文档看起来完整而补充未经讨论的事实。
 - Agent 不得静默删除、覆盖或改写历史决策；改变旧决定时必须保留追踪关系。
 - 在用户明确激活 Goal 前，不得编写业务实现代码或执行新的 Technical Spike。
-- 模型回退必须按 DEC-043 显式记录；不得静默替换、错误归因或降低质量要求。
+- 实现路由必须按 DEC-071 使用 `luna-worker`；未经用户明确许可不得自动或默认改用 Terra，也不得静默替换、错误归因或降低质量要求。
 - 实现 Agent 不得最终批准或合并自己的 PR；Sol 实现时必须更换独立 Reviewer。
 - 不得隐藏失败测试、已知缺陷或未解决风险。
 - 不得为低概率 Case 堆叠防御、机械 Rubric 或非重大核心风险引入哈希要求。
@@ -137,3 +138,5 @@ high-risk trigger: stop and request user decision
 - [../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md) — 演示 MVP 包络
 - [../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) — 产品定位与演示成功边界
 - [../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md](../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) — 多 Agent 开发编排与任务合同
+- [../decisions/dec-071-luna-worker-exclusive-implementation-routing.md](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md) — `luna-worker` 专属实现路由与迁移协议
+- [../handoffs/agent-model-routing-migration-2026-08-08.md](../handoffs/agent-model-routing-migration-2026-08-08.md) — 本次迁移审计报告

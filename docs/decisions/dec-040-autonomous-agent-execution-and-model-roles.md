@@ -6,9 +6,11 @@ Agent Governance / Git and GitHub Operations / Model Roles
 
 ## Status
 
-Accepted — Amended by [DEC-043](dec-043-sol-luna-terra-multi-agent-development-orchestration.md)
+Accepted — Amended by [DEC-043](dec-043-sol-luna-terra-multi-agent-development-orchestration.md) and [DEC-071](dec-071-luna-worker-exclusive-implementation-routing.md)
 
 > **Amendment notice（2026-08-06）：** 本文原有“指定实现模型不可用即暂停实现”的规则作为历史决定保留。当前规则由 DEC-043 修订为 Luna Max 优先、Terra XHigh 可显式回退；Sol 仅在列明例外下直接实现，且必须保持最终 Review 独立性。
+
+> **Amendment notice（2026-08-08）：** DEC-071 进一步暂停 Terra 自动或默认实现回退，要求通过准确的自定义 Agent 名称 `luna-worker` 创建实现线程；不可用时阻塞新的实现任务并报告，不得自动改用 Terra。分级自主权限、人工 Gate 与 Review 独立性保持不变。
 
 ## Decision
 
@@ -82,3 +84,5 @@ None.
 ## Amended By
 
 [DEC-043 — Sol / Luna / Terra 多 Agent 开发编排](dec-043-sol-luna-terra-multi-agent-development-orchestration.md)
+
+[DEC-071 — `luna-worker` 专属实现路由](dec-071-luna-worker-exclusive-implementation-routing.md)

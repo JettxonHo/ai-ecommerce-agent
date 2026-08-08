@@ -62,7 +62,7 @@
 - [x] 快速 MVP-0 Gate 已确认：完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 不再阻塞 MVP-0，进入 MVP-1 / 对应风险 Gate
 - [ ] TS-01 / TS-03 的 stop-first bounded compatibility slice 已写入对应 Foundation Issue 合同（不先建设大型独立 Spike）
 - [ ] MVP-0 Development Plan、Testing Strategy 与 Goal 文本已接受
-- [x] 已确认可用实现路由与独立 Reviewer：Luna/max 优先；不可用时按 DEC-043 显式路由 Terra/xhigh 或外部 Luna 线程
+- [x] 已确认实现路由与独立 Reviewer：使用准确的自定义 Agent `luna-worker`（配置 `gpt-5.6-luna` / `max`）；不可用时阻塞新的实现任务并报告，不自动回退 Terra（DEC-071）
 - [ ] 已通过 Implementation Readiness Review
 - [ ] 用户明确发出「进入 MVP-0 Goal」指令
 
@@ -82,7 +82,7 @@
 - **允许工作:** 最小 RFC-007、快速 MVP-0 测试 / 开发 / Goal 文档、精简 Readiness Review 与一致性 Review
 - **禁止工作:** Business / Production Implementation、Spike / Live Provider、依赖安装、公开部署、实际 Goal 启动
 - **用户 Goal 指令:** 未下达
-- **Agent 路由:** Luna/max 为首选实现 Agent；当前工具不能创建 Luna 时，可输出外部 Luna 任务包或显式使用 Terra/xhigh 回退，不因 Luna 暂时不可用单独阻塞 Goal，但必须保持任务合同、实际模型披露和 Review 独立性
+- **Agent 路由:** 边界明确的实现使用准确名称 `luna-worker`；每次创建前记录配置与运行时验证状态。不可发现时输出 `BLOCKED_LUNA_WORKER_UNAVAILABLE` 并停止新的实现任务；未经用户对具体任务明确许可，不得改用 Terra。任务合同、实际模型披露和 Review 独立性继续为硬约束
 
 ---
 
