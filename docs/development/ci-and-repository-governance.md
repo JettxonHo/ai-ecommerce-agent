@@ -2,14 +2,14 @@
 
 > **治理来源：** RFC-001（ACCEPTED，DQ-06 / DQ-08 / DQ-09 / DQ-10）· DEC-036 · DEC-038
 > **实施：** [FND-003 Issue #14](https://github.com/JettxonHo/ai-ecommerce-agent/issues/14)
-> **核心原则：** Local Configuration = CI Configuration。CI 复用 `apps/backend/` 的同一份 `pyproject.toml` / `uv.lock` / Ruff / Pyright / pytest / Import Linter 配置与 [backend README](../../apps/backend/README.md) 的统一命令。**不存在第二套 CI 专用质量规则。**
+> **核心原则：** Local Configuration = CI Configuration。CI 复用 `apps/backend/` 的同一份 `pyproject.toml` / `uv.lock` / Ruff / Pyright / pytest / Import Linter 配置、`apps/web/` 的 `package-lock.json` / npm scripts 与 [backend README](../../apps/backend/README.md) 的统一命令。**不存在第二套 CI 专用质量规则。**
 > **Current merge governance（2026-08-08）：** 本文中“用户最终 Merge”描述的是 FND-003 形成时的历史规则。未来 Goal 以 [DEC-040](../decisions/dec-040-autonomous-agent-execution-and-model-roles.md)、[DEC-043](../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md)、[DEC-071](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md) 与 [AGENTS.md](../../AGENTS.md) 为准：实现 Agent 必须按准确名称路由 `luna-worker`，不得自批或自合并；普通低风险 PR 可在 Required Checks 全绿、Sol 独立 Review 无阻塞后由 Sol 或另一非实现 Agent 合并；高风险事项保留人工 Gate。
 
 ---
 
 ## 1. Workflows 与 Stable Required Checks
 
-三个 Workflow 按职责分离，Workflow 级 `name:` 与 Job key 组合产生稳定检查名（不含 Python Patch Version、Matrix 动态值、随机标识或工具版本）：
+四个 Workflow 按职责分离，Workflow 级 `name:` 与 Job key 组合产生稳定检查名（不含 Python Patch Version、Matrix 动态值、随机标识或工具版本）：
 
 | Workflow 文件 | Workflow `name` | Job | Stable Check Name | 执行内容 |
 |---|---|---|---|---|
@@ -19,16 +19,19 @@
 | | | `architecture` | `quality / architecture` | `uv run lint-imports`（10 contracts）**＋** `uv run pytest -m architecture`（分步执行，失败输出可区分两者） |
 | `.github/workflows/backend-tests.yml` | `test` | `unit-contract` | `test / unit-contract` | `pytest -m unit` ＋ `pytest -m contract` ＋ `pytest -m "not live and not slow"` |
 | | | `package-build` | `test / package-build` | `uv lock --check`（Lockfile Drift）＋ `uv build` ＋ 隔离 venv 安装 wheel 的 Package Import Regression |
-| `.github/workflows/repository-security.yml` | `security` | `dependency-audit` | `security / dependency-audit` | `uv run pip-audit --progress-spinner off --skip-editable` |
+| `.github/workflows/repository-security.yml` | `security` | `dependency-audit` | `security / dependency-audit` | `uv run pip-audit --progress-spinner off --skip-editable` ＋ `npm ci --no-audit --no-fund` ＋ `npm audit --registry=https://registry.npmjs.org`（分别覆盖 `uv.lock` 与 `apps/web/package-lock.json`） |
 | | | `secret-detection` | `security / secret-detection` | gitleaks（全历史 + 工作树，`--redact`） |
+| `.github/workflows/web.yml` | `web` | `quality` | `web / quality` | `npm ci` ＋ `npm run format:check` ＋ `npm run lint` ＋ `npm run typecheck` |
+| | | `unit-contract` | `web / unit-contract` | `npm ci` ＋ `npm run test:unit` ＋ `npm run test:contract` ＋ `npm run build` |
+| | | `chromium` | `web / chromium` | `npm ci` ＋ `npm run test:e2e` |
 
-不存在的检查（也**不得**创建）：Integration / E2E / Live AI / Deployment Required Check。`live` 标记测试（真实外部网络或 Provider）永远不会在 CI 中运行。
+除 MVP0-036 的 `web / chromium` foundation shell smoke 外，不存在的检查（也**不得**创建）：backend Integration / full product E2E / Live AI / Deployment Required Check。`live` 标记测试（真实外部网络或 Provider）永远不会在 CI 中运行。
 
-这 8 个 Stable Check Name 与 `main` Branch Protection 的 Required Status Checks 一一对应。改名必须先更新 Branch Protection 并经过用户审查。
+这 11 个 Stable Check Name（既有 8 项加 3 项 Web checks）与 `main` Branch Protection 的 Required Status Checks 一一对应。`web / change-detection` 是非 Required 的辅助 Job；三个 Web contexts 在每个 PR / `main` push / 手动 dispatch 都会出现，无关 diff 只执行 checkout-free bounded no-op，受影响 diff 才安装依赖并运行 suite。改名必须先更新 Branch Protection 并经过用户审查。
 
 ## 2. 本地复现 Required Checks
 
-所有命令在 `apps/backend/` 下执行，与 CI 完全一致：
+Backend 命令在 `apps/backend/` 下执行，Web 命令在 `apps/web/` 下执行，与 CI 完全一致：
 
 | Stable Check | 本地命令 |
 |---|---|
@@ -38,8 +41,11 @@
 | `quality / architecture` | `uv run lint-imports && uv run pytest -m architecture` |
 | `test / unit-contract` | `uv run pytest -m unit && uv run pytest -m contract && uv run pytest -m "not live and not slow"` |
 | `test / package-build` | `uv lock --check && uv build`（Import Regression 见下） |
-| `security / dependency-audit` | `uv run pip-audit --progress-spinner off --skip-editable` |
+| `security / dependency-audit` | Backend: `uv run pip-audit --progress-spinner off --skip-editable`; Web: `npm ci --no-audit --no-fund && npm audit --registry=https://registry.npmjs.org` |
 | `security / secret-detection` | `gitleaks detect --source . --verbose --redact --no-banner` |
+| `web / quality` | `npm run format:check && npm run lint && npm run typecheck`（在 `apps/web/`） |
+| `web / unit-contract` | `npm run test:unit && npm run test:contract && npm run build`（在 `apps/web/`） |
+| `web / chromium` | `npm run test:e2e`（在 `apps/web/`） |
 
 一键质量门（backend README 统一入口，不含 security 两项）：
 
@@ -73,10 +79,10 @@ gitleaks detect --source . --verbose --redact --no-banner
 
 ## 3. 依赖安装与 Lockfile 纪律
 
-- 唯一安装命令：`uv sync --locked`（本地与 CI 相同）。
-- **禁止**在 CI 中执行 `pip install -U`、`uv lock`、`uv sync`（无 `--locked`）等会静默更新 Lockfile 的命令。
-- Lockfile Drift 由两道闸门拦截：`uv sync --locked`（lock 与 pyproject 不一致即失败）与 `test / package-build` 的 `uv lock --check`（lock 与源码需求不一致即失败）。
-- Lockfile 的合法更新只发生在本地开发分支：修改 `pyproject.toml` 后执行 `uv lock`，把 `pyproject.toml` 与 `uv.lock` 一并提交，由 CI 验证一致性。
+- 锁定环境分别使用 `uv sync --locked`（Backend）与 `npm ci --no-audit --no-fund`（Web；本地与 CI 相同）。
+- **禁止**在 CI 中执行 `pip install -U`、`uv lock`、`uv sync`（无 `--locked`）或 `npm install` 等会静默更新 Lockfile 的命令。
+- Lockfile Drift 由 Backend 的 `uv sync --locked` / `uv lock --check` 与 Web 的 `npm ci` 拦截；安全 Job 再对两份锁定环境执行审计。
+- Lockfile 的合法更新只发生在本地开发分支：Backend 修改 `pyproject.toml` 后执行 `uv lock`，Web 修改 `package.json` 后使用 npm 受控更新，把需求文件与对应 lockfile 一并提交，由 CI 验证一致性。
 
 ## 4. 工具版本锚定
 
@@ -98,7 +104,7 @@ gitleaks detect --source . --verbose --redact --no-banner
 
 gitleaks 不以 Action 引入（发布二进制 ＋ SHA-256 校验，见 §6）。新增第三方 Action 必须先在本表登记（SHA Pin ＋ 来源 ＋ License ＋ 用途 ＋ 权限），并经用户审查。
 
-## 5. Dependency Audit（pip-audit）
+## 5. Dependency Audit（pip-audit + npm audit）
 
 - `pip-audit` 作为 **dev/security 依赖锁定在 `uv.lock`**（`apps/backend/pyproject.toml` 的 `dev` 组）。
 - 审计对象是 `uv sync --locked` 后的**锁定环境**本身，因此审计结果与 `uv.lock` 的精确版本逐一对应。
@@ -116,6 +122,11 @@ gitleaks 不以 Action 引入（发布二进制 ＋ SHA-256 校验，见 §6）�
 | Accepted temporary risk | **必须**：单独 Issue ＋ 明确 CVE ＋ 明确影响 ＋ 明确缓解 ＋ **用户明确接受**。Agent 不得自行接受任何安全风险 |
 
 当前状态：`pip-audit` 审计结果 = **No known vulnerabilities found**（FND-003 实施时基线）。
+
+### npm 锁定环境
+
+- Web 审计对象是 `apps/web/package-lock.json` 对应的 Node 24.18.0 / npm 11.16.0 锁定安装环境。
+- `security / dependency-audit` 先执行 `npm ci --no-audit --no-fund`，再执行 `npm audit --registry=https://registry.npmjs.org`；命令不忽略漏洞、不使用 `continue-on-error`，可操作漏洞以非零退出阻断检查。
 
 ## 6. Secret Detection（gitleaks）
 
@@ -151,7 +162,7 @@ gitleaks 不以 Action 引入（发布二进制 ＋ SHA-256 校验，见 §6）�
 ## 7. Dependabot
 
 - 配置文件：`.github/dependabot.yml`。
-- 两个生态：`github-actions`（更新 SHA-pinned Actions）与 `uv`（`/apps/backend`，同时维护 `pyproject.toml` 与 `uv.lock`——因此 Dependabot PR 不会引入 Lockfile Drift）。
+- 三个生态：`github-actions`（更新 SHA-pinned Actions）、`uv`（`/apps/backend`，同时维护 `pyproject.toml` 与 `uv.lock`）与 `npm`（`/apps/web`，同时维护 `package.json` 与 `package-lock.json`——因此 Dependabot PR 不会引入 Lockfile Drift）。
 - 频率：weekly。
 - 纪律：
   - Dependabot PR **不自动 Merge**（仓库无任何 auto-merge 配置）；
@@ -172,7 +183,7 @@ gitleaks 不以 Action 引入（发布二进制 ＋ SHA-256 校验，见 §6）�
 
 ## 9. Workflow 权限与 Fork 安全
 
-- 三个 Workflow 一律 `permissions: contents: read`（最小权限）。没有任何 Job 获得 `contents: write` / `actions: write` / `pull-requests: write` / `issues: write`。
+- 四个 Workflow 一律 `permissions: contents: read`（最小权限）。没有任何 Job 获得 `contents: write` / `actions: write` / `pull-requests: write` / `issues: write`。
 - **仓库没有配置任何 Repository Secret**，Workflow 也不引用任何 Secret——Fork PR 天然无法获得 Secret。
 - 全仓库不使用 `pull_request_target`；普通测试 Job 不暴露任何写 Token。
 - 如未来某个操作确实需要更高权限：必须放在**独立 Workflow** 中、写明理由、经用户审查，且绝不在执行不可信 PR 代码的触发器上运行。
@@ -184,7 +195,7 @@ gitleaks 不以 Action 引入（发布二进制 ＋ SHA-256 校验，见 §6）�
 | 保护项 | 状态 |
 |---|---|
 | Require Pull Request（合并必须经过 PR） | 启用（`required_approving_review_count = 0`：个人 Portfolio 仓库，不配置不存在的 Reviewer 要求，避免用户无法自行 Merge） |
-| Require Required Status Checks（8 个 Stable Checks） | 启用，`strict = true`（要求分支与 `main` 保持最新） |
+| Require Required Status Checks（11 个 Stable Checks） | 启用，`strict = true`（要求分支与 `main` 保持最新） |
 | Require Conversation Resolution | 启用 |
 | Block Force Push | 启用（默认行为，未允许） |
 | Block Branch Deletion | 启用（默认行为，未允许） |
@@ -214,7 +225,7 @@ gitleaks 不以 Action 引入（发布二进制 ＋ SHA-256 校验，见 §6）�
 Coding Agent 在本仓库中**不得**：
 
 1. 自行 Merge 任何 PR（含 Dependabot PR、验证 PR）；
-2. 修改本文件 §1 的 Stable Check Name 或削弱任何质量门（Ruff / Pyright / pytest / Architecture / pip-audit / gitleaks）；
+2. 修改本文件 §1 的 Stable Check Name 或削弱任何质量门（Ruff / Pyright / pytest / Architecture / pip-audit / npm audit / gitleaks）；
 3. 在 CI 中引入 `continue-on-error`、`|| true` 或宽泛漏洞忽略；
 4. 使用 `pull_request_target`、向 Fork PR 注入 Secret、引用任何真实 Secret；
 5. 使用浮动 `main` 或不可信第三方 Action；新增第三方 Action 必须 SHA Pin ＋ 记录来源/用途/权限；
