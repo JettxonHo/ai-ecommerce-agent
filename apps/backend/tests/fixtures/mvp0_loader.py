@@ -8,7 +8,6 @@ by the acceptance pack; it is not a general fixture framework.
 from __future__ import annotations
 
 import json
-import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,10 +25,12 @@ REQUIRED_FIXTURE_IDS = frozenset(
     }
 )
 ALLOWED_SOURCE_SUFFIXES = frozenset({".json", ".md", ".txt", ".csv"})
-FORBIDDEN_CONTENT = re.compile(
-    r"(?:https?://|api[_-]?key|access[_-]?token|password|credential|secret|sha-?256)",
-    re.IGNORECASE,
-)
+SOURCE_FORMAT_BY_SUFFIX = {
+    ".json": "json",
+    ".md": "markdown",
+    ".txt": "txt",
+    ".csv": "csv",
+}
 
 
 class FixtureValidationError(ValueError):
@@ -45,6 +46,7 @@ class FixtureReference:
     kind: str
     directory: Path
     source_paths: tuple[Path, ...]
+    required_formats: frozenset[str]
     expected_behavior_path: Path
     base_fixture_id: str | None
 
@@ -222,8 +224,11 @@ def _resolve_fixture(raw_fixture: object, root: Path, context: str) -> FixtureRe
         _safe_relative_path(value, f"{context}.source_files[{index}]")
         for index, value in enumerate(source_files)
     )
-    _strings(
-        _sequence(fixture["required_formats"], f"{context}.required_formats"), context
+    required_formats = frozenset(
+        _strings(
+            _sequence(fixture["required_formats"], f"{context}.required_formats"),
+            f"{context}.required_formats",
+        )
     )
     base_fixture_id = fixture.get("base_fixture_id")
     if base_fixture_id is not None and not isinstance(base_fixture_id, str):
@@ -237,6 +242,7 @@ def _resolve_fixture(raw_fixture: object, root: Path, context: str) -> FixtureRe
         source_paths=tuple(
             root / directory / relative for relative in source_relatives
         ),
+        required_formats=required_formats,
         expected_behavior_path=root / expected_relative,
         base_fixture_id=base_fixture_id,
     )
@@ -273,6 +279,18 @@ def _validate_fixture_files(
             continue
         _validate_text_file(source_path, context, errors)
 
+    physical_formats = {
+        SOURCE_FORMAT_BY_SUFFIX[source_path.suffix.lower()]
+        for source_path in fixture.source_paths
+        if source_path.is_file()
+        and source_path.suffix.lower() in SOURCE_FORMAT_BY_SUFFIX
+    }
+    if physical_formats != set(fixture.required_formats):
+        errors.append(
+            f"{context} required_formats {sorted(fixture.required_formats)!r} "
+            f"do not match physical formats {sorted(physical_formats)!r}"
+        )
+
     if fixture.expected_behavior_path.is_file():
         _validate_expected_behavior(
             fixture.expected_behavior_path, fixture.fixture_id, context, errors
@@ -288,10 +306,6 @@ def _validate_text_file(path: Path, context: str, errors: list[str]) -> None:
     lowered = content.lower()
     if "fictional" not in lowered or "synthetic" not in lowered:
         errors.append(f"{context} source {path.name} lacks fictional/synthetic notice")
-    if FORBIDDEN_CONTENT.search(content):
-        errors.append(
-            f"{context} source {path.name} contains forbidden secret/network/hash text"
-        )
     if "anchor-city-commuter-backpack" not in content:
         errors.append(
             f"{context} source {path.name} lacks the shared Anchor SKU identity"

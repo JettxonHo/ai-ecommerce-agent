@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -102,3 +103,16 @@ def test_manifest_validation_rejects_missing_authority_key(tmp_path: Path) -> No
 
     with pytest.raises(FixtureValidationError, match="missing manifest keys"):
         load_manifest(invalid_manifest)
+
+
+@pytest.mark.unit
+def test_manifest_validation_rejects_required_format_drift(tmp_path: Path) -> None:
+    copied_root = tmp_path / "mvp0"
+    shutil.copytree(FIXTURE_ROOT, copied_root)
+    manifest_path = copied_root / "manifest.yaml"
+    document = json.loads(manifest_path.read_text(encoding="utf-8"))
+    document["fixtures"][0]["required_formats"] = ["json", "markdown", "txt"]
+    manifest_path.write_text(json.dumps(document), encoding="utf-8")
+
+    with pytest.raises(FixtureValidationError, match="required_formats"):
+        load_manifest(manifest_path)
