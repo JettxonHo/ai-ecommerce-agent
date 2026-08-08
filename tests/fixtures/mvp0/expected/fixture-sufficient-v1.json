@@ -1,0 +1,36 @@
+{
+  "fixture_id": "fixture-sufficient-v1",
+  "fixture_version": "v1",
+  "data_notice": {"fictional": true, "synthetic": true, "non_regulated": true},
+  "expected_behavior_kind": "semantic_behavior_contract",
+  "hard_gates": {
+    "input_acceptance": "minimum task and fact inputs are accepted without inventing extra required fields",
+    "stage_path": [
+      "fact",
+      "insight",
+      "positioning",
+      "human_review",
+      "marketing_brief",
+      "xiaohongshu_brief",
+      "markdown_export"
+    ],
+    "traceability": "key facts and decision-relevant insights point to the supplied source identity/version and usable locator",
+    "claim_integrity": "documented claims remain claims_to_verify and unsupported absolute, efficacy, certification, or disparaging claims do not enter Current Brief",
+    "review_gate": "Human Review remains a required decision point; generation or quality-check success is not approval",
+    "export_current_truth": "only the current, confirmed object versions can be exported"
+  },
+  "evidence_constraints": [
+    "No source, quote, locator, customer study, market result, or provider payload may be fabricated.",
+    "The synthetic comments are evidence inputs, not real customer research or a population estimate.",
+    "No uncalibrated numeric confidence or mechanical coverage total is required."
+  ],
+  "human_usability_inputs": [
+    "The operator can understand the main conclusion and its source context without knowing runtime internals.",
+    "The operator can distinguish facts, bounded inferences, claims_to_verify, limitations, and risks.",
+    "The operator can review the strategy and decide whether the two Markdown deliverables are useful for planning."
+  ],
+  "non_requirements": [
+    "Do not require exact model prose or a fixed sentence order.",
+    "Do not treat successful generation, QC, or adapter mapping as an approved business decision."
+  ]
+}

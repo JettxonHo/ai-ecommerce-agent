@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+REPO_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
+
+scripts=(lib.sh postgres-init.sh preflight up down status verify reset-demo test-static)
+for script in "${scripts[@]}"; do
+  path="$SCRIPT_DIR/$script"
+  [[ -x "$path" ]] || {
+    printf 'FAIL: %s is not executable\n' "$path" >&2
+    exit 1
+  }
+  bash -n "$path"
+done
+
+compose=(docker compose --project-name ai-ecommerce-agent-mvp0 --file "$REPO_ROOT/compose.yaml")
+"${compose[@]}" config --quiet
+[[ "$("${compose[@]}" config --services)" == postgres ]]
+[[ "$("${compose[@]}" config --images)" == postgres:16.14-bookworm ]]
+[[ "$("${compose[@]}" config --volumes)" == postgres-data ]]
+
+if grep -Eq -- '--volumes|down -v|volume rm' "$SCRIPT_DIR/up" "$SCRIPT_DIR/down" "$SCRIPT_DIR/status" "$SCRIPT_DIR/verify"; then
+  printf 'FAIL: default lifecycle command contains a destructive volume operation\n' >&2
+  exit 1
+fi
+grep -Fq -- 'down --volumes' "$SCRIPT_DIR/reset-demo"
+
+printf 'MVP-0 lifecycle static checks: PASS\n'

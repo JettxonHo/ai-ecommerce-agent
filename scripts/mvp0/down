@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+"$SCRIPT_DIR/preflight"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+printf 'Stopping MVP-0 PostgreSQL service; persistent demo volume is preserved.\n'
+mvp0_compose down
+printf 'MVP-0 PostgreSQL stopped. Use scripts/mvp0/up to start it again.\n'
