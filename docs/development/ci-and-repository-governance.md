@@ -21,8 +21,8 @@
 | | | `package-build` | `test / package-build` | `uv lock --check`（Lockfile Drift）＋ `uv build` ＋ 隔离 venv 安装 wheel 的 Package Import Regression |
 | `.github/workflows/repository-security.yml` | `security` | `dependency-audit` | `security / dependency-audit` | `uv run pip-audit --progress-spinner off --skip-editable` ＋ `npm ci --no-audit --no-fund` ＋ `npm audit --registry=https://registry.npmjs.org`（分别覆盖 `uv.lock` 与 `apps/web/package-lock.json`） |
 | | | `secret-detection` | `security / secret-detection` | gitleaks（全历史 + 工作树，`--redact`） |
-| `.github/workflows/web.yml` | `web` | `quality` | `web / quality` | `npm ci` ＋ `npm run format:check` ＋ `npm run lint` ＋ `npm run typecheck` |
-| | | `unit-contract` | `web / unit-contract` | `npm ci` ＋ `npm run test:unit` ＋ `npm run test:contract` ＋ `npm run build` |
+| `.github/workflows/web.yml` | `web` | `quality` | `web / quality` | `npm ci --no-audit --no-fund` ＋ `npm run format:check` ＋ `npm run lint` ＋ `npm run typecheck` ＋ `npm run build` |
+| | | `unit-contract` | `web / unit-contract` | `npm ci --no-audit --no-fund` ＋ `npm run test:unit` ＋ `npm run test:contract` |
 | | | `chromium` | `web / chromium` | `npm ci` ＋ `npm run test:e2e` |
 
 除 MVP0-036 的 `web / chromium` foundation shell smoke 外，不存在的检查（也**不得**创建）：backend Integration / full product E2E / Live AI / Deployment Required Check。`live` 标记测试（真实外部网络或 Provider）永远不会在 CI 中运行。
@@ -43,8 +43,8 @@ Backend 命令在 `apps/backend/` 下执行，Web 命令在 `apps/web/` 下执�
 | `test / package-build` | `uv lock --check && uv build`（Import Regression 见下） |
 | `security / dependency-audit` | Backend: `uv run pip-audit --progress-spinner off --skip-editable`; Web: `npm ci --no-audit --no-fund && npm audit --registry=https://registry.npmjs.org` |
 | `security / secret-detection` | `gitleaks detect --source . --verbose --redact --no-banner` |
-| `web / quality` | `npm run format:check && npm run lint && npm run typecheck`（在 `apps/web/`） |
-| `web / unit-contract` | `npm run test:unit && npm run test:contract && npm run build`（在 `apps/web/`） |
+| `web / quality` | `npm run format:check && npm run lint && npm run typecheck && npm run build`（在 `apps/web/`） |
+| `web / unit-contract` | `npm run test:unit && npm run test:contract`（在 `apps/web/`） |
 | `web / chromium` | `npm run test:e2e`（在 `apps/web/`） |
 
 一键质量门（backend README 统一入口，不含 security 两项）：
@@ -162,7 +162,7 @@ gitleaks 不以 Action 引入（发布二进制 ＋ SHA-256 校验，见 §6）�
 ## 7. Dependabot
 
 - 配置文件：`.github/dependabot.yml`。
-- 三个生态：`github-actions`（更新 SHA-pinned Actions）、`uv`（`/apps/backend`，同时维护 `pyproject.toml` 与 `uv.lock`）与 `npm`（`/apps/web`，同时维护 `package.json` 与 `package-lock.json`——因此 Dependabot PR 不会引入 Lockfile Drift）。
+- 两个生态：`github-actions`（更新 SHA-pinned Actions）与 `uv`（`/apps/backend`，同时维护 `pyproject.toml` 与 `uv.lock`——因此 Dependabot PR 不会引入 Lockfile Drift）。当前未配置 `npm` ecosystem；`apps/web` 的 npm Dependabot policy 是未来有界治理变更，不属于本次文档同步范围。
 - 频率：weekly。
 - 纪律：
   - Dependabot PR **不自动 Merge**（仓库无任何 auto-merge 配置）；

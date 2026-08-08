@@ -12,9 +12,9 @@ MVP-0 优先证明闭环、版本 / Current Truth、证据、恢复与人工可�
 
 ## 2. 当前基线
 
-- `apps/backend/` 已提供 Python 3.13 Package、Ruff、Pyright、pytest、Import Linter、Architecture Tests、Build 与 8 项 CI Gate；生产包当前只有最小 `__version__` / `py.typed`。
+- `apps/backend/` 已提供 Python 3.13 Foundation 与 Task Management Task / Run / Stage Domain / Persistence vertical slice（shared values、UoW / PostgreSQL adapter、Alembic `0002_task_management`、application commands 与 CAS），以及 Ruff、Pyright、pytest、Import Linter、Architecture Tests、Build 与 8 项 backend CI Gate；repository-wide strict checks 现为 11 项（backend 8 + Web 3）。
 - Spike-001 已证明 LangGraph 小型单线程 SQLite / scripted substitute 路径，但它是 disposable evidence，禁止复制进生产。
-- `apps/web/` 已由 MVP0-036（PR #104，merge `adcc38f`）交付 React 19 + TypeScript + Vite 8 no-API foundation shell、锁定 Node/npm tuple、local scripts 与 deterministic unit / contract / Chromium smoke，并接入独立 Web workflow；authored OpenAPI 与 M1 compatibility / fixture 物理载体已存在。API、Worker、Workflow Runtime、Model / Retrieval Runtime、业务模块和演示启动脚本仍由后续 Issues 负责。
+- `apps/web/` 已由 MVP0-036（PR #104，merge `adcc38f`）交付 React 19 + TypeScript + Vite 8 no-API foundation shell、锁定 Node/npm tuple、local scripts 与 deterministic unit / contract / Chromium smoke，并接入独立 Web workflow；authored OpenAPI 与 M1 compatibility / fixture 物理载体已存在。Source / Review / Brief persistence、API、Worker、Workflow Runtime、Model / Retrieval Runtime、业务 Skills、Web 业务页面与演示启动脚本仍由后续 Issues 负责；该 foundation 不调用 API，也不包含 generated client。
 - PostgreSQL、同步 SQLAlchemy / Psycopg、Alembic、LangGraph + 同步 `PostgresSaver`、React / TypeScript / Vite、OpenAI Responses 与 MVP-0 Retrieval 范围已经由 Accepted RFC 冻结。
 
 ## 3. MVP-0 范围
