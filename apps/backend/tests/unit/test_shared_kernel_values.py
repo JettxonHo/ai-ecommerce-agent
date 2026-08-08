@@ -101,6 +101,15 @@ def test_safe_context_is_copied_and_read_only() -> None:
         SafeContext.from_mapping(cast(Any, {"key": 1}))
 
 
+def test_project_error_is_raiseable_and_catchable() -> None:
+    error = ProjectError.from_context("conflict", "revision_conflict")
+
+    with pytest.raises(ProjectError) as caught:
+        raise error
+
+    assert caught.value is error
+
+
 def test_project_error_rejects_invalid_context() -> None:
     with pytest.raises(TypeError):
         ProjectError(cast(Any, ""), "code")

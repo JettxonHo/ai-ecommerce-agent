@@ -38,6 +38,11 @@ def test_no_undeclared_public_names() -> None:
         name
         for name in dir(ai_ecommerce_agent)
         if not name.startswith("_")
-        and not isinstance(getattr(ai_ecommerce_agent, name), types.ModuleType)
+        and not (
+            isinstance(getattr(ai_ecommerce_agent, name), types.ModuleType)
+            and getattr(getattr(ai_ecommerce_agent, name), "__name__", "").startswith(
+                "ai_ecommerce_agent."
+            )
+        )
     }
     assert public <= declared
