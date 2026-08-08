@@ -168,7 +168,7 @@
 | Web Workbench | DEC-055 / 056 / 062 | M7 `MVP0-036～042` | format/lint/type/unit/contract/build, critical Browser E2E, accessibility / reflow |
 | End-to-end release | DEC-041 / 042 / 048 | M8 `MVP0-043～046` | deterministic full flow, new environment, human usability, live smoke, final review |
 
-Candidate IDs 来自 [Accepted MVP-0 Goal](../goals/end-to-end-demo-mvp0-goal.md)。Goal 激活后按依赖创建实际 GitHub Issues，并把 Issue / PR 链接回填到本表。
+Candidate IDs 来自 [Active MVP-0 Goal](../goals/end-to-end-demo-mvp0-goal.md)。M1 已实例化为 [#64](https://github.com/JettxonHo/ai-ecommerce-agent/issues/64)、[#65](https://github.com/JettxonHo/ai-ecommerce-agent/issues/65)、[#66](https://github.com/JettxonHo/ai-ecommerce-agent/issues/66)、[#63](https://github.com/JettxonHo/ai-ecommerce-agent/issues/63) 与 [#67](https://github.com/JettxonHo/ai-ecommerce-agent/issues/67)；后续 Issue / PR 链接在执行时持续回填。
 
 ## Current Status（2026-08-08）
 
@@ -185,7 +185,7 @@ ARP-05 / ARP-06 / ARP-07 / ARP-08 = NOT CREATED
 Pre-development planning = COMPLETE
 TS-01 / TS-03 = AUTHORIZED only as bounded Goal compatibility Issues
 Business / Production Implementation = AUTHORIZED within Active Goal Issues
-Actual Goal = ACCEPTED / ACTIVATES ON PR #59 MERGE
+Actual Goal = ACTIVE (PR #59 merge bb8c658; M1 Issues #63～#67)
 
 Future Epic / Issue / Test links = PENDING Goal issue creation and implementation
 ```

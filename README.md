@@ -1,7 +1,7 @@
 # AI Ecommerce Agent
 
 > **Status: MVP-0 Goal Accepted · Development = READY**
-> RFC-001～007、Development Plan、Testing Strategy、MVP-0 Goal 与 Readiness Review 已接受。PR #59 合并后进入长期 Goal 执行；实现仅限有界 Issues，重大风险继续保留人工 Gate。
+> RFC-001～007、Development Plan、Testing Strategy、MVP-0 Goal 与 Readiness Review 已接受；PR #59 已合并，长期 Goal 正在执行。实现仅限有界 Issues，重大风险继续保留人工 Gate。
 
 ---
 
@@ -40,7 +40,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 当前执行入口
 
-开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。规划 [PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 合并后，Sol 按 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) 创建有界 Issues 并路由 `luna-worker`。
+开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。[PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 已合并；Sol 已按 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) 创建 M1 Issues #63～#67 并开始路由 `luna-worker`。
 
 - 首批执行顺序：authored OpenAPI 与固定 fixture → local PostgreSQL → TS-01 / TS-03 stop-first compatibility slices；
 - 每个 Issue 使用独立分支、任务合同、测试和 PR；实现者不得批准或合并自己的变更；

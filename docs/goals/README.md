@@ -12,6 +12,6 @@
 
 当前 Goal：
 
-- [端到端演示 MVP-0 Goal](end-to-end-demo-mvp0-goal.md) — `ACCEPTED / ACTIVATES ON PR #59 MERGE`
+- [端到端演示 MVP-0 Goal](end-to-end-demo-mvp0-goal.md) — `ACTIVE`（PR #59 merged；M1 Issues #63～#67）
 
 Goal 激活与长期自主执行遵守 [DEC-072](../decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md)。实现任务使用准确自定义 Agent `luna-worker`，实现者不得最终批准或合并自己的 PR。

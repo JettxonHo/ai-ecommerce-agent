@@ -1,12 +1,12 @@
 # 端到端演示 MVP-0 Goal
 
-> **Status: ACCEPTED — ACTIVATES ON PR #59 MERGE**
+> **Status: ACTIVE**
 >
 > **Owner:** Sol `ORCHESTRATOR_REVIEWER`
 >
 > **Implementer:** exact custom Agent `luna-worker` (`gpt-5.6-luna` / `max`, model status recorded per task)
 >
-> **Activation:** RFC-007、P-71A～P-73A、Development Plan、Testing Strategy、本 Goal 与精简 Readiness Review 已全部接受（DEC-073～075）。PR #59 合并后按 DEC-072 激活并创建首批 Issues。
+> **Activation:** ACTIVE since PR #59 merged at `bb8c658`; user explicitly confirmed “进入 Goal 执行阶段”. Long-running execution follows DEC-072 / 075.
 
 ## 1. 最终目标
 
@@ -17,7 +17,7 @@
 - Product Specification、Frontend Architecture、RFC-001～007 已 Accepted；Foundation FND-001～003 与 disposable Spike-001 已完成。
 - Production Package 当前是空业务 Foundation；API、PostgreSQL 实现、Migration、Worker、LangGraph Runtime、Model / Retrieval Runtime、业务 Skills 与 Frontend 尚不存在。
 - MVP-0 按 DEC-070 使用 JSON / text / TXT / Markdown / CSV + Direct / Exact / PostgreSQL Lexical；PDF 与 Embedding / Semantic / Hybrid 后移 MVP-1。
-- P-71A～P-73A 与完整策划包已接受；Goal 在规划 PR #59 合并后进入 ACTIVE。
+- P-71A～P-73A 与完整策划包已接受；规划 PR #59 已合并，Goal 当前为 ACTIVE。
 
 ## 3. 权威文档与阅读顺序
 
@@ -285,11 +285,21 @@ Sol Review 必须检查实际 Diff 和证据，不根据 PR 描述直接批准�
 ## 13. 当前进度与下一步
 
 ```text
-M0 Planning: IN PROGRESS
-M1–M8: NOT STARTED
-Active implementation Issues: 0
-Active luna-worker write tasks: 0
-Current blockers: P-68A/P-69A/P-70A, RFC-007 overall, P-71A/P-72A/P-73A,
-                  Development Plan, Testing Strategy, Goal, Readiness acceptance
-Next: complete consistency/readiness review, display package, obtain user decisions
+M0 Planning: COMPLETE (PR #59, merge bb8c658; Issue #58 closed)
+M1 Contract & Compatibility: IN PROGRESS
+M2–M8: NOT STARTED
+Active implementation Issues: #63, #64, #65, #66, #67
+Active luna-worker write tasks: pending first dispatch
+Current blockers: #63 and #67 depend on #66; no Goal-level blocker
+Next: dispatch #64 / MVP0-001 to exact luna-worker; independently review and merge before dependent consumers
 ```
+
+### Instantiated M1 Issues
+
+| Goal ID | GitHub Issue | State / dependency |
+|---|---|---|
+| MVP0-001 | [#64](https://github.com/JettxonHo/ai-ecommerce-agent/issues/64) | Ready — authored OpenAPI foundation |
+| MVP0-002 | [#65](https://github.com/JettxonHo/ai-ecommerce-agent/issues/65) | Ready — fictional acceptance fixtures |
+| MVP0-003 | [#66](https://github.com/JettxonHo/ai-ecommerce-agent/issues/66) | Ready — local PostgreSQL lifecycle |
+| MVP0-004 | [#63](https://github.com/JettxonHo/ai-ecommerce-agent/issues/63) | Blocked by #66 |
+| MVP0-005 | [#67](https://github.com/JettxonHo/ai-ecommerce-agent/issues/67) | Blocked by #66 |
