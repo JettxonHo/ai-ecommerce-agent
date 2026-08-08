@@ -168,7 +168,7 @@
 | Web Workbench | DEC-055 / 056 / 062 | M7 `MVP0-036～042` | format/lint/type/unit/contract/build, critical Browser E2E, accessibility / reflow |
 | End-to-end release | DEC-041 / 042 / 048 | M8 `MVP0-043～046` | deterministic full flow, new environment, human usability, live smoke, final review |
 
-Candidate IDs 来自 [Active MVP-0 Goal](../goals/end-to-end-demo-mvp0-goal.md)。M1 已实例化为 [#64](https://github.com/JettxonHo/ai-ecommerce-agent/issues/64)、[#65](https://github.com/JettxonHo/ai-ecommerce-agent/issues/65)、[#66](https://github.com/JettxonHo/ai-ecommerce-agent/issues/66)、[#63](https://github.com/JettxonHo/ai-ecommerce-agent/issues/63) 与 [#67](https://github.com/JettxonHo/ai-ecommerce-agent/issues/67)；后续 Issue / PR 链接在执行时持续回填。
+Candidate IDs 来自 [Active MVP-0 Goal](../goals/end-to-end-demo-mvp0-goal.md)。M1 已由 [#64](https://github.com/JettxonHo/ai-ecommerce-agent/issues/64)、[#65](https://github.com/JettxonHo/ai-ecommerce-agent/issues/65)、[#66](https://github.com/JettxonHo/ai-ecommerce-agent/issues/66)、[#63](https://github.com/JettxonHo/ai-ecommerce-agent/issues/63) 与 [#67](https://github.com/JettxonHo/ai-ecommerce-agent/issues/67) 完成交付；M2 已实例化为 [#77](https://github.com/JettxonHo/ai-ecommerce-agent/issues/77)～[#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82)，按单一 Migration head 依赖链执行。后续 Issue / PR 链接在执行时持续回填。
 
 ## Current Status（2026-08-08）
 
@@ -183,12 +183,12 @@ ARP-02 / ARP-03 / ARP-09 = ACCEPTED (TS-01 minimum slice only; full artifact pen
 ARP-05 / ARP-06 / ARP-07 / ARP-08 = NOT CREATED
 
 Pre-development planning = COMPLETE
-TS-01 / TS-03 = AUTHORIZED only as bounded Goal compatibility Issues
+TS-01 / TS-03 = COMPLETED / PASS as bounded Goal compatibility evidence
 Business / Production Implementation = AUTHORIZED within Active Goal Issues
-Actual Goal = ACTIVE (PR #59 merge bb8c658; M1 Issues #63～#67)
+Actual Goal = ACTIVE (PR #59 merge bb8c658; M1 COMPLETE; M2 Issues #77～#82 instantiated)
 
-M1 Issue links = CREATED (#63～#67)
-Later Issue / PR / Test links = PENDING dependency-driven execution and backfill
+M1 Issue / PR links = COMPLETE (#63～#67; PR #69 / #70 / #71 / #72 / #74)
+M2 Issue links = CREATED (#77～#82); implementation / PR / Test links = PENDING dependency-driven execution
 ```
 
 ## Historical Status Snapshot（PR #28 之前）

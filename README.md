@@ -40,13 +40,13 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 当前执行入口
 
-开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。[PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 已合并；Sol 已按 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) 创建 M1 Issues #63～#67 并开始路由 `luna-worker`。
+开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。[PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 已合并并激活 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md)。M1 Issues #63～#67 已全部关闭：authored OpenAPI、虚构验收资料、local PostgreSQL lifecycle、TS-01 transaction / fencing 与 TS-03 PostgresSaver / reconciliation 证据已交付；两个 stop-first Slice 均为 PASS。M2 Issues #77～#82 已按共享值对象 → UoW / PostgreSQL Adapter → Alembic baseline → 三个持久化纵向 Slice 的单一 Migration head 依赖链创建。
 
-- 首批执行顺序：authored OpenAPI 与固定 fixture → local PostgreSQL → TS-01 / TS-03 stop-first compatibility slices；
+- 当前执行顺序：M1 已完成；M2 从 [#77](https://github.com/JettxonHo/ai-ecommerce-agent/issues/77) 的 shared value objects 开始，后续 #78～#82 按依赖逐个解锁；
 - 每个 Issue 使用独立分支、任务合同、测试和 PR；实现者不得批准或合并自己的变更；
 - 高风险 / 不可逆 / 范围或公共契约变化继续请求用户确认。
 
-Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。物理 OpenAPI / Schema、fixtures 与真实 PostgreSQL 证据由 Goal 首批 Issues 实现。
+Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。M1 交付的是 Contract、Fixture、环境与兼容性证据；生产 Domain / Persistence / API / Worker / Web 仍只在后续有界 Issues 中实现。
 
 ## MVP-0 本地 PostgreSQL 生命周期
 

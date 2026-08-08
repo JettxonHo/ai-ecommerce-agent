@@ -286,20 +286,32 @@ Sol Review 必须检查实际 Diff 和证据，不根据 PR 描述直接批准�
 
 ```text
 M0 Planning: COMPLETE (PR #59, merge bb8c658; Issue #58 closed)
-M1 Contract & Compatibility: IN PROGRESS
-M2–M8: NOT STARTED
-Active implementation Issues: #63, #64, #65, #66, #67
-Active luna-worker write tasks: pending first dispatch
-Current blockers: #63 and #67 depend on #66; no Goal-level blocker
-Next: dispatch #64 / MVP0-001 to exact luna-worker; independently review and merge before dependent consumers
+M1 Contract & Compatibility: COMPLETE (PR #69 / #70 / #71 / #72 / #74; Issues #63～#67 closed)
+M2 Domain & Persistence: READY — Issues #77～#82 instantiated; #77 first
+M3–M8: NOT STARTED
+Active implementation Issues: #77, #78, #79, #80, #81, #82
+Active luna-worker write tasks: none at this checkpoint
+Current blockers: none for #77; #78～#82 remain dependency-blocked by the single-head chain
+Next: dispatch #77 / MVP0-006 to exact luna-worker after this checkpoint PR merges
 ```
 
 ### Instantiated M1 Issues
 
 | Goal ID | GitHub Issue | State / dependency |
 |---|---|---|
-| MVP0-001 | [#64](https://github.com/JettxonHo/ai-ecommerce-agent/issues/64) | Ready — authored OpenAPI foundation |
-| MVP0-002 | [#65](https://github.com/JettxonHo/ai-ecommerce-agent/issues/65) | Ready — fictional acceptance fixtures |
-| MVP0-003 | [#66](https://github.com/JettxonHo/ai-ecommerce-agent/issues/66) | Ready — local PostgreSQL lifecycle |
-| MVP0-004 | [#63](https://github.com/JettxonHo/ai-ecommerce-agent/issues/63) | Blocked by #66 |
-| MVP0-005 | [#67](https://github.com/JettxonHo/ai-ecommerce-agent/issues/67) | Blocked by #66 |
+| MVP0-001 | [#64](https://github.com/JettxonHo/ai-ecommerce-agent/issues/64) | COMPLETE — PR #70 / merge `54f9842` |
+| MVP0-002 | [#65](https://github.com/JettxonHo/ai-ecommerce-agent/issues/65) | COMPLETE — PR #69 / merge `220bbd0` |
+| MVP0-003 | [#66](https://github.com/JettxonHo/ai-ecommerce-agent/issues/66) | COMPLETE — PR #71 / merge `75e3325` |
+| MVP0-004 | [#63](https://github.com/JettxonHo/ai-ecommerce-agent/issues/63) | COMPLETE / TS-01 PASS — PR #72 / merge `f31f823` |
+| MVP0-005 | [#67](https://github.com/JettxonHo/ai-ecommerce-agent/issues/67) | COMPLETE / TS-03 PASS — PR #74 / merge `127e860` |
+
+### Instantiated M2 Issues
+
+| Goal ID | GitHub Issue | State / dependency |
+|---|---|---|
+| MVP0-006 | [#77](https://github.com/JettxonHo/ai-ecommerce-agent/issues/77) | READY — shared identity / revision / version / error values |
+| MVP0-007 | [#78](https://github.com/JettxonHo/ai-ecommerce-agent/issues/78) | Blocked by #77 — UoW / PostgreSQL adapter foundation |
+| MVP0-008 | [#79](https://github.com/JettxonHo/ai-ecommerce-agent/issues/79) | Blocked by #78 — Alembic baseline / migration verification |
+| MVP0-009 | [#80](https://github.com/JettxonHo/ai-ecommerce-agent/issues/80) | Blocked by #77 / #78 / #79 — Task / Run / Stage persistence |
+| MVP0-010 | [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) | Blocked by #80 — Source persistence |
+| MVP0-011 | [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) | Blocked by #80 / #81 — Review / Brief / Export persistence |
