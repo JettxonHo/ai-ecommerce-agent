@@ -1,0 +1,38 @@
+slice: MVP0-005
+issue: "#67"
+status: bounded-non-production
+resolved_at: "2026-08-08"
+python:
+  version: "3.13.14"
+  requirement: ">=3.13,<3.14"
+langgraph:
+  version: "1.2.9"
+  durability: sync
+checkpoint:
+  package: langgraph-checkpoint-postgres
+  version: "3.1.0"
+  core_version: "4.2.0"
+  store_schema: checkpoint_migrations_v9
+  migration_version: 9
+serializer_profile:
+  name: langgraph-default-serializer
+  version: "1"
+psycopg:
+  version: "3.2.10"
+  binary_version: "3.2.10"
+  pool_version: "3.2.6"
+postgresql:
+  image: postgres:16.14-bookworm
+  major: 16
+  expected_server: "16.14"
+compatibility:
+  exact_compatible: true
+  upgradable_converter: false
+  safe_downgrade: false
+official_evidence:
+  - https://docs.langchain.com/oss/python/langgraph/persistence
+  - https://reference.langchain.com/python/langgraph.checkpoint.postgres/PostgresSaver
+  - https://reference.langchain.com/python/langgraph.checkpoint.postgres/PostgresSaver/setup
+  - https://reference.langchain.com/python/langgraph/types/Durability
+  - https://reference.langchain.com/python/langgraph/graph/state/StateGraph
+  - https://github.com/langchain-ai/langgraph/blob/main/libs/checkpoint-postgres/langgraph/checkpoint/postgres/__init__.py
