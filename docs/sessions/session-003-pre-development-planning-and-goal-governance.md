@@ -1573,6 +1573,35 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - 用户授权合并 PR #57、关闭 Issue #56，并继续最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review。
 - 此接受仍不授权业务实现、Technical Spike、Live Provider、依赖安装或实际 Goal；必须先展示完整快速策划包，并再次获得“进入 MVP-0 Goal”的明确批准。
 
+## Minimal RFC-007 Proposal Round（2026-08-07）
+
+### Planning authorization
+
+RFC-005 整体接受后，用户授权继续已确认的最小 RFC-007 与快速 MVP-0 策划包。该授权允许起草与审查，不自动接受任何新 Proposal。
+
+### P-68 — Diagnostic plane and correlation
+
+- **P-68A（推荐）：** Python 标准日志输出 allowlisted JSON Lines；Server 生成 correlation 并经 Durable Work Intent / Run 传播；PostgreSQL 保存引用式最小 RuntimeErrorRecord；公共层只暴露 safe correlation reference；Secret / Prompt / Source /评论 / Provider payload 不进入日志；不建设通用 Redaction Engine。
+- **P-68B：** MVP-0 接入 OTel SDK + Collector + Backend；标准完整但扩大依赖与验收面。
+- **P-68C：** 只有 free-text / stack；最少但不能稳定关联异步 Run，也容易泄漏内容。
+
+### P-69 — Timeout, retry and backoff ownership
+
+- **P-69A（推荐）：** 每类 Retry 单一 owner，沿用 RFC-002 / 003 / 006 budgets；OpenAI SDK `max_retries=0`；非 Model Node 最多 1 次额外技术尝试；Frontend active poll 使用 1 / 2 / 5 秒有界 backoff；完整 Circuit Breaker 延后。
+- **P-69B：** 使用各 SDK / framework 默认；实现少但预算嵌套、真实调用次数不可解释。
+- **P-69C：** 完全不自动 Retry；简单但一次瞬时故障即破坏演示并把 Retry 误变 Rerun。
+
+### P-70 — Operational evidence and deferred platform
+
+- **P-70A（推荐）：** Durable records + correlated local timeline + 固定验收 Release Evidence Summary；无 OTel / Metrics Backend / Dashboard / Pager；完整平台能力后移 MVP-1 / deployment Gate。
+- **P-70B：** 先建完整本地 Observability stack；运维完整但把快速 MVP 变成平台项目。
+- **P-70C：** 只有 CI pass / fail；无法解释真实异步运行、Retry、Resume 与 Provider failure。
+
+### Proposal status
+
+- `P-68A / P-69A / P-70A = PROPOSED`；推荐组合尚待用户明确接受。
+- 本轮没有创建 DEC，没有把推荐方案写成 Accepted Current Truth，没有安装依赖、执行 Spike、调用 Live Provider、编写业务代码或创建实际 Goal。
+
 ## Agent Model Routing Correction（2026-08-08）
 
 ### User Decision
@@ -1597,3 +1626,70 @@ DEC-040 的“Luna 不可用即阻塞代码实现”规则由本轮明确修订�
 - 用户指令已归档为 [DEC-071](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md)，Amends DEC-040 / DEC-043，并同步 AGENTS、README、Collaboration Model、Decision Log 与 Implementation Readiness。
 - 完整审计见 [Agent 模型路由迁移报告](../handoffs/agent-model-routing-migration-2026-08-08.md) 与 [Issue #61](https://github.com/JettxonHo/ai-ecommerce-agent/issues/61)。
 - 迁移不改变 RFC-007 / MVP-0 范围，不接受 P-68A / P-69A / P-70A，不授权业务实现、Technical Spike、依赖安装、Live Provider 或 Goal 激活。
+
+## Long-running Autonomy and Agent Identity Directive（2026-08-08）
+
+### User Decision
+
+用户提供并要求执行《多 Agent 项目策划与长期自主开发总指令（Luna Worker 正确版）》。该指令明确：
+
+- Sol 主控先完成仓库 / GitHub / 测试 / 文档审计、产品与技术策划、Goal、Issue 拆分和任务合同；
+- 边界清晰的实现、测试与修复必须交给准确自定义 Agent `luna-worker`，不得自动回退 Terra；
+- 配置、实际运行时模型、线程、任务、权限与验收结果必须分开记录；
+- 开发前重大产品 / 架构选项与 Readiness Gate 仍由用户确认；闭合后按 Accepted Goal 连续执行，不停留在重复计划；
+- 普通低风险 PR 可在独立 Review 与 Required Checks 全绿后由非实现者合并；破坏性、不可逆、高风险、产品方向和主要技术栈变化继续请求人工确认；
+- 重要事实使用仓库文档、Issue、Commit、PR、Review 与测试证据交接，现有等价权威路径优先，不机械创建重复文件。
+
+### Archive Result
+
+- 指令已归档为 [DEC-072](../decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md)，并显式 Amends DEC-040 / DEC-043 / DEC-071；旧记录不删除。
+- 模型状态语义修正为：配置可读且正确、运行时实例模型未单独暴露时只记录 `CONFIG_VERIFIED`；本次 `luna-worker` 只读审计适用该状态。
+- 新指令构成策划与 Readiness 闭合后的持续执行授权，但不自动接受 P-68A / P-69A / P-70A、最小 RFC-007 整体或 Development Plan 中任何新的主要技术选择。
+- 当前仍不编写业务代码、不安装依赖、不执行生产 Spike / Live Provider；先完成快速 MVP-0 策划包并处理剩余人工 Decision Gate。
+
+## Rapid MVP-0 Development Plan Proposal Round（2026-08-08）
+
+### P-71 — Python HTTP Adapter
+
+- **P-71A（推荐）：** FastAPI + Uvicorn 仅作为 HTTP Adapter / Composition Root 依赖；`contracts/openapi/openapi.yaml` 是唯一 authored authority，runtime behavior / generated client 通过 Contract Tests 对齐，FastAPI 自动生成 Schema 不得覆盖权威文件。
+- **P-71B：** Starlette + 手工 DTO / OpenAPI Adapter；边界轻但为快速 MVP 增加校验与契约 plumbing。
+- **P-71C：** Flask / WSGI；成熟简单，但与当前 typed OpenAPI / async Run Monitor 适配较弱。
+
+### P-72 — Local reproducible stack
+
+- **P-72A（推荐）：** Compose 只管理一个 PostgreSQL Service，并初始化 Business / Checkpoint 两个独立 Database；仓库窄脚本负责 preflight、Migration、API / Worker / Web Host 进程与退出回收。
+- **P-72B：** API / Worker / Web / PostgreSQL 全部 Compose；环境统一但扩大镜像、构建和调试面。
+- **P-72C：** 全部 Host，用户自行安装 PostgreSQL；文件少但不满足新环境快速复现。
+
+### P-73 — Worker process
+
+- **P-73A（推荐）：** 项目自有同步 Python Poll Worker，直接实现 RFC-003 PostgreSQL Work Intent / Lease / Fencing / Commit Fence；不引入 Celery / Redis 或第二调度协议。
+- **P-73B：** Celery + Redis；生态成熟但新增 Broker 和重复 delivery / retry authority。
+- **P-73C：** API 进程内 Background Task；实现少但无法满足 durable dispatch / restart / multi-worker correctness。
+
+### Proposal Status and Planning Output
+
+- `P-71A / P-72A / P-73A = PROPOSED`；用户接受前 Implementer 不得选择 Framework、local orchestration 或 Worker framework。
+- 已生成 Proposed [Development Plan](../development/mvp0-development-plan.md)、[Testing Strategy](../development/testing-strategy.md)、[MVP-0 Goal](../goals/end-to-end-demo-mvp0-goal.md)、[RFC-007 Pre-acceptance Review](../reviews/review-2026-08-08-rfc-007-preacceptance-consistency.md) 与 [Rapid Readiness Review](../reviews/review-2026-08-08-rapid-mvp0-predevelopment-readiness.md)。
+- 文档包不创建实现 Issue、不写业务代码、不安装依赖、不执行 Technical Spike / Live Provider；下一步是用户 Decision Gate。
+
+## Rapid MVP-0 Final Acceptance and Goal Activation Gate（2026-08-08）
+
+### User Decision
+
+用户明确回复：
+
+> “接受 P-68A、P-69A、P-70A 与 RFC-007 整体；接受 P-71A、P-72A、P-73A；接受 Development Plan、Testing Strategy、MVP-0 Goal 与 Readiness Review 整体。”
+
+### Accepted Decisions
+
+- P-68A～P-70A 与 RFC-007 整体已归档为 [DEC-073](../decisions/dec-073-minimal-observability-and-runtime-operations.md)；RFC-007 DQ-01～03 = `ACCEPTED`。
+- P-71A～P-73A 已归档为 [DEC-074](../decisions/dec-074-mvp0-http-local-stack-and-worker-baseline.md)。
+- Development Plan、Testing Strategy、MVP-0 Goal 与 Readiness Review 的整体接受及 Goal 激活边界已归档为 [DEC-075](../decisions/dec-075-rapid-mvp0-planning-package-and-goal-activation.md)。
+
+### Archive Result
+
+- 开发前重大 Proposal 与 Readiness Gate 已全部闭合；PR #59 合并后按 DEC-072 / 075 激活长期 Goal，不再等待另一条固定启动口令。
+- 首批执行从 contract / fixture / local PostgreSQL 与 TS-01 / TS-03 stop-first compatibility Issues 开始；每个 Issue 使用独立任务合同、分支、测试和 PR。
+- 边界明确的实现只路由准确自定义 Agent `luna-worker`；未经用户对具体任务明确许可不使用 Terra。
+- 高风险、不可逆、产品范围或公共契约变化、主要技术栈更换、敏感数据与降低质量标准继续保留人工 Gate。

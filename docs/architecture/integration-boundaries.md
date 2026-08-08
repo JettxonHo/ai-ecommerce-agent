@@ -1,5 +1,7 @@
 # Integration Boundaries（集成边界）
 
+> **Current sync（2026-08-08）：** RFC-001～007 与 DEC-073～075 已接受。MVP-0 HTTP Adapter = FastAPI + Uvicorn，authored OpenAPI 是唯一公共契约权威；local stack = Compose PostgreSQL + host API / Worker / Web；Worker = 项目自有同步 poll loop；运行诊断采用 RFC-007 的 allowlisted event、correlation、单一 retry owner 与本地 Release Evidence。正文中的未确认项和禁止项若属于历史形成阶段，以本段、AGENTS 与最新 DEC 为准。
+
 > **Current sync（2026-08-07）：** RFC-001～006 已 Accepted。DEC-067～069 冻结 Source / Processing / Fragment、PostgreSQL-native Retrieval、server-derived Scope、Evidence commit、evaluation 与 degraded behavior。DEC-070 冻结 `text-embedding-3-small` / 1536 / cosine、Source / Evidence Operation catalog，并将快速采用顺序修订为 MVP-0 Direct / Exact / PostgreSQL Lexical + JSON / text / TXT / Markdown / CSV，MVP-1 text PDF + Embedding / Semantic / Hybrid。Source / Evidence Capability 负责 eligibility，RFC-003 Worker 承担耐久处理，Frontend 只消费真实 Capability / state。RFC-005 Final Review = PASS；RFC-007 只需闭合快速 MVP-0 最小运维契约。
 > **Product integration constraint sync（2026-08-07）：** DEC-060～062 要求 Skill / Review / Adapter 传播 Claim Integrity 而不建设通用合规系统；Retrieval 与 Source 处理默认限于当前 Task，移除 / 替换与物理删除分离；Frontend 外层增加最小 Task Index，但同一个深 TaskWorkbench 与 Typed Adapter Seam 不变。公共 List / Claim / Source Command、Retrieval 过滤和运行边界分别由 RFC-004 / 005 / 007 冻结。
 > **Historical expansion note：** 正文按 DEC-013～037 的形成顺序累积；其中 `NOT STARTED`、`NOT READY`、`下一动作 / 下一议题`、旧 PENDING 列表和 Spike Handoff 只记录当时状态，不是当前授权或执行指令。当前状态仅以上述 Current sync、[AGENTS.md](../../AGENTS.md) 与 [Implementation Readiness](../handoffs/implementation-readiness.md) 为准。

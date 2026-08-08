@@ -1,9 +1,9 @@
 # Spike-001 Temporary Stack
 
-> **Status: PLANNED — NOT STARTED**
+> **Current Status: HISTORICAL PLAN — SPIKE COMPLETED / MERGED**
 > 来源决定：[DEC-035](../../decisions/dec-035-technical-spike-temporary-stack-and-execution-contract.md)
 > 概念规格：[../../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md](../../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md)
-> **本文件是规划性质记录，不创建 Spike 代码。临时选择不构成任何生产承诺。**
+> **Historical planning record:** 本文件记录执行前临时栈；Spike 后续已完成。临时选择仍不构成任何生产承诺，结果以 [spike-report.md](spike-report.md) 为准。
 
 ---
 

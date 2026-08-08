@@ -2,9 +2,9 @@
 
 本目录是 AI Ecommerce Agent 项目的 **Proposal Layer（提案层）**，保存重大方案及其替代方案。
 
-> **当前阶段：** RFC Planning and Dependency Order（DEC-038 已接受）。  
-> **状态：** Architecture Readiness = `CONDITIONALLY READY` · Development Status = `CONDITIONALLY READY`。  
-> **当前状态：** Product Specification 与 RFC-001～006 已整体接受；[RFC-005](rfc-005-source-processing-and-retrieval-architecture.md) Final Consistency Review = PASS。用户已确认快速 MVP-0 Gate；最小 RFC-007 与快速策划包可继续策划，Implementation、Spike Execution 与 Goal Activation 仍未授权。
+> **当前阶段：** MVP-0 Goal Activation（DEC-075）。
+> **状态：** Architecture Readiness = `READY FOR MVP-0` · Development Status = `AUTHORIZED WITHIN ACTIVE GOAL`。
+> **当前状态：** Product Specification 与 RFC-001～007 已整体接受；快速 MVP-0 Development Plan、Testing Strategy、Goal 与 Readiness Review 已接受。PR #59 合并后进入 Goal 执行。
 
 ---
 
@@ -88,7 +88,7 @@ Merge RFC PR
 | RFC-004 | [API and Human Review Architecture](rfc-004-api-and-human-review-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受） |
 | RFC-005 | [Source Processing and Retrieval Architecture](rfc-005-source-processing-and-retrieval-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受；Final Review PASS） |
 | RFC-006 | LLM Runtime and Structured Output | Wave 2 | `ACCEPTED`（2026-08-06 用户明确整体接受） |
-| RFC-007 | Observability and Runtime Operations | Wave 4 | `PROPOSED` |
+| RFC-007 | [Minimal Observability and Runtime Operations for MVP-0](rfc-007-observability-and-runtime-operations.md) | Wave 4 | `ACCEPTED`（2026-08-08；DEC-073） |
 
 完整清单与依赖关系见 [rfc-register.md](rfc-register.md)。
 
@@ -272,4 +272,4 @@ RFC Agent 不得：
 | RFC-004 | [API and Human Review Architecture](rfc-004-api-and-human-review-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受） |
 | RFC-005 | [Source Processing and Retrieval Architecture](rfc-005-source-processing-and-retrieval-architecture.md) | Wave 3 | `ACCEPTED`（2026-08-07 用户明确整体接受；Final Review PASS） |
 | RFC-006 | [LLM Runtime and Structured Output](rfc-006-llm-runtime-and-structured-output.md) | Wave 2 | `ACCEPTED`（2026-08-06 用户明确整体接受） |
-| RFC-007 | Observability and Runtime Operations | Wave 4 | `PROPOSED` |
+| RFC-007 | [Minimal Observability and Runtime Operations for MVP-0](rfc-007-observability-and-runtime-operations.md) | Wave 4 | `ACCEPTED`（2026-08-08；DEC-073） |

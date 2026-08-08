@@ -1,9 +1,9 @@
 # MVP Testing Strategy
 
-> **Status: PARTIAL — product acceptance baseline accepted; implementation tooling and executable suites pending RFC / Goal**
-> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md) · [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md) · [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md) · [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · [DEC-058](../decisions/dec-058-fictional-anchor-sku-acceptance-fixture-strategy.md) · [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) · [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) · [DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md) · [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md) · [DEC-066](../decisions/dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md) · [DEC-067](../decisions/dec-067-versioned-source-intake-and-format-aware-fragment-contract.md) · [DEC-068](../decisions/dec-068-postgresql-native-versioned-and-deterministic-retrieval-baseline.md) · [DEC-069](../decisions/dec-069-authoritative-retrieval-scope-referenced-evidence-and-explicit-degradation.md) · [DEC-070](../decisions/dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md)
+> **Status: ACCEPTED FOR MVP-0**
+> **Authority:** [DEC-010](../decisions/dec-010-three-dimensional-mvp-evaluation-framework.md) · [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-052～070](../decisions/decision-log.md) · [DEC-073](../decisions/dec-073-minimal-observability-and-runtime-operations.md) · [DEC-075](../decisions/dec-075-rapid-mvp0-planning-package-and-goal-activation.md)
 
-本文件定义首个本地端到端演示 MVP 的测试与验收策略。它当前固化已接受的产品验收基线、DEC-052～054 / RFC-006 的模型契约，以及 DEC-055～056 的前端工具、交互与 Web 质量验证边界；不授权业务实现，也不提前冻结公共接口、Fixture 或未实例化的测试步骤。
+本文件定义首个本地端到端演示 MVP 的测试与验收策略。它固化已接受的产品验收基线、RFC-002～007 的运行与契约边界，以及 DEC-055～056 的前端工具、交互与 Web 质量要求；用户已整体接受下列物理布局、命令和证据格式。接受测试策略不代表 Fixture / Suite 已经存在，它们由 Goal Issues 实现和验证。
 
 ---
 
@@ -29,7 +29,7 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 | `fixture-conflict-v1` | 阻断性身份 / 关键事实冲突与恢复 | 进入 Needs Input；有限行动请求展示冲突、影响、来源 / 冲突值、允许动作与恢复范围；补料或确认后从正确阶段恢复，旧失效结果不成为 Current Truth。 |
 | `mutation-sufficient-v1` | 基于正常任务的版本与重跑脚本 | Source Version 更新、业务语义编辑、影响预览、陈旧 Review 拒绝、用户确认后的局部重跑，以及导出只使用当前有效版本。 |
 
-表中 ID 是产品策划期的可读逻辑标识，不代表实际文件已经创建。“城市通勤双肩包”及全部资料必须显式标为虚构测试数据。具体资料、expected output 和物理目录由 Goal 内独立测试 Issue 实例化并经 Review；版本变更写入变更说明，不使用内容哈希。
+表中 ID 是产品策划期的可读逻辑标识，不代表实际文件已经创建。“城市通勤双肩包”及全部资料必须显式标为虚构测试数据。Goal 内独立测试 Issue 按 §8 的物理布局实例化并经 Review；版本变更写入可读 manifest 与变更说明，不使用内容哈希。
 
 ## 3. 分层验证
 
@@ -47,7 +47,7 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 - 覆盖事务原子性、幂等、版本 Pointer、陈旧 Review、Interrupt / Resume、Cancel、Retry / Rerun、Stage Invalidation 和恢复；
 - Checkpoint 不得被测试误当 Business Current Truth。
 
-最终命令、Fixture 装载方式与故障注入边界由后续 Readiness / Development Plan / Goal Issue 补充；RFC-003 / 004 的架构与公共行为已接受。
+Fixture 装载方式与故障注入边界按 §8 物理化；RFC-003 / 004 的架构与公共行为已经接受。
 
 ### 3.3 Source 与 Retrieval
 
@@ -143,17 +143,104 @@ Goal 完成前必须同时满足：
 
 首个 Goal 不验收用户侧 PDF 或 JSON 文件导出。API JSON 属于 RFC-004 公共契约，不与用户导出格式混用。
 
-## 8. 尚待冻结
+## 8. MVP-0 物理测试计划
 
-- Anchor SKU 的具体虚构业务数据、文件布局与 expected-output 表示；
-- 前端精确工具版本、除 `dev` / `build` / `preview` 外的最终命令、CI Job 分组和浏览器证据保存格式；前端框架、核心测试工具、Accessibility / Browser / Reflow / Performance 边界已由 DEC-055 / 056 冻结；
-- Fixture / SDK Stub 的物理实现、Live Smoke 操作手册与证据文件格式；Provider、Version、Profile、Recovery、Secret / Payload / Telemetry、确定性替身分层与 Smoke 触发边界已由 DEC-052～054 冻结；
-- Integration / Migration / concurrency / failure-injection 的最终场景矩阵；
-- Markdown 模板、文件名与下载协议；视觉架构与样式边界已由 DEC-056 冻结；
-- 物理保留、Hold、删除 / 清理顺序与操作员重置证据；产品层只验收 DEC-061 的 Task 范围可逆移除，物理生命周期由 ARP-08、RFC-005 / 007 和 Development Plan 冻结；
-- 实际性能 Profile 基线、Beta 用户样本、埋点和 Dashboard；性能判定方法已由 DEC-056 冻结。
+### 8.1 Fixture authority
 
-这些事项必须由对应 Accepted RFC、Frontend Architecture、Development Plan 或 Goal Issue 冻结；未接受内容不得写成实现事实。
+唯一仓库级验收资料权威计划为：
+
+```text
+tests/fixtures/mvp0/
+  README.md                         fictional-data notice and use rules
+  manifest.yaml                     scenario IDs, readable versions, expected behaviors
+  sufficient-v1/                    JSON/text/TXT/Markdown/CSV source set
+  limited-v1/                       intentionally limited source set
+  conflict-v1/                      blocking identity/fact conflict source set
+  mutation-sufficient-v1/           readable mutation instructions and changed sources
+  expected/                         semantic-group and behavior expectations, not exact prose snapshots
+```
+
+- Backend、Browser E2E 与人工验收都引用同一 manifest，不复制三套业务数据；
+- expected 文件描述必需语义组、证据引用、限制、状态与动作，不固定完整模型措辞；
+- Fixture 不包含真实个人资料、真实评论、Secret、Provider payload 或外部下载依赖；
+- 版本身份使用可读 ID 与 manifest，不新增内容哈希；
+- MVP-0 不放入 PDF、图片、Embedding 或 Semantic expected data。
+
+### 8.2 Backend commands
+
+既有命令保持权威：
+
+```text
+uv run ruff format --check .
+uv run ruff check .
+uv run pyright
+uv run lint-imports
+uv run pytest -m unit
+uv run pytest -m contract
+uv run pytest -m architecture
+uv run pytest -m "not live and not slow"
+uv build
+```
+
+生产持久化进入后新增并在 `apps/backend/README.md` / CI 复用：
+
+```text
+uv run pytest -m integration
+uv run pytest -m "integration and migration"
+uv run pytest -m "integration and concurrency"
+uv run pytest -m e2e
+uv run pytest -m evaluation
+```
+
+若 pytest 物理 marker 不能表达子类别，Issue 可以采用明确测试路径而不新增泛化 marker；命令必须在 PR 中写实，不把不存在的命令标为已通过。真实 PostgreSQL Test Service 由 Development Plan 的本地栈提供，每个 suite 使用隔离 Database / Schema 与确定性清理。
+
+### 8.3 Frontend commands
+
+DEC-055 已冻结 `npm run dev / build / preview`。Frontend Foundation Issue 需一次性冻结并在 `apps/web/README.md` 与 CI 复用以下窄脚本名：
+
+```text
+npm run format:check
+npm run lint
+npm run typecheck
+npm run test:unit
+npm run test:contract
+npm run test:e2e
+npm run build
+```
+
+不创建平行的第二 formatter / linter / test runner。`test:e2e` 默认使用确定性本地 API / Model Substitute；Live Provider 不由 Browser Suite 启动。
+
+### 8.4 Required check evolution
+
+- 现有 8 项稳定 Gate 在整个 Goal 保持必需；不得改名或关闭以规避失败。
+- Backend 生产逻辑首次进入时，在独立 CI Issue 启用 branch coverage 80% Gate；关键业务不变量仍需行为测试，覆盖率不能代替。
+- OpenAPI lint / generated-client clean diff、真实 PostgreSQL Integration 和 Frontend checks 按其 foundation Issue 加入稳定 Required Checks；新增前先证明本地命令等价。
+- Integration / Browser / Live 不机械塞入每个无关 PR；受影响测试按 Task Contract 执行，完整矩阵在 Release Candidate 执行。
+
+### 8.5 Evidence records
+
+每个 PR 在描述中记录命令、退出状态与适用范围；CI 是合并证据。Release Candidate 在 `docs/reviews/` 保存一个可读的 Release Evidence Summary，包含：Commit、环境版本、fixture version、deterministic suites、Migration、concurrency / failure injection、Browser 截图索引、人工可用性、一次 Live Smoke、失败与限制。日志中只保存 RFC-007 接受的 allowlisted correlation 信息。
+
+### 8.6 Migration / concurrency / failure matrix
+
+最小矩阵必须覆盖：
+
+- fresh upgrade、one-step upgrade、失败回滚 / forward repair、旧进程 compatibility refusal；
+- two-worker claim、Lease takeover / higher fencing、stale worker commit rejection、concurrent review CAS、duplicate command replay；
+- Checkpoint 与 Business Current Truth 不一致的七动作 reconciliation；
+- Provider timeout / malformed structured output / bounded recovery exhaustion；
+- Source partial acceptance、CSV row issues、zero result、removed / replaced source exclusion；
+- API idempotency conflict、stale revision、Needs Input、cancel / resume / rerun；
+- Browser reload / deep link / polling stop / stale review / export basis conflict。
+
+每类先覆盖代表性分支与关键不变量，不为基本不可能的排列组合扩展矩阵。
+
+### 8.7 Deferred beyond MVP-0
+
+- text PDF、Embedding / Semantic / Hybrid、pgvector、ANN、Reranker / rewrite；
+- 物理永久删除 / Hold 平台、完整跨版本 Migration 矩阵；
+- Firefox / WebKit、手机设备矩阵、Visual Regression；
+- Observability Dashboard、Beta 用户样本、埋点与机械性能阈值。
 
 ## 9. 停止条件
 
@@ -166,4 +253,4 @@ Goal 完成前必须同时满足：
 
 ## 10. 完成边界
 
-本文只有在架构 RFC、Frontend Architecture、可执行测试命令、Fixture 实例、Goal 验收步骤和最终一致性 Review 均完成后，才能从 `PARTIAL` 更新为最终 Testing Strategy。DEC-048、DEC-058～062 的产品验收基线、Anchor SKU、Needs Input、Claim Integrity、Task 资料生命周期和最近任务行为已经 Accepted，但实际 Goal 仍未创建或激活。
+本文随快速 MVP-0 策划包被接受后可更新为 `ACCEPTED FOR MVP-0`。物理 Fixture、测试脚本与 CI Job 仍由 Goal 内独立 Issues 创建；在对应 PR 合并前不得声称它们已存在或已通过。DEC-048、DEC-058～062 的产品验收基线已经 Accepted；当前 Goal 仍未激活。

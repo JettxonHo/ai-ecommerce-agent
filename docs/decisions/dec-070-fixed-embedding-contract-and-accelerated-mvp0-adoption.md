@@ -2,12 +2,14 @@
 
 ## Metadata
 
-- **Status:** Accepted with explicit MVP-0 staging amendment
+- **Status:** Accepted with explicit MVP-0 staging amendment — activation wording amended by [DEC-072](dec-072-long-running-autonomy-and-agent-identity-governance.md)
 - **Date:** 2026-08-07
 - **Decision Type:** Retrieval Contract / Embedding Profile / Public API Catalog / Accelerated Delivery Gate
 - **Source:** Session-003；用户明确接受 `P-67A`，并同时确认快速 MVP-0 Gate
 - **Related Issue:** [#56](https://github.com/JettxonHo/ai-ecommerce-agent/issues/56)
 - **Related PR:** [#57](https://github.com/JettxonHo/ai-ecommerce-agent/pull/57)
+
+> **Amendment notice（2026-08-08）：** MVP-0 技术分期保持不变。DEC-072 已提供全部重大 Proposal 与 Readiness Gate 闭合后的持续执行授权，因此不再要求闭合后重复固定启动口令。
 
 ## Context
 

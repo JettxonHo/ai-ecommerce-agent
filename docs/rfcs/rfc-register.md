@@ -5,7 +5,7 @@
 > **关联：** [Architecture Readiness Review v1 Issue #3](https://github.com/JettxonHo/ai-ecommerce-agent/issues/3)
 > **纪律：** 本文件**只**登记 Required RFC 的**清单与优先级**，**不替用户接受任何 RFC**。每个 RFC 的实际创建（`rfc-NNN-*.md`）、讨论、接受与否，均由用户在后续 Decision Gate 决定。RFC ≠ Accepted Decision。
 > 
-> **Current truth（2026-08-07）：** Product Specification 与 RFC-001～006 已整体闭合；[RFC-005](rfc-005-source-processing-and-retrieval-architecture.md) Final Review = PASS。RFC-007 = `PROPOSED`。用户已接受快速 MVP-0 Gate：完整 ARP 与 TS-02 / 04 / 05 不再阻塞 MVP-0，只授权最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review 策划；Business / Production Implementation、Spike / Live call 与实际 Goal 仍未授权。
+> **Current truth（2026-08-08）：** Product Specification 与 RFC-001～007 已整体闭合；RFC-007 P-68A～P-70A 由 DEC-073 接受。P-71A～P-73A 与快速 MVP-0 Development Plan / Testing Strategy / Goal / Readiness 由 DEC-074 / 075 接受；PR #59 合并后激活 Goal。
 > **Historical snapshot：** 下列“当前阶段”长段和 RFC-001 DQ / Foundation 时间线保留其形成时状态；如与上面的 Current truth 或最新 Accepted Decision 冲突，以后者为准。
 > **当前阶段：** DEC-038 已接受，**RFC-001 已于 2026-07-30 被用户正式接受（`ACCEPTED`）**，DQ-01~DQ-10 全部 ACCEPTED 且 Final Consistency Review 通过。**RFC-002 已于 2026-08-04 被用户正式接受（`ACCEPTED`）**：RFC-002-DQ-01~DQ-17 全部 ACCEPTED（Pending Decision Questions = 0）；最终一致性审查未发现跨 DQ 实质架构冲突，Documentation-only Final Consistency Remediation 已消除文档状态冲突（详见 `rfc-002-persistence-and-transaction-architecture.md` §33 Decision Log 2026-08-04 Final Decision 记录）。RFC-002 的接受**不授权任何实现**：Implementation、Architecture Readiness Package、Technical Spikes、测试与基础设施均 NOT AUTHORIZED；PR #24 Merge = USER DECISION REQUIRED / NOT AUTHORIZED；后续 RFC、Architecture Readiness Package、Technical Spike 与 Persistence Implementation 不得违反或静默绕过 RFC-002。RFC-001 的接受**仅开放 Foundation Planning**；Foundation Implementation、Business Implementation 与 Production Implementation 仍未授权。**FND-001、FND-002 与 FND-003 Issue Candidate 均已经形成，Foundation Candidate Planning 与 Final Review（PASS，2026-07-30，Decision Conflict = NONE）均已完成**——当前 Candidate 状态（以 [../foundation/foundation-issue-candidates.md](../foundation/foundation-issue-candidates.md)「授权边界（恒定成立）」为基准）：**FND-001 = COMPLETED（PR #7 已合并，Merge Commit 5b75bcf，归档 PR #8）；FND-002 = IN REVIEW（Issue #9 已创建，实施完成并提交 PR #10，Merge = USER DECISION REQUIRED）；FND-003 = READY, BLOCKED BY FND-002**，Issue Creation / Implementation 均未授权。下一正式 Gate：**FND-002 Pull Request Review and Merge Gate**（由用户审查 FND-002 PR #10 并决定 Merge；Coding Agent 不得自行 Merge，用户 Merge 前 FND-002 Status 不标记 COMPLETED；FND-002 的授权不包括 FND-003 或任何业务实现；FND-002 完成并合并前不创建 FND-003 Issue / Branch / PR，不开始 FND-003 实施）。
 
@@ -15,7 +15,7 @@
 
 - 优先级 `P0` = 阻塞对应生产模块开始（开始该模块生产实现**前**必须接受）。
 - 优先级 `P1` = 建议在相关生产实现早期接受。
-- **RFC-001、RFC-002、RFC-003、RFC-004 与 RFC-006 已 `ACCEPTED`**（用户正式决定）；RFC-005 为 `DRAFTING`，RFC-007 为 `PROPOSED`。各 RFC 的正文与接受与否由用户在相应 Decision Gate 决定。
+- **RFC-001～RFC-007 已 `ACCEPTED`**（用户正式决定）。各 RFC 的正文与 Accepted DEC 为实施权威。
 - 在对应 RFC 被**接受**前，任何生产实现**不得**临场选择相关技术。
 
 ## Required RFC 清单
@@ -28,7 +28,7 @@
 | RFC-004 | **[API and Human Review Architecture](rfc-004-api-and-human-review-architecture.md)**（生产 API 边界、Human Review 提交/暂停协议、固定工作区边界） | Wave 3 | P0 | `ACCEPTED`（2026-08-07 用户明确整体接受） | Review / Orchestration 接口层 | DEC-007/029/044～047/055～057/059～066 · workflow/human-review spec | R-1 |
 | RFC-005 | **[Source Processing and Retrieval Architecture](rfc-005-source-processing-and-retrieval-architecture.md)**（生产检索：词法/向量/融合、权限与版本过滤、证据装配） | Wave 3 | P0 | `ACCEPTED`（2026-08-07 用户明确整体接受；Final Review PASS） | Retrieval & Evidence Runtime | DEC-014/025/032/039/045/047/057/059～061/067～070 · runtime/hybrid-retrieval spec | R-2 |
 | RFC-006 | **[LLM Runtime and Structured Output](rfc-006-llm-runtime-and-structured-output.md)**（生产 LLM Provider、结构化输出、真实模型 Smoke 策略、Secret 注入边界） | Wave 2 | P0 | `ACCEPTED`（2026-08-06 用户明确整体接受） | 所有 LLM 驱动 Skill | DEC-011/026/027/028/030/052/053/054 · skills specs | R-2 |
-| RFC-007 | **Observability and Runtime Operations**（结构化日志 / Tracing / Metrics、是否 OpenTelemetry、Retry/Timeout/Backoff/Circuit Breaker 生产参数） | Wave 4 | P1 | `PROPOSED` | Runtime Operations | DEC-033 · runtime/failure-recovery spec | R-1, R-4 |
+| RFC-007 | **[Minimal Observability and Runtime Operations for MVP-0](rfc-007-observability-and-runtime-operations.md)**（结构化日志、correlation、错误引用、Retry / Timeout / Backoff ownership 与本地运维证据） | Wave 4 | P1 | `ACCEPTED`（2026-08-08；DEC-073） | Runtime Operations | DEC-033 / 039 / 070 / 073 · RFC-002～006 · runtime/failure-recovery spec | R-1, R-4 |
 
 ## 与 Spike-001 Required RFC List 的映射
 

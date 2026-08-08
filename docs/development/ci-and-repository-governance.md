@@ -93,8 +93,8 @@ gitleaks detect --source . --verbose --redact --no-banner
 
 | Action | SHA Pin | 版本 | 来源 / 维护者 | License | 用途 | 授予权限 |
 |---|---|---|---|---|---|---|
-| `actions/checkout` | `11bd71901bbe5b1630ceea73d27597364c9af683` | v4.2.2 | GitHub 官方（`actions` org） | MIT | 检出仓库代码 | `contents: read`（Workflow 级） |
-| `astral-sh/setup-uv` | `d0cc045d04ccac9d8b7881df0226f9e82c39688e` | v6.8.0 | Astral 官方（`astral-sh` org） | MIT | 安装 uv（锚定 0.12.0）＋ Python（3.13.14）＋依赖缓存 | `contents: read`（Workflow 级） |
+| `actions/checkout` | `3d3c42e5aac5ba805825da76410c181273ba90b1` | v7.0.1 | GitHub 官方（`actions` org） | MIT | 检出仓库代码 | `contents: read`（Workflow 级） |
+| `astral-sh/setup-uv` | `c771a70e6277c0a99b617c7a806ffedaca235ff9` | v9.0.0 | Astral 官方（`astral-sh` org） | MIT | 安装 uv（锚定 0.12.0）＋ Python（3.13.14）＋依赖缓存 | `contents: read`（Workflow 级） |
 
 gitleaks 不以 Action 引入（发布二进制 ＋ SHA-256 校验，见 §6）。新增第三方 Action 必须先在本表登记（SHA Pin ＋ 来源 ＋ License ＋ 用途 ＋ 权限），并经用户审查。
 

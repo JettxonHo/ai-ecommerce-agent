@@ -1,5 +1,7 @@
 # Agent 模型路由迁移报告
 
+> **Amendment notice:** DEC-072 后续修正模型状态语义：本报告所述配置已验证、实例模型未暴露的情况当前只记录 `CONFIG_VERIFIED`；并已提供全部策划 / Readiness Gate 闭合后的持续执行授权。历史迁移事实不变。
+
 日期：2026-08-08
 
 状态：`COMPLETE_FOR_ROUTING_GOVERNANCE`
@@ -42,7 +44,7 @@
 配置模型：gpt-5.6-luna
 配置推理强度：max
 实际运行时模型：运行环境未暴露
-模型验证状态：CONFIG_VERIFIED / UNVERIFIED_RUNTIME_MODEL
+模型验证状态：CONFIG_VERIFIED
 ```
 
 只读探针已按准确 Agent 名称成功创建并完成；它确认可接收后续边界明确的任务合同，未修改文件、Branch、Issue 或 PR。运行环境没有提供足以把配置声明升级为实例运行事实的模型元数据，因此不得标记 `RUNTIME_VERIFIED`。
@@ -66,7 +68,7 @@
 1. Review 并合并本次 Agent 路由治理 PR，关闭 Issue #61。
 2. 回到 RFC-007 Gate，等待用户接受或调整 P-68A / P-69A / P-70A。
 3. 完成最小 RFC-007、Development Plan、Testing Strategy、Goal 与精简 Readiness Review，并展示完整策划包。
-4. 只有用户明确批准“进入 MVP-0 Goal”后，Sol 才创建边界明确的实现 Issue 与任务合同。
+4. 只有全部重大 Proposal 与 Readiness Gate 被接受后，Sol 才创建边界明确的实现 Issue 与任务合同；闭合后按 DEC-072 持续执行。
 5. 实现任务使用准确名称 `luna-worker`；完成后由 Sol 独立 Review。
 
 ## 11. 当前阻塞项
@@ -77,4 +79,4 @@
 
 ## 12. 是否需要用户操作
 
-路由迁移本身无需用户执行重启或重新安装；`luna-worker` 已可按准确名称创建。用户下一项必要操作是审阅本治理变更，并在 RFC-007 Gate 对 P-68A / P-69A / P-70A 作出决定。进入实现仍需在完整策划包展示后另行明确批准“进入 MVP-0 Goal”。
+路由迁移本身无需用户执行重启或重新安装；`luna-worker` 已可按准确名称创建。用户下一项必要操作是完成 RFC-007 与快速 MVP-0 策划包 Decision Gate。全部 Gate 闭合后按 DEC-072 激活 Goal，不再要求重复固定启动口令。

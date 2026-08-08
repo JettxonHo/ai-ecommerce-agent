@@ -151,28 +151,43 @@
 
 - `—`（Spike Scenario 列）表示该需求属**业务输出质量 / 契约层**，非 Spike-001 的运行时风险验证对象；其生产验证在对应 RFC 接受后、由 Future Test（占位）覆盖。
 - Spike-001 的临时实现（`spikes/spike-001-*/**`）**不**作为生产模块；Future Epic 实现对应 Skill / Runtime 时应基于 Accepted DEC + RFC 重新实现，而非直接迁移 Spike 代码。
-- `Future Epic` / `Future Test` 全部为空占位；只有在完整策划文档包与 Goal 文本被用户接受、最终 Implementation Readiness Review 通过，并收到用户明确的“进入 Goal 执行阶段”指令后方可实例化。RFC Acceptance 是必要条件，不是充分条件。
+- 历史明细行中的 `Future Epic` / `Future Test` 占位由下方 MVP-0 Implementation Map 统一解析；GitHub Issue 只有在完整策划文档包与 Goal 被接受、Readiness Review 通过后实例化。DEC-072 已提供 Gate 闭合后的持续执行授权；RFC Acceptance 是必要条件，不是充分条件。
 
-## Current Status（2026-08-07）
+## MVP-0 Implementation Map（Accepted Goal）
+
+| Requirement group | Accepted authority | Milestone / candidate Issues | Required verification |
+|---|---|---|---|
+| OpenAPI / public state / errors | DEC-063～066 / RFC-004 | M1 `MVP0-001`; M6 `MVP0-030～035` | OAS lint, representative Contract tests, generated-client clean diff |
+| Fictional acceptance data | DEC-048 / 058～062 | M1 `MVP0-002` | manifest validation, no real data, semantic behavior expectations |
+| PostgreSQL / UoW / Migration | RFC-002 | M1 `MVP0-003～004`; M2 `MVP0-006～011` | real PostgreSQL transaction, migration, concurrency, rollback / repair |
+| Workflow / Checkpoint / durable worker | DEC-049～051 / RFC-003 | M1 `MVP0-005`; M4 `MVP0-018～021` | PostgresSaver isolation, resume, lease / fencing, cancel, reconciliation |
+| Source / Evidence / Retrieval MVP-0 | DEC-067～070 / RFC-005 | M3 `MVP0-012～017` | processing lanes, SQL scope, lexical retrieval, validator, atomic evidence, evaluation |
+| Model Runtime | DEC-052～054 / RFC-006 | M4 `MVP0-022～023`; M5 `MVP0-025～029` | same-port substitute, offline adapter contracts, structured output behavior, one RC smoke |
+| Runtime operations | DEC-073 / RFC-007 | M4 `MVP0-024`; M8 `MVP0-045` | allowlisted event, correlation, retry owner, safe problem, release evidence |
+| Human Review / Brief / Export | DEC-044～048 / RFC-004 | M2 `MVP0-011`; M5 `MVP0-028～029`; M6 `MVP0-033～034` | stale rejection, atomic continuation, immutable brief / export, idempotency |
+| Web Workbench | DEC-055 / 056 / 062 | M7 `MVP0-036～042` | format/lint/type/unit/contract/build, critical Browser E2E, accessibility / reflow |
+| End-to-end release | DEC-041 / 042 / 048 | M8 `MVP0-043～046` | deterministic full flow, new environment, human usability, live smoke, final review |
+
+Candidate IDs 来自 [Accepted MVP-0 Goal](../goals/end-to-end-demo-mvp0-goal.md)。Goal 激活后按依赖创建实际 GitHub Issues，并把 Issue / PR 链接回填到本表。
+
+## Current Status（2026-08-08）
 
 ```text
 Spike-001 = COMPLETED
-RFC-001 / RFC-002 / RFC-003 / RFC-006 = ACCEPTED
-RFC-004 = ACCEPTED
-RFC-005 = ACCEPTED (2026-08-07; DQ-01～10 by DEC-067～070; Final Review PASS)
-RFC-007 = PROPOSED
+RFC-001～007 = ACCEPTED
+RFC-007 = ACCEPTED (2026-08-08; P-68A～P-70A by DEC-073)
 FND-001 / FND-002 / FND-003 = COMPLETED
 
 ARP-01 / ARP-04 / ARP-10 = ACCEPTED (full declared scope)
 ARP-02 / ARP-03 / ARP-09 = ACCEPTED (TS-01 minimum slice only; full artifact pending)
 ARP-05 / ARP-06 / ARP-07 / ARP-08 = NOT CREATED
 
-Pre-development planning = AUTHORIZED
-TS-01～TS-05 Execution = NOT AUTHORIZED
-Business / Production Implementation = NOT AUTHORIZED
-Actual Goal = NOT CREATED / NOT ACTIVATED
+Pre-development planning = COMPLETE
+TS-01 / TS-03 = AUTHORIZED only as bounded Goal compatibility Issues
+Business / Production Implementation = AUTHORIZED within Active Goal Issues
+Actual Goal = ACCEPTED / ACTIVATES ON PR #59 MERGE
 
-Future Epic / Issue / Test links = PENDING final planning package and Goal acceptance
+Future Epic / Issue / Test links = PENDING Goal issue creation and implementation
 ```
 
 ## Historical Status Snapshot（PR #28 之前）
