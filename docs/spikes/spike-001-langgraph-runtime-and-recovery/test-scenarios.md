@@ -1,8 +1,8 @@
 # Spike-001 — Test Scenarios
 
-> **Status: PLANNED — NOT STARTED**
+> **Current Status: HISTORICAL PLAN — SPIKE COMPLETED / MERGED**
 > **来源决定：** [DEC-034](../../decisions/dec-034-technical-spike-and-architecture-readiness-gate.md) · [DEC-035](../../decisions/dec-035-technical-spike-temporary-stack-and-execution-contract.md) · **概念规格：** [../../specs/readiness/technical-spike-and-architecture-readiness-gate.md](../../specs/readiness/technical-spike-and-architecture-readiness-gate.md) · [../../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md](../../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md)
-> 本文件记录 **12 个必选 / 可选 Spike 场景与各自成功标准**。临时测试栈（pytest + Scenario-based FaultPlan + Scripted Deterministic Model + CLI Scenario Runner）已由 DEC-035 确认；执行授权属下一议题，**尚未确认**。当前**不实现**测试代码。
+> 本文件记录执行前的 **12 个必选 / 可选 Spike 场景与各自成功标准**。执行已在后续授权下完成；最终覆盖与结果见 [test-results.md](test-results.md) / [spike-report.md](spike-report.md)。本历史文件不授权生产实现。
 
 ---
 

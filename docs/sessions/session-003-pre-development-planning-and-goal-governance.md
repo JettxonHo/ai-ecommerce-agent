@@ -1626,3 +1626,49 @@ RFC-005 整体接受后，用户授权继续已确认的最小 RFC-007 与快速
 - 用户指令已归档为 [DEC-071](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md)，Amends DEC-040 / DEC-043，并同步 AGENTS、README、Collaboration Model、Decision Log 与 Implementation Readiness。
 - 完整审计见 [Agent 模型路由迁移报告](../handoffs/agent-model-routing-migration-2026-08-08.md) 与 [Issue #61](https://github.com/JettxonHo/ai-ecommerce-agent/issues/61)。
 - 迁移不改变 RFC-007 / MVP-0 范围，不接受 P-68A / P-69A / P-70A，不授权业务实现、Technical Spike、依赖安装、Live Provider 或 Goal 激活。
+
+## Long-running Autonomy and Agent Identity Directive（2026-08-08）
+
+### User Decision
+
+用户提供并要求执行《多 Agent 项目策划与长期自主开发总指令（Luna Worker 正确版）》。该指令明确：
+
+- Sol 主控先完成仓库 / GitHub / 测试 / 文档审计、产品与技术策划、Goal、Issue 拆分和任务合同；
+- 边界清晰的实现、测试与修复必须交给准确自定义 Agent `luna-worker`，不得自动回退 Terra；
+- 配置、实际运行时模型、线程、任务、权限与验收结果必须分开记录；
+- 开发前重大产品 / 架构选项与 Readiness Gate 仍由用户确认；闭合后按 Accepted Goal 连续执行，不停留在重复计划；
+- 普通低风险 PR 可在独立 Review 与 Required Checks 全绿后由非实现者合并；破坏性、不可逆、高风险、产品方向和主要技术栈变化继续请求人工确认；
+- 重要事实使用仓库文档、Issue、Commit、PR、Review 与测试证据交接，现有等价权威路径优先，不机械创建重复文件。
+
+### Archive Result
+
+- 指令已归档为 [DEC-072](../decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md)，并显式 Amends DEC-040 / DEC-043 / DEC-071；旧记录不删除。
+- 模型状态语义修正为：配置可读且正确、运行时实例模型未单独暴露时只记录 `CONFIG_VERIFIED`；本次 `luna-worker` 只读审计适用该状态。
+- 新指令构成策划与 Readiness 闭合后的持续执行授权，但不自动接受 P-68A / P-69A / P-70A、最小 RFC-007 整体或 Development Plan 中任何新的主要技术选择。
+- 当前仍不编写业务代码、不安装依赖、不执行生产 Spike / Live Provider；先完成快速 MVP-0 策划包并处理剩余人工 Decision Gate。
+
+## Rapid MVP-0 Development Plan Proposal Round（2026-08-08）
+
+### P-71 — Python HTTP Adapter
+
+- **P-71A（推荐）：** FastAPI + Uvicorn 仅作为 HTTP Adapter / Composition Root 依赖；`contracts/openapi/openapi.yaml` 是唯一 authored authority，runtime behavior / generated client 通过 Contract Tests 对齐，FastAPI 自动生成 Schema 不得覆盖权威文件。
+- **P-71B：** Starlette + 手工 DTO / OpenAPI Adapter；边界轻但为快速 MVP 增加校验与契约 plumbing。
+- **P-71C：** Flask / WSGI；成熟简单，但与当前 typed OpenAPI / async Run Monitor 适配较弱。
+
+### P-72 — Local reproducible stack
+
+- **P-72A（推荐）：** Compose 只管理一个 PostgreSQL Service，并初始化 Business / Checkpoint 两个独立 Database；仓库窄脚本负责 preflight、Migration、API / Worker / Web Host 进程与退出回收。
+- **P-72B：** API / Worker / Web / PostgreSQL 全部 Compose；环境统一但扩大镜像、构建和调试面。
+- **P-72C：** 全部 Host，用户自行安装 PostgreSQL；文件少但不满足新环境快速复现。
+
+### P-73 — Worker process
+
+- **P-73A（推荐）：** 项目自有同步 Python Poll Worker，直接实现 RFC-003 PostgreSQL Work Intent / Lease / Fencing / Commit Fence；不引入 Celery / Redis 或第二调度协议。
+- **P-73B：** Celery + Redis；生态成熟但新增 Broker 和重复 delivery / retry authority。
+- **P-73C：** API 进程内 Background Task；实现少但无法满足 durable dispatch / restart / multi-worker correctness。
+
+### Proposal Status and Planning Output
+
+- `P-71A / P-72A / P-73A = PROPOSED`；用户接受前 Implementer 不得选择 Framework、local orchestration 或 Worker framework。
+- 已生成 Proposed [Development Plan](../development/mvp0-development-plan.md)、[Testing Strategy](../development/testing-strategy.md)、[MVP-0 Goal](../goals/end-to-end-demo-mvp0-goal.md)、[RFC-007 Pre-acceptance Review](../reviews/review-2026-08-08-rfc-007-preacceptance-consistency.md) 与 [Rapid Readiness Review](../reviews/review-2026-08-08-rapid-mvp0-predevelopment-readiness.md)。
+- 文档包不创建实现 Issue、不写业务代码、不安装依赖、不执行 Technical Spike / Live Provider；下一步是用户 Decision Gate。

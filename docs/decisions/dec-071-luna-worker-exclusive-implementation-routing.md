@@ -6,7 +6,9 @@ Agent Governance / Development Orchestration / Model Routing / Review Independen
 
 ## Status
 
-Accepted
+Accepted — Amended by [DEC-072](dec-072-long-running-autonomy-and-agent-identity-governance.md)
+
+> **Amendment notice（2026-08-08）：** 配置已验证、但运行时实例模型元数据未暴露时，当前状态只记录 `CONFIG_VERIFIED`；`UNVERIFIED_RUNTIME_MODEL` 仅用于配置或运行时均无法验证的情况。长期 Goal 的持续执行授权与人工 Gate 以 DEC-072 为准。
 
 ## Decision
 
@@ -93,4 +95,8 @@ None.
 
 ## Notes
 
-2026-08-08 的只读路由探针确认 `luna-worker` 可按准确名称创建，配置文件存在且声明 `gpt-5.6-luna` / `max`；当前工具未暴露实例模型元数据，因此验证记录为 `CONFIG_VERIFIED` 与 `UNVERIFIED_RUNTIME_MODEL`，不得宣称 `RUNTIME_VERIFIED`。
+2026-08-08 的只读路由探针确认 `luna-worker` 可按准确名称创建，配置文件存在且声明 `gpt-5.6-luna` / `max`；当前工具未暴露实例模型元数据。按后续 DEC-072 修订后的状态语义，本次记录为 `CONFIG_VERIFIED`，不得宣称 `RUNTIME_VERIFIED`。
+
+## Amended By
+
+[DEC-072 — 长期自主开发授权与严格 Agent 身份治理](dec-072-long-running-autonomy-and-agent-identity-governance.md)

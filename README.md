@@ -40,14 +40,13 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 当前策划缺口
 
-当前 Gate 顺序为：**最小 RFC-007 → 快速 MVP-0 Development Plan / Testing Strategy / Goal → 精简 Readiness Review → 完整展示**。Product Specification 与 RFC-001～006 已整体接受；[Issue #58](https://github.com/JettxonHo/ai-ecommerce-agent/issues/58) / RFC-007 正在策划，P-68A / P-69A / P-70A 仍为 Proposed。用户已接受快速 MVP-0 Gate，但完整展示与“进入 MVP-0 Goal”明确指令前不开发。
+当前 Gate 顺序为：**最小 RFC-007 → 快速 MVP-0 Development Plan / Testing Strategy / Goal → 精简 Readiness Review → 完整展示与接受**。Product Specification 与 RFC-001～006 已整体接受；[Issue #58](https://github.com/JettxonHo/ai-ecommerce-agent/issues/58) / RFC-007 正在策划，P-68A / P-69A / P-70A 及 Development Plan 新提案仍为 Proposed。用户已通过 DEC-072 提供全部 Gate 闭合后的长期自主执行授权，但未接受的 Proposal 仍阻塞开发。
 
-- Persona / JTBD 的后续研究证据；RFC-004 主协议和 OpenAPI closure 已由 DEC-063～066 冻结并整体接受；
-- RFC-007 minimal Observability / Runtime Operations；
-- ARP-02 / 03 / 09 完整 Artifact、ARP-05～08、TS-01～TS-05 Charter；
-- MVP Development Plan、Testing Strategy 的技术层补全与长期 Goal 最终文本。
+- P-68A～P-70A 与 RFC-007 minimal Observability / Runtime Operations 整体接受；
+- P-71A HTTP Adapter、P-72A local stack、P-73A Worker process 接受；
+- [快速 MVP-0 Development Plan](docs/development/mvp0-development-plan.md)、[Testing Strategy](docs/development/testing-strategy.md)、[Goal](docs/goals/end-to-end-demo-mvp0-goal.md) 与 [Readiness Review](docs/reviews/review-2026-08-08-rapid-mvp0-predevelopment-readiness.md) 整体接受。
 
-以上缺口必须在业务实现前闭合。模型运行基线已由 DEC-052～054 / RFC-006 冻结，Frontend 产品 / Module / 交互 / 质量边界已由 DEC-055～056 冻结；公共 API 与最终 Schema 仍未完成。
+以上缺口必须在业务实现前闭合。Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。模型运行基线已由 DEC-052～054 / RFC-006 冻结，Frontend 产品 / Module / 交互 / 质量边界已由 DEC-055～056 冻结；公共 API 语义已冻结，物理 OpenAPI / Schema 由 Goal 的首个 Contract Issue 实现。
 
 ## Wave 1 Readiness 状态
 
@@ -66,7 +65,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 | 自定义 Agent `luna-worker`（GPT-5.6 Luna `max`） | `IMPLEMENTER`：Goal 激活后按冻结规格和单一 Issue 完成代码实现 |
 | GPT-5.6 Terra `xhigh` | `AUXILIARY_IMPLEMENTER`：仅在用户对具体任务明确许可时参与；不作自动或默认实现回退 |
 
-实现 Agent 不得最终批准或合并自己的 PR。实现线程必须按准确名称创建 `luna-worker`；不可用时停止新的实现任务并报告，不得自动回退 Terra。详见 [AGENTS.md](AGENTS.md)、[DEC-071](docs/decisions/dec-071-luna-worker-exclusive-implementation-routing.md) 与 [Collaboration Model](docs/governance/collaboration-model.md)。
+实现 Agent 不得最终批准或合并自己的 PR。实现线程必须按准确名称创建 `luna-worker`；不可用时停止新的实现任务并报告，不得自动回退 Terra。配置已验证、运行时未暴露时只记 `CONFIG_VERIFIED`。详见 [AGENTS.md](AGENTS.md)、[DEC-071](docs/decisions/dec-071-luna-worker-exclusive-implementation-routing.md)、[DEC-072](docs/decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md) 与 [Collaboration Model](docs/governance/collaboration-model.md)。
 
 ---
 
@@ -96,4 +95,4 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 开发状态
 
-**CONDITIONALLY READY（规划范围）** — Foundation、Product Specification、RFC-001～006 与 Frontend Architecture 已完成。快速 MVP-0 只需再闭合最小 RFC-007、Development Plan、Testing Strategy、Goal 文本和精简 Readiness Review；完整策划包展示后仍需用户明确批准“进入 MVP-0 Goal”，才可开始开发。详见 [Implementation Readiness](docs/handoffs/implementation-readiness.md) 与 [AGENTS.md](AGENTS.md)。
+**CONDITIONALLY READY（规划范围）** — Foundation、Product Specification、RFC-001～006 与 Frontend Architecture 已完成。快速 MVP-0 只需再闭合最小 RFC-007、Development Plan、Testing Strategy、Goal 文本和精简 Readiness Review。完整策划包和重大 Proposal 被接受后，DEC-072 的持续执行授权允许激活 Goal；当前尚未达到该状态。详见 [Implementation Readiness](docs/handoffs/implementation-readiness.md) 与 [AGENTS.md](AGENTS.md)。

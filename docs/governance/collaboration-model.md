@@ -10,7 +10,7 @@
 
 - 接受、修改、否决或暂缓决定。
 - 是唯一能把 Proposed Decision 升级为 Accepted Decision 的一方。
-- 是唯一能接受 RFC、批准范围变化与下达「进入 Goal 执行阶段」指令的一方。
+- 是唯一能接受 RFC、重大技术 / 产品 Proposal 与范围变化的一方；已通过 DEC-072 提供全部 Gate 闭合后的长期 Goal 持续执行授权。
 - 批准破坏性操作、重大架构变更、数据迁移、不可逆外部操作和最终发布条件。
 
 ### 1.2 主控与审阅 Agent（GPT-5.6 Sol / `xhigh` / `ORCHESTRATOR_REVIEWER`）
@@ -49,7 +49,7 @@
 
 ### 1.6 模型路由与可用性
 
-禁止静默替换和错误归因。实现任务必须请求准确的自定义 Agent 名称 `luna-worker`，并在创建前记录逻辑角色、配置路径、配置模型、推理强度、实际运行时模型可见性与验证状态。若当前会话无法发现 `luna-worker`，必须输出 `STATUS: BLOCKED_LUNA_WORKER_UNAVAILABLE`、停止新的实现任务并报告上下文；不得自动回退 Terra。Sol 直接实现只适用于 DEC-043 保留的例外，并必须更换最终 Reviewer。详细迁移与失败协议见 DEC-071。
+禁止静默替换和错误归因。实现任务必须请求准确的自定义 Agent 名称 `luna-worker`，并在创建前记录逻辑角色、配置路径、配置模型、推理强度、实际运行时模型可见性与验证状态。配置已验证但运行时实例模型未暴露时只记 `CONFIG_VERIFIED`；Agent 自述不能成为 `RUNTIME_VERIFIED`。若当前会话无法发现 `luna-worker`，必须输出 `STATUS: BLOCKED_LUNA_WORKER_UNAVAILABLE`、停止新的实现任务并报告上下文；不得自动回退 Terra。Sol 直接实现只适用于 DEC-043 保留的例外，并必须更换最终 Reviewer。详细迁移、身份与失败协议见 DEC-071 / 072。
 
 ---
 
@@ -106,7 +106,7 @@ high-risk trigger: stop and request user decision
 - 仅有用户的明确批准语义（同意 / 确认 / 接受 / 就按这个方案 / 该决策通过 / 其他语义明确的批准）才能标记 Accepted。
 - Agent 不得为了让文档看起来完整而补充未经讨论的事实。
 - Agent 不得静默删除、覆盖或改写历史决策；改变旧决定时必须保留追踪关系。
-- 在用户明确激活 Goal 前，不得编写业务实现代码或执行新的 Technical Spike。
+- 在所有重大 Proposal、策划包与 Readiness Gate 被接受前，不得编写业务实现代码或执行新的 Technical Spike；闭合后按 DEC-072 持续执行 Accepted Goal。
 - 实现路由必须按 DEC-071 使用 `luna-worker`；未经用户明确许可不得自动或默认改用 Terra，也不得静默替换、错误归因或降低质量要求。
 - 实现 Agent 不得最终批准或合并自己的 PR；Sol 实现时必须更换独立 Reviewer。
 - 不得隐藏失败测试、已知缺陷或未解决风险。
@@ -139,4 +139,5 @@ high-risk trigger: stop and request user decision
 - [../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) — 产品定位与演示成功边界
 - [../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md](../decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) — 多 Agent 开发编排与任务合同
 - [../decisions/dec-071-luna-worker-exclusive-implementation-routing.md](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md) — `luna-worker` 专属实现路由与迁移协议
+- [../decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md](../decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md) — 长期自主开发授权、模型状态与人工 Gate
 - [../handoffs/agent-model-routing-migration-2026-08-08.md](../handoffs/agent-model-routing-migration-2026-08-08.md) — 本次迁移审计报告

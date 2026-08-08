@@ -66,4 +66,4 @@
 
 ## 索引
 
-见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 [DEC-071](dec-071-luna-worker-exclusive-implementation-routing.md)；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。
+见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 [DEC-072](dec-072-long-running-autonomy-and-agent-identity-governance.md)；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。

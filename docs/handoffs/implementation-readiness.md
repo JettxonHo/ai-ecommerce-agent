@@ -4,7 +4,7 @@
 >
 > Foundation、Product Specification、RFC-001～006 已完成。Business / Production Implementation、Spike / Live call 和实际 Goal 均未授权。
 >
-> **Current Gate（2026-08-07）：** RFC-005 已整体接受，Final Consistency Review = PASS。用户已确认快速 MVP-0 Gate：之后只闭合最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review。完整展示前不启动开发。
+> **Current Gate（2026-08-08）：** RFC-005 已整体接受，Final Consistency Review = PASS。最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review 已形成完整 Draft；P-68A～P-73A、RFC-007 整体和策划包仍待用户接受。DEC-072 已提供全部 Gate 闭合后的持续执行授权，但当前仍不启动开发。
 
 进入开发至少需要以下条件**全部**满足，并须先通过 Implementation Readiness Review（见 [../reviews/](../reviews/)），再由用户明确批准。
 
@@ -50,6 +50,7 @@
 - [x] RFC-005 exact Embedding Profile、Source / Evidence Operation / Schema catalog 与快速 MVP-0 staging 已接受（DEC-070；P-67A / DQ-10）；Final Consistency Review = PASS
 - [x] 用户已明确接受 RFC-005 整体（2026-08-07）
 - [ ] 最小 RFC-007（日志、correlation、有限 timeout / retry / backoff、错误与 Secret redaction；无完整 telemetry platform）已接受
+- [ ] P-71A HTTP Adapter、P-72A local stack、P-73A Worker process 方案已接受
 - [x] 关键 Agent、Workflow、Human Review 与 Skill 边界已确认
 - [x] Retrieval / Evidence 与 Skill 的概念职责已确认
 - [x] 外部 Skill 供体的 Adapt / Reference 策略已确认
@@ -60,11 +61,12 @@
 - [ ] 完整测试与验收标准已存在（产品验收包与必要行为门禁由 DEC-048 确认；Frontend 工具 / 质量边界由 DEC-055 / 056 确认；Fixture 实例与最终 E2E 步骤待 Testing Strategy 补全）
 - [ ] 文档不存在未同步或冲突部分
 - [x] 快速 MVP-0 Gate 已确认：完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 不再阻塞 MVP-0，进入 MVP-1 / 对应风险 Gate
-- [ ] TS-01 / TS-03 的 stop-first bounded compatibility slice 已写入对应 Foundation Issue 合同（不先建设大型独立 Spike）
+- [x] TS-01 / TS-03 的 stop-first bounded compatibility slice 已写入 Proposed Goal 的 `MVP0-004 / MVP0-005` Foundation compatibility task contracts（不先建设大型独立 Spike）
+- [x] MVP-0 Development Plan、Testing Strategy 与 Goal 完整 Draft 已存在
 - [ ] MVP-0 Development Plan、Testing Strategy 与 Goal 文本已接受
 - [x] 已确认实现路由与独立 Reviewer：使用准确的自定义 Agent `luna-worker`（配置 `gpt-5.6-luna` / `max`）；不可用时阻塞新的实现任务并报告，不自动回退 Terra（DEC-071）
 - [ ] 已通过 Implementation Readiness Review
-- [ ] 用户明确发出「进入 MVP-0 Goal」指令
+- [x] 用户已通过 DEC-072 提供所有 Gate 闭合后的长期 Goal 持续执行授权；无需重复固定口令
 
 ---
 
@@ -79,9 +81,10 @@
 - **产品交互与验收:** 单任务工作台、确认式局部重跑、输入门禁、审核 / Brief / Evidence / Recovery / Markdown 导出 = ACCEPTED（DEC-044～048）；产品 / 技术权威边界、虚构 Anchor SKU、有限结构化 Needs Input、证据约束声明完整性、Task 范围资料与可逆移除、最小最近任务入口 = ACCEPTED（DEC-057～062）；前端应用 / 状态 / Contract Generation / Verification Foundation = ACCEPTED（DEC-055）；深 TaskWorkbench、Primitive / Styling、私有投影、revision-safe Autosave / Diff、Accessibility / Browser / Reflow / Performance = ACCEPTED，外层 Router 由 DEC-062 增加 `/tasks` 入口（DEC-056 / 062）。Product Final Consistency Review = PASS，Product Specification 整体闭合已由用户接受；API 主协议与最终 OpenAPI Operation / Schema / state / adoption closure 已由 DEC-063～066 接受，RFC-004 Final Review = PASS，用户已明确接受 RFC-004 整体；物理生命周期与 Fixture 载体仍待 Readiness / Testing Strategy
 - **Workflow Runtime:** 独立 PostgreSQL Checkpoint Database、同步 `PostgresSaver`、`sync` durability、可重入 Node 与 Current-Truth-first Reconciliation = ACCEPTED（DEC-049 / RFC-003）；PostgreSQL Work Intent + Poll-and-claim、数据库权威 Lease / Heartbeat / Fencing Token、协作式 Cancellation / Supersession + Commit Fence = ACCEPTED（DEC-050 / RFC-003）；显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移、Forward Repair 与风险切片证据边界 = ACCEPTED（DEC-051 / RFC-003）。精确实施版本、最终公共字段与运维参数仍待实施证据、RFC-004 / 007
 - **LLM Runtime:** OpenAI Responses API + `gpt-5.6-terra`、typed sync Port、Adapter 隔离、Strict Output → 项目 Schema → Domain Validator、有界 Recovery、可读 Version Tuple、五个固定 Profile、确定性 Context Assembly、Adapter Secret / Payload Allowlist、同 Port Scripted Substitute、断网三层 Contract Tests 与单次人工 RC Smoke = ACCEPTED（DEC-052～054 / RFC-006）；精确实施版本、Token / Timeout 与实际 Provider 兼容性仍待实施证据
+- **Planning Package:** Development Plan / Testing Strategy / Goal / Readiness Review = COMPLETE DRAFT；P-71A / P-72A / P-73A proposed
 - **允许工作:** 最小 RFC-007、快速 MVP-0 测试 / 开发 / Goal 文档、精简 Readiness Review 与一致性 Review
 - **禁止工作:** Business / Production Implementation、Spike / Live Provider、依赖安装、公开部署、实际 Goal 启动
-- **用户 Goal 指令:** 未下达
+- **用户 Goal 指令:** DEC-072 已提供未来持续执行授权；当前因未接受 Proposal / Readiness Gate 尚未激活
 - **Agent 路由:** 边界明确的实现使用准确名称 `luna-worker`；每次创建前记录配置与运行时验证状态。不可发现时输出 `BLOCKED_LUNA_WORKER_UNAVAILABLE` 并停止新的实现任务；未经用户对具体任务明确许可，不得改用 Terra。任务合同、实际模型披露和 Review 独立性继续为硬约束
 
 ---
@@ -89,6 +92,6 @@
 ## 状态变更规则
 
 - `CONDITIONALLY READY` 只表示允许完成快速 MVP-0 策划，不表示业务实现已就绪。
-- 只有上面的快速 Gate 前置条件满足、完整快速策划包已展示、精简 Implementation Readiness Review 通过且用户明确批准“进入 MVP-0 Goal”后，才可将状态改为 `READY FOR MVP-0` 并激活 Goal。
+- 只有上面的快速 Gate 前置条件满足、完整快速策划包已展示并接受、精简 Implementation Readiness Review 通过后，才可将状态改为 `READY FOR MVP-0` 并激活 Goal。DEC-072 已提供闭合后的持续执行授权，不再要求重复固定启动口令。
 - 任何必需条件未满足，Business / Production Implementation 保持 `NOT AUTHORIZED`。
 - 状态变更须在 [../decisions/decision-log.md](../decisions/decision-log.md) 记录或在审查文件中留痕。

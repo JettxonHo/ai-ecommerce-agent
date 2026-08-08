@@ -11,7 +11,7 @@
 - **开发状态：** CONDITIONALLY READY — 只允许已授权的策划、RFC、Artifact 与治理文档工作；Business / Production Implementation 未授权。详见 [docs/handoffs/implementation-readiness.md](docs/handoffs/implementation-readiness.md)。
 - **已确认基础：** 主要用户为中小电商商家的商品运营与内容运营人员；核心任务为商品上新定位分析与 Marketing Brief；统一 Ecommerce Agent + 确定性 LangGraph StateGraph；4 个 Core Skills + 1 个小红书 Adapter；Task / Fact Stage 最低门禁、默认文件限制与分级冲突处理；Review / Brief 产品语义组、正式对象版本、Review Draft revision 与导出快照；渐进式证据、编辑影响、阶段进度、行动导向恢复与导出确认；Needs Input 使用由真实阻断派生的有限结构化行动请求；验收使用虚构“城市通勤双肩包”Anchor SKU 的三个资料变体 + 一个变更脚本、行为硬门禁 + 人工可用性判断，以及 Markdown-first 用户导出；产品语义与公共 HTTP / Retrieval / Observability / 测试物理载体的权威边界已冻结；声明完整性采用证据约束并禁止通用合规引擎，用户资料默认 Task-scoped 并只提供可逆移除 / 替换，固定工作区提供最小最近任务入口与稳定深链；生产 Checkpoint 已冻结为同 PostgreSQL Service 下的独立 Database + 同步 `PostgresSaver`，并采用可重入 Node 与 Business-Current-Truth-first Reconciliation；Durable Dispatch 已冻结为 PostgreSQL Work Intent + Poll-and-claim，Worker 使用数据库权威 Lease / Heartbeat / 单调 Fencing Token，运行中取消采用持久化协作式取消 + Commit Fence；显式 Compatibility Tuple、Current-Truth-first 七动作 Recovery Decision、受控迁移和 Forward Repair 证据边界已冻结；单一 OpenAI Responses Provider、窄型同步 Model Runtime Port、Structured Output、有界 Recovery、可读 Version Tuple、固定 Profile、Adapter Secret / Payload 边界、确定性替身与单次人工 RC Smoke 已冻结；Frontend Architecture P-36～P-41 及整体已接受：`apps/web/` React 19 + TypeScript + Vite 8 SPA、显式状态所有权、OpenAPI 类型生成、一个深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有 WorkbenchProjection、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance；RFC-004 DQ-01～10 已由 DEC-063～066 接受：Contract-first `/api/v1`、窄 Resource + typed Command、语义 revision / 项目定义 Idempotency-Key、耐久 Receipt + Run Monitor、窄 Task / Recovery / Review、不可变 Brief / Export Snapshot、有限 RFC 9457 Problem Catalog、server-bound fixed Workspace + loopback same-origin transport，以及最终 Operation / Schema / state catalog、有界窗口、additive compatibility、generated-client adoption 与 Contract Tests；RFC-005 DQ-01～03 已由 DEC-067 接受：版本化 Source / Task Association、逐资料耐久处理、六值 processing lifecycle、格式感知 Fragment / Locator，以及不使用 Evidence Package `package_hash` 的可读重现边界；DQ-04～06 已由 DEC-068 接受：PostgreSQL-native derived retrieval plane、filtered exact NN、单一版本化 OpenAI Embedding Profile、immutable index generation、确定性 Direct-first Planner、RRF、4 / 20 / 60 / 12 seed bounds 与首 Goal 无 LLM rewrite / baseline reranker；DQ-07～09 已由 DEC-069 接受：server-derived SQL authorized candidate relation、窄 Source / Evidence 投影与 cursor、immutable RetrievalRun + referenced EvidencePackage、DatasetStatistic / Formal Evidence atomic commit、代表性评测硬门禁与显式降级；RFC-001～006 与 FND-001 至 FND-003 已完成；Wave 1 Readiness Artifact 已按各自声明范围接受。
 - **待闭合事项：** Product Specification 与 RFC-001～006 已整体闭合；之后只需最小 RFC-007、快速 MVP-0 Development Plan / Testing Strategy / Goal、精简 Readiness Review 与最终展示。完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 不再阻塞 MVP-0，进入 MVP-1 / 后续风险 Gate。
-- **当前 Gate：** RFC-005 已于 2026-08-07 获用户整体接受，PR #57 已合并、Issue #56 已关闭。当前 [Issue #58](https://github.com/JettxonHo/ai-ecommerce-agent/issues/58) 策划最小 RFC-007 与快速 MVP-0 文档包；P-68A / P-69A / P-70A 仍为 Proposed。完整策划包展示并再次明确批准“进入 MVP-0 Goal”前，不创建或启动实际 Goal，不编写业务代码，不执行 Technical Spike 或 Live Provider。
+- **当前 Gate：** RFC-005 已于 2026-08-07 获用户整体接受，PR #57 已合并、Issue #56 已关闭。当前 [Issue #58](https://github.com/JettxonHo/ai-ecommerce-agent/issues/58) 策划最小 RFC-007 与快速 MVP-0 文档包；P-68A / P-69A / P-70A 及 Development Plan 新提案仍为 Proposed。完整策划包与精简 Readiness Review 被接受前，不创建或启动实际 Goal，不编写业务代码，不执行 Technical Spike 或 Live Provider。用户已通过 DEC-072 给出闭合全部 Gate 后的持续执行授权，不再要求重复固定启动口令。
 
 ---
 
@@ -25,7 +25,7 @@
 | **辅助 Agent** | GPT-5.6 Terra、`xhigh`，逻辑角色 `AUXILIARY_IMPLEMENTER`；只有用户对具体任务明确许可时才可参与，不作为 Luna 不可用时的自动或默认实现回退，也不得代替 Sol 作最终裁决。 |
 | **文档与 Git 操作者** | 按已授权范围维护文件、Issue、Branch、Commit、PR、测试证据和进度；不替用户接受 Decision / RFC。 |
 
-禁止静默替换模型。创建实现线程必须使用准确的自定义 Agent 名称 `luna-worker`，加载 `~/.codex/agents/luna-worker.toml`；不得用“Luna Max”逻辑角色或单独模型字符串代替。若当前会话无法发现该 Agent，必须输出 `STATUS: BLOCKED_LUNA_WORKER_UNAVAILABLE` 并停止新的实现任务，不得自动回退 Terra。Sol 直接实现仅限 [DEC-043](docs/decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) 保留的例外，并必须由独立 Agent 或人工完成最终 Review；最新路由规则见 [DEC-071](docs/decisions/dec-071-luna-worker-exclusive-implementation-routing.md)。
+禁止静默替换模型。创建实现线程必须使用准确的自定义 Agent 名称 `luna-worker`，加载 `~/.codex/agents/luna-worker.toml`；不得用“Luna Max”逻辑角色或单独模型字符串代替。若当前会话无法发现该 Agent，必须输出 `STATUS: BLOCKED_LUNA_WORKER_UNAVAILABLE` 并停止新的实现任务，不得自动回退 Terra。配置已验证、运行时实例模型未暴露时只记录 `CONFIG_VERIFIED`；其余状态见 DEC-072。Sol 直接实现仅限 [DEC-043](docs/decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) 保留的例外，并必须由独立 Agent 或人工完成最终 Review；最新路由规则见 [DEC-071](docs/decisions/dec-071-luna-worker-exclusive-implementation-routing.md) 与 [DEC-072](docs/decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md)。
 
 详细职责分工见 [docs/governance/collaboration-model.md](docs/governance/collaboration-model.md)。
 
@@ -69,7 +69,7 @@
 3. **禁止擅自选择框架、数据库、模型或第三方服务。**
 4. **禁止为了让文档看起来完整而补充未经讨论的事实。** 信息缺失时保留为 Open Question，不得自行补全。
 5. **禁止静默删除、覆盖或改写历史决策。** 改变旧决定时，必须保留追踪关系（Supersedes / Amends / 双向链接）。
-6. **禁止提前实现。** 在完整策划包被接受且用户明确下达「进入 Goal 执行阶段」指令前，不得编写业务代码、接入模型 API、创建生产 RAG、数据库、前后端、迁移、部署或 Docker 配置；代码示例只能视为 Illustrative Example。
+6. **禁止提前实现。** 在完整策划包、所有重大 Proposal 与精简 Readiness Review 被接受前，不得编写业务代码、接入模型 API、创建生产 RAG、数据库、前后端、迁移、部署或 Docker 配置；代码示例只能视为 Illustrative Example。全部 Gate 闭合后，DEC-072 已提供 Accepted Goal 的持续执行授权，无需重复固定启动口令。
 7. **禁止越权降级。** 不得为推进任务而更换已接受的数据库、运行时、Provider、公共契约或质量 Gate；实现路由以 DEC-071 为准，未经用户明确许可不得把 `luna-worker` 自动或默认替换为 Terra，也不得静默替换或错误归因。
 8. **禁止隐藏失败。** 不得隐藏失败测试、已知缺陷、Decision Conflict 或未解决风险。
 
@@ -123,7 +123,7 @@ ChatGPT 单方面输出的「建议」「推荐」「Proposed Decision」一律�
 - 不假设线程自动共享上下文。重要事实必须写入项目文档、权威 Goal、GitHub Issue、任务合同、分支、Commit、PR、Review、Readiness / Current Status、Decision Log 或测试记录。
 - 聊天记录不是项目事实的唯一来源；Issue 不替代 Decision / RFC / Spec，PR 描述不替代实际代码 Review。
 
-详见 [DEC-043](docs/decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) 与 [DEC-071](docs/decisions/dec-071-luna-worker-exclusive-implementation-routing.md)。
+详见 [DEC-043](docs/decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md)、[DEC-071](docs/decisions/dec-071-luna-worker-exclusive-implementation-routing.md) 与 [DEC-072](docs/decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md)。
 
 ---
 
@@ -156,7 +156,7 @@ ChatGPT 单方面输出的「建议」「推荐」「Proposed Decision」一律�
 - PRD 与架构文档已同步、数据契约与验收标准明确
 - 文档不存在未同步或冲突部分
 - 已展示完整策划结果、文档变更与 Goal 执行计划
-- **用户明确发出「进入 Goal 执行阶段」指令**
+- **用户已提供长期 Goal 持续执行授权（DEC-072）；全部重大 Proposal 与 Readiness Gate 闭合后可激活，不要求重复固定口令**
 - 已通过 Implementation Readiness Review 并再次获得用户批准
 
 仓库已经包含经授权完成的 Foundation 后端工程基础，不能再使用“不得出现 backend 目录”作为状态判断。在以上条件全部满足前，不得在既有基础上新增业务模块、生产数据库实现、API、Worker、Frontend、LLM / Retrieval Runtime、迁移或部署能力。

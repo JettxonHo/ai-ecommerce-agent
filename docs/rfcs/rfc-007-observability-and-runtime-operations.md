@@ -6,6 +6,7 @@
 - **Date:** 2026-08-07
 - **Issue:** [#58](https://github.com/JettxonHo/ai-ecommerce-agent/issues/58)
 - **Pull Request:** [#59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59)（Draft）
+- **Pre-acceptance Review:** [PASS AS PROPOSAL](../reviews/review-2026-08-08-rfc-007-preacceptance-consistency.md)
 - **RFC Acceptance:** NOT GRANTED
 - **Implementation Authorization:** NOT GRANTED
 - **Goal Activation:** NOT GRANTED
@@ -122,7 +123,7 @@ RFC-007 does not own:
 
 - 不创建全局“自动重试一切”Middleware。每类 Retry 只有一个所有者，并沿用已接受预算：数据库短事务由 RFC-002 Transaction Runner 拥有；Workflow Node / Work Intent 由 RFC-003 Runtime 拥有；Model transport / recovery 由 RFC-006 Model Runtime 拥有；Browser 只重试安全读取和携带 Idempotency-Key 的不确定提交重放。
 - OpenAI SDK 固定 `max_retries=0`；项目 Model Runtime 继续遵守“最多 2 个 Model Call、共享最多 1 次额外传输重试、整个 Operation 最多 3 个 Provider Attempt”和 Overall Deadline。Provider `Retry-After` 只有在剩余 Deadline 内才遵守。
-- Timeout 使用层级 Deadline，不叠加无限内层计时器：HTTP request / database transaction、Provider attempt、Node active execution、Run active segment 各自显式配置；`waiting_for_input` / `waiting_for_review` 不计为技术超时。精确 Model Profile 秒数按 RFC-006 要求，在 Model Adapter Issue 的 bounded compatibility slice 中用固定 Fixture 校准并由 Sol Review，Luna / Terra 不得临场改变。
+- Timeout 使用层级 Deadline，不叠加无限内层计时器：HTTP request / database transaction、Provider attempt、Node active execution、Run active segment 各自显式配置；`waiting_for_input` / `waiting_for_review` 不计为技术超时。精确 Model Profile 秒数按 RFC-006 要求，在 Model Adapter Issue 的 bounded compatibility slice 中用固定 Fixture 校准并由 Sol Review，`luna-worker` 不得临场改变。
 - 非 Model 的可重试 Node 默认只允许 **1 次额外技术尝试**；Authentication / Permission、invalid request、revision conflict、Validation / Data Integrity、cancel / superseded 和未知分类不自动重试。若上游 Accepted RFC 已给出更严格预算，以更严格者为准。
 - Backoff 使用 bounded exponential + small jitter；实现配置必须包含 initial delay、maximum delay、attempt limit 和 overall deadline，且 sleep 发生在 open transaction / UoW / database connection 之外。MVP-0 不冻结一组跨所有组件复用的秒数。
 - Frontend 对 `queued / running / retrying / cancellation_requested` 轮询；默认 1 秒，连续无变化时 2 秒、最大 5 秒；状态变化后回到 1 秒。对 `429 / 503` 优先遵守 1～30 秒内的 `Retry-After`，否则使用同一 1 / 2 / 5 秒上限；进入业务等待、manual recovery 或终态立即停止。浏览器离开页面不取消 Run，重新进入通过 Run resource 恢复。
@@ -223,4 +224,4 @@ RFC-007 does not own:
 - User acceptance of P-68A / P-69A / P-70A would close DQ-01～03 and authorize archiving a Decision plus final RFC consistency review only.
 - RFC-007 overall still requires a separate explicit user acceptance after review.
 - RFC acceptance, Issue #58 work or its documentation PR does not authorize implementation, dependency installation, Technical Spike, Live Provider or actual Goal.
-- Development can begin only after the complete rapid MVP-0 package is shown, compact Readiness Review passes, and the user explicitly says “进入 MVP-0 Goal”.
+- Development can begin only after P-68A～P-70A、RFC-007 overall、P-71A～P-73A、Development Plan、Testing Strategy、Goal 与 compact Readiness Review 全部被用户接受。DEC-072 已提供这些 Gate 闭合后的持续执行授权，不再要求重复固定启动口令。

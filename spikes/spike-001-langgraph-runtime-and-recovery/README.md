@@ -14,7 +14,7 @@
 Python 3.13 (uv-managed, 3.13.14)
 langgraph==1.2.9              # 精确固定
 langgraph-checkpoint-sqlite==3.1.0
-pytest==8.4.1                 # dev
+pytest==9.0.3                 # dev; post-Spike dependency maintenance
 同步 StateGraph Invoke + SqliteSaver + 三类分离 SQLite
 ```
 

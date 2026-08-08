@@ -77,4 +77,4 @@
 
 **RFC-005 Overall Acceptance：ACCEPTED BY USER — 2026-08-07。**
 
-用户已明确接受 RFC-005 整体，并授权合并 PR #57、关闭 Issue #56、继续最小 RFC-007 与快速 MVP-0 策划包。该接受不授权实现、Spike、Live Provider 或实际 Goal；开发仍受快速 MVP-0 完整策划包展示与用户最终“进入 MVP-0 Goal”指令约束。
+用户已明确接受 RFC-005 整体，并授权合并 PR #57、关闭 Issue #56、继续最小 RFC-007 与快速 MVP-0 策划包。该接受本身不授权实现、Spike、Live Provider 或实际 Goal。后续 DEC-072 已提供全部重大 Proposal 与 Readiness Gate 闭合后的持续执行授权；当前 Gate 未闭合，因此实现仍未激活。

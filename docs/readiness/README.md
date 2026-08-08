@@ -85,4 +85,4 @@ CONDITIONALLY READY
 
 **禁止范围（当前不授权）：** Production Business / Database / API / Retrieval / LLM Runtime / Observability Implementation；正式业务 Coding Issues；未经 RFC 支持的生产实现；Coding Agent 临场选择生产数据库 / ORM / Checkpointer / API / Retrieval / LLM Runtime / Observability；将 Spike 代码迁移为生产模块；将状态更新为完全 READY。
 
-> `CONDITIONALLY READY ≠ 完全 READY`：RFC-001～003、RFC-006 与 Frontend Architecture 已完成；当前按已确认顺序完成产品规格、RFC-004 / 005 / 007、完整 Readiness Artifact、测试策略与 Goal 文档，并通过最终 Implementation Readiness Review；在用户明确接受策划包并发出“进入 Goal 执行阶段”前，不实例化生产 Issue，不执行 TS-01～TS-05，不启动业务实现。
+> `CONDITIONALLY READY ≠ 完全 READY`：Product Specification、RFC-001～006 与 Frontend Architecture 已完成；最小 RFC-007 与快速 MVP-0 策划包仍待接受。在全部重大 Proposal 与 Readiness Gate 被用户接受前，不实例化生产 Issue、不执行兼容性切片、不启动业务实现；闭合后按 DEC-072 的持续执行授权激活 Goal，不再要求重复固定口令。

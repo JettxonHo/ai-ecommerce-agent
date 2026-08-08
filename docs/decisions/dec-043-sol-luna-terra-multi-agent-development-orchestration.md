@@ -6,9 +6,11 @@ Agent Governance / Development Orchestration / Model Roles / Review Independence
 
 ## Status
 
-Accepted — Amended by [DEC-071](dec-071-luna-worker-exclusive-implementation-routing.md)
+Accepted — Amended by [DEC-071](dec-071-luna-worker-exclusive-implementation-routing.md) and [DEC-072](dec-072-long-running-autonomy-and-agent-identity-governance.md)
 
 > **Amendment notice（2026-08-08）：** 本文所记录的 Terra 显式实现回退是当时的 Accepted 历史决定。当前路由由 DEC-071 修订为：后续实现必须使用准确的自定义 Agent `luna-worker`；未经用户对具体任务明确许可，不得把实现自动或默认回退给 Terra。任务合同、线程隔离、成果保护与 Review 独立性继续有效。
+>
+> DEC-072 进一步冻结模型状态语义与长期 Goal 持续执行授权；高风险人工 Gate 和未接受 Proposal 仍然阻塞受影响实现。
 
 ## Decision
 
@@ -178,3 +180,5 @@ None.
 ## Amended By
 
 [DEC-071 — `luna-worker` 专属实现路由并暂停 Terra 自动回退](dec-071-luna-worker-exclusive-implementation-routing.md)
+
+[DEC-072 — 长期自主开发授权与严格 Agent 身份治理](dec-072-long-running-autonomy-and-agent-identity-governance.md)
