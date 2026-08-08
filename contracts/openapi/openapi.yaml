@@ -1456,10 +1456,11 @@ components:
     Run:
       type: object
       additionalProperties: false
-      required: [runId, taskId, sourceRunId, status, currentStage, startedAt, updatedAt, completedAt, failureSummary, lastValidResult, primaryAction, capabilities]
+      required: [runId, taskId, revision, sourceRunId, status, currentStage, startedAt, updatedAt, completedAt, failureSummary, lastValidResult, primaryAction, capabilities]
       example:
         runId: run-01
         taskId: task-01
+        revision: 0
         sourceRunId: null
         status: queued
         currentStage: product_intake_and_fact_extraction
@@ -1478,6 +1479,7 @@ components:
         taskId:
           type: string
           minLength: 1
+        revision: { $ref: '#/components/schemas/ResourceRevision' }
         sourceRunId:
           oneOf:
             - type: string
@@ -1772,13 +1774,59 @@ components:
       properties:
         group:
           type: string
-          enum: [version_context, positioning_candidates, key_facts_and_insights, hypotheses, evidence_limitations, conflicts_and_strategic_risks, model_recommendation, objective_and_audience, message_architecture, reasons_to_believe_and_evidence, execution_direction, constraints_and_honesty, version_and_workflow_context, platform_and_campaign_context, note_format_and_content_mode, creative_structure_directions, discovery_and_action_directions, evidence_and_platform_constraints, workflow_and_version_context]
+          enum: [version_context, positioning_candidates, key_facts_and_insights, hypotheses, evidence_limitations, conflicts_and_strategic_risks, model_recommendation]
         content:
           type: object
           description: Structured semantic-group content owned by the product contract.
         origin:
           type: string
           enum: [model, user]
+    ApprovedStrategySemanticGroup:
+      type: object
+      additionalProperties: false
+      required: [group, content]
+      properties:
+        group:
+          type: string
+          enum: [target_and_context, positioning, persuasion_structure, hypothesis_decisions, evidence_and_risks, review_and_version_metadata]
+        content:
+          type: object
+          description: Structured semantic-group content owned by the product contract.
+        origin:
+          type: string
+          enum: [model, user]
+    MarketingBriefSemanticGroup:
+      type: object
+      additionalProperties: false
+      required: [group, content]
+      properties:
+        group:
+          type: string
+          enum: [objective_and_audience, message_architecture, reasons_to_believe_and_evidence, execution_direction, constraints_and_honesty, version_and_workflow_context]
+        content:
+          type: object
+          description: Structured semantic-group content owned by the product contract.
+        origin:
+          type: string
+          enum: [model, user]
+    XiaohongshuBriefSemanticGroup:
+      type: object
+      additionalProperties: false
+      required: [group, content]
+      properties:
+        group:
+          type: string
+          enum: [platform_and_campaign_context, note_format_and_content_mode, creative_structure_directions, discovery_and_action_directions, evidence_and_platform_constraints, workflow_and_version_context]
+        content:
+          type: object
+          description: Structured semantic-group content owned by the product contract.
+        origin:
+          type: string
+          enum: [model, user]
+    BriefSemanticGroup:
+      oneOf:
+        - $ref: '#/components/schemas/MarketingBriefSemanticGroup'
+        - $ref: '#/components/schemas/XiaohongshuBriefSemanticGroup'
     ReviewPackage:
       type: object
       additionalProperties: false
@@ -1863,8 +1911,11 @@ components:
     SubmitReviewRequest:
       type: object
       additionalProperties: false
-      required: [packageVersion, expectedDraftRevision]
+      required: [reviewId, packageVersion, expectedDraftRevision]
       properties:
+        reviewId:
+          type: string
+          minLength: 1
         packageVersion:
           type: integer
           minimum: 1
@@ -1961,7 +2012,7 @@ components:
         semanticGroups:
           type: array
           minItems: 6
-          items: { $ref: '#/components/schemas/ReviewSemanticGroup' }
+          items: { $ref: '#/components/schemas/ApprovedStrategySemanticGroup' }
         hypotheses:
           type: array
           items: { type: string }
@@ -2057,7 +2108,7 @@ components:
         semanticGroups:
           type: array
           minItems: 6
-          items: { $ref: '#/components/schemas/ReviewSemanticGroup' }
+          items: { $ref: '#/components/schemas/BriefSemanticGroup' }
         hypotheses:
           type: array
           items: { type: string }
@@ -2074,16 +2125,26 @@ components:
       allOf:
         - $ref: '#/components/schemas/BriefVersion'
         - type: object
+          required: [briefKind, semanticGroups]
           properties:
             briefKind:
               const: marketing
+            semanticGroups:
+              type: array
+              minItems: 6
+              items: { $ref: '#/components/schemas/MarketingBriefSemanticGroup' }
     XiaohongshuBriefVersion:
       allOf:
         - $ref: '#/components/schemas/BriefVersion'
         - type: object
+          required: [briefKind, semanticGroups]
           properties:
             briefKind:
               const: xiaohongshu
+            semanticGroups:
+              type: array
+              minItems: 6
+              items: { $ref: '#/components/schemas/XiaohongshuBriefSemanticGroup' }
     CompareBriefRequest:
       type: object
       additionalProperties: false
@@ -2194,7 +2255,7 @@ components:
           minLength: 1
         fileName:
           type: string
-          pattern: '^task-[^-]+-(marketing|xiaohongshu)-v[0-9]+-[0-9]{8}T[0-9]{6}Z\\.md$'
+          pattern: '^task-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*-(marketing|xiaohongshu)-v[0-9]+-[0-9]{8}T[0-9]{6}Z\\.md$'
         mediaType:
           const: text/markdown; charset=utf-8
     ConfirmExportRequest:
@@ -2217,7 +2278,7 @@ components:
           versionNumber: 1
         upstreamVersions: []
         exportedAt: '2026-08-08T00:00:00Z'
-        fileName: task-task01-marketing-v1-20260808T000000Z.md
+        fileName: task-city-commuter-backpack-marketing-v1-20260808T000000Z.md
         mediaType: text/markdown; charset=utf-8
         contentLocation: /api/v1/export-snapshots/export-01/content
         templateVersion: mvp0-markdown-v1
@@ -2238,7 +2299,7 @@ components:
           format: date-time
         fileName:
           type: string
-          pattern: '^task-[^-]+-(marketing|xiaohongshu)-v[0-9]+-[0-9]{8}T[0-9]{6}Z\\.md$'
+          pattern: '^task-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*-(marketing|xiaohongshu)-v[0-9]+-[0-9]{8}T[0-9]{6}Z\\.md$'
         mediaType:
           const: text/markdown; charset=utf-8
         contentLocation:

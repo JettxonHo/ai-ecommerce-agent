@@ -127,6 +127,13 @@ def test_idempotency_and_semantic_revision_are_explicit() -> None:
 
 def test_async_receipts_and_run_monitor_states_preserve_accepted_semantics() -> None:
     spec = _load_contract()
+    run_schema = spec["components"]["schemas"]["Run"]
+    assert "revision" in run_schema["required"]
+    assert (
+        run_schema["properties"]["revision"]["$ref"]
+        == "#/components/schemas/ResourceRevision"
+    )
+    assert run_schema["example"]["revision"] == 0
     async_operations = {
         "startTask",
         "rerunTask",
@@ -174,11 +181,58 @@ def test_needs_input_review_brief_export_and_problem_projection_are_typed() -> N
         "expectedRecovery",
         "supersededBy",
     ]
-    assert "expectedDraftRevision" in schemas["SubmitReviewRequest"]["required"]
+    submit_review = schemas["SubmitReviewRequest"]
+    assert submit_review["required"] == [
+        "reviewId",
+        "packageVersion",
+        "expectedDraftRevision",
+    ]
+    assert submit_review["properties"]["reviewId"] == {
+        "type": "string",
+        "minLength": 1,
+    }
     assert (
-        "semanticGroups" in schemas["MarketingBriefVersion"]["allOf"][0]["$ref"]
-        or "semanticGroups" in schemas["BriefVersion"]["properties"]
+        schemas["ApprovedStrategyVersion"]["properties"]["semanticGroups"]["items"][
+            "$ref"
+        ]
+        == "#/components/schemas/ApprovedStrategySemanticGroup"
     )
+    assert schemas["ApprovedStrategySemanticGroup"]["properties"]["group"]["enum"] == [
+        "target_and_context",
+        "positioning",
+        "persuasion_structure",
+        "hypothesis_decisions",
+        "evidence_and_risks",
+        "review_and_version_metadata",
+    ]
+    assert (
+        schemas["MarketingBriefVersion"]["allOf"][1]["properties"]["semanticGroups"][
+            "items"
+        ]["$ref"]
+        == "#/components/schemas/MarketingBriefSemanticGroup"
+    )
+    assert schemas["MarketingBriefSemanticGroup"]["properties"]["group"]["enum"] == [
+        "objective_and_audience",
+        "message_architecture",
+        "reasons_to_believe_and_evidence",
+        "execution_direction",
+        "constraints_and_honesty",
+        "version_and_workflow_context",
+    ]
+    assert (
+        schemas["XiaohongshuBriefVersion"]["allOf"][1]["properties"]["semanticGroups"][
+            "items"
+        ]["$ref"]
+        == "#/components/schemas/XiaohongshuBriefSemanticGroup"
+    )
+    assert schemas["XiaohongshuBriefSemanticGroup"]["properties"]["group"]["enum"] == [
+        "platform_and_campaign_context",
+        "note_format_and_content_mode",
+        "creative_structure_directions",
+        "discovery_and_action_directions",
+        "evidence_and_platform_constraints",
+        "workflow_and_version_context",
+    ]
     assert "basis" in schemas["ConfirmExportRequest"]["required"]
     assert (
         schemas["ExportSnapshot"]["properties"]["mediaType"]["const"]
@@ -223,8 +277,12 @@ def test_representative_schema_examples_cover_required_wire_fields() -> None:
         assert set(required) <= set(example), schema_name
     assert len(schemas["BriefVersion"]["example"]["semanticGroups"]) == 6
     assert re.fullmatch(
-        r"task-[^-]+-(marketing|xiaohongshu)-v[0-9]+-[0-9]{8}T[0-9]{6}Z\.md",
+        r"task-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*-(marketing|xiaohongshu)-v[0-9]+-[0-9]{8}T[0-9]{6}Z\.md",
         schemas["ExportSnapshot"]["example"]["fileName"],
+    )
+    assert re.fullmatch(
+        r"task-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*-(marketing|xiaohongshu)-v[0-9]+-[0-9]{8}T[0-9]{6}Z\.md",
+        "task-city-commuter-backpack-marketing-v1-20260808T000000Z.md",
     )
 
 
