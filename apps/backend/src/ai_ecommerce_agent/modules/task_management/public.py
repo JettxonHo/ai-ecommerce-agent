@@ -14,7 +14,6 @@ from .application.errors import (
 from .domain import (
     DomainVersionReference,
     InvalidTransitionError,
-    OwnershipError,
     RevisionConflictError,
     RunSnapshot,
     RunStatus,
@@ -29,7 +28,6 @@ from .domain import (
 __all__ = [
     "DomainVersionReference",
     "InvalidTransitionError",
-    "OwnershipError",
     "RevisionConflictError",
     "RunNotFoundError",
     "RunSnapshot",

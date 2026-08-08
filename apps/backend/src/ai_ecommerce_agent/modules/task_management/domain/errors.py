@@ -39,16 +39,8 @@ class InvalidTransitionError(TaskManagementDomainError):
         super().__init__("invalid_transition", context)
 
 
-class OwnershipError(TaskManagementDomainError):
-    """A Task/Run/Stage relationship crosses its owning Task boundary."""
-
-    def __init__(self, context: Mapping[str, str] | None = None) -> None:
-        super().__init__("ownership_conflict", context)
-
-
 __all__ = [
     "InvalidTransitionError",
-    "OwnershipError",
     "RevisionConflictError",
     "TaskManagementDomainError",
 ]

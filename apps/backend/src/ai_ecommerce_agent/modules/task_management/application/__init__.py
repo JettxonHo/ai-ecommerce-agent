@@ -1,4 +1,7 @@
-"""Application-owned Task Management ports and stable semantic errors."""
+"""Stable Task Management application errors.
+
+Repository and Unit of Work ports are delivered by the later A3 slice.
+"""
 
 from .errors import (
     RunNotFoundError,
@@ -6,22 +9,10 @@ from .errors import (
     TaskManagementApplicationError,
     TaskNotFoundError,
 )
-from .ports import (
-    RunRepositoryPort,
-    StageRepositoryPort,
-    TaskManagementUnitOfWork,
-    TaskManagementUnitOfWorkFactory,
-    TaskRepositoryPort,
-)
 
 __all__ = [
     "RunNotFoundError",
-    "RunRepositoryPort",
     "StageNotFoundError",
-    "StageRepositoryPort",
     "TaskManagementApplicationError",
-    "TaskManagementUnitOfWork",
-    "TaskManagementUnitOfWorkFactory",
     "TaskNotFoundError",
-    "TaskRepositoryPort",
 ]
