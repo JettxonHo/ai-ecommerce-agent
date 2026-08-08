@@ -7,6 +7,7 @@ be added here deliberately, with their own contract tests.
 """
 
 import re
+import types
 
 import pytest
 
@@ -30,5 +31,18 @@ def test_version_is_semver_shaped() -> None:
 def test_no_undeclared_public_names() -> None:
     """No public name may exist outside the declared ``__all__``."""
     declared = set(ai_ecommerce_agent.__all__)
-    public = {name for name in dir(ai_ecommerce_agent) if not name.startswith("_")}
+    # Importing ``ai_ecommerce_agent.shared_kernel`` records the submodule on
+    # the parent package automatically.  That importability detail is not a
+    # root-facade export; other undeclared public values remain forbidden.
+    public = {
+        name
+        for name in dir(ai_ecommerce_agent)
+        if not name.startswith("_")
+        and not (
+            isinstance(getattr(ai_ecommerce_agent, name), types.ModuleType)
+            and getattr(getattr(ai_ecommerce_agent, name), "__name__", "").startswith(
+                "ai_ecommerce_agent."
+            )
+        )
+    }
     assert public <= declared
