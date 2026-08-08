@@ -2,7 +2,7 @@
 
 This is the backend production package foundation for the AI E-commerce Agent.
 
-**Current scope (FND-001 + FND-002 + FND-003 + MVP0-007):** an installable,
+**Current scope (FND-001 + FND-002 + FND-003 + MVP0-008):** an installable,
 buildable, testable Python package with a unified local quality toolchain,
 executable architecture enforcement (Import Linter contracts + custom
 architecture tests with positive/negative fixtures), and CI plus repository
@@ -150,8 +150,8 @@ Implemented now:
 Not implemented yet (and **not** claimed to exist):
 
 - API / HTTP server
-- Production business tables / ORM mappings / migrations (the MVP0-007
-  adapter foundation provides only engine, session-factory and UoW lifecycle)
+- Production business tables / ORM mappings (MVP0-008 establishes only an
+  empty Business Alembic baseline; no aggregate table is created yet)
 - Worker / queue / durable dispatch
 - LangGraph runtime / graphs / checkpointer
 - Model / retrieval / observability runtimes
@@ -228,3 +228,50 @@ MVP0_RUN_POSTGRES_INTEGRATION=1 uv run pytest -m "integration and live" -q
 Set `MVP0_DATABASE_URL` to an isolated `postgresql+psycopg://...` URL when the
 default local Business database is not appropriate. SQLite is not an accepted
 persistence or integration backend.
+
+## MVP0-008 Business Alembic baseline
+
+`apps/backend/migrations/` is the single production Business Alembic lineage.
+The `0001_business_baseline` revision creates no domain tables; Alembic's own
+`alembic_version` row is migration identity only and is distinct from
+`domain_version_id`, business `version_number` / `revision`, and any vendor
+Checkpoint schema version. PostgresSaver and other vendor-managed migrations
+must remain outside this directory.
+
+Migration execution is an explicit operator action. Application, Web, and
+Worker startup never run Alembic automatically. Set an intentional synchronous
+Psycopg URL, then run one of the bounded commands:
+
+```bash
+cd ../..
+export MVP0_BUSINESS_DATABASE_URL='postgresql+psycopg://<role>:<password>@<host>:<port>/<database>'
+./scripts/mvp0/migrate-business heads
+./scripts/mvp0/migrate-business upgrade-head
+./scripts/mvp0/migrate-business current
+./scripts/mvp0/migrate-business check
+./scripts/mvp0/migrate-business offline-sql
+```
+
+The production policy is forward-recovery-first: application rollback keeps
+an expanded schema compatible, and a failed released revision is repaired by
+a new forward revision. The empty baseline has a bounded no-data-loss
+downgrade for test verification; this does not promise universal production
+downgrades. Lock/statement timeout, non-transactional DDL, destructive gates,
+backfills, and compatibility windows belong to the later revision that needs
+them and must be declared and reviewed before execution.
+
+Migration acceptance uses real PostgreSQL only, with a test-owned isolated
+schema/database and deterministic cleanup. It must demonstrate fresh and
+supported-base upgrade to the single head, inspectable current revision,
+offline SQL, `alembic check`, and one representative transactional failure
+followed by a new test-only forward repair. The test path must not use the
+shared demo Business or Checkpoint objects.
+
+To opt into the focused integration evidence, provide an explicitly
+test-owned PostgreSQL URL and use the fixed schema fixture:
+
+```bash
+MVP0_RUN_POSTGRES_MIGRATION=1 \
+MVP0_MIGRATION_DATABASE_URL='postgresql+psycopg://<test-role>:<password>@<host>:<port>/<test-database>' \
+uv run --locked pytest -m "integration and migration" -q
+```

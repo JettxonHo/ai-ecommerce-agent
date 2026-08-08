@@ -9,6 +9,7 @@ description = "AI E-commerce Agent backend production package."
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
+    "alembic==1.16.4",
     "psycopg[binary]==3.2.9",
     "sqlalchemy==2.0.43",
 ]
@@ -94,6 +95,7 @@ filterwarnings = [
 markers = [
     "unit: hermetic, fast unit tests with no external resources",
     "integration: tests against real technical adapters with isolated resources; never production services",
+    "migration: real PostgreSQL Business Alembic upgrade, drift and recovery evidence",
     "contract: public contract, port, adapter compliance, schema, event and dispatch payload tests",
     "architecture: layer direction, module boundary, public facade, module DAG, configuration boundary and spike isolation checks",
     "e2e: complete business or runtime flows across real components",
