@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ts-01-postgresql-compatibility"
+version = "0.1.0"
+description = "MVP0-004 disposable PostgreSQL compatibility evidence slice."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "alembic==1.16.4",
+    "psycopg[binary]==3.2.9",
+    "sqlalchemy==2.0.43",
+]
+
+[dependency-groups]
+dev = [
+    "pyright==1.1.400",
+    "pytest==8.4.1",
+    "ruff==0.14.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ts01_compatibility"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "--strict-config"]
+markers = [
+    "integration: real PostgreSQL test-only compatibility evidence",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "tests", "alembic"]
+extend-exclude = [".venv", ".pytest_cache", ".ruff_cache", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+include = ["src", "tests"]
+exclude = [".venv", ".pytest_cache"]
+venvPath = "."
+venv = ".venv"
+reportMissingTypeStubs = false
