@@ -8,8 +8,9 @@
 # - No repository secrets are referenced anywhere in this workflow. Fork
 #   pull requests therefore cannot receive secrets (there are none to leak),
 #   and `pull_request_target` is deliberately never used.
-# - Dependency audit runs against the exact locked environment
-#   (`uv sync --locked`), so results match `uv.lock`.
+# - Dependency audit runs against both exact locked environments
+#   (`uv sync --locked` and `npm ci`), so results match `uv.lock` and
+#   `apps/web/package-lock.json`.
 # - Secret scanner output is redacted (`--redact`): matched values never
 #   appear in CI logs.
 name: security
@@ -60,6 +61,25 @@ jobs:
       # the skip is reported in the audit output table.
       - name: Audit locked dependencies (pip-audit)
         run: uv run pip-audit --progress-spinner off --skip-editable
+
+      - name: Install Node.js for locked Web audit
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: apps/web/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Pin npm for locked Web audit
+        run: npm install --global npm@11.16.0
+      - name: Verify Web Node/npm tuple
+        run: |
+          test "$(node --version)" = "v24.18.0"
+          test "$(npm --version)" = "11.16.0"
+      - name: Install locked Web dependencies (npm ci)
+        working-directory: apps/web
+        run: npm ci --no-audit --no-fund
+      - name: Audit locked Web dependencies (npm audit)
+        working-directory: apps/web
+        run: npm audit --registry=https://registry.npmjs.org
 
   secret-detection:
     name: security / secret-detection
