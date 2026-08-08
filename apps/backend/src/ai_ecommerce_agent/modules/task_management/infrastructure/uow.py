@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from types import TracebackType
 from typing import Self
 
 from sqlalchemy import Engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+from ai_ecommerce_agent.modules.task_management.application.errors import (
+    TaskManagementPersistenceError,
+)
 from ai_ecommerce_agent.modules.task_management.application.ports import (
     RunRepositoryPort,
     StageRepositoryPort,
@@ -36,8 +41,32 @@ class TaskManagementPostgresUnitOfWork(PostgresUnitOfWork):
         self._stages = TaskManagementPostgresStageRepository(session)
 
     def __enter__(self) -> Self:
-        super().__enter__()
+        try:
+            super().__enter__()
+        except SQLAlchemyError as error:
+            raise TaskManagementPersistenceError() from error
         return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        """Preserve one-shot cleanup while translating cleanup SQL errors."""
+
+        try:
+            super().__exit__(exc_type, exc_value, traceback)
+        except SQLAlchemyError as error:
+            raise TaskManagementPersistenceError() from error
+
+    def commit(self) -> None:
+        """Commit once, translating SQLAlchemy failures after cleanup."""
+
+        try:
+            super().commit()
+        except SQLAlchemyError as error:
+            raise TaskManagementPersistenceError() from error
 
     @property
     def tasks(self) -> TaskRepositoryPort:

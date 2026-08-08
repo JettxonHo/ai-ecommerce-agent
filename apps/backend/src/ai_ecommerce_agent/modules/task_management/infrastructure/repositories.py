@@ -6,12 +6,13 @@ from collections.abc import Mapping
 from typing import Any, cast
 
 from sqlalchemy import CursorResult, Executable, insert, select, update
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ai_ecommerce_agent.modules.task_management.application.errors import (
     TaskManagementConstraintError,
     TaskManagementOwnershipError,
+    TaskManagementPersistenceError,
     TaskManagementRevisionConflictError,
 )
 from ai_ecommerce_agent.modules.task_management.domain import (
@@ -63,13 +64,26 @@ def _translate(
     return TaskManagementConstraintError(constraint_name=name)
 
 
-def _write(session: Session, statement: Executable) -> CursorResult[Any]:
-    """Execute without taking transaction lifecycle ownership."""
+def _execute(session: Session, statement: Executable) -> CursorResult[Any]:
+    """Execute without taking transaction lifecycle ownership.
+
+    This is the single ORM boundary for both reads and writes.  Named
+    integrity failures retain their domain-specific mapping; every other
+    SQLAlchemy failure becomes the stable module persistence error.
+    """
 
     try:
         return cast(CursorResult[Any], session.execute(statement))
     except IntegrityError as error:
         raise _translate(error) from error
+    except SQLAlchemyError as error:
+        raise TaskManagementPersistenceError() from error
+
+
+def _write(session: Session, statement: Executable) -> CursorResult[Any]:
+    """Execute a write through the shared adapter error boundary."""
+
+    return _execute(session, statement)
 
 
 def _mapping(row: object) -> Mapping[str, object]:
@@ -84,8 +98,9 @@ class TaskManagementPostgresTaskRepository:
 
     def get(self, task_id: TaskId) -> Task | None:
         row = (
-            self._session.execute(
-                select(TASKS_TABLE).where(TASKS_TABLE.c.task_id == str(task_id))
+            _execute(
+                self._session,
+                select(TASKS_TABLE).where(TASKS_TABLE.c.task_id == str(task_id)),
             )
             .mappings()
             .one_or_none()
@@ -119,8 +134,9 @@ class TaskManagementPostgresRunRepository:
 
     def get(self, run_id: RunId) -> Run | None:
         row = (
-            self._session.execute(
-                select(RUNS_TABLE).where(RUNS_TABLE.c.run_id == str(run_id))
+            _execute(
+                self._session,
+                select(RUNS_TABLE).where(RUNS_TABLE.c.run_id == str(run_id)),
             )
             .mappings()
             .one_or_none()
@@ -154,10 +170,11 @@ class TaskManagementPostgresStageRepository:
 
     def get(self, task_id: TaskId, stage: StageReference) -> Stage | None:
         row = (
-            self._session.execute(
+            _execute(
+                self._session,
                 select(STAGES_TABLE)
                 .where(STAGES_TABLE.c.task_id == str(task_id))
-                .where(STAGES_TABLE.c.stage == stage.value)
+                .where(STAGES_TABLE.c.stage == stage.value),
             )
             .mappings()
             .one_or_none()
