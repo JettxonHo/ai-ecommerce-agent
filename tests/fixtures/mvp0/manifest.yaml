@@ -1,0 +1,75 @@
+{
+  "manifest_id": "mvp0-fictional-anchor-pack",
+  "manifest_version": "mvp0-1",
+  "fixture_authority": "repository-level-single-source",
+  "data_notice": {
+    "fictional": true,
+    "synthetic": true,
+    "non_regulated": true,
+    "contains_real_personal_data": false,
+    "contains_real_merchant_data": false,
+    "contains_provider_payload": false,
+    "network_access_required": false
+  },
+  "anchor_sku": {
+    "sku_id": "anchor-city-commuter-backpack",
+    "display_name": "城市通勤双肩包",
+    "identity_note": "唯一虚构 Anchor SKU；仅用于 MVP-0 验收，不代表真实品类覆盖。"
+  },
+  "allowed_source_formats": ["json", "structured-text", "txt", "markdown", "csv"],
+  "forbidden_source_formats": ["pdf", "image", "ocr", "network"],
+  "accepted_logical_fixture_ids": [
+    "fixture-sufficient-v1",
+    "fixture-limited-v1",
+    "fixture-conflict-v1",
+    "mutation-sufficient-v1"
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "fixture-sufficient-v1",
+      "fixture_version": "v1",
+      "kind": "scenario",
+      "scenario_role": "sufficient-normal",
+      "directory": "sufficient-v1",
+      "source_files": [
+        "product.json",
+        "product-details.md",
+        "usage-notes.txt",
+        "synthetic-comments.csv"
+      ],
+      "expected_behavior_file": "expected/fixture-sufficient-v1.json",
+      "required_formats": ["json", "markdown", "txt", "csv"]
+    },
+    {
+      "fixture_id": "fixture-limited-v1",
+      "fixture_version": "v1",
+      "kind": "scenario",
+      "scenario_role": "limited-runnable",
+      "directory": "limited-v1",
+      "source_files": ["product.json", "core-facts.txt"],
+      "expected_behavior_file": "expected/fixture-limited-v1.json",
+      "required_formats": ["json", "txt"]
+    },
+    {
+      "fixture_id": "fixture-conflict-v1",
+      "fixture_version": "v1",
+      "kind": "scenario",
+      "scenario_role": "blocking-conflict-recovery",
+      "directory": "conflict-v1",
+      "source_files": ["product.json", "identity-conflict.md"],
+      "expected_behavior_file": "expected/fixture-conflict-v1.json",
+      "required_formats": ["json", "markdown"]
+    },
+    {
+      "fixture_id": "mutation-sufficient-v1",
+      "fixture_version": "v1",
+      "kind": "mutation",
+      "scenario_role": "source-update-and-confirmed-partial-rerun",
+      "directory": "mutation-sufficient-v1",
+      "base_fixture_id": "fixture-sufficient-v1",
+      "source_files": ["mutation.md", "changed-product.json"],
+      "expected_behavior_file": "expected/mutation-sufficient-v1.json",
+      "required_formats": ["markdown", "json"]
+    }
+  ]
+}

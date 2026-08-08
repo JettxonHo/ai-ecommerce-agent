@@ -1,0 +1,41 @@
+{
+  "fixture_id": "mutation-sufficient-v1",
+  "fixture_version": "v1",
+  "data_notice": {"fictional": true, "synthetic": true, "non_regulated": true},
+  "expected_behavior_kind": "semantic_behavior_contract",
+  "base_fixture_id": "fixture-sufficient-v1",
+  "version_expectations": {
+    "source_version_before": "source-sufficient-product-v1",
+    "source_version_after": "source-sufficient-product-v2",
+    "same_source_identity": "source-sufficient-product-card",
+    "changed_business_fact": "capacity changes from approximately 18 liters to approximately 20 liters"
+  },
+  "hard_gates": {
+    "impact_preview": "the business-semantic change displays affected and preserved stages plus a suggested rerun start before rerun",
+    "invalidation": [
+      "insight",
+      "positioning",
+      "strategy",
+      "review_input",
+      "marketing_brief",
+      "xiaohongshu_brief"
+    ],
+    "stale_review": "a Review Draft or submission based on the superseded package is rejected rather than silently merged",
+    "confirmation": "partial rerun starts only after explicit user confirmation of the impact preview",
+    "rerun_scope": "rerun begins at the earliest affected stage and returns affected content to the Human Review gate",
+    "export_basis": "Markdown export references only the confirmed current versions; stale or invalidated output is not exported"
+  },
+  "preserved_context": [
+    "Task identity and source identity remain traceable.",
+    "The old source version and old result remain historical context but are not Current Truth."
+  ],
+  "human_usability_inputs": [
+    "The operator can understand what changed and which outputs need re-review.",
+    "The operator can cancel or defer rerun without making stale output current, then return to the last valid result."
+  ],
+  "non_requirements": [
+    "Do not lock complete model prose or exact diff rendering.",
+    "Do not claim that this script has executed a real Run; it is an expected behavior input only.",
+    "Do not treat generation or QC success as approved."
+  ]
+}

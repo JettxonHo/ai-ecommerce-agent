@@ -1,0 +1,30 @@
+{
+  "fixture_notice": {
+    "fictional": true,
+    "synthetic": true,
+    "non_regulated": true
+  },
+  "fixture_id": "mutation-sufficient-v1",
+  "base_fixture_id": "fixture-sufficient-v1",
+  "anchor_sku": "anchor-city-commuter-backpack",
+  "source_id": "source-sufficient-product-card",
+  "source_version": "source-sufficient-product-v2",
+  "replaces_source_version": "source-sufficient-product-v1",
+  "source_format": "json",
+  "change_kind": "business_semantic_fact_change",
+  "product_identity": {
+    "display_name": "城市通勤双肩包",
+    "sku_label": "CBP-SYN-001",
+    "category": "通勤背包",
+    "identity_status": "single_consistent_value"
+  },
+  "changed_attribute": {
+    "attribute_id": "capacity",
+    "name": "容量",
+    "previous_value": "约 18 升",
+    "value": "约 20 升",
+    "support": "direct_source",
+    "locator": "changed-product.json#changed_attribute"
+  },
+  "change_notice": "本文件只描述一个可读版本变更；下游失效和重跑是否发生由业务实现按 manifest expected behavior 验证。"
+}

@@ -1,0 +1,14 @@
+fixture_id=fixture-limited-v1
+fixture_notice=fictional synthetic non-regulated test data
+source_id=source-limited-core-facts
+source_version=source-limited-facts-v1
+anchor_sku=anchor-city-commuter-backpack
+locator=core-facts.txt#lines-1-8
+
+商品用途（direct_source）：通勤时携带电脑和少量日常物品。
+商品属性（direct_source）：有独立电脑夹层。
+资料状态：这是最低可运行的 synthetic 资料，不是完整商品档案。
+
+未提供：用户评论、真实调研、价格、竞品、品牌资料、历史推广结果。
+因此任何关于“最适合谁”“比其他包更好”或“会提高转化”的结论都必须
+保持为资料不足或待验证假设，不得伪造来源或 Proof Point。
