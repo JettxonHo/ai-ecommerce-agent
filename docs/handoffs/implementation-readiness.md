@@ -2,9 +2,9 @@
 
 > **Status: READY FOR MVP-0 — ACTIVATION AUTHORIZED**
 >
-> Foundation、Product Specification、RFC-001～007、Development Plan、Testing Strategy、MVP-0 Goal 与精简 Readiness Review 已接受。Business / Production Implementation 在 PR #59 合并后的 Active Goal 与有界 Issues 内授权。
+> Foundation、Product Specification、RFC-001～007、Development Plan、Testing Strategy、MVP-0 Goal 与精简 Readiness Review 已接受。Business / Production Implementation 已在 Active Goal 与有界 Issues 内授权。
 >
-> **Current Gate（2026-08-08）：** 用户已接受 P-68A～P-73A、RFC-007 整体以及快速 MVP-0 策划包与 Readiness Review（DEC-073～075）。规划 PR #59 合并后直接激活 Goal；高风险事项仍按 DEC-072 暂停并请求人工确认。
+> **Current Gate（2026-08-08）：** PR #59 已合并（`bb8c658`）、Issue #58 已关闭，MVP-0 Goal 已激活并创建 M1 Issues #63～#67。高风险事项仍按 DEC-072 暂停并请求人工确认。
 
 进入开发至少需要以下条件**全部**满足，并须先通过 Implementation Readiness Review（见 [../reviews/](../reviews/)），再由用户明确批准。
 
@@ -84,7 +84,7 @@
 - **Planning Package:** Development Plan / Testing Strategy / Goal / Readiness Review = ACCEPTED；P-71A / P-72A / P-73A = ACCEPTED
 - **允许工作:** Active Goal 内的 Issues、实现、测试、PR、独立 Review 和普通低风险合并
 - **禁止工作:** Goal Non-goals、公开部署、未经 Issue 授权的 Live Provider / Spike、不可逆或高风险操作
-- **用户 Goal 指令:** DEC-072 / 075 已提供持续执行与激活授权；PR #59 合并后进入 ACTIVE
+- **用户 Goal 指令:** 用户已明确确认“进入 Goal 执行阶段”；Goal = ACTIVE
 - **Agent 路由:** 边界明确的实现使用准确名称 `luna-worker`；每次创建前记录配置与运行时验证状态。不可发现时输出 `BLOCKED_LUNA_WORKER_UNAVAILABLE` 并停止新的实现任务；未经用户对具体任务明确许可，不得改用 Terra。任务合同、实际模型披露和 Review 独立性继续为硬约束
 
 ---
