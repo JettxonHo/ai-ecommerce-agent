@@ -1,0 +1,2340 @@
+openapi: 3.1.0
+jsonSchemaDialect: https://spec.openapis.org/oas/3.1/dialect/base
+info:
+  title: AI E-commerce Agent HTTP API
+  version: 0.1.0
+  description: |
+    Authored, contract-first HTTP boundary for the local MVP-0 fixed workspace.
+    This OpenAPI Description is the sole public contract authority. It describes
+    resources and typed commands only; it does not imply that an HTTP handler,
+    database, worker, model provider, or frontend has been implemented.
+servers:
+  - url: /
+    description: Server-bound loopback same-origin workbench
+tags:
+  - name: Task
+  - name: Run
+  - name: Needs Input
+  - name: Source Change
+  - name: Human Review
+  - name: Marketing Brief
+  - name: Xiaohongshu Brief
+  - name: Export
+paths:
+  /api/v1/tasks:
+    post:
+      tags: [Task]
+      operationId: createTask
+      summary: Create a task without starting workflow execution
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+            example:
+              taskName: City commuter backpack launch
+              productCategory: urban commuter backpack
+              promotionGoal: clarify positioning for a spring launch
+      responses:
+        '201':
+          description: Task created on the first submission
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskOverview'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskOverview'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '413': { $ref: '#/components/responses/Problem413' }
+        '415': { $ref: '#/components/responses/Problem415' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+    get:
+      tags: [Task]
+      operationId: listTasks
+      summary: List a bounded recent-task window in the fixed workspace
+      parameters:
+        - $ref: '#/components/parameters/TaskLimit'
+      responses:
+        '200':
+          description: Recent tasks (empty items is a normal response)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskSummaryList'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}:
+    get:
+      tags: [Task]
+      operationId: getTaskOverview
+      summary: Read the narrow task navigation overview
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: Task overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskOverview'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}/commands/start:
+    post:
+      tags: [Task]
+      operationId: startTask
+      summary: Durably accept the first workflow run
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartTaskRequest'
+      responses:
+        '202':
+          description: Durable command acceptance; execution is not complete
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}/commands/rerun:
+    post:
+      tags: [Task]
+      operationId: rerunTask
+      summary: Confirm and durably accept a stage-scoped rerun
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RerunTaskRequest'
+      responses:
+        '202':
+          description: Durable rerun acceptance; a new Run identity is monitored
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/runs/{runId}:
+    get:
+      tags: [Run]
+      operationId: getRun
+      summary: Read a Run monitor, including safe failure information
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: Run representation (including a failed Run)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/runs/{runId}/commands/cancel:
+    post:
+      tags: [Run]
+      operationId: cancelRun
+      summary: Request cooperative cancellation of a specific Run
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelRunRequest'
+      responses:
+        '202':
+          description: Cancellation request durably recorded; terminal cancellation is not implied
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/runs/{runId}/commands/resume:
+    post:
+      tags: [Run]
+      operationId: resumeRun
+      summary: Resume a Run only when the server exposes the capability
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResumeRunRequest'
+      responses:
+        '202':
+          description: Durable resume acceptance with a new Run identity
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/runs/{runId}/commands/retry-current-stage:
+    post:
+      tags: [Run]
+      operationId: retryCurrentStage
+      summary: Retry the current stage when capability-gated
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetryCurrentStageRequest'
+      responses:
+        '202':
+          description: Durable retry acceptance with a new Run identity
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/runs/{runId}/commands/restart-from-safe-boundary:
+    post:
+      tags: [Run]
+      operationId: restartFromSafeBoundary
+      summary: Restart from a capability-gated safe boundary
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestartFromSafeBoundaryRequest'
+      responses:
+        '202':
+          description: Durable restart acceptance with a new Run identity
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/needs-input-requests/{actionRequestId}:
+    get:
+      tags: [Needs Input]
+      operationId: getNeedsInputActionRequest
+      summary: Read a revision-bound targeted action request
+      parameters:
+        - $ref: '#/components/parameters/ActionRequestId'
+      responses:
+        '200':
+          description: Needs Input action request, including superseded state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NeedsInputActionRequest'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/needs-input-requests/{actionRequestId}/commands/resolve:
+    post:
+      tags: [Needs Input]
+      operationId: resolveNeedsInput
+      summary: Commit a typed Needs Input resolution
+      parameters:
+        - $ref: '#/components/parameters/ActionRequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveNeedsInputRequest'
+      responses:
+        '200':
+          description: Resolution committed; the response projects newly legal capabilities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResolveNeedsInputResult'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}/source-associations/{sourceAssociationId}/previews/remove:
+    post:
+      tags: [Source Change]
+      operationId: previewRemoveSourceAssociation
+      summary: Preview the impact of removing a task-scoped source association
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/SourceAssociationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreviewSourceChangeRequest'
+      responses:
+        '200':
+          description: Side-effect-free source change preview and basis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceChangePreview'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}/source-associations/{sourceAssociationId}/commands/remove:
+    post:
+      tags: [Source Change]
+      operationId: removeSourceAssociation
+      summary: Confirm removal using the server-derived source change basis
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/SourceAssociationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmRemoveSourceRequest'
+      responses:
+        '200':
+          description: Removal committed with updated task references
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceChangeResult'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}/source-associations/{sourceAssociationId}/previews/replace:
+    post:
+      tags: [Source Change]
+      operationId: previewReplaceSourceAssociation
+      summary: Preview replacing a task-scoped source association
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/SourceAssociationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreviewReplaceSourceRequest'
+      responses:
+        '200':
+          description: Side-effect-free replacement preview and basis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceChangePreview'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}/source-associations/{sourceAssociationId}/commands/replace:
+    post:
+      tags: [Source Change]
+      operationId: replaceSourceAssociation
+      summary: Confirm replacement using the server-derived source change basis
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/SourceAssociationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmReplaceSourceRequest'
+      responses:
+        '200':
+          description: Replacement committed with updated task references
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceChangeResult'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/review-packages/{reviewPackageId}:
+    get:
+      tags: [Human Review]
+      operationId: getReviewPackage
+      summary: Read an immutable review package snapshot
+      parameters:
+        - $ref: '#/components/parameters/ReviewPackageId'
+      responses:
+        '200':
+          description: Immutable Review Package
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewPackage'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/review-packages/{reviewPackageId}/draft:
+    get:
+      tags: [Human Review]
+      operationId: getReviewDraft
+      summary: Read the current mutable review draft
+      parameters:
+        - $ref: '#/components/parameters/ReviewPackageId'
+      responses:
+        '200':
+          description: Current Review Draft snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDraft'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+    put:
+      tags: [Human Review]
+      operationId: putReviewDraft
+      summary: Save a full revision-guarded Review Draft snapshot
+      parameters:
+        - $ref: '#/components/parameters/ReviewPackageId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutReviewDraftRequest'
+      responses:
+        '200':
+          description: Canonical Draft snapshot with the next revision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDraft'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/review-packages/{reviewPackageId}/commands/submit:
+    post:
+      tags: [Human Review]
+      operationId: submitReview
+      summary: Submit the latest Review Draft and atomically continue workflow
+      parameters:
+        - $ref: '#/components/parameters/ReviewPackageId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitReviewRequest'
+      responses:
+        '201':
+          description: Review Decision and Approved Strategy created; continuation is durably accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewOutcomeResult'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewOutcomeResult'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/review-packages/{reviewPackageId}/commands/request-more-information:
+    post:
+      tags: [Human Review]
+      operationId: requestMoreInformation
+      summary: Record a Review outcome that creates or links a Needs Input request
+      parameters:
+        - $ref: '#/components/parameters/ReviewPackageId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestMoreInformationRequest'
+      responses:
+        '201':
+          description: Review outcome and Needs Input request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewOutcomeResult'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewOutcomeResult'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/review-packages/{reviewPackageId}/commands/reject-all-and-request-regeneration:
+    post:
+      tags: [Human Review]
+      operationId: rejectAllAndRequestRegeneration
+      summary: Reject all candidates and durably accept regeneration
+      parameters:
+        - $ref: '#/components/parameters/ReviewPackageId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectAllAndRequestRegenerationRequest'
+      responses:
+        '202':
+          description: Regeneration is durably accepted; no Approved Strategy is created
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandReceipt'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/approved-strategies/{approvedStrategyVersionId}:
+    get:
+      tags: [Human Review]
+      operationId: getApprovedStrategy
+      summary: Read an immutable Approved Strategy version
+      parameters:
+        - $ref: '#/components/parameters/ApprovedStrategyVersionId'
+      responses:
+        '200':
+          description: Approved Strategy version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedStrategyVersion'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/approved-strategies/{approvedStrategyVersionId}/commands/withdraw:
+    post:
+      tags: [Human Review]
+      operationId: withdrawApprovedStrategy
+      summary: Withdraw an Approved Strategy without automatically rerunning
+      parameters:
+        - $ref: '#/components/parameters/ApprovedStrategyVersionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawApprovedStrategyRequest'
+      responses:
+        '201':
+          description: Withdrawal and a new Review Cycle are recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewOutcomeResult'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewOutcomeResult'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}/marketing-briefs:
+    get:
+      tags: [Marketing Brief]
+      operationId: listMarketingBriefs
+      summary: List a bounded recent window of Marketing Brief versions
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/BriefLimit'
+      responses:
+        '200':
+          description: Recent Marketing Brief version references
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BriefVersionList'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/marketing-briefs/{marketingBriefVersionId}:
+    get:
+      tags: [Marketing Brief]
+      operationId: getMarketingBrief
+      summary: Read an immutable Marketing Brief version
+      parameters:
+        - $ref: '#/components/parameters/MarketingBriefVersionId'
+      responses:
+        '200':
+          description: Marketing Brief version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketingBriefVersion'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/marketing-brief-comparisons:
+    post:
+      tags: [Marketing Brief]
+      operationId: compareMarketingBriefs
+      summary: Compare two explicit Marketing Brief version identities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareBriefRequest'
+      responses:
+        '200':
+          description: Typed semantic-group comparison
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BriefComparison'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/marketing-briefs/{marketingBriefVersionId}/commands/revise:
+    post:
+      tags: [Marketing Brief]
+      operationId: reviseMarketingBrief
+      summary: Create a new Marketing Brief version from a typed revision command
+      parameters:
+        - $ref: '#/components/parameters/MarketingBriefVersionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviseBriefRequest'
+      responses:
+        '201':
+          description: New immutable Marketing Brief version created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviseBriefResult'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviseBriefResult'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}/xiaohongshu-briefs:
+    get:
+      tags: [Xiaohongshu Brief]
+      operationId: listXiaohongshuBriefs
+      summary: List a bounded recent window of Xiaohongshu Brief versions
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/BriefLimit'
+      responses:
+        '200':
+          description: Recent Xiaohongshu Brief version references
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BriefVersionList'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/xiaohongshu-briefs/{xiaohongshuBriefVersionId}:
+    get:
+      tags: [Xiaohongshu Brief]
+      operationId: getXiaohongshuBrief
+      summary: Read an immutable Xiaohongshu Brief version
+      parameters:
+        - $ref: '#/components/parameters/XiaohongshuBriefVersionId'
+      responses:
+        '200':
+          description: Xiaohongshu Brief version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XiaohongshuBriefVersion'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/xiaohongshu-brief-comparisons:
+    post:
+      tags: [Xiaohongshu Brief]
+      operationId: compareXiaohongshuBriefs
+      summary: Compare two explicit Xiaohongshu Brief version identities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareBriefRequest'
+      responses:
+        '200':
+          description: Typed semantic-group comparison
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BriefComparison'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/xiaohongshu-briefs/{xiaohongshuBriefVersionId}/commands/revise:
+    post:
+      tags: [Xiaohongshu Brief]
+      operationId: reviseXiaohongshuBrief
+      summary: Create a new Xiaohongshu Brief version from a typed revision command
+      parameters:
+        - $ref: '#/components/parameters/XiaohongshuBriefVersionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviseBriefRequest'
+      responses:
+        '201':
+          description: New immutable Xiaohongshu Brief version created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviseBriefResult'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviseBriefResult'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}/export-previews:
+    post:
+      tags: [Export]
+      operationId: previewTaskExport
+      summary: Preview a current Brief export without side effects
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportPreviewRequest'
+      responses:
+        '200':
+          description: Typed export basis requiring explicit confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportPreview'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/export-snapshots:
+    post:
+      tags: [Export]
+      operationId: createExportSnapshot
+      summary: Confirm a typed export basis and create an immutable Markdown snapshot
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmExportRequest'
+      responses:
+        '201':
+          description: Immutable export snapshot created
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportSnapshot'
+        '200':
+          description: Committed same-input idempotent replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportSnapshot'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/export-snapshots/{exportSnapshotId}:
+    get:
+      tags: [Export]
+      operationId: getExportSnapshot
+      summary: Read immutable export snapshot metadata
+      parameters:
+        - $ref: '#/components/parameters/ExportSnapshotId'
+      responses:
+        '200':
+          description: Export Snapshot metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportSnapshot'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/export-snapshots/{exportSnapshotId}/content:
+    get:
+      tags: [Export]
+      operationId: downloadExportSnapshotContent
+      summary: Download the immutable UTF-8 Markdown content
+      parameters:
+        - $ref: '#/components/parameters/ExportSnapshotId'
+      responses:
+        '200':
+          description: UTF-8 Markdown attachment
+          headers:
+            Content-Disposition:
+              $ref: '#/components/headers/ContentDisposition'
+          content:
+            text/markdown; charset=utf-8:
+              schema:
+                type: string
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+components:
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Project-defined retry identity scoped to the current fixed workspace and operation.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 200
+    TaskLimit:
+      name: limit
+      in: query
+      required: false
+      description: Server-bounded recent-task window size.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+    BriefLimit:
+      name: limit
+      in: query
+      required: false
+      description: Server-bounded recent Brief version window size.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 25
+        default: 10
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    RunId:
+      name: runId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    ActionRequestId:
+      name: actionRequestId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    SourceAssociationId:
+      name: sourceAssociationId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    ReviewPackageId:
+      name: reviewPackageId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    ApprovedStrategyVersionId:
+      name: approvedStrategyVersionId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    MarketingBriefVersionId:
+      name: marketingBriefVersionId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    XiaohongshuBriefVersionId:
+      name: xiaohongshuBriefVersionId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    ExportSnapshotId:
+      name: exportSnapshotId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+  responses:
+    Problem400:
+      description: Malformed request
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem404:
+      description: Resource does not exist in the fixed workspace
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem409:
+      description: Typed revision, idempotency, supersession, capability, or in-progress conflict
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem413:
+      description: Request or upload boundary is too large
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem415:
+      description: Unsupported request media type
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem422:
+      description: Semantically invalid or unprocessable input
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem429:
+      description: HTTP request was rate limited
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem500:
+      description: Safe internal error projection
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem503:
+      description: Service unavailable at the HTTP boundary
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    ProblemDefault:
+      description: RFC 9457 problem projection
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+  headers:
+    RetryAfter:
+      description: Optional bounded retry hint; exact backoff is owned by RFC-007.
+      schema:
+        type: integer
+        minimum: 0
+    Location:
+      description: Canonical resource or Run monitor URI.
+      schema:
+        type: string
+        format: uri-reference
+    ContentDisposition:
+      description: Attachment disposition with an ASCII-safe Markdown filename.
+      schema:
+        type: string
+  schemas:
+    ResourceReference:
+      type: object
+      required: [resourceKind, resourceId]
+      properties:
+        resourceKind:
+          type: string
+          minLength: 1
+        resourceId:
+          type: string
+          minLength: 1
+    MutableResourceReference:
+      allOf:
+        - $ref: '#/components/schemas/ResourceReference'
+        - type: object
+          required: [revision]
+          properties:
+            revision:
+              $ref: '#/components/schemas/ResourceRevision'
+    DomainVersionReference:
+      type: object
+      additionalProperties: false
+      required: [resourceKind, resourceVersionId, versionNumber]
+      properties:
+        resourceKind:
+          type: string
+          minLength: 1
+        resourceVersionId:
+          type: string
+          minLength: 1
+        versionNumber:
+          type: integer
+          minimum: 1
+    ResourceRevision:
+      type: integer
+      minimum: 0
+    TaskReference:
+      type: object
+      additionalProperties: false
+      required: [taskId]
+      properties:
+        taskId:
+          type: string
+          minLength: 1
+    RunReference:
+      type: object
+      additionalProperties: false
+      required: [runId]
+      properties:
+        runId:
+          type: string
+          minLength: 1
+    StageReference:
+      type: string
+      enum:
+        - product_intake_and_fact_extraction
+        - customer_insight_analysis
+        - product_positioning
+        - human_review
+        - marketing_brief_generation
+        - xiaohongshu_brief_mapping
+    StageStatus:
+      type: string
+      enum: [not_started, ready, running, waiting_input, waiting_review, valid, invalid, failed, skipped]
+    StageSummary:
+      type: object
+      additionalProperties: false
+      required: [stage, status, currentVersion, lastValidVersion, lastRun, waitingReason, updatedAt]
+      properties:
+        stage: { $ref: '#/components/schemas/StageReference' }
+        status: { $ref: '#/components/schemas/StageStatus' }
+        currentVersion:
+          oneOf:
+            - $ref: '#/components/schemas/DomainVersionReference'
+            - type: 'null'
+        lastValidVersion:
+          oneOf:
+            - $ref: '#/components/schemas/DomainVersionReference'
+            - type: 'null'
+        lastRun:
+          oneOf:
+            - $ref: '#/components/schemas/RunReference'
+            - type: 'null'
+        waitingReason:
+          oneOf:
+            - type: string
+            - type: 'null'
+        updatedAt:
+          type: string
+          format: date-time
+    TaskStatus:
+      type: string
+      enum: [draft, running, waiting_for_input, waiting_for_review, paused, completed, failed, cancelled]
+    RunStatus:
+      type: string
+      enum: [queued, running, retrying, waiting_for_input, waiting_for_review, paused, cancellation_requested, completed, failed, cancelled, superseded]
+    Capability:
+      type: string
+      enum:
+        - start
+        - cancel
+        - resume
+        - rerun
+        - retry_current_stage
+        - restart_from_safe_boundary
+        - resolve_needs_input
+        - preview_remove_source
+        - remove_source
+        - preview_replace_source
+        - replace_source
+        - save_review_draft
+        - submit_review
+        - request_more_information
+        - reject_all_and_request_regeneration
+        - withdraw_approved_strategy
+        - compare_brief
+        - revise_marketing_brief
+        - revise_xiaohongshu_brief
+        - preview_export
+        - confirm_export
+    PrimaryAction:
+      oneOf:
+        - $ref: '#/components/schemas/NoPrimaryAction'
+        - $ref: '#/components/schemas/NavigatePrimaryAction'
+        - $ref: '#/components/schemas/CommandPrimaryAction'
+      discriminator:
+        propertyName: type
+    NoPrimaryAction:
+      type: object
+      additionalProperties: false
+      required: [type]
+      properties:
+        type:
+          const: none
+    NavigatePrimaryAction:
+      type: object
+      additionalProperties: false
+      required: [type, target]
+      properties:
+        type:
+          const: navigate
+        target:
+          type: string
+          enum: [intake, needs_input, review, results, recovery]
+    CommandPrimaryAction:
+      type: object
+      additionalProperties: false
+      required: [type, command]
+      properties:
+        type:
+          const: command
+        command: { $ref: '#/components/schemas/Capability' }
+    CreateTaskRequest:
+      type: object
+      additionalProperties: false
+      required: [taskName, productCategory, promotionGoal]
+      properties:
+        taskName:
+          type: string
+          minLength: 1
+        productCategory:
+          type: string
+          minLength: 1
+        promotionGoal:
+          type: string
+          minLength: 1
+    TaskSummary:
+      type: object
+      required: [taskId, taskName, productCategory, taskStatus, currentStage, waitingReason, updatedAt, revision, primaryAction, capabilities]
+      properties:
+        taskId:
+          type: string
+          minLength: 1
+        taskName:
+          type: string
+          minLength: 1
+        productCategory:
+          type: string
+          minLength: 1
+        taskStatus: { $ref: '#/components/schemas/TaskStatus' }
+        currentStage:
+          oneOf:
+            - $ref: '#/components/schemas/StageReference'
+            - type: 'null'
+        waitingReason:
+          oneOf:
+            - type: string
+            - type: 'null'
+        updatedAt:
+          type: string
+          format: date-time
+        revision: { $ref: '#/components/schemas/ResourceRevision' }
+        primaryAction: { $ref: '#/components/schemas/PrimaryAction' }
+        capabilities:
+          type: array
+          items: { $ref: '#/components/schemas/Capability' }
+          uniqueItems: true
+    TaskSummaryList:
+      type: object
+      additionalProperties: false
+      required: [items, limit]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/TaskSummary' }
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+    TaskOverview:
+      allOf:
+        - $ref: '#/components/schemas/TaskSummary'
+        - type: object
+          additionalProperties: false
+          required: [stages, activeRun, latestRun, needsInputRequest, reviewPackage, approvedStrategy, marketingBrief, xiaohongshuBrief]
+          properties:
+            stages:
+              type: array
+              items: { $ref: '#/components/schemas/StageSummary' }
+            activeRun:
+              oneOf:
+                - $ref: '#/components/schemas/RunReference'
+                - type: 'null'
+            latestRun:
+              oneOf:
+                - $ref: '#/components/schemas/RunReference'
+                - type: 'null'
+            needsInputRequest:
+              oneOf:
+                - $ref: '#/components/schemas/MutableResourceReference'
+                - type: 'null'
+            reviewPackage:
+              oneOf:
+                - $ref: '#/components/schemas/ReviewPackageReference'
+                - type: 'null'
+            approvedStrategy:
+              oneOf:
+                - $ref: '#/components/schemas/DomainVersionReference'
+                - type: 'null'
+            marketingBrief:
+              oneOf:
+                - $ref: '#/components/schemas/DomainVersionReference'
+                - type: 'null'
+            xiaohongshuBrief:
+              oneOf:
+                - $ref: '#/components/schemas/DomainVersionReference'
+                - type: 'null'
+    CommandReceipt:
+      type: object
+      additionalProperties: false
+      required: [commandId, commandType, taskId, acceptedAt, monitor, resultReference]
+      example:
+        commandId: command-01
+        commandType: start
+        taskId: task-01
+        acceptedAt: '2026-08-08T00:00:00Z'
+        monitor:
+          runId: run-01
+        resultReference: null
+      properties:
+        commandId:
+          type: string
+          minLength: 1
+        commandType:
+          type: string
+          minLength: 1
+        taskId:
+          type: string
+          minLength: 1
+        acceptedAt:
+          type: string
+          format: date-time
+        monitor: { $ref: '#/components/schemas/RunReference' }
+        resultReference:
+          oneOf:
+            - $ref: '#/components/schemas/ResourceReference'
+            - $ref: '#/components/schemas/DomainVersionReference'
+            - type: 'null'
+    Run:
+      type: object
+      additionalProperties: false
+      required: [runId, taskId, sourceRunId, status, currentStage, startedAt, updatedAt, completedAt, failureSummary, lastValidResult, primaryAction, capabilities]
+      example:
+        runId: run-01
+        taskId: task-01
+        sourceRunId: null
+        status: queued
+        currentStage: product_intake_and_fact_extraction
+        startedAt: null
+        updatedAt: '2026-08-08T00:00:00Z'
+        completedAt: null
+        failureSummary: null
+        lastValidResult: null
+        primaryAction:
+          type: none
+        capabilities: [cancel]
+      properties:
+        runId:
+          type: string
+          minLength: 1
+        taskId:
+          type: string
+          minLength: 1
+        sourceRunId:
+          oneOf:
+            - type: string
+            - type: 'null'
+        status: { $ref: '#/components/schemas/RunStatus' }
+        currentStage:
+          oneOf:
+            - $ref: '#/components/schemas/StageReference'
+            - type: 'null'
+        startedAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+        failureSummary:
+          oneOf:
+            - $ref: '#/components/schemas/SafeFailureSummary'
+            - type: 'null'
+        lastValidResult:
+          oneOf:
+            - $ref: '#/components/schemas/ResourceReference'
+            - $ref: '#/components/schemas/DomainVersionReference'
+            - type: 'null'
+        primaryAction: { $ref: '#/components/schemas/PrimaryAction' }
+        capabilities:
+          type: array
+          items: { $ref: '#/components/schemas/Capability' }
+          uniqueItems: true
+    SafeFailureSummary:
+      type: object
+      additionalProperties: false
+      required: [reasonType, summary, action]
+      properties:
+        reasonType:
+          type: string
+          minLength: 1
+        summary:
+          type: string
+          minLength: 1
+        action:
+          type: string
+          enum: [correct_input, refresh, refresh_and_compare, open_current, retry_later, contact_operator, none]
+    StartTaskRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedRevision]
+      properties:
+        expectedRevision: { $ref: '#/components/schemas/ResourceRevision' }
+    RerunTaskRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedRevision, earliestStage, affectedStages]
+      properties:
+        expectedRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        earliestStage: { $ref: '#/components/schemas/StageReference' }
+        affectedStages:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/StageReference' }
+          uniqueItems: true
+    CancelRunRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedRevision]
+      properties:
+        expectedRevision: { $ref: '#/components/schemas/ResourceRevision' }
+    ResumeRunRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedRevision]
+      properties:
+        expectedRevision: { $ref: '#/components/schemas/ResourceRevision' }
+    RetryCurrentStageRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedRevision]
+      properties:
+        expectedRevision: { $ref: '#/components/schemas/ResourceRevision' }
+    RestartFromSafeBoundaryRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedRevision, earliestStage]
+      properties:
+        expectedRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        earliestStage: { $ref: '#/components/schemas/StageReference' }
+    NeedsInputActionRequest:
+      type: object
+      additionalProperties: false
+      required: [actionRequestId, taskId, revision, status, reasonType, reasonSummary, affectedStages, sourceReferences, conflictValues, allowedResolutionTypes, expectedRecovery, supersededBy]
+      properties:
+        actionRequestId:
+          type: string
+          minLength: 1
+        taskId:
+          type: string
+          minLength: 1
+        revision: { $ref: '#/components/schemas/ResourceRevision' }
+        status:
+          type: string
+          enum: [open, resolved, superseded, cancelled]
+        reasonType:
+          type: string
+          minLength: 1
+        reasonSummary:
+          type: string
+          minLength: 1
+        affectedStages:
+          type: array
+          items: { $ref: '#/components/schemas/StageReference' }
+          uniqueItems: true
+        sourceReferences:
+          type: array
+          items: { $ref: '#/components/schemas/ResourceReference' }
+        conflictValues:
+          type: array
+          items: { $ref: '#/components/schemas/ConflictValue' }
+        allowedResolutionTypes:
+          type: array
+          items: { $ref: '#/components/schemas/ResolutionType' }
+          uniqueItems: true
+        expectedRecovery:
+          type: string
+          enum: [resume, rerun, manual_review, none]
+        supersededBy:
+          oneOf:
+            - $ref: '#/components/schemas/MutableResourceReference'
+            - type: 'null'
+    ConflictValue:
+      type: object
+      additionalProperties: false
+      required: [fieldPath, values]
+      properties:
+        fieldPath:
+          type: string
+          minLength: 1
+        values:
+          type: array
+          items: {}
+          minItems: 1
+    ResolutionType:
+      type: string
+      enum: [provide_source_reference, choose_existing_value, submit_correction, confirm_known_limitation, cancel_path]
+    NeedsInputResolution:
+      oneOf:
+        - $ref: '#/components/schemas/ProvideSourceReferenceResolution'
+        - $ref: '#/components/schemas/ChooseExistingValueResolution'
+        - $ref: '#/components/schemas/SubmitCorrectionResolution'
+        - $ref: '#/components/schemas/ConfirmKnownLimitationResolution'
+        - $ref: '#/components/schemas/CancelPathResolution'
+      discriminator:
+        propertyName: resolutionType
+    ProvideSourceReferenceResolution:
+      type: object
+      additionalProperties: false
+      required: [resolutionType, sourceReferences]
+      properties:
+        resolutionType: { const: provide_source_reference }
+        sourceReferences:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ResourceReference' }
+        notes: { type: string }
+    ChooseExistingValueResolution:
+      type: object
+      additionalProperties: false
+      required: [resolutionType, selectedValue]
+      properties:
+        resolutionType: { const: choose_existing_value }
+        selectedValue: {}
+        notes: { type: string }
+    SubmitCorrectionResolution:
+      type: object
+      additionalProperties: false
+      required: [resolutionType, correctedValue]
+      properties:
+        resolutionType: { const: submit_correction }
+        correctedValue: {}
+        notes: { type: string }
+    ConfirmKnownLimitationResolution:
+      type: object
+      additionalProperties: false
+      required: [resolutionType]
+      properties:
+        resolutionType: { const: confirm_known_limitation }
+        notes: { type: string }
+    CancelPathResolution:
+      type: object
+      additionalProperties: false
+      required: [resolutionType]
+      properties:
+        resolutionType: { const: cancel_path }
+        notes: { type: string }
+    ResolveNeedsInputRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedRevision, resolution]
+      properties:
+        expectedRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        resolution: { $ref: '#/components/schemas/NeedsInputResolution' }
+    ResolveNeedsInputResult:
+      type: object
+      additionalProperties: false
+      required: [actionRequest, task]
+      properties:
+        actionRequest: { $ref: '#/components/schemas/NeedsInputActionRequest' }
+        task: { $ref: '#/components/schemas/TaskReference' }
+    PreviewSourceChangeRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedTaskRevision]
+      properties:
+        expectedTaskRevision: { $ref: '#/components/schemas/ResourceRevision' }
+    PreviewReplaceSourceRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedTaskRevision, replacementSourceVersionId]
+      properties:
+        expectedTaskRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        replacementSourceVersionId:
+          type: string
+          minLength: 1
+    SourceChangeBasis:
+      type: object
+      additionalProperties: false
+      required: [taskRevision, sourceAssociationRevision, sourceVersion, affectedStages, affectedCurrentTruth, affectedReviewPackage, affectedBriefs]
+      properties:
+        taskRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        sourceAssociationRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        sourceVersion: { $ref: '#/components/schemas/DomainVersionReference' }
+        affectedStages:
+          type: array
+          items: { $ref: '#/components/schemas/StageReference' }
+        affectedCurrentTruth:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/DomainVersionReference'
+              - $ref: '#/components/schemas/ResourceReference'
+        affectedReviewPackage:
+          oneOf:
+            - $ref: '#/components/schemas/ResourceReference'
+            - type: 'null'
+        affectedBriefs:
+          type: array
+          items: { $ref: '#/components/schemas/DomainVersionReference' }
+    SourceChangePreview:
+      type: object
+      additionalProperties: false
+      required: [basis, changeType, impactSummary]
+      properties:
+        basis: { $ref: '#/components/schemas/SourceChangeBasis' }
+        changeType:
+          type: string
+          enum: [remove, replace]
+        impactSummary:
+          type: string
+          minLength: 1
+    ConfirmRemoveSourceRequest:
+      type: object
+      additionalProperties: false
+      required: [basis]
+      properties:
+        basis: { $ref: '#/components/schemas/SourceChangeBasis' }
+    ConfirmReplaceSourceRequest:
+      type: object
+      additionalProperties: false
+      required: [basis, replacementSourceVersionId]
+      properties:
+        basis: { $ref: '#/components/schemas/SourceChangeBasis' }
+        replacementSourceVersionId:
+          type: string
+          minLength: 1
+    SourceChangeResult:
+      type: object
+      additionalProperties: false
+      required: [basis, task]
+      properties:
+        basis: { $ref: '#/components/schemas/SourceChangeBasis' }
+        task: { $ref: '#/components/schemas/TaskReference' }
+    ReviewSemanticGroup:
+      type: object
+      additionalProperties: false
+      required: [group, content]
+      properties:
+        group:
+          type: string
+          enum: [version_context, positioning_candidates, key_facts_and_insights, hypotheses, evidence_limitations, conflicts_and_strategic_risks, model_recommendation, objective_and_audience, message_architecture, reasons_to_believe_and_evidence, execution_direction, constraints_and_honesty, version_and_workflow_context, platform_and_campaign_context, note_format_and_content_mode, creative_structure_directions, discovery_and_action_directions, evidence_and_platform_constraints, workflow_and_version_context]
+        content:
+          type: object
+          description: Structured semantic-group content owned by the product contract.
+        origin:
+          type: string
+          enum: [model, user]
+    ReviewPackage:
+      type: object
+      additionalProperties: false
+      required: [reviewPackageId, reviewId, taskId, packageVersion, status, upstreamVersions, semanticGroups, requiredDecisions, limitations]
+      properties:
+        reviewPackageId:
+          type: string
+          minLength: 1
+        reviewId:
+          type: string
+          minLength: 1
+        taskId:
+          type: string
+          minLength: 1
+        packageVersion:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum: [active, superseded, submitted, withdrawn]
+        upstreamVersions:
+          type: array
+          items: { $ref: '#/components/schemas/DomainVersionReference' }
+        semanticGroups:
+          type: array
+          minItems: 7
+          items: { $ref: '#/components/schemas/ReviewSemanticGroup' }
+        requiredDecisions:
+          type: array
+          items: { type: string }
+        limitations:
+          type: array
+          items: { type: string }
+    ReviewPackageReference:
+      type: object
+      additionalProperties: false
+      required: [reviewPackageId, packageVersion]
+      properties:
+        reviewPackageId:
+          type: string
+          minLength: 1
+        packageVersion:
+          type: integer
+          minimum: 1
+    ReviewDraft:
+      type: object
+      additionalProperties: false
+      required: [reviewDraftId, reviewPackageId, revision, content, savedAt, supersededBy]
+      example:
+        reviewDraftId: review-draft-01
+        reviewPackageId: review-package-01
+        revision: 0
+        content: {}
+        savedAt: '2026-08-08T00:00:00Z'
+        supersededBy: null
+      properties:
+        reviewDraftId:
+          type: string
+          minLength: 1
+        reviewPackageId:
+          type: string
+          minLength: 1
+        revision: { $ref: '#/components/schemas/ResourceRevision' }
+        content:
+          type: object
+          description: Full structured Strategy Draft snapshot; candidate edits remain Draft data.
+        savedAt:
+          type: string
+          format: date-time
+        supersededBy:
+          oneOf:
+            - $ref: '#/components/schemas/ResourceReference'
+            - type: 'null'
+    PutReviewDraftRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedRevision, content]
+      properties:
+        expectedRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        content:
+          type: object
+    SubmitReviewRequest:
+      type: object
+      additionalProperties: false
+      required: [packageVersion, expectedDraftRevision]
+      properties:
+        packageVersion:
+          type: integer
+          minimum: 1
+        expectedDraftRevision: { $ref: '#/components/schemas/ResourceRevision' }
+    RequestMoreInformationRequest:
+      type: object
+      additionalProperties: false
+      required: [packageVersion, expectedDraftRevision, reason, affectedStages]
+      properties:
+        packageVersion:
+          type: integer
+          minimum: 1
+        expectedDraftRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        reason:
+          type: string
+          minLength: 1
+        affectedStages:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/StageReference' }
+    RejectAllAndRequestRegenerationRequest:
+      type: object
+      additionalProperties: false
+      required: [packageVersion, expectedDraftRevision, reason]
+      properties:
+        packageVersion:
+          type: integer
+          minimum: 1
+        expectedDraftRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        reason:
+          type: string
+          minLength: 1
+    ReviewOutcomeResult:
+      type: object
+      additionalProperties: false
+      required: [reviewDecision, task, stages, approvedStrategy, continuation, needsInputRequest]
+      properties:
+        reviewDecision: { $ref: '#/components/schemas/ReviewDecision' }
+        task: { $ref: '#/components/schemas/TaskReference' }
+        stages:
+          type: array
+          items: { $ref: '#/components/schemas/StageSummary' }
+        approvedStrategy:
+          oneOf:
+            - $ref: '#/components/schemas/DomainVersionReference'
+            - type: 'null'
+        continuation:
+          oneOf:
+            - $ref: '#/components/schemas/CommandReceipt'
+            - type: 'null'
+        needsInputRequest:
+          oneOf:
+            - $ref: '#/components/schemas/NeedsInputActionRequest'
+            - type: 'null'
+    ReviewDecision:
+      type: object
+      additionalProperties: false
+      required: [reviewDecisionId, reviewId, decision, decidedAt]
+      properties:
+        reviewDecisionId:
+          type: string
+          minLength: 1
+        reviewId:
+          type: string
+          minLength: 1
+        decision:
+          type: string
+          enum: [approved, request_more_information, rejected_for_regeneration, withdrawn]
+        decidedAt:
+          type: string
+          format: date-time
+    ApprovedStrategyVersion:
+      type: object
+      additionalProperties: false
+      required: [approvedStrategyVersionId, taskId, versionNumber, valid, createdAt, upstreamVersions, semanticGroups, hypotheses, evidenceLimitations, risks]
+      properties:
+        approvedStrategyVersionId:
+          type: string
+          minLength: 1
+        taskId:
+          type: string
+          minLength: 1
+        versionNumber:
+          type: integer
+          minimum: 1
+        valid:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        upstreamVersions:
+          type: array
+          items: { $ref: '#/components/schemas/DomainVersionReference' }
+        semanticGroups:
+          type: array
+          minItems: 6
+          items: { $ref: '#/components/schemas/ReviewSemanticGroup' }
+        hypotheses:
+          type: array
+          items: { type: string }
+        evidenceLimitations:
+          type: array
+          items: { type: string }
+        risks:
+          type: array
+          items: { type: string }
+    WithdrawApprovedStrategyRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedTaskRevision]
+      properties:
+        expectedTaskRevision: { $ref: '#/components/schemas/ResourceRevision' }
+    BriefKind:
+      type: string
+      enum: [marketing, xiaohongshu]
+    BriefVersionSummary:
+      type: object
+      additionalProperties: false
+      required: [briefKind, briefVersionId, taskId, versionNumber, valid, createdAt]
+      properties:
+        briefKind: { $ref: '#/components/schemas/BriefKind' }
+        briefVersionId:
+          type: string
+          minLength: 1
+        taskId:
+          type: string
+          minLength: 1
+        versionNumber:
+          type: integer
+          minimum: 1
+        valid:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    BriefVersionList:
+      type: object
+      additionalProperties: false
+      required: [items, limit]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/BriefVersionSummary' }
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 25
+    BriefVersion:
+      type: object
+      additionalProperties: false
+      required: [briefKind, briefVersionId, taskId, versionNumber, valid, createdAt, upstreamVersions, semanticGroups, hypotheses, evidenceLimitations, risks, evidenceReferences]
+      example:
+        briefKind: marketing
+        briefVersionId: brief-01
+        taskId: task-01
+        versionNumber: 1
+        valid: true
+        createdAt: '2026-08-08T00:00:00Z'
+        upstreamVersions: []
+        semanticGroups:
+          - { group: objective_and_audience, content: {} }
+          - { group: message_architecture, content: {} }
+          - { group: reasons_to_believe_and_evidence, content: {} }
+          - { group: execution_direction, content: {} }
+          - { group: constraints_and_honesty, content: {} }
+          - { group: version_and_workflow_context, content: {} }
+        hypotheses: []
+        evidenceLimitations: []
+        risks: []
+        evidenceReferences: []
+      properties:
+        briefKind: { $ref: '#/components/schemas/BriefKind' }
+        briefVersionId:
+          type: string
+          minLength: 1
+        taskId:
+          type: string
+          minLength: 1
+        versionNumber:
+          type: integer
+          minimum: 1
+        valid:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        upstreamVersions:
+          type: array
+          items: { $ref: '#/components/schemas/DomainVersionReference' }
+        semanticGroups:
+          type: array
+          minItems: 6
+          items: { $ref: '#/components/schemas/ReviewSemanticGroup' }
+        hypotheses:
+          type: array
+          items: { type: string }
+        evidenceLimitations:
+          type: array
+          items: { type: string }
+        risks:
+          type: array
+          items: { type: string }
+        evidenceReferences:
+          type: array
+          items: { $ref: '#/components/schemas/ResourceReference' }
+    MarketingBriefVersion:
+      allOf:
+        - $ref: '#/components/schemas/BriefVersion'
+        - type: object
+          properties:
+            briefKind:
+              const: marketing
+    XiaohongshuBriefVersion:
+      allOf:
+        - $ref: '#/components/schemas/BriefVersion'
+        - type: object
+          properties:
+            briefKind:
+              const: xiaohongshu
+    CompareBriefRequest:
+      type: object
+      additionalProperties: false
+      required: [baseVersion, targetVersion]
+      properties:
+        baseVersion: { $ref: '#/components/schemas/DomainVersionReference' }
+        targetVersion: { $ref: '#/components/schemas/DomainVersionReference' }
+    BriefComparison:
+      type: object
+      additionalProperties: false
+      required: [briefKind, baseVersion, targetVersion, changes]
+      properties:
+        briefKind: { $ref: '#/components/schemas/BriefKind' }
+        baseVersion: { $ref: '#/components/schemas/DomainVersionReference' }
+        targetVersion: { $ref: '#/components/schemas/DomainVersionReference' }
+        changes:
+          type: array
+          items: { $ref: '#/components/schemas/BriefChange' }
+    BriefChange:
+      type: object
+      additionalProperties: false
+      required: [semanticGroup, fieldPath, before, after, origin, editIntent, affectedStages]
+      properties:
+        semanticGroup:
+          type: string
+          minLength: 1
+        fieldPath:
+          type: string
+          minLength: 1
+        before: {}
+        after: {}
+        origin:
+          type: string
+          enum: [model, user]
+        editIntent:
+          type: string
+          enum: [business_change, presentation_polish]
+        affectedStages:
+          type: array
+          items: { $ref: '#/components/schemas/StageReference' }
+    ReviseBriefRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedTaskRevision, baseVersion, editIntent, content]
+      properties:
+        expectedTaskRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        baseVersion: { $ref: '#/components/schemas/DomainVersionReference' }
+        editIntent:
+          type: string
+          enum: [business_change, presentation_polish]
+        content:
+          type: object
+    ReviseBriefResult:
+      type: object
+      additionalProperties: false
+      required: [brief, task, invalidatedBrief, continuation]
+      properties:
+        brief: { $ref: '#/components/schemas/BriefVersion' }
+        task: { $ref: '#/components/schemas/TaskReference' }
+        invalidatedBrief:
+          oneOf:
+            - $ref: '#/components/schemas/DomainVersionReference'
+            - type: 'null'
+        continuation:
+          oneOf:
+            - $ref: '#/components/schemas/CommandReceipt'
+            - type: 'null'
+    ExportBriefKind:
+      type: string
+      enum: [marketing, xiaohongshu]
+    ExportPreviewRequest:
+      type: object
+      additionalProperties: false
+      required: [briefKind]
+      properties:
+        briefKind: { $ref: '#/components/schemas/ExportBriefKind' }
+    ExportBasis:
+      type: object
+      additionalProperties: false
+      required: [taskId, taskRevision, briefKind, briefVersion, upstreamVersions, hypotheses, evidenceLimitations, risks]
+      properties:
+        taskId:
+          type: string
+          minLength: 1
+        taskRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        briefKind: { $ref: '#/components/schemas/ExportBriefKind' }
+        briefVersion: { $ref: '#/components/schemas/DomainVersionReference' }
+        upstreamVersions:
+          type: array
+          items: { $ref: '#/components/schemas/DomainVersionReference' }
+        hypotheses:
+          type: array
+          items: { type: string }
+        evidenceLimitations:
+          type: array
+          items: { type: string }
+        risks:
+          type: array
+          items: { type: string }
+    ExportPreview:
+      type: object
+      additionalProperties: false
+      required: [basis, templateVersion, fileName, mediaType]
+      properties:
+        basis: { $ref: '#/components/schemas/ExportBasis' }
+        templateVersion:
+          type: string
+          minLength: 1
+        fileName:
+          type: string
+          pattern: '^task-[^-]+-(marketing|xiaohongshu)-v[0-9]+-[0-9]{8}T[0-9]{6}Z\\.md$'
+        mediaType:
+          const: text/markdown; charset=utf-8
+    ConfirmExportRequest:
+      type: object
+      additionalProperties: false
+      required: [basis]
+      properties:
+        basis: { $ref: '#/components/schemas/ExportBasis' }
+    ExportSnapshot:
+      type: object
+      additionalProperties: false
+      required: [exportSnapshotId, taskId, briefKind, briefVersion, upstreamVersions, exportedAt, fileName, mediaType, contentLocation, templateVersion]
+      example:
+        exportSnapshotId: export-01
+        taskId: task-01
+        briefKind: marketing
+        briefVersion:
+          resourceKind: marketing_brief
+          resourceVersionId: brief-01
+          versionNumber: 1
+        upstreamVersions: []
+        exportedAt: '2026-08-08T00:00:00Z'
+        fileName: task-task01-marketing-v1-20260808T000000Z.md
+        mediaType: text/markdown; charset=utf-8
+        contentLocation: /api/v1/export-snapshots/export-01/content
+        templateVersion: mvp0-markdown-v1
+      properties:
+        exportSnapshotId:
+          type: string
+          minLength: 1
+        taskId:
+          type: string
+          minLength: 1
+        briefKind: { $ref: '#/components/schemas/ExportBriefKind' }
+        briefVersion: { $ref: '#/components/schemas/DomainVersionReference' }
+        upstreamVersions:
+          type: array
+          items: { $ref: '#/components/schemas/DomainVersionReference' }
+        exportedAt:
+          type: string
+          format: date-time
+        fileName:
+          type: string
+          pattern: '^task-[^-]+-(marketing|xiaohongshu)-v[0-9]+-[0-9]{8}T[0-9]{6}Z\\.md$'
+        mediaType:
+          const: text/markdown; charset=utf-8
+        contentLocation:
+          type: string
+          format: uri-reference
+        templateVersion:
+          type: string
+          minLength: 1
+    ProblemAction:
+      type: string
+      enum: [correct_input, refresh, refresh_and_compare, open_current, retry_later, contact_operator, none]
+    ProblemType:
+      type: string
+      enum:
+        - urn:ai-ecommerce-agent:problem:malformed-request
+        - urn:ai-ecommerce-agent:problem:not-found
+        - urn:ai-ecommerce-agent:problem:payload-too-large
+        - urn:ai-ecommerce-agent:problem:unsupported-media-type
+        - urn:ai-ecommerce-agent:problem:validation-failed
+        - urn:ai-ecommerce-agent:problem:revision-conflict
+        - urn:ai-ecommerce-agent:problem:idempotency-conflict
+        - urn:ai-ecommerce-agent:problem:superseded-resource
+        - urn:ai-ecommerce-agent:problem:capability-conflict
+        - urn:ai-ecommerce-agent:problem:operation-in-progress
+        - urn:ai-ecommerce-agent:problem:rate-limited
+        - urn:ai-ecommerce-agent:problem:internal-error
+        - urn:ai-ecommerce-agent:problem:service-unavailable
+    FieldIssue:
+      type: object
+      additionalProperties: false
+      required: [fieldPath, reasonCode]
+      properties:
+        fieldPath:
+          type: string
+          minLength: 1
+        reasonCode:
+          type: string
+          minLength: 1
+    ProblemConflictContext:
+      type: object
+      additionalProperties: false
+      properties:
+        currentResource:
+          oneOf:
+            - $ref: '#/components/schemas/ResourceReference'
+            - type: 'null'
+        currentRevision:
+          oneOf:
+            - $ref: '#/components/schemas/ResourceRevision'
+            - type: 'null'
+        currentVersion:
+          oneOf:
+            - $ref: '#/components/schemas/DomainVersionReference'
+            - type: 'null'
+        fieldPath:
+          oneOf:
+            - type: string
+            - type: 'null'
+        basisSummary:
+          oneOf:
+            - type: string
+            - type: 'null'
+    ProblemDetails:
+      type: object
+      additionalProperties: false
+      required: [type, title, status, detail, instance, action]
+      example:
+        type: urn:ai-ecommerce-agent:problem:revision-conflict
+        title: Revision conflict
+        status: 409
+        detail: The resource changed; refresh and compare before retrying.
+        instance: /api/v1/review-packages/review-package-01/draft
+        action: refresh_and_compare
+      properties:
+        type: { $ref: '#/components/schemas/ProblemType' }
+        title:
+          type: string
+          minLength: 1
+        status:
+          type: integer
+          enum: [400, 404, 409, 413, 415, 422, 429, 500, 503]
+        detail:
+          type: string
+          minLength: 1
+        instance:
+          type: string
+          format: uri-reference
+        action: { $ref: '#/components/schemas/ProblemAction' }
+        fieldIssues:
+          type: array
+          items: { $ref: '#/components/schemas/FieldIssue' }
+        conflict:
+          $ref: '#/components/schemas/ProblemConflictContext'
+        correlationReference:
+          type: string
+          minLength: 1
+        retryAfterSeconds:
+          type: integer
+          minimum: 0
