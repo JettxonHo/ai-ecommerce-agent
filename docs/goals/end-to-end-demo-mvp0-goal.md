@@ -15,7 +15,7 @@
 ## 2. 背景与当前状态
 
 - Product Specification、Frontend Architecture、RFC-001～007 已 Accepted；Foundation FND-001～003 与 disposable Spike-001 已完成。
-- Production Package 当前包含 Foundation 与已完成的 Task Management Task / Run / Stage Domain / Persistence vertical slice（shared values、UoW / PostgreSQL adapter、Alembic `0002_task_management`、application commands 与 CAS）；Source / Review / Brief persistence、API、Worker、LangGraph Runtime、Model / Retrieval Runtime、业务 Skills 与 Frontend 尚不存在，仍由后续有界 Issues 负责。
+- Production Package 当前包含 Foundation、已完成的 Task Management Task / Run / Stage Domain / Persistence vertical slice（shared values、UoW / PostgreSQL adapter、Alembic `0002_task_management`、application commands 与 CAS），以及 MVP0-036 交付的 React/Vite no-API Web foundation shell；Source / Review / Brief persistence、API、Worker、LangGraph Runtime、Model / Retrieval Runtime、业务 Skills 与 Web 业务页面仍由后续有界 Issues 负责。
 - MVP-0 按 DEC-070 使用 JSON / text / TXT / Markdown / CSV + Direct / Exact / PostgreSQL Lexical；PDF 与 Embedding / Semantic / Hybrid 后移 MVP-1。
 - P-71A～P-73A 与完整策划包已接受；规划 PR #59 已合并，Goal 当前为 ACTIVE。
 
@@ -66,7 +66,7 @@
 
 ## 6. Implementation Backlog 候选
 
-M1 的 5 个 ID 已完成，M2 的 6 个 ID 已实例化为 GitHub Issues（见 §13）；其中 MVP0-006～009（Task Management vertical slice）已完成，MVP0-010 / 011 仍待 Gate 与依赖；M3～M8 仍是 Goal 内候选。Sol 在依赖满足时按实际代码状态逐个创建，不得重复创建 M1 / M2 Issues，或把后续候选能力写成已实现。
+M1 的 5 个 ID 已完成，M2 的 6 个 ID 已实例化为 GitHub Issues（见 §13）；其中 MVP0-006～009（Task Management vertical slice）已完成，MVP0-010 / 011 仍待 Gate 与依赖。MVP0-036 已完成 M7 foundation slice（PR #104，merge `adcc38f`），MVP0-037～042 尚未实例化或实现；其余 M3～M6、M8 能力与 M7 业务 slices 仍是 Goal 内候选。Sol 在依赖满足时按实际代码状态逐个创建，不得重复创建 M1 / M2 Issues，或把后续候选能力写成已实现。
 
 ### M1
 
@@ -122,6 +122,8 @@ M1 的 5 个 ID 已完成，M2 的 6 个 ID 已实例化为 GitHub Issues（见 
 35. `MVP0-035` — generated TypeScript client adoption and API contract closure。
 
 ### M7
+
+当前状态：MVP0-036 Web Foundation 已完成（PR #104，merge `adcc38f`）；MVP0-037～042 尚未实例化或实现。
 
 36. `MVP0-036` — React / Vite application foundation and CI scripts。
 37. `MVP0-037` — `/tasks` recent list、create and stable deep links。
@@ -288,7 +290,9 @@ Sol Review 必须检查实际 Diff 和证据，不根据 PR 描述直接批准�
 M0 Planning: COMPLETE (PR #59, merge bb8c658; Issue #58 closed)
 M1 Contract & Compatibility: COMPLETE (PR #69 / #70 / #71 / #72 / #74; Issues #63～#67 closed)
 M2 Domain & Persistence: PARTIAL — Task Management vertical slice COMPLETE (#77 / #78 / #79; tracking parent #80 and seven child PRs); Source / Review / Brief / Export remain pending
-M3–M8: NOT STARTED
+M3–M6: NOT STARTED
+M7: PARTIAL — MVP0-036 Web Foundation COMPLETE (PR #104, merge `adcc38f`); MVP0-037～042 not instantiated / not implemented
+M8: NOT STARTED
 Active implementation Issues: #81 (Source, waiting for user Decision Gate), #82 (Review / Brief / Export, blocked by #81)
 Active luna-worker write tasks: none; #81 is not dispatchable until the user Gate is resolved
 Current blockers: #81 awaits user decision on Proposed P-74A + P-75A + P-76A + P-77A; #82 is blocked by #81

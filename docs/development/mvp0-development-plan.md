@@ -12,9 +12,9 @@ MVP-0 优先证明闭环、版本 / Current Truth、证据、恢复与人工可�
 
 ## 2. 当前基线
 
-- `apps/backend/` 已提供 Python 3.13 Package、Ruff、Pyright、pytest、Import Linter、Architecture Tests、Build 与 8 项 CI Gate；生产包当前只有最小 `__version__` / `py.typed`。
+- `apps/backend/` 已提供 Python 3.13 Foundation 与 Task Management Task / Run / Stage Domain / Persistence vertical slice（shared values、UoW / PostgreSQL adapter、Alembic `0002_task_management`、application commands 与 CAS），以及 Ruff、Pyright、pytest、Import Linter、Architecture Tests、Build 与 8 项 backend CI Gate；repository-wide strict checks 现为 11 项（backend 8 + Web 3）。
 - Spike-001 已证明 LangGraph 小型单线程 SQLite / scripted substitute 路径，但它是 disposable evidence，禁止复制进生产。
-- `apps/web/`、OpenAPI 物理文件、生产数据库 / Migration、API、Worker、Workflow、Model / Retrieval Runtime、业务模块和演示启动脚本均不存在。
+- `apps/web/` 已由 MVP0-036（PR #104，merge `adcc38f`）交付 React 19 + TypeScript + Vite 8 no-API foundation shell、锁定 Node/npm tuple、local scripts 与 deterministic unit / contract / Chromium smoke，并接入独立 Web workflow；authored OpenAPI 与 M1 compatibility / fixture 物理载体已存在。Source / Review / Brief persistence、API、Worker、Workflow Runtime、Model / Retrieval Runtime、业务 Skills、Web 业务页面与演示启动脚本仍由后续 Issues 负责；该 foundation 不调用 API，也不包含 generated client。
 - PostgreSQL、同步 SQLAlchemy / Psycopg、Alembic、LangGraph + 同步 `PostgresSaver`、React / TypeScript / Vite、OpenAI Responses 与 MVP-0 Retrieval 范围已经由 Accepted RFC 冻结。
 
 ## 3. MVP-0 范围
@@ -132,7 +132,7 @@ apps/backend/src/ai_ecommerce_agent/
   entrypoints/                     HTTP and worker adapters
   bootstrap/                       Explicit composition roots
 apps/backend/tests/                unit / contract / architecture / integration / e2e
-apps/web/                          React SPA and generated typed client
+apps/web/                          React/Vite no-API foundation shell; generated typed client remains future
 tests/fixtures/mvp0/               Repository-level fictional acceptance pack authority
 scripts/                           Narrow repeatable local commands
 ```
@@ -176,7 +176,7 @@ Task / Run / Stage / Source / Version / Evidence / Review / Brief 的最小 Doma
 
 ### M7 — Web Workbench
 
-创建 React SPA，按 Task list → intake → progress / Needs Input → Review → Brief / Export 的纵向 Slice 推进；不得在前端模拟服务端终态。
+MVP0-036 已交付 React/Vite no-API foundation shell 与稳定 CI scripts / shell smoke；MVP0-037～042 后续按 Task list → intake → progress / Needs Input → Review → Brief / Export 纵向 Slice 推进；不得在前端模拟服务端终态。
 
 ### M8 — Release candidate and final review
 
@@ -192,7 +192,7 @@ Task / Run / Stage / Source / Version / Evidence / Review / Brief 的最小 Doma
 
 ## 8. 测试与完成标准
 
-详细层级见 [testing-strategy.md](testing-strategy.md)。每个 Issue 至少运行受影响的 Format / Lint / Type / Architecture / Unit / Contract / Build；持久化与 Workflow 使用真实 PostgreSQL Integration；Frontend 使用 Unit / Contract / Build 与受影响 Browser E2E。
+详细层级见 [testing-strategy.md](testing-strategy.md)。每个 Issue 至少运行受影响的 Format / Lint / Type / Architecture / Unit / Contract / Build；持久化与 Workflow 使用真实 PostgreSQL Integration；Frontend foundation 使用 `format:check` / `lint` / `typecheck` / `test:unit` / `test:contract` / `build` 与 Chromium shell smoke，后续业务 slices 再按影响范围运行 Browser E2E。
 
 里程碑只有在其验收、测试、文档、风险和回滚均闭合后完成。跳过、隐藏或降低 Gate 不属于完成。
 

@@ -35,7 +35,7 @@ Rubric 与指标只辅助专业判断，不作为机械评分器。测试优先�
 
 ### 3.1 每个代码 PR
 
-- 运行仓库既有 8 项 Required Checks；
+- 运行仓库 11 项严格 Required Checks（既有 8 项加 `web / quality`、`web / unit-contract`、`web / chromium`）；`web / change-detection` 是非 Required 的辅助 Job；
 - 按变更相关性运行 Unit、Contract、Architecture、Integration、Migration 或 Browser 测试；
 - LLM 行为使用确定性替身，不要求真实 Secret、外部网络或 Live Provider；
 - 确定性模型验证分为同 Port Contract、注入 SDK Stub 的断网 Adapter Contract、固定资料包 Workflow / Skill Behavior 三层；只覆盖 DEC-054 的一个权威版本代表性分支；
@@ -212,9 +212,9 @@ npm run build
 
 ### 8.4 Required check evolution
 
-- 现有 8 项稳定 Gate 在整个 Goal 保持必需；不得改名或关闭以规避失败。
+- 现有 11 项稳定 Gate 在整个 Goal 保持必需（既有 8 项加 3 项 Web checks）；不得改名或关闭以规避失败。`web / change-detection` 仅负责 bounded path detection，不是 Required Check。
 - Backend 生产逻辑首次进入时，在独立 CI Issue 启用 branch coverage 80% Gate；关键业务不变量仍需行为测试，覆盖率不能代替。
-- OpenAPI lint / generated-client clean diff、真实 PostgreSQL Integration 和 Frontend checks 按其 foundation Issue 加入稳定 Required Checks；新增前先证明本地命令等价。
+- OpenAPI lint / generated-client clean diff、真实 PostgreSQL Integration 和 Frontend checks 按其 foundation Issue 加入稳定 Required Checks；MVP0-036 已将 Web foundation 的 quality / unit-contract / Chromium shell smoke 加入稳定 Required Checks，并证明本地命令等价。Web workflow 对无关 diff 保留稳定上下文并执行 checkout-free no-op，对受影响 diff 与手动 dispatch 执行真实 suite。
 - Integration / Browser / Live 不机械塞入每个无关 PR；受影响测试按 Task Contract 执行，完整矩阵在 Release Candidate 执行。
 
 ### 8.5 Evidence records
