@@ -154,14 +154,7 @@ def _translate(
             conflicting_state=context.get("status"),
             recovery_hint="refresh",
         )
-    if isinstance(error, OwnershipError):
-        return _application_error(
-            reference,
-            error_code="ownership_conflict",
-            message="The related resource belongs to a different Task",
-            recovery_hint="refresh",
-        )
-    if isinstance(error, TaskManagementOwnershipError):
+    if isinstance(error, (OwnershipError, TaskManagementOwnershipError)):
         return _application_error(
             reference,
             error_code="ownership_conflict",
@@ -220,13 +213,7 @@ class TaskManagementApplicationService(TaskManagementApplication):
                 return result
         except TaskManagementError:
             raise
-        except (
-            ProjectError,
-            InvalidTransitionError,
-            OwnershipError,
-            RevisionConflictError,
-            ValueError,
-        ) as error:
+        except (ProjectError, ValueError) as error:
             raise _translate(error, reference) from error
 
     def _read(
@@ -241,18 +228,10 @@ class TaskManagementApplicationService(TaskManagementApplication):
                 return operation(uow)
         except TaskManagementError:
             raise
-        except (
-            ProjectError,
-            InvalidTransitionError,
-            OwnershipError,
-            RevisionConflictError,
-            ValueError,
-        ) as error:
+        except (ProjectError, ValueError) as error:
             raise _translate(error, reference) from error
 
     def create_draft_task(self, command: CreateDraftTask) -> TaskSnapshot:
-        """Persist a draft Task and return its immutable public snapshot."""
-
         def operation(uow: TaskManagementUnitOfWork) -> TaskSnapshot:
             if uow.tasks.get(command.task_id) is not None:
                 _already_exists(_task_reference(command.task_id), "task")
@@ -269,8 +248,6 @@ class TaskManagementApplicationService(TaskManagementApplication):
         return self._write(_task_reference(command.task_id), operation)
 
     def get_task(self, query: GetTask) -> TaskSnapshot:
-        """Read a Task snapshot without creating a business write."""
-
         def operation(uow: TaskManagementUnitOfWork) -> TaskSnapshot:
             task = uow.tasks.get(query.task_id)
             if task is None:
@@ -280,8 +257,6 @@ class TaskManagementApplicationService(TaskManagementApplication):
         return self._read(_task_reference(query.task_id), operation)
 
     def get_run(self, query: GetRun) -> RunSnapshot:
-        """Read a Run snapshot without creating a business write."""
-
         def operation(uow: TaskManagementUnitOfWork) -> RunSnapshot:
             run = uow.runs.get(query.run_id)
             if run is None:
@@ -291,8 +266,6 @@ class TaskManagementApplicationService(TaskManagementApplication):
         return self._read(_run_reference(query.run_id), operation)
 
     def get_stage(self, query: GetStage) -> StageSnapshot:
-        """Read a Task-scoped Stage snapshot without a write."""
-
         def operation(uow: TaskManagementUnitOfWork) -> StageSnapshot:
             stage = uow.stages.get(query.task_id, query.stage)
             if stage is None:
