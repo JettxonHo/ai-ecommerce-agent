@@ -40,13 +40,13 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 当前执行入口
 
-开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。[PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 已合并并激活 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md)。M1 Issues #63～#67 已全部关闭：authored OpenAPI、虚构验收资料、local PostgreSQL lifecycle、TS-01 transaction / fencing 与 TS-03 PostgresSaver / reconciliation 证据已交付；两个 stop-first Slice 均为 PASS。M2 Issues #77～#82 已按共享值对象 → UoW / PostgreSQL Adapter → Alembic baseline → 三个持久化纵向 Slice 的单一 Migration head 依赖链创建。
+开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。[PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 已合并并激活 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md)。M1 Issues #63～#67 已全部关闭：authored OpenAPI、虚构验收资料、local PostgreSQL lifecycle、TS-01 transaction / fencing 与 TS-03 PostgresSaver / reconciliation 证据已交付；两个 stop-first Slice 均为 PASS。M2 的 Task Management vertical slice 也已完成：#77 / #78 / #79 与 tracking parent [#80](https://github.com/JettxonHo/ai-ecommerce-agent/issues/80) 已关闭，#80 的七个子 Issue 已分别由 PR #92 / #93 / #94 / #96 / #97 / #99 / #100 合并交付（shared values、UoW / adapter、Alembic `0002_task_management`、Task / Run / Stage application 与 CAS）。M2 整体仍未完成：Source [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) 正在等待用户对 Proposed P-74～P-77 的 Decision Gate，Review / Brief / Export [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) 依赖 #81。
 
-- 当前执行顺序：M1 已完成；M2 从 [#77](https://github.com/JettxonHo/ai-ecommerce-agent/issues/77) 的 shared value objects 开始，后续 #78～#82 按依赖逐个解锁；
+- 当前执行顺序：M1 与 M2 的 Task Management vertical slice（#77～#80 及七个子 Issue）已完成；#81 是当前 Source Decision Gate，等待用户确认或修改 Proposed P-74～P-77 后才能拆分实现；#82 继续依赖 #81；
 - 每个 Issue 使用独立分支、任务合同、测试和 PR；实现者不得批准或合并自己的变更；
 - 高风险 / 不可逆 / 范围或公共契约变化继续请求用户确认。
 
-Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。M1 交付的是 Contract、Fixture、环境与兼容性证据；生产 Domain / Persistence / API / Worker / Web 仍只在后续有界 Issues 中实现。
+Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。M1 交付的是 Contract、Fixture、环境与兼容性证据；M2 当前仅完成 Task / Run / Stage 的 Domain / Persistence vertical slice。Source、Review / Brief / Export、Retrieval、Runtime、API、Worker 与 Web 仍只在后续有界 Issues 中实现，且不得把 #81 的 Proposed P-74～P-77 写成已接受。
 
 ## MVP-0 本地 PostgreSQL 生命周期
 
@@ -136,4 +136,4 @@ PostgreSQL 16 仍在官方支持周期内（[PostgreSQL versioning policy](https
 
 ## 开发状态
 
-**CONDITIONALLY READY（规划范围）** — Foundation、Product Specification、RFC-001～006 与 Frontend Architecture 已完成。快速 MVP-0 只需再闭合最小 RFC-007、Development Plan、Testing Strategy、Goal 文本和精简 Readiness Review。完整策划包和重大 Proposal 被接受后，DEC-072 的持续执行授权允许激活 Goal；当前尚未达到该状态。详见 [Implementation Readiness](docs/handoffs/implementation-readiness.md) 与 [AGENTS.md](AGENTS.md)。
+**ACTIVE（MVP-0 Goal execution）** — Foundation、Product Specification、RFC-001～007、Development Plan、Testing Strategy、MVP-0 Goal 与精简 Readiness Review 已接受，Goal 已激活并按有界 Issues 持续执行。M1 与 M2 的 Task Management vertical slice 已完成；Source #81 仍等待用户对 Proposed P-74～P-77 的 Decision Gate，Review / Brief / Export #82 依赖该 Gate，M2 整体及 M3～M8 尚未完成。详见 [Implementation Readiness](docs/handoffs/implementation-readiness.md) 与 [AGENTS.md](AGENTS.md)。
