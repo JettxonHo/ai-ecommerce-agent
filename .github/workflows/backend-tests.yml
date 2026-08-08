@@ -50,6 +50,11 @@ jobs:
         run: uv run pytest -m unit
       - name: Contract tests (pytest -m contract)
         run: uv run pytest -m contract
+      - name: Authored OpenAPI validation (MVP0-001)
+        run: |
+          uv run openapi-spec-validator ../../contracts/openapi/openapi.yaml
+          uv run python ../../contracts/openapi/tools/validate.py \
+            ../../contracts/openapi/openapi.yaml
       - name: Fast suite (pytest -m "not live and not slow")
         run: uv run pytest -m "not live and not slow"
 
