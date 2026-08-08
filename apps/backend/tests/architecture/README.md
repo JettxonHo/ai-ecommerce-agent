@@ -42,7 +42,7 @@ fixtures/
 ├── valid_public_facade_dependency/    # 合法：跨模块经 .public；单向模块依赖
 ├── valid_shared_kernel_dependency/    # 合法：domain 使用 shared_kernel
 ├── valid_orchestration_dependency/    # 合法：orchestration 经 .public + shared_kernel
-├── valid_bootstrap_infrastructure/    # 合法：bootstrap 绑定模块 infrastructure（RFC-001 DQ-06）
+├── valid_bootstrap_infrastructure/    # 合法：bootstrap 绑定模块 application + infrastructure（RFC-001 DQ-06）
 ├── invalid_domain_imports_infrastructure/
 ├── invalid_application_imports_adapter/
 ├── invalid_cross_module_private_import/

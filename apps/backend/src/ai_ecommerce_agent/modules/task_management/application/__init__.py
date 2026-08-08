@@ -1,9 +1,12 @@
-"""Application-owned typed ports and persistence errors."""
+"""Application-owned contracts, services, ports and persistence errors."""
 
 from .errors import (
     TaskManagementConstraintError,
+    TaskManagementError,
     TaskManagementOwnershipError,
     TaskManagementPersistenceError,
+    TaskManagementResourceKind,
+    TaskManagementResourceReference,
     TaskManagementRevisionConflictError,
 )
 from .ports import (
@@ -13,14 +16,19 @@ from .ports import (
     TaskManagementUnitOfWorkFactory,
     TaskRepositoryPort,
 )
+from .protocols import TaskManagementApplication
 
 __all__ = [
     "RunRepositoryPort",
     "StageRepositoryPort",
     "TaskManagementConstraintError",
+    "TaskManagementApplication",
+    "TaskManagementError",
     "TaskManagementOwnershipError",
     "TaskManagementPersistenceError",
     "TaskManagementRevisionConflictError",
+    "TaskManagementResourceKind",
+    "TaskManagementResourceReference",
     "TaskManagementUnitOfWork",
     "TaskManagementUnitOfWorkFactory",
     "TaskRepositoryPort",
