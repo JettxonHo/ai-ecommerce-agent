@@ -74,6 +74,7 @@ jobs:
     steps:
       - name: No Web changes; required context is a bounded no-op
         if: needs.changes.outputs.web_changed != 'true'
+        working-directory: .
         run: echo "No Web foundation paths changed; Web checks intentionally skipped."
       - name: Checkout repository
         if: needs.changes.outputs.web_changed == 'true'
@@ -117,6 +118,7 @@ jobs:
     steps:
       - name: No Web changes; required context is a bounded no-op
         if: needs.changes.outputs.web_changed != 'true'
+        working-directory: .
         run: echo "No Web foundation paths changed; Web checks intentionally skipped."
       - name: Checkout repository
         if: needs.changes.outputs.web_changed == 'true'
@@ -154,6 +156,7 @@ jobs:
     steps:
       - name: No Web changes; required context is a bounded no-op
         if: needs.changes.outputs.web_changed != 'true'
+        working-directory: .
         run: echo "No Web foundation paths changed; Web checks intentionally skipped."
       - name: Checkout repository
         if: needs.changes.outputs.web_changed == 'true'
