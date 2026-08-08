@@ -66,4 +66,4 @@
 
 ## 索引
 
-见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 [DEC-070](dec-070-fixed-embedding-contract-and-accelerated-mvp0-adoption.md)；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。
+见 [decision-log.md](decision-log.md)。当前最新 Accepted Decision 为 [DEC-071](dec-071-luna-worker-exclusive-implementation-routing.md)；旧决定被修订时保留原文并通过 `Amends / Amended by` 追踪。

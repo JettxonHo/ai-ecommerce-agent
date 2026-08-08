@@ -63,10 +63,10 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 |------|------|
 | 用户 | Decision / RFC / 范围 / 高风险操作 / Goal 激活的最终决策人 |
 | GPT-5.6 Sol `xhigh` | `ORCHESTRATOR_REVIEWER`：策划、架构、任务合同、调度、复杂问题与独立 Review |
-| GPT-5.6 Luna `max` | `IMPLEMENTER`：Goal 激活后按冻结规格和单一 Issue 完成首选代码实现 |
-| GPT-5.6 Terra `xhigh` | `AUXILIARY_IMPLEMENTER`：调查、测试和边界明确的实现；Luna 不可用时可显式回退 |
+| 自定义 Agent `luna-worker`（GPT-5.6 Luna `max`） | `IMPLEMENTER`：Goal 激活后按冻结规格和单一 Issue 完成代码实现 |
+| GPT-5.6 Terra `xhigh` | `AUXILIARY_IMPLEMENTER`：仅在用户对具体任务明确许可时参与；不作自动或默认实现回退 |
 
-实现 Agent 不得最终批准或合并自己的 PR；模型回退必须记录实际模型且不降低测试、Review 或验收要求。详见 [AGENTS.md](AGENTS.md)、[DEC-043](docs/decisions/dec-043-sol-luna-terra-multi-agent-development-orchestration.md) 与 [Collaboration Model](docs/governance/collaboration-model.md)。
+实现 Agent 不得最终批准或合并自己的 PR。实现线程必须按准确名称创建 `luna-worker`；不可用时停止新的实现任务并报告，不得自动回退 Terra。详见 [AGENTS.md](AGENTS.md)、[DEC-071](docs/decisions/dec-071-luna-worker-exclusive-implementation-routing.md) 与 [Collaboration Model](docs/governance/collaboration-model.md)。
 
 ---
 
