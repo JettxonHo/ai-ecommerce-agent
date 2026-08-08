@@ -1,0 +1,26 @@
+{
+  "fixture_id": "fixture-limited-v1",
+  "fixture_version": "v1",
+  "data_notice": {"fictional": true, "synthetic": true, "non_regulated": true},
+  "expected_behavior_kind": "semantic_behavior_contract",
+  "hard_gates": {
+    "minimum_input": "the same anchor identity, core use, and one sourced property are enough to run the base analysis",
+    "optional_material": "missing comments, price, brand, competitor, and historical materials do not mechanically block the base path",
+    "honest_degradation": "the result explicitly exposes hypotheses, evidence limitations, and insufficient information where the pack cannot support a conclusion",
+    "claim_integrity": "no unsupported fact or Proof Point is manufactured to make the result look complete",
+    "review_gate": "Human Review remains required and generation or quality-check success is not approval"
+  },
+  "required_limitations": [
+    "Cannot determine target-user scale, price sensitivity, or relative competitor advantage from this pack.",
+    "Any target-user, motivation, or differentiation statement beyond the direct inputs stays a bounded inference or hypothesis.",
+    "The absence of real research is shown as a limitation, not silently filled with model common sense."
+  ],
+  "human_usability_inputs": [
+    "The operator can tell which result is usable now and which item needs evidence before publication.",
+    "The operator can choose to continue with the limited result or add optional material later."
+  ],
+  "non_requirements": [
+    "Do not require every semantic group to contain a positive conclusion.",
+    "Do not lock exact model wording or use a weighted aggregate rubric."
+  ]
+}

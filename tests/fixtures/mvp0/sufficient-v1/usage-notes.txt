@@ -1,0 +1,14 @@
+fixture_id=fixture-sufficient-v1
+fixture_notice=fictional synthetic non-regulated test data
+source_id=source-sufficient-usage-notes
+source_version=source-sufficient-usage-v1
+anchor_sku=anchor-city-commuter-backpack
+locator=usage-notes.txt#lines-1-7
+
+synthetic operating note: weekday commuters often need one place for a laptop,
+paper documents, and a small water bottle. This sentence is an authored test
+observation, not a real customer quote or a measured population claim.
+
+The acceptable strategy must keep the water-resistant surface wording bounded:
+it may be described as a documented product claim, but not as certified or
+absolute protection.
