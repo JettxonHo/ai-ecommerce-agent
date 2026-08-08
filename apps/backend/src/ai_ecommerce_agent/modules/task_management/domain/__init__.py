@@ -1,10 +1,5 @@
-"""Framework-neutral Task Management domain contracts."""
+"""Framework-neutral Task Management catalog and snapshot contracts."""
 
-from .errors import (
-    InvalidTransitionError,
-    RevisionConflictError,
-    TaskManagementDomainError,
-)
 from .snapshots import (
     DomainVersionReference,
     RunSnapshot,
@@ -18,14 +13,11 @@ from .snapshots import (
 
 __all__ = [
     "DomainVersionReference",
-    "InvalidTransitionError",
-    "RevisionConflictError",
     "RunSnapshot",
     "RunStatus",
     "StageReference",
     "StageSnapshot",
     "StageStatus",
-    "TaskManagementDomainError",
     "TaskSnapshot",
     "TaskStatus",
 ]

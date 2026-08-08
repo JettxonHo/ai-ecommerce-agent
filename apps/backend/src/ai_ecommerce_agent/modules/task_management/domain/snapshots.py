@@ -90,19 +90,13 @@ class TaskSnapshot:
     task_name: str
     product_category: str
     promotion_goal: str
-    status: TaskStatus
+    task_status: TaskStatus
     revision: Revision
     current_stage: StageReference | None
-    current_run_id: RunId | None
+    active_run_id: RunId | None
     latest_run_id: RunId | None
     waiting_reason: str | None
-    updated_at: datetime | None
-
-    @property
-    def task_status(self) -> TaskStatus:
-        """Expose the OpenAPI name without storing duplicate state."""
-
-        return self.status
+    updated_at: datetime
 
 
 @dataclass(frozen=True, slots=True)
@@ -116,7 +110,7 @@ class RunSnapshot:
     status: RunStatus
     current_stage: StageReference | None
     started_at: datetime | None
-    updated_at: datetime | None
+    updated_at: datetime
     completed_at: datetime | None
     failure_summary: str | None
     last_valid_result: DomainVersionReference | None
@@ -134,7 +128,7 @@ class StageSnapshot:
     last_valid_version: DomainVersionReference | None
     last_run_id: RunId | None
     waiting_reason: str | None
-    updated_at: datetime | None
+    updated_at: datetime
 
 
 __all__ = [

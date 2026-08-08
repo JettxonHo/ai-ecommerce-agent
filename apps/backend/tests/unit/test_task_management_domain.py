@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError
+from datetime import UTC, datetime
 
 import pytest
 
@@ -25,6 +26,8 @@ from ai_ecommerce_agent.shared_kernel import (
 )
 
 pytestmark = pytest.mark.unit
+
+_UPDATED_AT = datetime(2026, 8, 8, 0, 0, tzinfo=UTC)
 
 
 def test_accepted_state_and_stage_catalogs_are_exact() -> None:
@@ -63,19 +66,20 @@ def test_task_snapshot_is_frozen_and_keeps_active_and_latest_run_pointers() -> N
         task_name="Commuter backpack launch",
         product_category="backpack",
         promotion_goal="increase qualified traffic",
-        status=TaskStatus.WAITING_FOR_INPUT,
+        task_status=TaskStatus.WAITING_FOR_INPUT,
         revision=Revision(3),
         current_stage=StageReference.PRODUCT_POSITIONING,
-        current_run_id=None,
+        active_run_id=None,
         latest_run_id=RunId("run-01"),
         waiting_reason="positioning source is missing",
-        updated_at=None,
+        updated_at=_UPDATED_AT,
     )
     assert snapshot.task_status is TaskStatus.WAITING_FOR_INPUT
-    assert snapshot.current_run_id is None
+    assert snapshot.active_run_id is None
     assert snapshot.latest_run_id == RunId("run-01")
+    assert snapshot.updated_at == _UPDATED_AT
     with pytest.raises(FrozenInstanceError):
-        snapshot.status = TaskStatus.RUNNING  # type: ignore[misc]
+        snapshot.task_status = TaskStatus.RUNNING  # type: ignore[misc]
 
 
 def test_run_snapshot_contains_nullable_last_valid_result_without_thread_identity() -> (
@@ -89,12 +93,13 @@ def test_run_snapshot_contains_nullable_last_valid_result_without_thread_identit
         status=RunStatus.QUEUED,
         current_stage=StageReference.PRODUCT_INTAKE_AND_FACT_EXTRACTION,
         started_at=None,
-        updated_at=None,
+        updated_at=_UPDATED_AT,
         completed_at=None,
         failure_summary=None,
         last_valid_result=None,
     )
     assert snapshot.last_valid_result is None
+    assert snapshot.updated_at == _UPDATED_AT
     assert not hasattr(snapshot, "thread_id")
     with pytest.raises(FrozenInstanceError):
         snapshot.status = RunStatus.RUNNING  # type: ignore[misc]
@@ -110,10 +115,11 @@ def test_stage_snapshot_is_frozen_task_scoped_and_data_only() -> None:
         last_valid_version=None,
         last_run_id=RunId("run-01"),
         waiting_reason="approval is required",
-        updated_at=None,
+        updated_at=_UPDATED_AT,
     )
     assert snapshot.task_id == TaskId("task-01")
     assert snapshot.stage is StageReference.HUMAN_REVIEW
     assert snapshot.waiting_reason == "approval is required"
+    assert snapshot.updated_at == _UPDATED_AT
     with pytest.raises(FrozenInstanceError):
         snapshot.stage = StageReference.PRODUCT_POSITIONING  # type: ignore[misc]

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import fields, is_dataclass
+from datetime import UTC, datetime
+from typing import get_type_hints
 
 import pytest
 
@@ -12,21 +14,16 @@ pytestmark = pytest.mark.contract
 
 _PUBLIC_NAMES = {
     "DomainVersionReference",
-    "InvalidTransitionError",
-    "RevisionConflictError",
-    "RunNotFoundError",
     "RunSnapshot",
     "RunStatus",
-    "StageNotFoundError",
     "StageReference",
     "StageSnapshot",
     "StageStatus",
-    "TaskManagementApplicationError",
-    "TaskManagementDomainError",
-    "TaskNotFoundError",
     "TaskSnapshot",
     "TaskStatus",
 }
+
+_UPDATED_AT = datetime(2026, 8, 8, 0, 0, tzinfo=UTC)
 
 
 def test_task_management_facade_exports_only_a1_contracts() -> None:
@@ -34,8 +31,9 @@ def test_task_management_facade_exports_only_a1_contracts() -> None:
     assert not hasattr(public, "Task")
     assert not hasattr(public, "Run")
     assert not hasattr(public, "Stage")
-    assert not hasattr(public, "TaskRepositoryPort")
-    assert not hasattr(public, "TaskManagementUnitOfWork")
+    assert not hasattr(public, "TaskManagementApplicationError")
+    assert not hasattr(public, "TaskManagementDomainError")
+    assert not hasattr(public, "TaskNotFoundError")
 
     for snapshot in (public.TaskSnapshot, public.RunSnapshot, public.StageSnapshot):
         assert is_dataclass(snapshot)
@@ -44,17 +42,15 @@ def test_task_management_facade_exports_only_a1_contracts() -> None:
             callable(getattr(snapshot, field.name, None)) for field in fields(snapshot)
         )
 
+    task_fields = {field.name for field in fields(public.TaskSnapshot)}
+    assert "task_status" in task_fields
+    assert "status" not in task_fields
+    assert "active_run_id" in task_fields
+    assert "current_run_id" not in task_fields
+    assert get_type_hints(public.TaskSnapshot)["updated_at"] is datetime
+
+    for snapshot in (public.RunSnapshot, public.StageSnapshot):
+        assert get_type_hints(snapshot)["updated_at"] is datetime
     assert "thread_id" not in public.RunSnapshot.__dataclass_fields__
     assert "last_valid_result" in public.RunSnapshot.__dataclass_fields__
-
-
-def test_application_not_found_and_domain_conflict_errors_are_stable() -> None:
-    not_found = public.TaskNotFoundError("task-01")
-    assert not_found.category == "task_management.application"
-    assert not_found.code == "task_not_found"
-    assert not_found.safe_context == {"taskId": "task-01"}
-
-    conflict = public.RevisionConflictError({"resource": "task"})
-    assert conflict.category == "task_management.domain"
-    assert conflict.code == "revision_conflict"
-    assert conflict.safe_context == {"resource": "task"}
+    assert _UPDATED_AT.tzinfo is UTC
