@@ -48,6 +48,9 @@ status on error, and each is reusable verbatim (or equivalent) by future CI
 | All local tests (`test-all-local`) | `uv run pytest -m "not live"` |
 | Quality gate              | `uv run ruff format --check . && uv run ruff check . && uv run pyright && uv run lint-imports && uv run pytest -m "not live and not slow"` |
 | Build                     | `uv build` |
+| OpenAPI specification validation | `uv run openapi-spec-validator ../../contracts/openapi/openapi.yaml` |
+| Authored OpenAPI catalog validation | `uv run python ../../contracts/openapi/tools/validate.py ../../contracts/openapi/openapi.yaml` |
+| Authored OpenAPI breaking diff | `uv run python ../../contracts/openapi/tools/diff.py <accepted-baseline.yaml> ../../contracts/openapi/openapi.yaml` |
 
 The quality gate (`format-check` → `lint` → `typecheck` → `lint-imports` →
 `test-fast`) is the single local entry point a developer or coding agent
@@ -109,6 +112,7 @@ All development-only; none are runtime dependencies of the package.
 | `pytest-socket` | Default network blocking for non-`live` tests (FND-002): minimal, maintained, MIT; provides the socket-level guard and `SocketBlockedError` semantics that a hand-rolled conftest patch would duplicate poorly |
 | `import-linter` | Executable import-graph architecture contracts (FND-002): minimal, maintained, BSD-2-Clause; the standard tool for layer/boundary contracts — a hand-written equivalent would be the prohibited "large custom architecture framework" |
 | `pip-audit` | Known-vulnerability audit of the locked environment (FND-003): maintained, Apache-2.0; the standard OSV-backed auditor — runs in CI as the `security / dependency-audit` required check and locally via `uv run pip-audit --progress-spinner off --skip-editable` |
+| `openapi-spec-validator` | Dev-only official Python OpenAPI validator for authored OAS 3.1; validates the contract but never generates or rewrites it (MVP0-001) |
 
 ## Coverage
 
@@ -151,6 +155,10 @@ Not implemented yet (and **not** claimed to exist):
 - LangGraph runtime / graphs / checkpointer
 - Model / retrieval / observability runtimes
 - Business modules, business workflows, or production bootstrap
+
+The authored MVP-0 OpenAPI contract foundation lives in
+[`../../contracts/openapi/`](../../contracts/openapi/). It is a contract source
+only; no HTTP handler or API runtime is claimed by this repository yet.
 
 Architecture tests reference future package shapes (`modules.<module>.*`,
 `orchestration/`, `entrypoints/`, `shared_kernel/`, `bootstrap/`) through
