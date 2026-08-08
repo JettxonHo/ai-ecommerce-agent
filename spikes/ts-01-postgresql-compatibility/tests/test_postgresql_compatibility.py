@@ -108,12 +108,19 @@ def test_lease_takeover_gets_higher_token_and_stale_commit_is_rejected(
     assert second is not None
     assert second.fencing_token > first.fencing_token
 
-    harness.commit_current_truth(second, "current-result")
-
-    # The first holder arrives late, after the takeover owner has committed.
-    # Its stale token must still be rejected without changing Current Truth.
+    # The takeover owner is still active and has not committed yet. The first
+    # holder's stale token must be rejected by fencing, not by a completed
+    # status check, and must not create partial Current Truth.
     with pytest.raises(FencingRejected):
         harness.commit_current_truth(first, "stale-result")
+    assert harness.read_current_truth(second.work_item_id) is None
+    work_item_after_stale = harness.read_work_item(second.work_item_id)
+    assert work_item_after_stale is not None
+    assert work_item_after_stale["status"] == "claimed"
+    assert work_item_after_stale["holder_id"] == "worker-b"
+    assert work_item_after_stale["fencing_token"] == second.fencing_token
+
+    harness.commit_current_truth(second, "current-result")
     truth = harness.read_current_truth(second.work_item_id)
     work_item = harness.read_work_item(second.work_item_id)
     assert truth is not None

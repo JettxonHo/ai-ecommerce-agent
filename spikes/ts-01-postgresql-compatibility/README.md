@@ -65,11 +65,11 @@ performed against the PostgreSQL volume.
 The lockfile is the executable compatibility tuple for this slice:
 
 ```text
-Python 3.13.x
-SQLAlchemy 2.0.x (synchronous Core API)
-Psycopg 3.x (synchronous driver)
-Alembic 1.x
-PostgreSQL 16.14 (MVP0-003 image)
+Python 3.13.14
+SQLAlchemy 2.0.43 (synchronous Core API)
+Psycopg 3.2.9 (synchronous driver)
+Alembic 1.16.4
+PostgreSQL 16.14-bookworm (MVP0-003 image)
 ```
 
 The implementation follows the relevant primary documentation:
