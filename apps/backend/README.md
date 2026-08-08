@@ -2,7 +2,7 @@
 
 This is the backend production package foundation for the AI E-commerce Agent.
 
-**Current scope (FND-001 + FND-002 + FND-003):** a minimal, installable,
+**Current scope (FND-001 + FND-002 + FND-003 + MVP0-007):** an installable,
 buildable, testable Python package with a unified local quality toolchain,
 executable architecture enforcement (Import Linter contracts + custom
 architecture tests with positive/negative fixtures), and CI plus repository
@@ -150,11 +150,12 @@ Implemented now:
 Not implemented yet (and **not** claimed to exist):
 
 - API / HTTP server
-- Database / ORM / migrations
+- Production business tables / ORM mappings / migrations (the MVP0-007
+  adapter foundation provides only engine, session-factory and UoW lifecycle)
 - Worker / queue / durable dispatch
 - LangGraph runtime / graphs / checkpointer
 - Model / retrieval / observability runtimes
-- Business modules, business workflows, or production bootstrap
+- Business modules or business workflows
 
 The authored MVP-0 OpenAPI contract foundation lives in
 [`../../contracts/openapi/`](../../contracts/openapi/). It is a contract source
@@ -182,3 +183,48 @@ copied, moved, or imported into this production package — this is now
 machine-enforced by the `Production and Spike isolation` Import Linter
 contract. Production code is written here fresh against the accepted
 architecture.
+
+## MVP0-007 PostgreSQL / Unit of Work foundation
+
+The application owns a synchronous, disposable `UnitOfWork` port. A
+transactional command creates one fresh UoW, enters a short transaction, and
+explicitly calls `commit()`. The lifecycle is:
+
+```text
+NEW → ACTIVE → COMMITTED → CLOSED
+                 or
+NEW → ACTIVE → ROLLED_BACK → CLOSED
+```
+
+An uncommitted or exceptional context exit rolls back and closes; context exit
+never auto-commits. A committed or rolled-back UoW is one-shot and cannot be
+reused. Application ports do not import SQLAlchemy, and repositories do not
+own transaction control or receive a raw Session.
+
+The PostgreSQL adapter uses the accepted synchronous compatibility tuple:
+
+```text
+Python 3.13.14
+PostgreSQL 16.14-bookworm (MVP0-003 local service)
+SQLAlchemy 2.0.43 (synchronous API)
+Psycopg 3.2.9 (synchronous driver, binary extra)
+```
+
+`PostgresEngineConfig` is supplied explicitly by Bootstrap; importing the
+adapter does not read environment variables or connect to a database. The
+engine and session factory are long-lived composition resources, while each
+UoW receives a fresh short-lived Session. Call `PostgresComposition.close()`
+when the process shuts down.
+
+Adapter tests use only test-owned PostgreSQL objects. By default they do not
+connect to a database. To run the opt-in integration slice against the isolated
+MVP-0 local service:
+
+```bash
+cd apps/backend
+MVP0_RUN_POSTGRES_INTEGRATION=1 uv run pytest -m "integration and live" -q
+```
+
+Set `MVP0_DATABASE_URL` to an isolated `postgresql+psycopg://...` URL when the
+default local Business database is not appropriate. SQLite is not an accepted
+persistence or integration backend.
