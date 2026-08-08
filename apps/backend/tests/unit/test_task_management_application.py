@@ -33,6 +33,8 @@ from ai_ecommerce_agent.modules.task_management.public import (
     GetTask,
     PrepareInitialRun,
     TaskManagementError,
+    TaskManagementResourceKind,
+    TaskManagementResourceReference,
 )
 from ai_ecommerce_agent.shared_kernel import Revision, RunId, TaskId
 
@@ -357,3 +359,20 @@ def test_unknown_programming_exception_is_not_hidden_as_persistence_error() -> N
     broken_service = _service(_BrokenFactory())
     with pytest.raises(RuntimeError, match="programming bug"):
         broken_service.get_task(GetTask(task_id))
+
+
+def test_public_application_error_can_cross_a_standard_exception_boundary() -> None:
+    reference = TaskManagementResourceReference(
+        kind=TaskManagementResourceKind.TASK,
+        task_id=TaskId("task-error"),
+    )
+    error = TaskManagementError(
+        error_code="revision_conflict",
+        category="task_management",
+        message="refresh",
+        retryability=False,
+        relevant_reference=reference,
+    )
+    with pytest.raises(TaskManagementError) as raised:
+        raise error
+    assert raised.value.relevant_reference == reference

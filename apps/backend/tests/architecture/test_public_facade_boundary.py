@@ -46,8 +46,8 @@ def test_valid_orchestration_dependency_passes() -> None:
     assert violations == [], render_all(violations)
 
 
-def test_valid_bootstrap_infrastructure_binding_passes() -> None:
-    """The composition root may bind one module's infrastructure adapter."""
+def test_valid_bootstrap_application_and_infrastructure_binding_passes() -> None:
+    """The composition root may bind application and infrastructure layers."""
     with FixtureGraphScope(fixture_dir("valid_bootstrap_infrastructure")) as graph:
         violations = find_facade_violations(graph, FIXTURE_ROOT_PACKAGE)
     assert violations == [], render_all(violations)

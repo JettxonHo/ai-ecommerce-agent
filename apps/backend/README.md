@@ -229,6 +229,15 @@ Set `MVP0_DATABASE_URL` to an isolated `postgresql+psycopg://...` URL when the
 default local Business database is not appropriate. SQLite is not an accepted
 persistence or integration backend.
 
+The Task Management application transaction/CAS acceptance uses its own fixed
+schema and is separately opt-in:
+
+```bash
+MVP0_RUN_TASK_MANAGEMENT_APPLICATION=1 \
+MVP0_APPLICATION_DATABASE_URL='postgresql+psycopg://<test-role>:<password>@<host>:<port>/<test-database>' \
+uv run pytest tests/integration/test_task_management_application.py -q
+```
+
 ## MVP0-008 Business Alembic baseline
 
 `apps/backend/migrations/` is the single production Business Alembic lineage.

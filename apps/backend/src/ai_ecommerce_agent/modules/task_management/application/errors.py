@@ -51,7 +51,7 @@ class TaskManagementResourceReference:
             raise ValueError("resource reference fields do not match resource kind")
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class TaskManagementError(Exception):
     """Structured, technology-neutral failure returned by application use cases.
 

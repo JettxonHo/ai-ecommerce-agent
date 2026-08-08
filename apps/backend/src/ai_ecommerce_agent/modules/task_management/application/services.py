@@ -74,12 +74,10 @@ def _stage_reference(
 
 
 def _not_found(reference: TaskManagementResourceReference, resource: str) -> NoReturn:
-    raise TaskManagementError(
+    raise _application_error(
+        reference,
         error_code="not_found",
-        category="task_management",
         message=f"{resource.capitalize()} was not found",
-        retryability=False,
-        relevant_reference=reference,
         recovery_hint="refresh",
     )
 
@@ -87,13 +85,35 @@ def _not_found(reference: TaskManagementResourceReference, resource: str) -> NoR
 def _already_exists(
     reference: TaskManagementResourceReference, resource: str
 ) -> NoReturn:
-    raise TaskManagementError(
+    raise _application_error(
+        reference,
         error_code="already_exists",
-        category="task_management",
         message=f"{resource.capitalize()} identity is already in use",
-        retryability=False,
-        relevant_reference=reference,
         recovery_hint="refresh",
+    )
+
+
+def _application_error(
+    reference: TaskManagementResourceReference,
+    *,
+    error_code: str,
+    message: str,
+    retryability: bool = False,
+    expected_revision: int | None = None,
+    actual_revision: int | None = None,
+    conflicting_state: str | None = None,
+    recovery_hint: str | None = None,
+) -> TaskManagementError:
+    return TaskManagementError(
+        error_code=error_code,
+        category="task_management",
+        message=message,
+        retryability=retryability,
+        relevant_reference=reference,
+        expected_revision=expected_revision,
+        actual_revision=actual_revision,
+        conflicting_state=conflicting_state,
+        recovery_hint=recovery_hint,
     )
 
 
@@ -108,93 +128,75 @@ def _translate(
         context = error.safe_context
         expected = int(context["expected_revision"])
         current = int(context["current_revision"])
-        return TaskManagementError(
+        return _application_error(
+            reference,
             error_code="revision_conflict",
-            category="task_management",
             message="The resource changed; refresh before retrying",
-            retryability=False,
-            relevant_reference=reference,
             expected_revision=expected,
             actual_revision=current,
             recovery_hint="refresh_and_compare",
         )
     if isinstance(error, TaskManagementRevisionConflictError):
         context = error.safe_context
-        return TaskManagementError(
+        return _application_error(
+            reference,
             error_code="revision_conflict",
-            category="task_management",
             message="The resource changed; refresh before retrying",
-            retryability=False,
-            relevant_reference=reference,
             expected_revision=int(context["expected_revision"]),
             recovery_hint="refresh_and_compare",
         )
     if isinstance(error, InvalidTransitionError):
         context = error.safe_context
-        return TaskManagementError(
+        return _application_error(
+            reference,
             error_code="invalid_transition",
-            category="task_management",
             message="The requested lifecycle transition is not available",
-            retryability=False,
-            relevant_reference=reference,
             conflicting_state=context.get("status"),
             recovery_hint="refresh",
         )
     if isinstance(error, OwnershipError):
-        context = error.safe_context
-        return TaskManagementError(
+        return _application_error(
+            reference,
             error_code="ownership_conflict",
-            category="task_management",
             message="The related resource belongs to a different Task",
-            retryability=False,
-            relevant_reference=reference,
             recovery_hint="refresh",
         )
     if isinstance(error, TaskManagementOwnershipError):
-        return TaskManagementError(
+        return _application_error(
+            reference,
             error_code="ownership_conflict",
-            category="task_management",
             message="The related resource belongs to a different Task",
-            retryability=False,
-            relevant_reference=reference,
             recovery_hint="refresh",
         )
     if isinstance(error, TaskManagementConstraintError):
-        return TaskManagementError(
+        return _application_error(
+            reference,
             error_code="constraint_violation",
-            category="task_management",
             message=(
                 "The requested Task Management change violates a business constraint"
             ),
-            retryability=False,
-            relevant_reference=reference,
             recovery_hint="refresh",
         )
     if isinstance(error, TaskManagementPersistenceError):
-        return TaskManagementError(
+        return _application_error(
+            reference,
             error_code="persistence_error",
-            category="task_management",
             message="Task Management persistence is unavailable",
             retryability=True,
-            relevant_reference=reference,
             recovery_hint="retry_later",
         )
     if isinstance(error, ValueError):
-        return TaskManagementError(
+        return _application_error(
+            reference,
             error_code="invalid_request",
-            category="task_management",
             message="The Task Management input is invalid",
-            retryability=False,
-            relevant_reference=reference,
             recovery_hint="correct_input",
         )
     if isinstance(error, ProjectError):
-        return TaskManagementError(
+        return _application_error(
+            reference,
             error_code="application_error",
-            category="task_management",
             message="The Task Management operation could not be completed",
-            retryability=False,
-            relevant_reference=reference,
             recovery_hint="refresh",
         )
     raise error
@@ -349,11 +351,11 @@ class TaskManagementApplicationService(TaskManagementApplication):
                 updated_at=command.updated_at,
             )
 
-            # Insert referenced rows first; Task's composite pointers are
-            # immediate PostgreSQL foreign keys.  A failed final CAS rolls all
-            # three writes back in this same UoW.
-            uow.runs.add(run)
+            # Stage must precede Run because Run.current_stage is an immediate
+            # PostgreSQL foreign key. Task's pointers follow both rows; a
+            # failed final CAS rolls all three writes back in this UoW.
             uow.stages.add(stage)
+            uow.runs.add(run)
             uow.tasks.save(moved_task, expected_revision=command.expected_revision)
             return PrepareInitialRunResult(
                 task=task_to_snapshot(moved_task),
