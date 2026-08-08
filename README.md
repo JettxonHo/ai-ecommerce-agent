@@ -33,20 +33,20 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 - Business Current Truth 的生产持久化栈已由 RFC-002 选定为 PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；SQLite 不作为持久化验收引擎；
 - FND-001～003 已完成，仓库已有 Python 后端 Package、质量工具、架构测试、CI 与 Repository Protection 基础。
 - Frontend Architecture P-36～P-41 及整体已接受：`apps/web/` React / Vite SPA、显式状态职责、OpenAPI 生成、一个深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有交互投影、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance；依赖尚未安装，前端尚未实现。
-- RFC-004 DQ-01～10 已由 DEC-063～066 接受：OpenAPI 3.1 `/api/v1` 是唯一公共 HTTP Contract，查询使用窄 Resource、状态变更使用 typed Command；语义 revision / Idempotency、耐久 Receipt + Run Monitor、窄 Task / Recovery / Review、不可变 Brief Version / Comparison / Markdown Export Snapshot、有限 RFC 9457 Problem Catalog、server-bound fixed Workspace + loopback same-origin transport，以及最终 Operation / Schema / state catalog、有界窗口、additive compatibility、generated-client adoption 与 Contract Tests 已冻结；Final Consistency Review = PASS，用户已于 2026-08-07 明确接受 RFC-004 整体；OpenAPI 与 API 尚未实现。
+- RFC-004 DQ-01～10 已由 DEC-063～066 接受：OpenAPI 3.1 `/api/v1` 是唯一公共 HTTP Contract，查询使用窄 Resource、状态变更使用 typed Command；语义 revision / Idempotency、耐久 Receipt + Run Monitor、窄 Task / Recovery / Review、不可变 Brief Version / Comparison / Markdown Export Snapshot、有限 RFC 9457 Problem Catalog、server-bound fixed Workspace + loopback same-origin transport，以及最终 Operation / Schema / state catalog、有界窗口、additive compatibility、generated-client adoption 与 Contract Tests 已冻结；Final Consistency Review = PASS，用户已于 2026-08-07 明确接受 RFC-004 整体；authored OpenAPI foundation 已由 M1 实现，API handler / runtime 与 generated client 仍待后续里程碑。
 - RFC-005 已于 2026-08-07 获用户整体接受。DQ-01～10 由 DEC-067～070 支撑：目标 Profile 固定为 OpenAI Embeddings `text-embedding-3-small` / explicit 1536 / float / cosine，Source intake / association / version / Evidence Link 公共目录与有限验证已冻结；快速 MVP-0 先交付 Direct / Exact / PostgreSQL Lexical + JSON / text / TXT / Markdown / CSV，text PDF 与 Embedding / Semantic / Hybrid 后移 MVP-1。Final Consistency Review = PASS；Retrieval 实现尚未授权。
 
 ---
 
 ## 当前执行入口
 
-开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。[PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 已合并；Sol 已按 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) 创建 M1 Issues #63～#67 并开始路由 `luna-worker`。
+开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。[PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 已合并并激活 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md)。M1 Issues #63～#67 已全部关闭：authored OpenAPI、虚构验收资料、local PostgreSQL lifecycle、TS-01 transaction / fencing 与 TS-03 PostgresSaver / reconciliation 证据已交付；两个 stop-first Slice 均为 PASS。M2 Issues #77～#82 已按共享值对象 → UoW / PostgreSQL Adapter → Alembic baseline → 三个持久化纵向 Slice 的单一 Migration head 依赖链创建。
 
-- 首批执行顺序：authored OpenAPI 与固定 fixture → local PostgreSQL → TS-01 / TS-03 stop-first compatibility slices；
+- 当前执行顺序：M1 已完成；M2 从 [#77](https://github.com/JettxonHo/ai-ecommerce-agent/issues/77) 的 shared value objects 开始，后续 #78～#82 按依赖逐个解锁；
 - 每个 Issue 使用独立分支、任务合同、测试和 PR；实现者不得批准或合并自己的变更；
 - 高风险 / 不可逆 / 范围或公共契约变化继续请求用户确认。
 
-Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。物理 OpenAPI / Schema、fixtures 与真实 PostgreSQL 证据由 Goal 首批 Issues 实现。
+Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。M1 交付的是 Contract、Fixture、环境与兼容性证据；生产 Domain / Persistence / API / Worker / Web 仍只在后续有界 Issues 中实现。
 
 ## MVP-0 本地 PostgreSQL 生命周期
 
