@@ -7,6 +7,7 @@
 ## 文件
 
 - [implementation-readiness.md](implementation-readiness.md) — 进入开发阶段的就绪状态与前置条件。
+- [agent-model-routing-migration-2026-08-08.md](agent-model-routing-migration-2026-08-08.md) — `luna-worker` 路由纠偏、Terra 审计与迁移检查点。
 
 ---
 
