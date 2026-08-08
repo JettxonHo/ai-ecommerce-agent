@@ -15,12 +15,22 @@ pytestmark = pytest.mark.architecture
 
 def test_public_facade_and_adapter_facade_stay_narrow() -> None:
     assert set(public.__all__) == {
+        "CreateDraftTask",
         "DomainVersionReference",
+        "GetRun",
+        "GetStage",
+        "GetTask",
+        "PrepareInitialRun",
+        "PrepareInitialRunResult",
         "RunSnapshot",
         "RunStatus",
         "StageReference",
         "StageSnapshot",
         "StageStatus",
+        "TaskManagementApplication",
+        "TaskManagementError",
+        "TaskManagementResourceKind",
+        "TaskManagementResourceReference",
         "TaskSnapshot",
         "TaskStatus",
     }

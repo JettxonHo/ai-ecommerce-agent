@@ -13,12 +13,22 @@ from ai_ecommerce_agent.modules.task_management import public
 pytestmark = pytest.mark.contract
 
 _PUBLIC_NAMES = {
+    "CreateDraftTask",
     "DomainVersionReference",
+    "GetRun",
+    "GetStage",
+    "GetTask",
+    "PrepareInitialRun",
+    "PrepareInitialRunResult",
     "RunSnapshot",
     "RunStatus",
     "StageReference",
     "StageSnapshot",
     "StageStatus",
+    "TaskManagementApplication",
+    "TaskManagementError",
+    "TaskManagementResourceKind",
+    "TaskManagementResourceReference",
     "TaskSnapshot",
     "TaskStatus",
 }

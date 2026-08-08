@@ -1,11 +1,20 @@
 """Only stable cross-module facade for Task Management.
 
-The A1 facade exports only exact state/reference catalogs and immutable,
-framework-neutral snapshot DTOs.  Complete public error contracts are
-deferred to #89, where the accepted RFC-001 message/retryability/reference
-requirements will be defined.
+The facade intentionally exports immutable operation contracts, the
+application protocol, stable application errors, and A1 snapshots.  Domain
+entities, repository/UoW ports, SQLAlchemy adapters, and concrete services
+remain module-private.
 """
 
+from .application.commands import CreateDraftTask, PrepareInitialRun
+from .application.errors import (
+    TaskManagementError,
+    TaskManagementResourceKind,
+    TaskManagementResourceReference,
+)
+from .application.protocols import TaskManagementApplication
+from .application.queries import GetRun, GetStage, GetTask
+from .application.results import PrepareInitialRunResult
 from .domain import (
     DomainVersionReference,
     RunSnapshot,
@@ -18,12 +27,22 @@ from .domain import (
 )
 
 __all__ = [
+    "CreateDraftTask",
     "DomainVersionReference",
+    "GetRun",
+    "GetStage",
+    "GetTask",
     "RunSnapshot",
     "RunStatus",
     "StageReference",
     "StageSnapshot",
     "StageStatus",
+    "PrepareInitialRun",
+    "PrepareInitialRunResult",
+    "TaskManagementApplication",
+    "TaskManagementError",
+    "TaskManagementResourceKind",
+    "TaskManagementResourceReference",
     "TaskSnapshot",
     "TaskStatus",
 ]

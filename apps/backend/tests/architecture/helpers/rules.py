@@ -5,9 +5,9 @@ Two accepted rules need same-module-relative reasoning:
 * **Public facade** (RFC-001-DQ-08): anything outside a business module may
   only reach into that module through ``modules.<module>.public``. The
   composition root is the one accepted exception: ``<root>.bootstrap`` may
-  bind a module's infrastructure implementation, as required by RFC-001
-  DQ-06. Import Linter contracts cannot express "the *same* module may,
-  other modules may not", and neither can its ``protected`` contract.
+  bind that module's Application Port to its concrete Application service and
+  Infrastructure implementation, as required by RFC-001 DQ-06. It may not
+  reach into the module Domain or any other private layer.
 * **Module dependency DAG** (RFC-001-DQ-08): business modules must form a
   directed acyclic graph, including cycles formed *through* public facades
   (which Python's file-level circular-import detection never reports).
@@ -65,10 +65,15 @@ def find_facade_violations(graph: grimp.ImportGraph, root: str) -> list[Violatio
                     imported == f"{target_module}.infrastructure"
                     or imported.startswith(f"{target_module}.infrastructure.")
                 )
+                bootstrap_application = bootstrap_source and (
+                    imported == f"{target_module}.application"
+                    or imported.startswith(f"{target_module}.application.")
+                )
                 if (
                     inside_target
                     and not through_facade
                     and not bootstrap_infrastructure
+                    and not bootstrap_application
                 ):
                     violations.append(
                         Violation(
