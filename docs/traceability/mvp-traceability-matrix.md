@@ -187,7 +187,8 @@ TS-01 / TS-03 = AUTHORIZED only as bounded Goal compatibility Issues
 Business / Production Implementation = AUTHORIZED within Active Goal Issues
 Actual Goal = ACTIVE (PR #59 merge bb8c658; M1 Issues #63～#67)
 
-Future Epic / Issue / Test links = PENDING Goal issue creation and implementation
+M1 Issue links = CREATED (#63～#67)
+Later Issue / PR / Test links = PENDING dependency-driven execution and backfill
 ```
 
 ## Historical Status Snapshot（PR #28 之前）

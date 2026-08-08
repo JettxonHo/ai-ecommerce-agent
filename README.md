@@ -1,6 +1,6 @@
 # AI Ecommerce Agent
 
-> **Status: MVP-0 Goal Accepted · Development = READY**
+> **Status: MVP-0 Goal ACTIVE · Development = ACTIVE**
 > RFC-001～007、Development Plan、Testing Strategy、MVP-0 Goal 与 Readiness Review 已接受；PR #59 已合并，长期 Goal 正在执行。实现仅限有界 Issues，重大风险继续保留人工 Gate。
 
 ---

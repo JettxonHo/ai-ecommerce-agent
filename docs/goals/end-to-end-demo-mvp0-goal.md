@@ -66,7 +66,7 @@
 
 ## 6. Implementation Backlog 候选
 
-这些 ID 是 Goal 内候选，不是已创建 GitHub Issues。激活后 Sol 以当时代码和依赖重新核对，再逐个创建。
+M1 的 5 个 ID 已实例化为 GitHub Issues（见 §13）；M2～M8 仍是 Goal 内候选。Sol 在依赖满足时按实际代码状态逐个创建，不得重复创建 M1 或把后续候选能力写成已实现。
 
 ### M1
 
