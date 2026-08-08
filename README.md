@@ -48,6 +48,47 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。物理 OpenAPI / Schema、fixtures 与真实 PostgreSQL 证据由 Goal 首批 Issues 实现。
 
+## MVP-0 本地 PostgreSQL 生命周期
+
+MVP0-003 提供一个可复现的本地 PostgreSQL Service。Compose 只启动
+`postgres` 这一个 Service；Business 与 Checkpoint 是同一 Service 内的两个独立
+Database，并分别使用 `mvp0_business` / `mvp0_checkpoint` demo Role。API、Worker、Web
+仍是未来的 host-process 边界，本 Issue 不实现、迁移或自动启动它们。
+
+```bash
+cp .env.example .env       # 可选：仅用于 loopback 的 demo 值
+./scripts/mvp0/preflight
+./scripts/mvp0/up
+./scripts/mvp0/status
+./scripts/mvp0/verify       # readiness + 两个 Database/Role 隔离检查
+./scripts/mvp0/down         # 停止容器，保留本地 volume
+./scripts/mvp0/test-static  # 不启动容器的 shell/Compose 拓扑检查
+```
+
+`up` 会等待 Compose healthcheck，并幂等确认两个 Database、owner、Role 登录状态和
+CONNECT 隔离；不会创建生产 Schema，也不会运行 Migration。若未来要启动 host API /
+Worker / Web，先执行 `./scripts/mvp0/preflight --host-processes`，再使用各自 Issue
+提供的显式命令。Worker / Checkpointer setup 与 Migration 仍须由受控部署任务负责，
+不得在 Worker 启动时隐式迁移。
+
+默认端口为 `127.0.0.1:55432`。可供后续实现使用的本地连接目标是：
+
+```text
+Business:   postgresql://mvp0_business:<MVP0_BUSINESS_PASSWORD>@127.0.0.1:55432/ecommerce_business
+Checkpoint: postgresql://mvp0_checkpoint:<MVP0_CHECKPOINT_PASSWORD>@127.0.0.1:55432/ecommerce_checkpoint
+```
+
+凭证来自 `.env`（默认值只用于本地演示，不是生产 Secret）；正常 `up` 不会静默轮换
+已有 Role 密码。修改已初始化环境的 demo 凭证前，应先确认连接方并执行显式的
+`./scripts/mvp0/reset-demo --confirm`，因为该命令会删除且只删除固定的
+`ai-ecommerce-agent-mvp0-postgres-data` demo volume。`down`、`status` 和 `up` 都不会
+删除 volume；reset 没有仓库内备份或自动回滚，恢复依赖操作者自己的备份。
+
+镜像固定为官方 `postgres:16.14-bookworm`，以便在 MVP-0 compatibility slices 中复现；
+PostgreSQL 16 仍在官方支持周期内（[PostgreSQL versioning policy](https://www.postgresql.org/support/versioning/)），
+镜像标签与官方镜像说明见 [Postgres Official Image](https://hub.docker.com/_/postgres)。
+升级 major 或 patch 前必须补充兼容性证据，不得通过环境变量静默替换镜像。
+
 ## Wave 1 Readiness 状态
 
 - ARP-01、ARP-04、ARP-10：完整 Artifact 已 Accepted；

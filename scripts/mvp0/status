@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+require_ready=0
+for arg in "$@"; do
+  case "$arg" in
+    --require-ready)
+      require_ready=1
+      ;;
+    -h|--help)
+      printf 'Usage: scripts/mvp0/status [--require-ready]\n'
+      exit 0
+      ;;
+    *)
+      printf 'ERROR: unknown option %s\n' "$arg" >&2
+      exit 2
+      ;;
+  esac
+done
+
+"$SCRIPT_DIR/preflight"
+container_id="$(mvp0_service_container_id)"
+if [[ -z "$container_id" ]]; then
+  printf 'MVP-0 PostgreSQL status: NOT CREATED\n'
+  (( require_ready == 0 )) || exit 1
+  exit 0
+fi
+
+container_state="$(docker inspect --format '{{.State.Status}}' "$container_id")"
+health_state="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' "$container_id")"
+printf 'MVP-0 PostgreSQL status: %s (health: %s)\n' "$container_state" "$health_state"
+if [[ "$container_state" != running || "$health_state" != healthy ]]; then
+  printf 'Start the service with scripts/mvp0/up.\n'
+  (( require_ready == 0 )) || exit 1
+  exit 0
+fi
+
+mvp0_run_init_script verify

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+if [[ "${1:-}" != '--confirm' || "$#" -ne 1 ]]; then
+  cat >&2 <<'USAGE'
+Usage: scripts/mvp0/reset-demo --confirm
+
+This is the explicit, destructive local-demo action. It removes only the
+Compose-managed MVP-0 PostgreSQL container and the fixed demo volume
+ai-ecommerce-agent-mvp0-postgres-data. It is never called by up/down/status.
+USAGE
+  exit 2
+fi
+
+"$SCRIPT_DIR/preflight"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+services="$(mvp0_compose config --services)"
+[[ "$services" == 'postgres' ]] || mvp0_die "refusing reset: Compose topology is not exactly the MVP-0 postgres service"
+volumes="$(mvp0_compose config --volumes)"
+[[ "$volumes" == 'postgres-data' ]] || mvp0_die "refusing reset: expected only the postgres-data demo volume"
+
+printf '%s\n' 'WARNING: this removes the local MVP-0 PostgreSQL demo data (Business and Checkpoint databases).'
+printf '%s\n' 'It does not restore from backup; any rollback requires an operator-managed backup.'
+printf '%s\n' 'Target volume: ai-ecommerce-agent-mvp0-postgres-data'
+mvp0_compose down --volumes
+printf '%s\n' 'MVP-0 demo reset complete. No production or non-demo resource was targeted.'

@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16.14-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${MVP0_ADMIN_USER:-mvp0_admin}
+      POSTGRES_PASSWORD: ${MVP0_ADMIN_PASSWORD:-mvp0_admin_local_only}
+      # The image creates this bootstrap database. The init script then creates
+      # the two application databases below and grants each role only its own
+      # database CONNECT privilege.
+      POSTGRES_DB: postgres
+      MVP0_BUSINESS_DB: ${MVP0_BUSINESS_DB:-ecommerce_business}
+      MVP0_BUSINESS_ROLE: ${MVP0_BUSINESS_ROLE:-mvp0_business}
+      MVP0_BUSINESS_PASSWORD: ${MVP0_BUSINESS_PASSWORD:-mvp0_business_local_only}
+      MVP0_CHECKPOINT_DB: ${MVP0_CHECKPOINT_DB:-ecommerce_checkpoint}
+      MVP0_CHECKPOINT_ROLE: ${MVP0_CHECKPOINT_ROLE:-mvp0_checkpoint}
+      MVP0_CHECKPOINT_PASSWORD: ${MVP0_CHECKPOINT_PASSWORD:-mvp0_checkpoint_local_only}
+    ports:
+      - "127.0.0.1:${MVP0_POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/mvp0/postgres-init.sh:/docker-entrypoint-initdb.d/20-mvp0-databases.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username \"$${POSTGRES_USER}\" --dbname postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  postgres-data:
+    name: ai-ecommerce-agent-mvp0-postgres-data
