@@ -1,0 +1,4 @@
+fixture_notice,fixture_id,record_id,anchor_sku,comment_text,evidence_status
+fictional synthetic,fixture-sufficient-v1,comment-001,anchor-city-commuter-backpack,"synthetic note: computer sleeve is easy to locate",documented_claim
+fictional synthetic,fixture-sufficient-v1,comment-002,anchor-city-commuter-backpack,"synthetic note: compact shape is useful on a weekday commute",documented_claim
+fictional synthetic,fixture-sufficient-v1,comment-003,anchor-city-commuter-backpack,"synthetic note: shoulder comfort still needs validation",claim_to_verify

@@ -1,0 +1,62 @@
+{
+  "fixture_notice": {
+    "fictional": true,
+    "synthetic": true,
+    "non_regulated": true
+  },
+  "fixture_id": "fixture-sufficient-v1",
+  "anchor_sku": "anchor-city-commuter-backpack",
+  "source_id": "source-sufficient-product-card",
+  "source_version": "source-sufficient-product-v1",
+  "source_format": "json",
+  "product_identity": {
+    "display_name": "城市通勤双肩包",
+    "sku_label": "CBP-SYN-001",
+    "category": "通勤背包",
+    "identity_status": "single_consistent_value"
+  },
+  "core_use": "工作日城市通勤时携带电脑、文件和日常随身物品",
+  "attributes": [
+    {
+      "attribute_id": "capacity",
+      "name": "容量",
+      "value": "约 18 升",
+      "support": "direct_source",
+      "locator": "product.json#attributes[0]"
+    },
+    {
+      "attribute_id": "laptop_fit",
+      "name": "电脑收纳",
+      "value": "可放入 14 英寸级别笔记本电脑",
+      "support": "direct_source",
+      "locator": "product.json#attributes[1]"
+    },
+    {
+      "attribute_id": "weather_cover",
+      "name": "外层处理",
+      "value": "表面有防泼水处理，不能替代长期浸水防护",
+      "support": "direct_source",
+      "locator": "product.json#attributes[2]"
+    },
+    {
+      "attribute_id": "weight",
+      "name": "空包重量",
+      "value": "约 0.76 千克",
+      "support": "direct_source",
+      "locator": "product.json#attributes[3]"
+    }
+  ],
+  "documented_claims": [
+    {
+      "claim_id": "claim-synthetic-comfort",
+      "text": "肩带采用分散受力设计",
+      "status": "documented_claim",
+      "verification_note": "资料未提供独立人体工学检测；不得升级为已验证功效。",
+      "locator": "product.json#documented_claims[0]"
+    }
+  ],
+  "known_limitations": [
+    "未提供真实销量、转化、竞品或用户研究数据。",
+    "防泼水描述不支持绝对防水或耐久性结论。"
+  ]
+}

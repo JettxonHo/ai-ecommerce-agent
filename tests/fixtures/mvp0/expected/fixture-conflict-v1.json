@@ -1,0 +1,27 @@
+{
+  "fixture_id": "fixture-conflict-v1",
+  "fixture_version": "v1",
+  "data_notice": {"fictional": true, "synthetic": true, "non_regulated": true},
+  "expected_behavior_kind": "semantic_behavior_contract",
+  "hard_gates": {
+    "blocking_state": "the task enters Needs Input before a final Brief is produced",
+    "visible_conflict": "the action request shows both conflicting values, their source identities and versions, usable locators, and the affected product-identity scope",
+    "bounded_actions": ["confirm_one_value", "supply_replacement_source", "cancel"],
+    "recovery_scope": "after a confirm or replacement, processing resumes from the fact stage or the stage named by the current action request",
+    "current_truth": "unresolved or superseded outputs never become Current Truth or an export source",
+    "no_model_arbitration": "the model or deterministic substitute must not silently choose a conflict value"
+  },
+  "evidence_constraints": [
+    "Both values are synthetic test assertions; neither is a real catalog or warehouse record.",
+    "The request is derived only from the existing Task, Source, Conflict, and Stage context.",
+    "No free-form chat, outside fact, or fabricated source may resolve the conflict."
+  ],
+  "human_usability_inputs": [
+    "The operator can see why the identity conflict blocks the next stage.",
+    "The operator can select a finite action and understand what will resume afterward."
+  ],
+  "non_requirements": [
+    "Do not require a fixed prose template beyond these semantic fields.",
+    "Do not mark the task successful merely because a Needs Input card was rendered; generation success is not approval."
+  ]
+}

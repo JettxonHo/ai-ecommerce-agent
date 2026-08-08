@@ -1,0 +1,40 @@
+{
+  "fixture_notice": {
+    "fictional": true,
+    "synthetic": true,
+    "non_regulated": true
+  },
+  "fixture_id": "fixture-conflict-v1",
+  "anchor_sku": "anchor-city-commuter-backpack",
+  "source_format": "json",
+  "product_identity": {
+    "display_name": "城市通勤双肩包",
+    "category": "通勤背包",
+    "identity_status": "blocking_conflict"
+  },
+  "identity_assertions": [
+    {
+      "source_id": "source-conflict-catalog",
+      "source_version": "source-conflict-catalog-v1",
+      "sku_label": "CBP-SYN-001",
+      "locator": "product.json#identity_assertions[0]"
+    },
+    {
+      "source_id": "source-conflict-warehouse-note",
+      "source_version": "source-conflict-warehouse-v1",
+      "sku_label": "CBP-SYN-009",
+      "locator": "product.json#identity_assertions[1]"
+    }
+  ],
+  "core_use": "通勤时携带电脑和日常物品",
+  "attributes": [
+    {
+      "attribute_id": "capacity",
+      "name": "容量",
+      "value": "约 18 升",
+      "support": "source_conflict_context",
+      "locator": "product.json#attributes[0]"
+    }
+  ],
+  "conflict_notice": "身份值不一致时不得静默选择一个值；需要用户确认或补充来源。"
+}

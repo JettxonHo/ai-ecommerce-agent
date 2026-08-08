@@ -1,0 +1,38 @@
+{
+  "fixture_notice": {
+    "fictional": true,
+    "synthetic": true,
+    "non_regulated": true
+  },
+  "fixture_id": "fixture-limited-v1",
+  "anchor_sku": "anchor-city-commuter-backpack",
+  "source_id": "source-limited-product-card",
+  "source_version": "source-limited-product-v1",
+  "source_format": "json",
+  "product_identity": {
+    "display_name": "城市通勤双肩包",
+    "sku_label": "CBP-SYN-001",
+    "category": "通勤背包",
+    "identity_status": "single_consistent_value"
+  },
+  "core_use": "通勤时携带电脑和少量日常物品",
+  "attributes": [
+    {
+      "attribute_id": "laptop_fit",
+      "name": "电脑收纳",
+      "value": "有独立电脑夹层",
+      "support": "direct_source",
+      "locator": "product.json#attributes[0]"
+    }
+  ],
+  "provided_material": ["商品身份", "核心用途", "一个核心属性"],
+  "intentionally_missing": [
+    "用户评论或研究资料",
+    "价格或价格区间",
+    "品牌约束与历史推广结果",
+    "竞品和平台案例"
+  ],
+  "known_limitations": [
+    "资料不足以判断目标用户规模、价格敏感度或相对竞品差异。"
+  ]
+}
