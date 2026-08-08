@@ -2,11 +2,13 @@
 
 > **Date:** 2026-08-08
 >
-> **Status:** CONDITIONAL PASS — HUMAN DECISION GATES OPEN
+> **Status:** PASS — ACCEPTED
 >
-> **Implementation Authorization:** NOT YET ACTIVE
+> **Implementation Authorization:** AUTHORIZED ON PR #59 MERGE
 >
-> **Reviewed Commit:** `5a6691f` plus current uncommitted planning package on `codex/rapid-mvp0-planning`
+> **Reviewed Commit:** `df55c1f` plus the accepted-decision archive on `codex/rapid-mvp0-planning`
+
+> **Acceptance resolution（2026-08-08）：** 用户已接受 P-68A～P-73A、RFC-007 整体、Development Plan、Testing Strategy、MVP-0 Goal 与本 Readiness Review。原审查表保留接受前 Gate 证据；其阻塞项现已由 DEC-073～075 全部关闭。
 
 ## 1. Review objective
 
@@ -64,12 +66,12 @@ Terra fallback: prohibited without current-task user authorization
 | API / Human Review public contract | PASS | RFC-004 accepted；physical OpenAPI in MVP0-001 |
 | Source / Retrieval | PASS | RFC-005 accepted；MVP-0 staging explicit |
 | Model Runtime | PASS | RFC-006 accepted |
-| Runtime operations | BLOCKED | P-68A / P-69A / P-70A + RFC-007 overall not accepted |
-| HTTP Adapter framework | BLOCKED | P-71A not accepted |
-| Local stack orchestration | BLOCKED | P-72A not accepted |
-| Worker framework | BLOCKED | P-73A not accepted |
+| Runtime operations | PASS | P-68A / P-69A / P-70A + RFC-007 accepted（DEC-073） |
+| HTTP Adapter framework | PASS | P-71A accepted（DEC-074） |
+| Local stack orchestration | PASS | P-72A accepted（DEC-074） |
+| Worker framework | PASS | P-73A accepted（DEC-074） |
 
-没有证据支持让实现 Agent临场选择 P-71～P-73；它们是进入 Goal 前的真实 Decision Gate。
+P-71～P-73 已接受；实现 Agent不得临场替换这些选择。
 
 ## 7. Data, API and state readiness
 
@@ -85,16 +87,16 @@ Result = PASS FOR PLANNING / NOT IMPLEMENTED。
 - 现有 8 checks 继续保留；生产逻辑进入时启动 80% branch coverage Gate。
 - 真实 PostgreSQL、Browser E2E、physical fixtures 与 Live Smoke 尚未存在，分别由 Goal Issues 交付；不得把规划写成已通过。
 
-Result = CONDITIONAL PASS，等待 Testing Strategy 整体接受。
+Result = PASS FOR ACTIVATION；Testing Strategy 已整体接受，物理测试载体由 Goal Issues 交付。
 
 ## 9. Development and Goal readiness
 
 - Development Plan 已定义 Scope、Non-goals、P-71～P-73、模块边界、M0～M8、Issue / PR / Review 和停止条件。
-- Proposed Goal 已定义 46 个边界候选、依赖、并行边界、首批 5 个标准任务合同与明确完成标准。
+- Accepted Goal 已定义 46 个边界候选、依赖、并行边界、首批 5 个标准任务合同与明确完成标准。
 - DEC-072 已提供所有 Gate 闭合后的长期持续执行授权；普通低风险 PR 可以由非实现者在独立 Review 与 Required Checks 通过后合并。
-- 当前没有创建任何实现 GitHub Issue，也没有 `luna-worker` 写入任务，符合 Gate。
+- 规划 PR 合并前没有创建实现 Issue 或 `luna-worker` 写入任务，符合 Gate；合并后按 DEC-075 创建首批 Issues。
 
-Result = PASS AS DRAFT / NOT ACTIVE。
+Result = PASS / READY TO ACTIVATE ON PR #59 MERGE。
 
 ## 10. Documentation consistency findings
 
@@ -106,12 +108,12 @@ Result = PASS AS DRAFT / NOT ACTIVE。
 - DEC-071 模型状态语义通过 DEC-072 amendment 修正，不静默重写历史；
 - Goal / current status / decision log 继续复用现有等价目录，不创建重复事实源。
 
-### Must be completed after user decisions
+### Acceptance synchronization completed in this archive
 
-- 把 RFC-007、P-71～P-73 写入 Accepted DEC / Current Truth；
-- 把 Testing Strategy / Development Plan / Goal 状态更新为 Accepted / Active；
-- 更新 RFC Register、Traceability、README、AGENTS 与 Implementation Readiness；
-- 运行本地 Markdown link / document checks 与 8 Required Checks，更新 PR #59。
+- RFC-007、P-71～P-73 已写入 DEC-073 / 074 与 Current Truth；
+- Testing Strategy / Development Plan / Goal / Readiness 已由 DEC-075 接受；
+- RFC Register、Traceability、README、AGENTS 与 Implementation Readiness 在同一 archive commit 同步；
+- 本地 Markdown 与 Required Checks 在合并前重跑，结果记录在 PR #59。
 
 ## 11. Risks
 
@@ -121,7 +123,7 @@ Result = PASS AS DRAFT / NOT ACTIVE。
 4. local hybrid stack 要求 Host 工具版本；P-72A 用 preflight 和 lockfile 控制，不把所有服务容器化。
 5. 46 个候选 Issues 是上限型 backlog；Sol 创建时必须保持窄 PR，不机械一次性创建全部无上下文 Issue。
 
-## 12. Blocking decisions
+## 12. Resolved blocking decisions
 
 ```text
 P-68A  minimal diagnostic plane and correlation
@@ -137,18 +139,20 @@ Goal acceptance
 This readiness review final acceptance
 ```
 
+以上项目均于 2026-08-08 获用户明确接受；当前没有残留开发前人工 Decision blocker。
+
 ## 13. Review conclusion
 
 ```text
 Product: READY
-RFC-001–006: READY
-RFC-007: BLOCKED BY USER DECISION
-Development Plan: COMPLETE DRAFT / BLOCKED BY USER DECISION
-Testing Strategy: COMPLETE DRAFT / BLOCKED BY USER DECISION
-Goal: COMPLETE DRAFT / NOT ACTIVE
+RFC-001–007: READY
+RFC-007: ACCEPTED
+Development Plan: ACCEPTED
+Testing Strategy: ACCEPTED
+Goal: ACCEPTED / ACTIVATES ON PR #59 MERGE
 Agent route: CONFIG_VERIFIED / READY
-Business implementation: NOT AUTHORIZED YET
-Overall: CONDITIONAL PASS
+Business implementation: AUTHORIZED WITHIN ACTIVE GOAL AFTER PR #59 MERGE
+Overall: PASS
 ```
 
 ### Local verification performed
@@ -168,4 +172,4 @@ Live / Spike / Provider                              NOT RUN (out of scope)
 
 首轮 uv 命令因沙箱不能写用户级 cache 而未启动检查；改用可写临时 cache 与 `--no-sync` 后全部通过，没有安装或升级依赖。GitHub 8 项 Required Checks 需在 Draft PR 更新后重新执行。
 
-若用户接受 §12 全部推荐项与策划包，Sol 应归档 DEC、同步 Current Truth、执行文档与 Required Checks、合并规划 PR、关闭 Issue #58，并根据 DEC-072 激活 Goal 与创建首批 Issues。任何一项被修改时，先更新受影响文档并重新做窄一致性 Review，不启动受影响实现。
+用户已接受 §12 全部推荐项与策划包。Sol 应完成本次归档验证、合并 PR #59、关闭 Issue #58，并根据 DEC-072 / 075 激活 Goal、创建首批 Issues 和路由 `luna-worker`。

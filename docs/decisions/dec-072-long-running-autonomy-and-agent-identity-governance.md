@@ -8,6 +8,8 @@ Agent Governance / Long-running Execution / Model Identity / Human Gates
 
 Accepted
 
+> **Gate resolution（2026-08-08）：** 本决定列出的前置 Gate 已由 [DEC-073](dec-073-minimal-observability-and-runtime-operations.md)、[DEC-074](dec-074-mvp0-http-local-stack-and-worker-baseline.md) 与 [DEC-075](dec-075-rapid-mvp0-planning-package-and-goal-activation.md) 全部关闭；规划 PR #59 合并后持续执行授权生效。
+
 ## Decision
 
 用户以《多 Agent 项目策划与长期自主开发总指令（Luna Worker 正确版）》明确授权：在产品、架构、测试、Goal、Issue 与任务合同已经闭合，且不存在本决定保留的人工确认条件时，主控 Agent 应连续推进既定 Goal，不停留在重复计划或只输出任务包。

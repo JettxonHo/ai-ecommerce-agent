@@ -1672,3 +1672,24 @@ RFC-005 整体接受后，用户授权继续已确认的最小 RFC-007 与快速
 - `P-71A / P-72A / P-73A = PROPOSED`；用户接受前 Implementer 不得选择 Framework、local orchestration 或 Worker framework。
 - 已生成 Proposed [Development Plan](../development/mvp0-development-plan.md)、[Testing Strategy](../development/testing-strategy.md)、[MVP-0 Goal](../goals/end-to-end-demo-mvp0-goal.md)、[RFC-007 Pre-acceptance Review](../reviews/review-2026-08-08-rfc-007-preacceptance-consistency.md) 与 [Rapid Readiness Review](../reviews/review-2026-08-08-rapid-mvp0-predevelopment-readiness.md)。
 - 文档包不创建实现 Issue、不写业务代码、不安装依赖、不执行 Technical Spike / Live Provider；下一步是用户 Decision Gate。
+
+## Rapid MVP-0 Final Acceptance and Goal Activation Gate（2026-08-08）
+
+### User Decision
+
+用户明确回复：
+
+> “接受 P-68A、P-69A、P-70A 与 RFC-007 整体；接受 P-71A、P-72A、P-73A；接受 Development Plan、Testing Strategy、MVP-0 Goal 与 Readiness Review 整体。”
+
+### Accepted Decisions
+
+- P-68A～P-70A 与 RFC-007 整体已归档为 [DEC-073](../decisions/dec-073-minimal-observability-and-runtime-operations.md)；RFC-007 DQ-01～03 = `ACCEPTED`。
+- P-71A～P-73A 已归档为 [DEC-074](../decisions/dec-074-mvp0-http-local-stack-and-worker-baseline.md)。
+- Development Plan、Testing Strategy、MVP-0 Goal 与 Readiness Review 的整体接受及 Goal 激活边界已归档为 [DEC-075](../decisions/dec-075-rapid-mvp0-planning-package-and-goal-activation.md)。
+
+### Archive Result
+
+- 开发前重大 Proposal 与 Readiness Gate 已全部闭合；PR #59 合并后按 DEC-072 / 075 激活长期 Goal，不再等待另一条固定启动口令。
+- 首批执行从 contract / fixture / local PostgreSQL 与 TS-01 / TS-03 stop-first compatibility Issues 开始；每个 Issue 使用独立任务合同、分支、测试和 PR。
+- 边界明确的实现只路由准确自定义 Agent `luna-worker`；未经用户对具体任务明确许可不使用 Terra。
+- 高风险、不可逆、产品范围或公共契约变化、主要技术栈更换、敏感数据与降低质量标准继续保留人工 Gate。

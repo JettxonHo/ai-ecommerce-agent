@@ -1,11 +1,11 @@
 # Architecture Readiness
 
-> **Current sync（2026-08-07）：** Architecture / Development = `CONDITIONALLY READY`（仅策划）。Product Specification、RFC-001～006、Frontend Architecture 与 FND-001～003 已完成；RFC-005 Final Review = PASS。用户已确认快速 MVP-0 Gate：完整 ARP-02 / 03 / 09、ARP-05～08 与 TS-02 / 04 / 05 不再阻塞 MVP-0；TS-01 / TS-03 收敛为对应 Foundation Issue 内 stop-first compatibility slice。当前只授权最小 RFC-007、Development Plan、Testing Strategy、Goal 文本与精简 Readiness Review；完整展示前不执行 Spike、Live Provider、业务实现或实际 Goal。当前 Gate 见 [Implementation Readiness](../handoffs/implementation-readiness.md)。
+> **Current sync（2026-08-08）：** Architecture / Development = `READY FOR MVP-0`。Product Specification、RFC-001～007、Frontend Architecture、FND-001～003、Development Plan、Testing Strategy、MVP-0 Goal 与精简 Readiness Review 已接受；PR #59 合并后在 Active Goal / Issue 合同内开发。完整 ARP-02 / 03 / 09、ARP-05～08 与 TS-02 / 04 / 05 继续后移；TS-01 / TS-03 仅作为 stop-first bounded compatibility Issues 执行。当前 Gate 见 [Implementation Readiness](../handoffs/implementation-readiness.md)。
 > **Historical record note：** 下方 DEC-034～037、Spike-001 和最初 Readiness Gate 的执行顺序保留历史原貌；其中 `GRANTED`、`下一议题` 等只描述当时的 Spike 授权，不得用于重新执行 Spike 或启动当前 Goal。
 
 > **来源决定：** [DEC-034 — Technical Spike Plan and Architecture Readiness Gate](../decisions/dec-034-technical-spike-and-architecture-readiness-gate.md) · [DEC-035 — Technical Spike 临时技术栈与执行契约](../decisions/dec-035-technical-spike-temporary-stack-and-execution-contract.md) · [DEC-036 — Spike-001 Execution Authorization and Agent Handoff Contract](../decisions/dec-036-spike-001-execution-authorization-and-agent-handoff-contract.md) · [DEC-037 — Formal Spike-001 Execution Authorization](../decisions/dec-037-formal-spike-001-execution-authorization.md)
 > **概念规格：** [../specs/readiness/technical-spike-and-architecture-readiness-gate.md](../specs/readiness/technical-spike-and-architecture-readiness-gate.md) · [../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md](../specs/readiness/technical-spike-execution-brief-and-temporary-stack.md) · [../specs/readiness/spike-001-execution-authorization-and-agent-handoff-contract.md](../specs/readiness/spike-001-execution-authorization-and-agent-handoff-contract.md) · [../specs/readiness/formal-spike-001-execution-authorization.md](../specs/readiness/formal-spike-001-execution-authorization.md)
-> **当前 Contract Authorization Status: ACCEPTED · Spike Execution Authorization Status: GRANTED · Spike Execution Status: COMPLETED · Architecture Readiness Status: CONDITIONALLY READY · Development Status: CONDITIONALLY READY**
+> **当前 Contract Authorization Status: ACCEPTED · Spike Execution Status: COMPLETED · Architecture Readiness Status: READY FOR MVP-0 · Development Status: AUTHORIZED WITHIN ACTIVE GOAL**
 
 ---
 
@@ -69,11 +69,9 @@ Final Status
 
 详见 DEC-034 与概念规格。
 
-## 当前 Development Status
+## Historical Architecture Readiness Decision
 
-```text
-CONDITIONALLY READY
-```
+> 本节下方记录 PR #4 时的 `CONDITIONALLY READY` 决定与授权边界。当前 MVP-0 状态已经 DEC-073～075 和已接受 Readiness Review 升级，见文件顶部 Current sync；历史内容不作为当前禁令。
 
 - **Contract Authorization Status: ACCEPTED**（DEC-036 已接受 Spike-001 权限与执行契约）
 - **Spike Execution Authorization Status: GRANTED**（DEC-037 已正式授予 Claude 执行 Spike-001 S0—S6 的授权）

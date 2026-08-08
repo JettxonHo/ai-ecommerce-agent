@@ -2,14 +2,15 @@
 
 ## Metadata
 
-- **Status:** DRAFTING — PROPOSALS PENDING USER DECISION
+- **Status:** ACCEPTED
 - **Date:** 2026-08-07
 - **Issue:** [#58](https://github.com/JettxonHo/ai-ecommerce-agent/issues/58)
-- **Pull Request:** [#59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59)（Draft）
-- **Pre-acceptance Review:** [PASS AS PROPOSAL](../reviews/review-2026-08-08-rfc-007-preacceptance-consistency.md)
-- **RFC Acceptance:** NOT GRANTED
-- **Implementation Authorization:** NOT GRANTED
-- **Goal Activation:** NOT GRANTED
+- **Pull Request:** [#59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59)
+- **Pre-acceptance Review:** [PASS — ACCEPTED](../reviews/review-2026-08-08-rfc-007-preacceptance-consistency.md)
+- **RFC Acceptance:** GRANTED — 2026-08-08
+- **Implementation Authorization:** GRANTED WITHIN ACCEPTED MVP-0 GOAL
+- **Goal Activation:** AUTHORIZED ON PR #59 MERGE
+- **Decision:** [DEC-073](../decisions/dec-073-minimal-observability-and-runtime-operations.md)
 
 ## Problem
 
@@ -79,9 +80,9 @@ RFC-007 does not own:
 
 | Decision Question | Topic | Status |
 |---|---|---|
-| DQ-01 | Diagnostic event、correlation、durable error 与 redaction boundary | PROPOSED — P-68A recommended |
-| DQ-02 | Timeout / Retry / Backoff ownership and bounded MVP-0 behavior | PROPOSED — P-69A recommended |
-| DQ-03 | Local operational evidence and deferred observability capabilities | PROPOSED — P-70A recommended |
+| DQ-01 | Diagnostic event、correlation、durable error 与 redaction boundary | ACCEPTED — P-68A / DEC-073 |
+| DQ-02 | Timeout / Retry / Backoff ownership and bounded MVP-0 behavior | ACCEPTED — P-69A / DEC-073 |
+| DQ-03 | Local operational evidence and deferred observability capabilities | ACCEPTED — P-70A / DEC-073 |
 
 ## Proposal Round 1
 
@@ -191,7 +192,7 @@ RFC-007 does not own:
 - Extend RFC-003 / 004 / 005 / 006 的运维 handoff，不改变其权威契约；
 - Conform DEC-039 / 070 的适度校验与快速分期。
 
-在用户明确接受前，P-68A / P-69A / P-70A 仍为 Proposed，不创建 DEC，不把推荐方案写成 Accepted Current Truth。
+> **Acceptance resolution（2026-08-08）：** 用户已接受推荐组合；本段以上的方案与推荐文字保留其接受前讨论语境，当前权威状态见 Metadata、Decision map 与 DEC-073。
 
 ## Testing strategy if accepted
 
@@ -221,7 +222,7 @@ RFC-007 does not own:
 
 ## Acceptance and authorization boundary
 
-- User acceptance of P-68A / P-69A / P-70A would close DQ-01～03 and authorize archiving a Decision plus final RFC consistency review only.
-- RFC-007 overall still requires a separate explicit user acceptance after review.
-- RFC acceptance, Issue #58 work or its documentation PR does not authorize implementation, dependency installation, Technical Spike, Live Provider or actual Goal.
-- Development can begin only after P-68A～P-70A、RFC-007 overall、P-71A～P-73A、Development Plan、Testing Strategy、Goal 与 compact Readiness Review 全部被用户接受。DEC-072 已提供这些 Gate 闭合后的持续执行授权，不再要求重复固定启动口令。
+- **Resolution（2026-08-08）：** 用户已明确接受 P-68A / P-69A / P-70A 与 RFC-007 整体；DQ-01～03 已由 DEC-073 关闭。
+- 用户同时接受 Development Plan、Testing Strategy、MVP-0 Goal 与 Readiness Review；因此本 RFC 的实现可在 PR #59 合并并激活 Goal 后按独立 Issue 进行。
+- 接受不扩大 Non-goals，不授权公开部署、完整 telemetry platform 或不可逆外部操作。
+- 上述全部 Gate 已由用户接受；PR #59 合并后依据 DEC-072 / DEC-075 进入 Goal 执行。Technical Spike、Live Provider 与依赖变更仍只能在相应 Goal Issue 和测试边界内执行。

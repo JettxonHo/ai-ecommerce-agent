@@ -1,8 +1,8 @@
 # 快速 MVP-0 Development Plan
 
-> **Status: PROPOSED — NOT ACTIVE**
+> **Status: ACCEPTED — ACTIVATES WITH MVP-0 GOAL ON PR #59 MERGE**
 >
-> Product Specification、Frontend Architecture 与 RFC-001～006 已接受；RFC-007、P-71A～P-73A、本计划、Testing Strategy、Goal 与 Readiness Review 仍待用户接受。本文是开发前策划，不授权业务实现、依赖安装、Migration、Technical Spike 或 Live Provider。
+> Product Specification、Frontend Architecture、RFC-001～007、P-71A～P-73A、本计划、Testing Strategy、Goal 与 Readiness Review 已接受。PR #59 合并后按 DEC-072 / DEC-075 激活 MVP-0 Goal；实现仅限 Goal、Issue 和任务合同边界。
 
 ## 1. 交付目标
 
@@ -119,7 +119,7 @@ Docker 官方说明 Compose 可通过 healthcheck 与 `service_healthy` 管理�
 
 ### Proposal 状态
 
-`P-71A / P-72A / P-73A = PROPOSED`。用户明确接受前，实现 Agent 不得选择 HTTP Framework、本地进程编排或 Worker Framework，也不得安装相应依赖。
+`P-71A / P-72A / P-73A = ACCEPTED`（DEC-074）。实现 Agent不得改变 authored OpenAPI 权威、local stack 拓扑或 Worker 运行模型；相关依赖只在对应有界 Issue 中加入。
 
 ## 5. 模块与物理边界
 
@@ -209,4 +209,4 @@ Task / Run / Stage / Source / Version / Evidence / Review / Brief 的最小 Doma
 
 ## 10. 接受边界
 
-用户接受 P-71A / P-72A / P-73A 后，应创建对应 DEC 并同步 Architecture / AGENTS / Goal。接受本计划与 Goal / Readiness 是不同动作；在全部 Gate 闭合前本文件保持 `PROPOSED — NOT ACTIVE`。
+用户已接受 P-71A / P-72A / P-73A（DEC-074），并整体接受本计划、Testing Strategy、Goal 与 Readiness Review（DEC-075）。PR #59 合并后本计划随 Goal 进入执行状态。

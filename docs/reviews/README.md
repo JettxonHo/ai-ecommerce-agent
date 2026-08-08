@@ -8,7 +8,7 @@
 
 - 审查是 **Execution Gate（执行门）** 的一部分：在用户下达开发指令后、实际编码前，必须先通过 Implementation Readiness Review。
 - 审查记录保存为单独文件，命名建议 `review-YYYY-MM-DD-<topic>.md`。
-- 审查通过**不等于**未接受的 Proposal 自动通过。DEC-072 已提供全部重大 Decision Gate 与策划包闭合后的持续执行授权；在此之前仍不得开发。
+- 审查通过**不等于**未接受的 Proposal 自动通过。当前开发前 Proposal 与策划包已由 DEC-073～075 接受；后续仍按各 Issue / PR 独立 Review，不把一次 Readiness Review 当作实现验收。
 
 ---
 
@@ -32,7 +32,7 @@
 
 ## 当前审查记录
 
-- [2026-08-08 RFC-007 Pre-acceptance Consistency Review](review-2026-08-08-rfc-007-preacceptance-consistency.md)：`PASS AS PROPOSAL`，P-68A～P-70A 与 RFC 整体仍需用户决定。
-- [2026-08-08 Rapid MVP-0 Pre-development Readiness Review](review-2026-08-08-rapid-mvp0-predevelopment-readiness.md)：`CONDITIONAL PASS`，重大 Decision Gate 仍开放。
+- [2026-08-08 RFC-007 Pre-acceptance Consistency Review](review-2026-08-08-rfc-007-preacceptance-consistency.md)：`PASS — ACCEPTED`，P-68A～P-70A 与 RFC 整体由 DEC-073 接受。
+- [2026-08-08 Rapid MVP-0 Pre-development Readiness Review](review-2026-08-08-rapid-mvp0-predevelopment-readiness.md)：`PASS — ACCEPTED`，Goal 激活由 DEC-075 授权。
 - [2026-08-07 Product Specification Final Consistency Review](review-2026-08-07-product-specification-final-consistency.md)：`PASS`，用户整体接受已记录；这不是 Implementation Readiness Review，也不授权开发。
 - [2026-08-07 RFC-004 Final Consistency Review](review-2026-08-07-rfc-004-final-consistency.md)：`PASS`，用户整体接受已记录；不授权 OpenAPI / API 实现、Spike 或 Goal。

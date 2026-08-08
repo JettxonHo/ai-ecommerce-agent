@@ -4,7 +4,7 @@
 >
 > **RFC:** [RFC-007 — Minimal Observability and Runtime Operations for MVP-0](../rfcs/rfc-007-observability-and-runtime-operations.md)
 >
-> **Status:** PASS AS PROPOSAL — USER DECISION REQUIRED
+> **Status:** PASS — ACCEPTED BY USER
 >
 > **Decision Conflict:** NONE FOUND
 
@@ -66,14 +66,14 @@ Result: PASS。
 ## 8. Open decisions and authorization
 
 ```text
-P-68A = PROPOSED
-P-69A = PROPOSED
-P-70A = PROPOSED
-RFC-007 overall = NOT ACCEPTED
-Implementation = NOT AUTHORIZED
+P-68A = ACCEPTED (DEC-073)
+P-69A = ACCEPTED (DEC-073)
+P-70A = ACCEPTED (DEC-073)
+RFC-007 overall = ACCEPTED
+Implementation = AUTHORIZED WITHIN ACTIVE MVP-0 GOAL
 ```
 
-Review PASS 不等于用户接受。用户接受推荐组合后，应归档一个 DEC、把 DQ-01～03 标为 Accepted，再进行 RFC-007 overall acceptance 归档与 Current Truth 同步。
+本节原为接受前 Gate。用户已于 2026-08-08 明确接受推荐组合与 RFC-007 整体；接受记录见 DEC-073。原审查证据保持不变。
 
 ## 9. Conclusion
 
@@ -86,5 +86,5 @@ Failure/recovery: PASS
 Testability: PASS
 Rollback/migration: PASS
 Decision conflict: NONE FOUND
-Overall: PASS AS PROPOSAL — USER DECISION REQUIRED
+Overall: PASS — ACCEPTED BY USER
 ```

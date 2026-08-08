@@ -1,12 +1,12 @@
 # 端到端演示 MVP-0 Goal
 
-> **Status: PROPOSED — NOT ACTIVE**
+> **Status: ACCEPTED — ACTIVATES ON PR #59 MERGE**
 >
 > **Owner:** Sol `ORCHESTRATOR_REVIEWER`
 >
 > **Implementer:** exact custom Agent `luna-worker` (`gpt-5.6-luna` / `max`, model status recorded per task)
 >
-> **Activation:** RFC-007、P-71A～P-73A、Development Plan、Testing Strategy、本 Goal 与精简 Readiness Review 全部接受后，按 DEC-072 激活。当前不得创建实现 Issue、写业务代码、安装依赖、执行 Spike 或 Live Provider。
+> **Activation:** RFC-007、P-71A～P-73A、Development Plan、Testing Strategy、本 Goal 与精简 Readiness Review 已全部接受（DEC-073～075）。PR #59 合并后按 DEC-072 激活并创建首批 Issues。
 
 ## 1. 最终目标
 
@@ -14,10 +14,10 @@
 
 ## 2. 背景与当前状态
 
-- Product Specification、Frontend Architecture、RFC-001～006 已 Accepted；Foundation FND-001～003 与 disposable Spike-001 已完成。
+- Product Specification、Frontend Architecture、RFC-001～007 已 Accepted；Foundation FND-001～003 与 disposable Spike-001 已完成。
 - Production Package 当前是空业务 Foundation；API、PostgreSQL 实现、Migration、Worker、LangGraph Runtime、Model / Retrieval Runtime、业务 Skills 与 Frontend 尚不存在。
 - MVP-0 按 DEC-070 使用 JSON / text / TXT / Markdown / CSV + Direct / Exact / PostgreSQL Lexical；PDF 与 Embedding / Semantic / Hybrid 后移 MVP-1。
-- 最小 RFC-007 与 Development Plan P-71～P-73 仍为 Proposed；因此 Goal 当前不激活。
+- P-71A～P-73A 与完整策划包已接受；Goal 在规划 PR #59 合并后进入 ACTIVE。
 
 ## 3. 权威文档与阅读顺序
 

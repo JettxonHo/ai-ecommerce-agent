@@ -1,7 +1,7 @@
 # AI Ecommerce Agent
 
-> **Status: Pre-development Planning · Development = CONDITIONALLY READY**
-> 当前只允许产品规格闭合、架构 RFC、Readiness 规划、测试与 Goal 文档工作。Business / Production Implementation、TS-01～TS-05 执行与实际 Goal 均未启动。
+> **Status: MVP-0 Goal Accepted · Development = READY**
+> RFC-001～007、Development Plan、Testing Strategy、MVP-0 Goal 与 Readiness Review 已接受。PR #59 合并后进入长期 Goal 执行；实现仅限有界 Issues，重大风险继续保留人工 Gate。
 
 ---
 
@@ -38,15 +38,15 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ---
 
-## 当前策划缺口
+## 当前执行入口
 
-当前 Gate 顺序为：**最小 RFC-007 → 快速 MVP-0 Development Plan / Testing Strategy / Goal → 精简 Readiness Review → 完整展示与接受**。Product Specification 与 RFC-001～006 已整体接受；[Issue #58](https://github.com/JettxonHo/ai-ecommerce-agent/issues/58) / RFC-007 正在策划，P-68A / P-69A / P-70A 及 Development Plan 新提案仍为 Proposed。用户已通过 DEC-072 提供全部 Gate 闭合后的长期自主执行授权，但未接受的 Proposal 仍阻塞开发。
+开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。规划 [PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 合并后，Sol 按 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) 创建有界 Issues 并路由 `luna-worker`。
 
-- P-68A～P-70A 与 RFC-007 minimal Observability / Runtime Operations 整体接受；
-- P-71A HTTP Adapter、P-72A local stack、P-73A Worker process 接受；
-- [快速 MVP-0 Development Plan](docs/development/mvp0-development-plan.md)、[Testing Strategy](docs/development/testing-strategy.md)、[Goal](docs/goals/end-to-end-demo-mvp0-goal.md) 与 [Readiness Review](docs/reviews/review-2026-08-08-rapid-mvp0-predevelopment-readiness.md) 整体接受。
+- 首批执行顺序：authored OpenAPI 与固定 fixture → local PostgreSQL → TS-01 / TS-03 stop-first compatibility slices；
+- 每个 Issue 使用独立分支、任务合同、测试和 PR；实现者不得批准或合并自己的变更；
+- 高风险 / 不可逆 / 范围或公共契约变化继续请求用户确认。
 
-以上缺口必须在业务实现前闭合。Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。模型运行基线已由 DEC-052～054 / RFC-006 冻结，Frontend 产品 / Module / 交互 / 质量边界已由 DEC-055～056 冻结；公共 API 语义已冻结，物理 OpenAPI / Schema 由 Goal 的首个 Contract Issue 实现。
+Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。物理 OpenAPI / Schema、fixtures 与真实 PostgreSQL 证据由 Goal 首批 Issues 实现。
 
 ## Wave 1 Readiness 状态
 
