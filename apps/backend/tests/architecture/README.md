@@ -42,6 +42,7 @@ fixtures/
 ├── valid_public_facade_dependency/    # 合法：跨模块经 .public；单向模块依赖
 ├── valid_shared_kernel_dependency/    # 合法：domain 使用 shared_kernel
 ├── valid_orchestration_dependency/    # 合法：orchestration 经 .public + shared_kernel
+├── valid_bootstrap_infrastructure/    # 合法：bootstrap 绑定模块 infrastructure（RFC-001 DQ-06）
 ├── invalid_domain_imports_infrastructure/
 ├── invalid_application_imports_adapter/
 ├── invalid_cross_module_private_import/
@@ -132,7 +133,7 @@ Expected Boundary: fixture_pkg.modules.alpha.public
 | Domain / Application 依赖纯度 | DQ-04 | Import Linter `Domain/Application internal/external dependencies` |
 | Bootstrap 方向 | DQ-06 | Import Linter `Bootstrap not imported by core` |
 | Orchestration / Entrypoint 边界 | DQ-04 / DQ-07 | Import Linter `Orchestration/Entrypoint external dependencies` + Facade 测试 |
-| Public Facade-only 跨模块 Import | DQ-08 | 自定义 grimp 测试（`helpers/rules.py`） |
+| Public Facade-only 跨模块 Import | DQ-08；Composition Root 对 Infrastructure 的精确例外见 DQ-06 | 自定义 grimp 测试（`helpers/rules.py`） |
 | Module Dependency DAG | DQ-08 | 自定义 grimp 测试（`helpers/rules.py`） |
 | Core 环境访问 / Configuration 边界 | DQ-06 | 自定义 AST 测试（`helpers/ast_scanner.py`） |
 | Public Contract 技术泄漏 | DQ-08 | 自定义 AST 测试 |

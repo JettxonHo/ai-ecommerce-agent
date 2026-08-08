@@ -3,9 +3,11 @@
 Two accepted rules need same-module-relative reasoning:
 
 * **Public facade** (RFC-001-DQ-08): anything outside a business module may
-  only reach into that module through ``modules.<module>.public``. Import
-  Linter contracts cannot express "the *same* module may, other modules may
-  not", and neither can its ``protected`` contract.
+  only reach into that module through ``modules.<module>.public``. The
+  composition root is the one accepted exception: ``<root>.bootstrap`` may
+  bind a module's infrastructure implementation, as required by RFC-001
+  DQ-06. Import Linter contracts cannot express "the *same* module may,
+  other modules may not", and neither can its ``protected`` contract.
 * **Module dependency DAG** (RFC-001-DQ-08): business modules must form a
   directed acyclic graph, including cycles formed *through* public facades
   (which Python's file-level circular-import detection never reports).
@@ -47,6 +49,9 @@ def find_facade_violations(graph: grimp.ImportGraph, root: str) -> list[Violatio
         for module in sorted(graph.modules):
             if not module.startswith(root):
                 continue
+            bootstrap_source = module == f"{root}.bootstrap" or module.startswith(
+                f"{root}.bootstrap."
+            )
             if module == target_module or module.startswith(f"{target_module}."):
                 continue  # same module: layer contract's jurisdiction
             for imported in sorted(graph.find_modules_directly_imported_by(module)):
@@ -56,7 +61,15 @@ def find_facade_violations(graph: grimp.ImportGraph, root: str) -> list[Violatio
                 through_facade = imported == public_facade or imported.startswith(
                     f"{public_facade}."
                 )
-                if inside_target and not through_facade:
+                bootstrap_infrastructure = bootstrap_source and (
+                    imported == f"{target_module}.infrastructure"
+                    or imported.startswith(f"{target_module}.infrastructure.")
+                )
+                if (
+                    inside_target
+                    and not through_facade
+                    and not bootstrap_infrastructure
+                ):
                     violations.append(
                         Violation(
                             rule=FACADE_RULE,
