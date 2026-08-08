@@ -1,8 +1,9 @@
-"""Bounded real-PostgreSQL verification for the MVP0-008 baseline.
+"""Bounded real-PostgreSQL verification for the MVP0-009B Task tables.
 
 The suite is opt-in because the default test lane blocks network access.  It
-uses one fixed, test-owned schema and removes that schema during teardown;
-no shared Business or Checkpoint table is touched.
+uses one fixed, test-owned schema and removes that schema during teardown; no
+shared Business or Checkpoint table is touched.  Each test resets that schema
+instead of downgrading the forward-only Task migration.
 """
 
 from __future__ import annotations
@@ -37,9 +38,15 @@ if os.environ.get("MVP0_RUN_POSTGRES_MIGRATION") != "1":
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 ALEMBIC_INI = BACKEND_ROOT / "alembic.ini"
-BUSINESS_SCHEMA = "mvp0_008_migration"
+BUSINESS_SCHEMA = "mvp0_009b_migration"
 BASELINE_REVISION = "0001_business_baseline"
+HEAD_REVISION = "0002_task_management"
 DATABASE_URL_ENV = "MVP0_MIGRATION_DATABASE_URL"
+DOMAIN_TABLES = (
+    "task_management_runs",
+    "task_management_stages",
+    "task_management_tasks",
+)
 
 
 class InjectedMigrationFailure(RuntimeError):
@@ -58,7 +65,7 @@ def _database_url() -> str:
 
 @pytest.fixture(scope="module")
 def migration_engine() -> Iterator[Engine]:
-    """Own and remove exactly the fixed MVP0-008 verification schema."""
+    """Own and remove exactly the fixed MVP0-009B verification schema."""
 
     engine = create_postgres_engine(
         PostgresEngineConfig(
@@ -68,23 +75,33 @@ def migration_engine() -> Iterator[Engine]:
             pool_timeout=2,
         )
     )
-    with engine.begin() as connection:
-        connection.execute(text(f'DROP SCHEMA IF EXISTS "{BUSINESS_SCHEMA}" CASCADE'))
-        connection.execute(text(f'CREATE SCHEMA "{BUSINESS_SCHEMA}"'))
+    _reset_schema(engine)
     try:
         yield engine
     finally:
-        with engine.begin() as connection:
-            connection.execute(
-                text(f'DROP SCHEMA IF EXISTS "{BUSINESS_SCHEMA}" CASCADE')
-            )
+        _drop_schema(engine)
         with engine.connect() as connection:
             remaining = connection.scalar(
                 text("SELECT count(*) FROM pg_namespace WHERE nspname = :schema"),
                 {"schema": BUSINESS_SCHEMA},
             )
-        assert remaining == 0, "MVP0-008 test schema cleanup was not verifiable"
+        assert remaining == 0, "MVP0-009B test schema cleanup was not verifiable"
         engine.dispose()
+
+
+def _reset_schema(engine: Engine) -> None:
+    """Reset only the fixed test-owned schema between migration scenarios."""
+
+    with engine.begin() as connection:
+        connection.execute(text(f'DROP SCHEMA IF EXISTS "{BUSINESS_SCHEMA}" CASCADE'))
+        connection.execute(text(f'CREATE SCHEMA "{BUSINESS_SCHEMA}"'))
+
+
+def _drop_schema(engine: Engine) -> None:
+    """Drop only the fixed test-owned schema during fixture cleanup."""
+
+    with engine.begin() as connection:
+        connection.execute(text(f'DROP SCHEMA IF EXISTS "{BUSINESS_SCHEMA}" CASCADE'))
 
 
 def _config(database_url: str) -> Config:
@@ -109,6 +126,19 @@ def _version_rows(engine: Engine) -> list[str]:
         )
 
 
+def _tables(engine: Engine) -> list[str]:
+    with engine.connect() as connection:
+        return list(
+            connection.scalars(
+                text(
+                    "SELECT tablename FROM pg_tables "
+                    "WHERE schemaname = :schema ORDER BY tablename"
+                ),
+                {"schema": BUSINESS_SCHEMA},
+            )
+        )
+
+
 def _table_exists(engine: Engine, table_name: str) -> bool:
     with engine.connect() as connection:
         return bool(
@@ -124,68 +154,112 @@ def _table_exists(engine: Engine, table_name: str) -> bool:
         )
 
 
-def test_revision_graph_has_one_business_head() -> None:
-    """The production lineage has one head and a detached baseline parent."""
-
-    script = ScriptDirectory.from_config(_config(_database_url()))
-    assert script.get_heads() == [BASELINE_REVISION]
-    revision = script.get_revision(BASELINE_REVISION)
-    assert revision is not None
-    assert revision.down_revision is None
-
-
-def test_fresh_upgrade_creates_only_migration_identity(
-    migration_engine: Engine,
-) -> None:
-    """Fresh PostgreSQL schema reaches head without any future Business table."""
-
-    command.upgrade(_config(_database_url()), "head")
-
-    assert _version_rows(migration_engine) == [BASELINE_REVISION]
-    with migration_engine.connect() as connection:
-        tables = list(
+def _constraint_names(engine: Engine) -> set[str]:
+    with engine.connect() as connection:
+        return set(
             connection.scalars(
                 text(
-                    "SELECT tablename FROM pg_tables "
-                    "WHERE schemaname = :schema ORDER BY tablename"
+                    "SELECT con.conname "
+                    "FROM pg_constraint con "
+                    "JOIN pg_namespace n ON n.oid = con.connamespace "
+                    "WHERE n.nspname = :schema"
                 ),
                 {"schema": BUSINESS_SCHEMA},
             )
         )
-    assert tables == ["alembic_version"]
 
 
-def test_supported_base_to_head_and_current_revision(
+def test_revision_graph_has_one_business_head() -> None:
+    """The production lineage has one Task head and a baseline parent."""
+
+    script = ScriptDirectory.from_config(_config(_database_url()))
+    assert script.get_heads() == [HEAD_REVISION]
+    head = script.get_revision(HEAD_REVISION)
+    assert head is not None
+    assert head.down_revision == BASELINE_REVISION
+    baseline = script.get_revision(BASELINE_REVISION)
+    assert baseline is not None
+    assert baseline.down_revision is None
+
+
+def test_fresh_upgrade_reaches_task_head(
     migration_engine: Engine,
 ) -> None:
-    """A supported base can upgrade one step and expose current Alembic ID."""
+    """A fresh test schema reaches the single head and creates all Task tables."""
 
+    _reset_schema(migration_engine)
+    command.upgrade(_config(_database_url()), "head")
+
+    assert _version_rows(migration_engine) == [HEAD_REVISION]
+    assert _tables(migration_engine) == ["alembic_version", *DOMAIN_TABLES]
+
+
+def test_explicit_baseline_to_head_upgrade(
+    migration_engine: Engine,
+) -> None:
+    """A schema explicitly at 0001 can advance to 0002 without downgrade."""
+
+    _reset_schema(migration_engine)
     config = _config(_database_url())
-    command.downgrade(config, "base")
-    # Alembic may retain its empty identity table at base; either physical
-    # representation is valid as long as no revision remains applied.
-    if _table_exists(migration_engine, "alembic_version"):
-        assert _version_rows(migration_engine) == []
-
-    command.upgrade(config, "head")
+    command.upgrade(config, BASELINE_REVISION)
     assert _version_rows(migration_engine) == [BASELINE_REVISION]
-    command.current(config)
+    assert _tables(migration_engine) == ["alembic_version"]
+
+    command.upgrade(config, HEAD_REVISION)
+    assert _version_rows(migration_engine) == [HEAD_REVISION]
+    assert _tables(migration_engine) == ["alembic_version", *DOMAIN_TABLES]
 
 
-def test_alembic_check_and_offline_sql_are_reviewable(
+def test_alembic_current_check_and_offline_sql_are_reviewable(
     migration_engine: Engine,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """Drift check is clean and offline output identifies the baseline."""
+    """Current, drift check, and offline SQL identify the Task revision."""
 
+    _reset_schema(migration_engine)
     config = _config(_database_url())
+    command.upgrade(config, "head")
+    command.current(config)
     command.check(config)
     command.upgrade(config, "head", sql=True)
     output = capsys.readouterr().out
 
+    assert HEAD_REVISION in output
     assert "CREATE TABLE" in output
-    assert "alembic_version" in output
-    assert BASELINE_REVISION in output
+    # PostgreSQL's offline compiler may quote or leave a safe lowercase
+    # identifier unquoted; the schema-qualified identity is what matters.
+    assert f"{BUSINESS_SCHEMA}.alembic_version" in output
+    assert all(table in output for table in DOMAIN_TABLES)
+
+
+def test_named_tables_and_constraints_are_present(
+    migration_engine: Engine,
+) -> None:
+    """The head owns the named tables and all stable ownership constraints."""
+
+    _reset_schema(migration_engine)
+    command.upgrade(_config(_database_url()), "head")
+
+    assert _tables(migration_engine) == ["alembic_version", *DOMAIN_TABLES]
+    expected_constraints = {
+        "pk_task_management_tasks",
+        "pk_task_management_runs",
+        "pk_task_management_stages",
+        "uq_task_management_runs_task_run",
+        "fk_task_management_runs_task_owner",
+        "fk_task_management_runs_source_owner",
+        "fk_task_management_runs_current_stage_owner",
+        "fk_task_management_stages_task_owner",
+        "fk_task_management_stages_last_run_owner",
+        "fk_task_management_tasks_current_stage_owner",
+        "fk_task_management_tasks_active_run_owner",
+        "fk_task_management_tasks_latest_run_owner",
+        "ck_task_management_tasks_status",
+        "ck_task_management_runs_status",
+        "ck_task_management_stages_stage",
+        "ck_task_management_stages_status",
+    }
+    assert expected_constraints <= _constraint_names(migration_engine)
 
 
 def _run_test_only_failure_path(engine: Engine) -> None:
@@ -194,7 +268,7 @@ def _run_test_only_failure_path(engine: Engine) -> None:
     with engine.begin() as connection:
         operations = Operations(MigrationContext.configure(connection))
         operations.create_table(
-            "mvp0_008_failed_probe",
+            "mvp0_009b_failed_probe",
             sa.Column("id", sa.Integer, primary_key=True),
             schema=BUSINESS_SCHEMA,
         )
@@ -207,7 +281,7 @@ def _run_test_only_forward_repair(engine: Engine) -> None:
     with engine.begin() as connection:
         operations = Operations(MigrationContext.configure(connection))
         operations.create_table(
-            "mvp0_008_failed_probe",
+            "mvp0_009b_failed_probe",
             sa.Column("id", sa.Integer, primary_key=True),
             sa.Column(
                 "repaired", sa.Boolean, nullable=False, server_default=sa.false()
@@ -221,12 +295,13 @@ def test_representative_failure_rolls_back_and_forward_repairs(
 ) -> None:
     """Transactional DDL leaves no partial object; a new repair succeeds."""
 
+    _reset_schema(migration_engine)
     config = _config(_database_url())
     command.upgrade(config, "head")
     with pytest.raises(InjectedMigrationFailure):
         _run_test_only_failure_path(migration_engine)
 
-    assert not _table_exists(migration_engine, "mvp0_008_failed_probe")
+    assert not _table_exists(migration_engine, "mvp0_009b_failed_probe")
     _run_test_only_forward_repair(migration_engine)
-    assert _table_exists(migration_engine, "mvp0_008_failed_probe")
-    assert _version_rows(migration_engine) == [BASELINE_REVISION]
+    assert _table_exists(migration_engine, "mvp0_009b_failed_probe")
+    assert _version_rows(migration_engine) == [HEAD_REVISION]
