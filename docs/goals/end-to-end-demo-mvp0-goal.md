@@ -15,7 +15,7 @@
 ## 2. 背景与当前状态
 
 - Product Specification、Frontend Architecture、RFC-001～007 已 Accepted；Foundation FND-001～003 与 disposable Spike-001 已完成。
-- Production Package 当前是空业务 Foundation；API、PostgreSQL 实现、Migration、Worker、LangGraph Runtime、Model / Retrieval Runtime、业务 Skills 与 Frontend 尚不存在。
+- Production Package 当前包含 Foundation 与已完成的 Task Management Task / Run / Stage Domain / Persistence vertical slice（shared values、UoW / PostgreSQL adapter、Alembic `0002_task_management`、application commands 与 CAS）；Source / Review / Brief persistence、API、Worker、LangGraph Runtime、Model / Retrieval Runtime、业务 Skills 与 Frontend 尚不存在，仍由后续有界 Issues 负责。
 - MVP-0 按 DEC-070 使用 JSON / text / TXT / Markdown / CSV + Direct / Exact / PostgreSQL Lexical；PDF 与 Embedding / Semantic / Hybrid 后移 MVP-1。
 - P-71A～P-73A 与完整策划包已接受；规划 PR #59 已合并，Goal 当前为 ACTIVE。
 
@@ -66,7 +66,7 @@
 
 ## 6. Implementation Backlog 候选
 
-M1 的 5 个 ID 已完成，M2 的 6 个 ID 已实例化为 GitHub Issues（见 §13）；M3～M8 仍是 Goal 内候选。Sol 在依赖满足时按实际代码状态逐个创建，不得重复创建 M1 / M2 Issues，或把后续候选能力写成已实现。
+M1 的 5 个 ID 已完成，M2 的 6 个 ID 已实例化为 GitHub Issues（见 §13）；其中 MVP0-006～009（Task Management vertical slice）已完成，MVP0-010 / 011 仍待 Gate 与依赖；M3～M8 仍是 Goal 内候选。Sol 在依赖满足时按实际代码状态逐个创建，不得重复创建 M1 / M2 Issues，或把后续候选能力写成已实现。
 
 ### M1
 
@@ -287,12 +287,12 @@ Sol Review 必须检查实际 Diff 和证据，不根据 PR 描述直接批准�
 ```text
 M0 Planning: COMPLETE (PR #59, merge bb8c658; Issue #58 closed)
 M1 Contract & Compatibility: COMPLETE (PR #69 / #70 / #71 / #72 / #74; Issues #63～#67 closed)
-M2 Domain & Persistence: READY — Issues #77～#82 instantiated; #77 first
+M2 Domain & Persistence: PARTIAL — Task Management vertical slice COMPLETE (#77 / #78 / #79; tracking parent #80 and seven child PRs); Source / Review / Brief / Export remain pending
 M3–M8: NOT STARTED
-Active implementation Issues: #77, #78, #79, #80, #81, #82
-Active luna-worker write tasks: none at this checkpoint
-Current blockers: none for #77; #78～#82 remain dependency-blocked by the single-head chain
-Next: dispatch #77 / MVP0-006 to exact luna-worker after this checkpoint PR merges
+Active implementation Issues: #81 (Source, waiting for user Decision Gate), #82 (Review / Brief / Export, blocked by #81)
+Active luna-worker write tasks: none; #81 is not dispatchable until the user Gate is resolved
+Current blockers: #81 awaits user decision on Proposed P-74A + P-75A + P-76A + P-77A; #82 is blocked by #81
+Next: preserve the #81 Gate, obtain the user's decision or changes, then instantiate its bounded child slices before any Source implementation; #82 follows #81
 ```
 
 ### Instantiated M1 Issues
@@ -309,9 +309,9 @@ Next: dispatch #77 / MVP0-006 to exact luna-worker after this checkpoint PR merg
 
 | Goal ID | GitHub Issue | State / dependency |
 |---|---|---|
-| MVP0-006 | [#77](https://github.com/JettxonHo/ai-ecommerce-agent/issues/77) | READY — shared identity / revision / version / error values |
-| MVP0-007 | [#78](https://github.com/JettxonHo/ai-ecommerce-agent/issues/78) | Blocked by #77 — UoW / PostgreSQL adapter foundation |
-| MVP0-008 | [#79](https://github.com/JettxonHo/ai-ecommerce-agent/issues/79) | Blocked by #78 — Alembic baseline / migration verification |
-| MVP0-009 | [#80](https://github.com/JettxonHo/ai-ecommerce-agent/issues/80) | Blocked by #77 / #78 / #79 — Task / Run / Stage persistence |
-| MVP0-010 | [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) | Blocked by #80 — Source persistence |
-| MVP0-011 | [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) | Blocked by #80 / #81 — Review / Brief / Export persistence |
+| MVP0-006 | [#77](https://github.com/JettxonHo/ai-ecommerce-agent/issues/77) | COMPLETE — PR #84 / merge `1b760b5` — shared identity / revision / version / error values |
+| MVP0-007 | [#78](https://github.com/JettxonHo/ai-ecommerce-agent/issues/78) | COMPLETE — PR #85 / merge `4b099d2` — UoW / PostgreSQL adapter foundation |
+| MVP0-008 | [#79](https://github.com/JettxonHo/ai-ecommerce-agent/issues/79) | COMPLETE — PR #86 / merge `fe892bd` — Alembic baseline / migration verification |
+| MVP0-009 | [#80](https://github.com/JettxonHo/ai-ecommerce-agent/issues/80) | COMPLETE tracking parent — seven child Issues #87 / #90 / #91 / #88 / #95 / #98 / #89; PRs #92 / #93 / #94 / #96 / #97 / #99 / #100 merged, latest `cf2dca5` — Task / Run / Stage persistence |
+| MVP0-010 | [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) | OPEN — **WAITING FOR USER DECISION GATE (Proposed, not accepted):** P-74A + P-75A + P-76A + P-77A; Source persistence must not start before the Gate |
+| MVP0-011 | [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) | OPEN — blocked by #81 — Review / Brief / Export persistence remains pending |
