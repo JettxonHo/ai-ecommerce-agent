@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from urllib.parse import unquote, urlsplit
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = "55432"
@@ -37,6 +38,15 @@ def _component(name: str, default: str) -> str:
     return value
 
 
+def _connection_from_explicit_uri(
+    explicit: str, *, fallback_database: str, fallback_role: str
+) -> DatabaseConnection:
+    parsed = urlsplit(explicit)
+    database = unquote(parsed.path.removeprefix("/")) or fallback_database
+    role = unquote(parsed.username or fallback_role)
+    return DatabaseConnection(uri=explicit, database=database, role=role)
+
+
 def checkpoint_connection() -> DatabaseConnection:
     """Return the isolated Checkpoint DB connection selected for this slice."""
 
@@ -44,7 +54,9 @@ def checkpoint_connection() -> DatabaseConnection:
     database = _component("MVP0_CHECKPOINT_DB", DEFAULT_CHECKPOINT_DATABASE)
     role = _component("MVP0_CHECKPOINT_ROLE", DEFAULT_CHECKPOINT_ROLE)
     if explicit:
-        return DatabaseConnection(uri=explicit, database=database, role=role)
+        return _connection_from_explicit_uri(
+            explicit, fallback_database=database, fallback_role=role
+        )
     password = _component("MVP0_CHECKPOINT_PASSWORD", DEFAULT_CHECKPOINT_PASSWORD)
     host = _component("MVP0_POSTGRES_HOST", DEFAULT_HOST)
     port = _component("MVP0_POSTGRES_PORT", DEFAULT_PORT)
@@ -62,7 +74,9 @@ def business_connection() -> DatabaseConnection:
     database = _component("MVP0_BUSINESS_DB", DEFAULT_BUSINESS_DATABASE)
     role = _component("MVP0_BUSINESS_ROLE", DEFAULT_BUSINESS_ROLE)
     if explicit:
-        return DatabaseConnection(uri=explicit, database=database, role=role)
+        return _connection_from_explicit_uri(
+            explicit, fallback_database=database, fallback_role=role
+        )
     password = _component("MVP0_BUSINESS_PASSWORD", DEFAULT_BUSINESS_PASSWORD)
     host = _component("MVP0_POSTGRES_HOST", DEFAULT_HOST)
     port = _component("MVP0_POSTGRES_PORT", DEFAULT_PORT)
