@@ -16,6 +16,8 @@ from alembic import context
 from sqlalchemy import MetaData, create_engine, pool
 from sqlalchemy.engine import make_url
 
+from ai_ecommerce_agent.platform.postgres.migration import business_schema_scope
+
 config = context.config
 
 if config.config_file_name is not None and config.get_section("loggers") is not None:
@@ -88,13 +90,14 @@ def _include_name(
     """Keep autogenerate inside the explicitly selected Business schema."""
 
     business_schema = _business_schema()
+    allowed_schemas = business_schema_scope(business_schema)
     if type_ == "schema":
         # Alembic represents the database default schema as ``None`` for some
         # dialect operations and as its concrete name for others.
-        return name in {None, business_schema}
+        return name in allowed_schemas
     if type_ == "table":
         schema = parent_names.get("schema")
-        return schema in {None, business_schema}
+        return schema in allowed_schemas
     return True
 
 
@@ -107,9 +110,9 @@ def _include_object(
 ) -> bool:
     """Never infer drops for unmanaged or out-of-scope database objects."""
 
-    business_schema = _business_schema()
+    allowed_schemas = business_schema_scope(_business_schema())
     schema = getattr(object_, "schema", None)
-    if type_ == "table" and schema not in {None, business_schema}:
+    if type_ == "table" and schema not in allowed_schemas:
         return False
     # A reflected table absent from Business metadata is unmanaged.  Excluding
     # it prevents Alembic autogenerate from proposing a destructive drop for an
