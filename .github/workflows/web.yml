@@ -1,0 +1,116 @@
+# React/Vite foundation checks (MVP0-036).
+#
+# These jobs are intentionally narrow: they exercise only apps/web and do not
+# start an API, Worker, database, or live Provider. Existing backend and
+# repository-security check names remain unchanged.
+name: web
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/web.yml"
+      - "README.md"
+      - ".gitignore"
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/web.yml"
+      - "README.md"
+      - ".gitignore"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+defaults:
+  run:
+    working-directory: apps/web
+
+jobs:
+  quality:
+    name: web / quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: apps/web/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Pin npm
+        run: npm install --global npm@11.16.0
+      - name: Verify Node/npm tuple
+        run: |
+          test "$(node --version)" = "v24.18.0"
+          test "$(npm --version)" = "11.16.0"
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Format check
+        run: npm run format:check
+      - name: ESLint
+        run: npm run lint
+      - name: TypeScript check
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build
+
+  unit-contract:
+    name: web / unit-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: apps/web/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Pin npm
+        run: npm install --global npm@11.16.0
+      - name: Verify Node/npm tuple
+        run: |
+          test "$(node --version)" = "v24.18.0"
+          test "$(npm --version)" = "11.16.0"
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Unit smoke
+        run: npm run test:unit
+      - name: No-network contract smoke
+        run: npm run test:contract
+
+  chromium:
+    name: web / chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: apps/web/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Pin npm
+        run: npm install --global npm@11.16.0
+      - name: Verify Node/npm tuple
+        run: |
+          test "$(node --version)" = "v24.18.0"
+          test "$(npm --version)" = "11.16.0"
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Chromium shell smoke
+        run: npm run test:e2e
