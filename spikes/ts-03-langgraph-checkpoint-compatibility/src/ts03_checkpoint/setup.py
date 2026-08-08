@@ -7,6 +7,8 @@ from dataclasses import dataclass
 import psycopg
 from langgraph.checkpoint.postgres import PostgresSaver
 
+from .compatibility import CHECKPOINT_STORE_MIGRATION_VERSION
+
 
 @dataclass(frozen=True, slots=True)
 class SetupEvidence:
@@ -33,8 +35,15 @@ def setup_checkpoint_store(database_url: str) -> SetupEvidence:
         ).fetchone()
     if row is None:
         raise RuntimeError("PostgresSaver setup did not expose checkpoint migration evidence")
+    migration_version = int(row[2])
+    if migration_version != CHECKPOINT_STORE_MIGRATION_VERSION:
+        raise RuntimeError(
+            "unexpected PostgresSaver store schema: "
+            f"expected checkpoint_migrations v{CHECKPOINT_STORE_MIGRATION_VERSION}, "
+            f"found v{migration_version}"
+        )
     return SetupEvidence(
         database=str(row[0]),
         role=str(row[1]),
-        migration_version=int(row[2]),
+        migration_version=migration_version,
     )

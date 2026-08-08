@@ -10,11 +10,15 @@ import pytest
 from langgraph.checkpoint.postgres import PostgresSaver
 
 from ts03_checkpoint.business_probe import BusinessTruthProbe
+from ts03_checkpoint.compatibility import (
+    CHECKPOINT_STORE_MIGRATION_VERSION,
+    CHECKPOINT_STORE_SCHEMA_VERSION,
+    CHECKPOINTER_PACKAGE_VERSION,
+)
 from ts03_checkpoint.config import business_connection, checkpoint_connection
 from ts03_checkpoint.graph import build_graph
 from ts03_checkpoint.harness import CheckpointHarness, ResumeRejected, RunIdentity
 from ts03_checkpoint.reconciliation import (
-    CheckpointMetadata,
     CompatibilityTuple,
     CurrentTruth,
     RecoveryRequest,
@@ -27,8 +31,8 @@ COMPATIBILITY = CompatibilityTuple(
     workflow_definition_version="ts03-workflow-v1",
     graph_state_schema_version="ts03-state-v1",
     serializer_profile_version="langgraph-default-v1",
-    checkpointer_package_version="langgraph-checkpoint-postgres-3.1.0",
-    store_schema_version="vendor-current",
+    checkpointer_package_version=CHECKPOINTER_PACKAGE_VERSION,
+    store_schema_version=CHECKPOINT_STORE_SCHEMA_VERSION,
 )
 
 
@@ -42,7 +46,8 @@ def checkpoint_url() -> str:
     _require_integration()
     connection = checkpoint_connection()
     try:
-        setup_checkpoint_store(connection.uri)
+        evidence = setup_checkpoint_store(connection.uri)
+        assert evidence.migration_version == CHECKPOINT_STORE_MIGRATION_VERSION
     except psycopg.OperationalError as exc:
         pytest.fail(
             "Checkpoint DB is not reachable; run scripts/mvp0/up and scripts/mvp0/verify "
@@ -61,20 +66,6 @@ def _identities(label: str) -> tuple[RunIdentity, str]:
     suffix = uuid4().hex
     task_id = f"ts03-{label}-task-{suffix}"
     return RunIdentity.create(task_id=task_id, thread_id=f"ts03-{label}-thread-{suffix}"), suffix
-
-
-def _checkpoint_metadata(
-    identity: RunIdentity, *, input_version: str = "input-v1"
-) -> CheckpointMetadata:
-    return CheckpointMetadata(
-        task_id=identity.task_id,
-        thread_id=identity.thread_id,
-        input_version=input_version,
-        source_set_version="sources-v1",
-        stage="review",
-        review_package_version="review-v1",
-        compatibility=COMPATIBILITY,
-    )
 
 
 def _current(identity: RunIdentity, *, input_version: str = "input-v1") -> CurrentTruth:
@@ -154,7 +145,6 @@ def test_sync_interrupt_resume_isolated_and_uses_new_run_identity(saver: Postgre
     probe = BusinessTruthProbe()
     resumed, decision = harness.resume(
         interrupted,
-        checkpoint=_checkpoint_metadata(identity),
         current=_current(identity),
         request=RecoveryRequest(task_id=identity.task_id, thread_id=identity.thread_id),
     )
@@ -192,13 +182,11 @@ def test_two_task_threads_do_not_cross_and_foreign_resume_is_rejected(saver: Pos
     harness_a = CheckpointHarness(saver)
     foreign_current = _current(identity_b)
     foreign_request = RecoveryRequest(task_id=identity_b.task_id, thread_id=identity_b.thread_id)
-    foreign_checkpoint = _checkpoint_metadata(identity_a)
     probe = BusinessTruthProbe()
     before = probe.snapshot()
     with pytest.raises(ResumeRejected) as rejected:
         harness_a.resume(
             _run_to_interrupt(saver, identity_a)[1],
-            checkpoint=foreign_checkpoint,
             current=foreign_current,
             request=foreign_request,
         )
@@ -229,7 +217,6 @@ def test_stale_checkpoint_is_refused_without_new_checkpoint_or_business_pollutio
     with pytest.raises(ResumeRejected) as rejected:
         harness.resume(
             interrupted,
-            checkpoint=_checkpoint_metadata(identity),
             current=CurrentTruth(
                 task_id=identity.task_id,
                 thread_id=identity.thread_id,
@@ -251,26 +238,24 @@ def test_incompatible_tuple_is_manual_recovery_before_graph(saver: PostgresSaver
     identity, _ = _identities("incompatible")
     harness, interrupted = _run_to_interrupt(saver, identity)
     before_count = _checkpoint_count(saver, identity.thread_id)
-    incompatible = CompatibilityTuple(
-        workflow_definition_version="ts03-workflow-v0",
-        graph_state_schema_version="ts03-state-v0",
-        serializer_profile_version="langgraph-default-v0",
-        checkpointer_package_version="langgraph-checkpoint-postgres-3.0.0",
-        store_schema_version="vendor-old",
-    )
     with pytest.raises(ResumeRejected) as rejected:
         harness.resume(
             interrupted,
-            checkpoint=CheckpointMetadata(
+            current=CurrentTruth(
                 task_id=identity.task_id,
                 thread_id=identity.thread_id,
                 input_version="input-v1",
                 source_set_version="sources-v1",
-                stage="review",
+                valid_stage="review",
                 review_package_version="review-v1",
-                compatibility=incompatible,
+                compatibility=CompatibilityTuple(
+                    workflow_definition_version="ts03-workflow-v0",
+                    graph_state_schema_version="ts03-state-v0",
+                    serializer_profile_version="langgraph-default-v0",
+                    checkpointer_package_version=CHECKPOINTER_PACKAGE_VERSION,
+                    store_schema_version="checkpoint_migrations_v8",
+                ),
             ),
-            current=_current(identity),
             request=RecoveryRequest(task_id=identity.task_id, thread_id=identity.thread_id),
         )
     assert rejected.value.decision.action == "manual_recovery_required"

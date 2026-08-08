@@ -14,6 +14,8 @@ dedicated local Checkpoint database, under test-only thread identifiers.
   `interrupt` / `Command(resume=...)` round trip;
 - stable `task_id` / `thread_id` with a new harness `run_id` / attempt on
   resume;
+- resume reconciliation derives the latest checkpoint metadata from the real
+  Postgres tuple/state/config, never from a caller-supplied checkpoint ID;
 - cross-task, stale-input/review/stage, and incompatible compatibility tuple
   refusal before graph invocation, with an in-memory Business Current Truth
   probe proving no pollution;
@@ -38,6 +40,11 @@ manifest. Resolution was performed with Python 3.13.14 on 2026-08-08:
 | Psycopg | 3.2.10 + `psycopg-binary` 3.2.10 |
 | `psycopg-pool` | 3.2.6 |
 | PostgreSQL | 16.14 (`postgres:16.14-bookworm`, provided by the shared local service) |
+
+The explicit setup evidence fixes the vendor store identity at
+`checkpoint_migrations_v9` (`checkpoint_migrations.max(v) = 9`). A different
+migration version is an incompatible tuple for this slice; there is no
+automatic downgrade or historical checkpoint rewrite.
 
 The matrix is recorded in [`compatibility-matrix.yaml`](compatibility-matrix.yaml).
 The executed command/output record is [`evidence.md`](evidence.md).

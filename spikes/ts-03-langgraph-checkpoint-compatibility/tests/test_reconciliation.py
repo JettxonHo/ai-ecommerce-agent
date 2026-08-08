@@ -3,6 +3,10 @@ from __future__ import annotations
 import pytest
 
 from ts03_checkpoint.business_probe import BusinessTruthProbe
+from ts03_checkpoint.compatibility import (
+    CHECKPOINT_STORE_SCHEMA_VERSION,
+    CHECKPOINTER_PACKAGE_VERSION,
+)
 from ts03_checkpoint.config import checkpoint_connection
 from ts03_checkpoint.reconciliation import (
     CheckpointMetadata,
@@ -16,8 +20,8 @@ TUPLE = CompatibilityTuple(
     workflow_definition_version="ts03-workflow-v1",
     graph_state_schema_version="ts03-state-v1",
     serializer_profile_version="langgraph-default-v1",
-    checkpointer_package_version="langgraph-checkpoint-postgres-3.1.0",
-    store_schema_version="vendor-current",
+    checkpointer_package_version=CHECKPOINTER_PACKAGE_VERSION,
+    store_schema_version=CHECKPOINT_STORE_SCHEMA_VERSION,
 )
 
 
@@ -108,7 +112,7 @@ def current(**overrides: object) -> CurrentTruth:
                     graph_state_schema_version="ts03-state-v0",
                     serializer_profile_version="langgraph-default-v0",
                     checkpointer_package_version="langgraph-checkpoint-postgres-3.0.0",
-                    store_schema_version="vendor-old",
+                    store_schema_version="checkpoint_migrations_v8",
                 )
             ),
             current(),
@@ -164,8 +168,8 @@ def test_stale_review_and_incompatible_tuple_never_reuse_checkpoint() -> None:
                 workflow_definition_version="ts03-workflow-v2",
                 graph_state_schema_version="ts03-state-v2",
                 serializer_profile_version="langgraph-default-v2",
-                checkpointer_package_version="langgraph-checkpoint-postgres-3.1.0",
-                store_schema_version="vendor-current",
+                checkpointer_package_version=CHECKPOINTER_PACKAGE_VERSION,
+                store_schema_version=CHECKPOINT_STORE_SCHEMA_VERSION,
             )
         ),
         RecoveryRequest(task_id="task-a", thread_id="thread-a"),
@@ -182,3 +186,18 @@ def test_connection_repr_does_not_expose_password() -> None:
     rendered = repr(checkpoint_connection())
     assert "mvp0_checkpoint_local_only" not in rendered
     assert "postgresql://" not in rendered
+
+
+@pytest.mark.unit
+def test_unknown_outcome_without_matching_idempotency_evidence_requires_manual_recovery() -> None:
+    decision = classify_recovery(
+        checkpoint(),
+        current(),
+        RecoveryRequest(
+            task_id="task-a",
+            thread_id="thread-a",
+            outcome_unknown=True,
+        ),
+    )
+    assert decision.action == "manual_recovery_required"
+    assert decision.checkpoint_reusable is False

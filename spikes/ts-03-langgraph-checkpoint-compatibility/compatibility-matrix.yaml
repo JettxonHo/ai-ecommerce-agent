@@ -12,7 +12,8 @@ checkpoint:
   package: langgraph-checkpoint-postgres
   version: "3.1.0"
   core_version: "4.2.0"
-  store_schema: vendor-managed
+  store_schema: checkpoint_migrations_v9
+  migration_version: 9
 serializer_profile:
   name: langgraph-default-serializer
   version: "1"

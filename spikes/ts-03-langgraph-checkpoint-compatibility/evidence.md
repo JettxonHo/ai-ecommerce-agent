@@ -16,6 +16,9 @@ LangGraph 1.2.9, `langgraph-checkpoint-postgres` 3.1.0,
 `postgres:16.14-bookworm` (PostgreSQL 16.14). The exact tuple and the
 `exact_compatible` / no-downgrade boundary are recorded in
 [`compatibility-matrix.yaml`](compatibility-matrix.yaml).
+The explicit setup reads `checkpoint_migrations.max(v) = 9` and fixes the
+readable store identity to `checkpoint_migrations_v9`; setup fails closed if a
+different vendor migration version is present.
 
 Official sources consulted on 2026-08-08:
 
@@ -60,13 +63,18 @@ The graph builder does not invoke `setup()`; an integration test monkeypatches
 `PostgresSaver.setup` to fail and compiles the graph successfully. The normal
 graph fixture therefore cannot silently migrate the store.
 
+Resume reconciliation reads the latest `PostgresSaver.get_tuple()` directly
+from PostgreSQL and derives the checkpoint task/thread, state channels, and
+config before classification. Integration tests do not pass a hand-built
+checkpoint metadata object as resume authorization.
+
 Executed checks:
 
 | Command | Result |
 |---|---|
-| `uv run pytest` | 11 passed, 7 skipped (integration opt-in absent) |
+| `uv run pytest` | 12 passed, 7 skipped (integration opt-in absent) |
 | `TS03_RUN_INTEGRATION=1 uv run pytest -m integration` | 7 passed |
-| `TS03_RUN_INTEGRATION=1 uv run pytest` | 18 passed |
+| `TS03_RUN_INTEGRATION=1 uv run pytest` | 19 passed |
 | `uv run ruff format --check .` | pass |
 | `uv run ruff check .` | pass |
 | `uv run pyright` | 0 errors, 0 warnings |
@@ -79,7 +87,8 @@ The integration suite proves the following with real PostgreSQL:
    `interrupt`, and resumes with `Command(resume=...)` and `durability="sync"`.
 3. `task_id` and `thread_id` remain stable while the harness creates a new
    `run_id` and increments `attempt` for resume.
-4. Two unique task/thread identifiers retain separate checkpoint histories;
+4. Resume uses the latest actual Postgres tuple/state/config, not caller-provided
+   checkpoint identity; two unique task/thread identifiers retain separate histories;
    a foreign checkpoint is refused before graph invocation.
 5. Stale input and review revisions, plus an incompatible workflow/state /
    serializer/checkpointer/store tuple, are refused before graph invocation.
@@ -88,7 +97,9 @@ The integration suite proves the following with real PostgreSQL:
    `retry_current_stage`, `rerun_from_earliest_invalid_stage`,
    `restart_from_safe_boundary`, `manual_recovery_required`,
    `reject_request`).
-7. The test-only Business probe remains unchanged for every refused request;
+7. An unknown outcome without a non-null matching idempotency key is classified
+   as `manual_recovery_required`, never as a committed result.
+8. The test-only Business probe remains unchanged for every refused request;
    only the compatible resume test commits its explicit probe value after the
    reconciliation gate.
 

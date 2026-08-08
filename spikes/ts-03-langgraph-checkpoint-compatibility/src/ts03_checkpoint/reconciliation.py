@@ -90,10 +90,20 @@ def classify_recovery(
         )
     if current.cancelled:
         return RecoveryDecision("reject_request", "task is cancelled or superseded", False)
-    if request.outcome_unknown and current.committed_idempotency_key == request.idempotency_key:
+    if request.outcome_unknown:
+        if (
+            request.idempotency_key is not None
+            and current.committed_idempotency_key is not None
+            and current.committed_idempotency_key == request.idempotency_key
+        ):
+            return RecoveryDecision(
+                "reconcile_committed_result",
+                "Current Truth already proves the requested idempotent commit",
+                False,
+            )
         return RecoveryDecision(
-            "reconcile_committed_result",
-            "Current Truth already proves the requested idempotent commit",
+            "manual_recovery_required",
+            "outcome is unknown and no matching committed idempotency evidence exists",
             False,
         )
     if checkpoint is None:
