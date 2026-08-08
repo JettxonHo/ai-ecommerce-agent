@@ -32,7 +32,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 - RFC-001 Repository and Application Architecture、RFC-002 Persistence and Transaction Architecture、RFC-003 LangGraph Runtime and Checkpoint Architecture 与 RFC-006 LLM Runtime and Structured Output 已 Accepted；
 - Business Current Truth 的生产持久化栈已由 RFC-002 选定为 PostgreSQL + SQLAlchemy 2.x synchronous API + Psycopg 3 synchronous driver + Alembic；SQLite 不作为持久化验收引擎；
 - FND-001～003 已完成，仓库已有 Python 后端 Package、质量工具、架构测试、CI 与 Repository Protection 基础。
-- Frontend Architecture P-36～P-41 及整体已接受：`apps/web/` React / Vite SPA、显式状态职责、OpenAPI 生成、一个深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有交互投影、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance；依赖尚未安装，前端尚未实现。
+- Frontend Architecture P-36～P-41 及整体已接受：`apps/web/` React / Vite SPA、显式状态职责、OpenAPI 生成、一个深 TaskWorkbench、Native / 按需 Radix + CSS Modules、私有交互投影、revision-safe Autosave / Diff、WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance；MVP0-036 已建立 React/Vite foundation shell 与 deterministic Web checks，业务 routes、generated client、API adapter 与 TaskWorkbench 仍未实现。
 - RFC-004 DQ-01～10 已由 DEC-063～066 接受：OpenAPI 3.1 `/api/v1` 是唯一公共 HTTP Contract，查询使用窄 Resource、状态变更使用 typed Command；语义 revision / Idempotency、耐久 Receipt + Run Monitor、窄 Task / Recovery / Review、不可变 Brief Version / Comparison / Markdown Export Snapshot、有限 RFC 9457 Problem Catalog、server-bound fixed Workspace + loopback same-origin transport，以及最终 Operation / Schema / state catalog、有界窗口、additive compatibility、generated-client adoption 与 Contract Tests 已冻结；Final Consistency Review = PASS，用户已于 2026-08-07 明确接受 RFC-004 整体；authored OpenAPI foundation 已由 M1 实现，API handler / runtime 与 generated client 仍待后续里程碑。
 - RFC-005 已于 2026-08-07 获用户整体接受。DQ-01～10 由 DEC-067～070 支撑：目标 Profile 固定为 OpenAI Embeddings `text-embedding-3-small` / explicit 1536 / float / cosine，Source intake / association / version / Evidence Link 公共目录与有限验证已冻结；快速 MVP-0 先交付 Direct / Exact / PostgreSQL Lexical + JSON / text / TXT / Markdown / CSV，text PDF 与 Embedding / Semantic / Hybrid 后移 MVP-1。Final Consistency Review = PASS；Retrieval 实现尚未授权。
 
@@ -46,7 +46,7 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 - 每个 Issue 使用独立分支、任务合同、测试和 PR；实现者不得批准或合并自己的变更；
 - 高风险 / 不可逆 / 范围或公共契约变化继续请求用户确认。
 
-Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。M1 交付的是 Contract、Fixture、环境与兼容性证据；M2 当前仅完成 Task / Run / Stage 的 Domain / Persistence vertical slice。Source、Review / Brief / Export、Retrieval、Runtime、API、Worker 与 Web 仍只在后续有界 Issues 中实现，且不得把 #81 的 Proposed P-74～P-77 写成已接受。
+Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。M1 交付的是 Contract、Fixture、环境与兼容性证据；M2 当前仅完成 Task / Run / Stage 的 Domain / Persistence vertical slice。Source、Review / Brief / Export、Retrieval、Runtime、API、Worker 与 Web 业务切片仍只在后续有界 Issues 中实现；MVP0-036 仅提供无 API foundation shell 与 Web checks，且不得把 #81 的 Proposed P-74～P-77 写成已接受。
 
 ## MVP-0 本地 PostgreSQL 生命周期
 

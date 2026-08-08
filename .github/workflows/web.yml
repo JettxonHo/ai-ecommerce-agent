@@ -1,0 +1,187 @@
+# React/Vite foundation checks (MVP0-036).
+#
+# These jobs are intentionally narrow: they exercise only apps/web and do not
+# start an API, Worker, database, or live Provider. Existing backend and
+# repository-security check names remain unchanged. The change-detection job
+# keeps the three stable Web contexts present on every PR/main push while
+# avoiding npm/browser setup for unrelated changes.
+name: web
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+defaults:
+  run:
+    working-directory: apps/web
+
+jobs:
+  changes:
+    name: web / change-detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      web_changed: ${{ steps.detect.outputs.web_changed }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Detect Web changes
+        id: detect
+        working-directory: .
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          zero_sha="0000000000000000000000000000000000000000"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            changed_files="manual dispatch"
+          elif [ "$EVENT_NAME" = "pull_request" ]; then
+            changed_files="$(git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA")"
+          elif [ -z "$BEFORE_SHA" ] || [ "$BEFORE_SHA" = "$zero_sha" ]; then
+            changed_files="$(git diff-tree --no-commit-id --name-only -r --root "$AFTER_SHA")"
+          else
+            changed_files="$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA")"
+          fi
+          printf 'Changed paths:\n%s\n' "${changed_files:-<none>}"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] || \
+            printf '%s\n' "$changed_files" | grep -Eq \
+              '^(apps/web/|\.github/workflows/web\.yml$|README\.md$|\.gitignore$)'; then
+            echo "web_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "web_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  quality:
+    name: web / quality
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: No Web changes; required context is a bounded no-op
+        if: needs.changes.outputs.web_changed != 'true'
+        working-directory: .
+        run: echo "No Web foundation paths changed; Web checks intentionally skipped."
+      - name: Checkout repository
+        if: needs.changes.outputs.web_changed == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Node.js
+        if: needs.changes.outputs.web_changed == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: apps/web/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Pin npm
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm install --global npm@11.16.0
+      - name: Verify Node/npm tuple
+        if: needs.changes.outputs.web_changed == 'true'
+        run: |
+          test "$(node --version)" = "v24.18.0"
+          test "$(npm --version)" = "11.16.0"
+      - name: Install locked dependencies
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm ci --no-audit --no-fund
+      - name: Format check
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm run format:check
+      - name: ESLint
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm run lint
+      - name: TypeScript check
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm run typecheck
+      - name: Production build
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm run build
+
+  unit-contract:
+    name: web / unit-contract
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: No Web changes; required context is a bounded no-op
+        if: needs.changes.outputs.web_changed != 'true'
+        working-directory: .
+        run: echo "No Web foundation paths changed; Web checks intentionally skipped."
+      - name: Checkout repository
+        if: needs.changes.outputs.web_changed == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Node.js
+        if: needs.changes.outputs.web_changed == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: apps/web/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Pin npm
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm install --global npm@11.16.0
+      - name: Verify Node/npm tuple
+        if: needs.changes.outputs.web_changed == 'true'
+        run: |
+          test "$(node --version)" = "v24.18.0"
+          test "$(npm --version)" = "11.16.0"
+      - name: Install locked dependencies
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm ci --no-audit --no-fund
+      - name: Unit smoke
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm run test:unit
+      - name: No-network contract smoke
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm run test:contract
+
+  chromium:
+    name: web / chromium
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: No Web changes; required context is a bounded no-op
+        if: needs.changes.outputs.web_changed != 'true'
+        working-directory: .
+        run: echo "No Web foundation paths changed; Web checks intentionally skipped."
+      - name: Checkout repository
+        if: needs.changes.outputs.web_changed == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Node.js
+        if: needs.changes.outputs.web_changed == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: apps/web/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Pin npm
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm install --global npm@11.16.0
+      - name: Verify Node/npm tuple
+        if: needs.changes.outputs.web_changed == 'true'
+        run: |
+          test "$(node --version)" = "v24.18.0"
+          test "$(npm --version)" = "11.16.0"
+      - name: Install locked dependencies
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm ci --no-audit --no-fund
+      - name: Install Chromium
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Chromium shell smoke
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm run test:e2e

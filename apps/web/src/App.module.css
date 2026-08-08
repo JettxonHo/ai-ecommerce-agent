@@ -1,0 +1,29 @@
+.shell {
+  width: min(100% - 2rem, 48rem);
+  margin: 0 auto;
+  padding: 4rem 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shell h1 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.05;
+}
+
+.description {
+  max-width: 34rem;
+  margin: 1rem 0 0;
+  color: var(--color-muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}

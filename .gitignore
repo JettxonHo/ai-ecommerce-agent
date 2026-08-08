@@ -33,6 +33,13 @@ htmlcov/
 tmp/
 temp/
 
+# Web build and test output
+node_modules/
+apps/web/dist/
+apps/web/playwright-report/
+apps/web/test-results/
+apps/web/coverage/
+
 # IDE
 .vscode/
 .idea/
