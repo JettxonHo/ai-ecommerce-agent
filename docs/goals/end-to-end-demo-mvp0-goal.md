@@ -15,7 +15,7 @@
 ## 2. 背景与当前状态
 
 - Product Specification、Frontend Architecture、RFC-001～007 已 Accepted；Foundation FND-001～003 与 disposable Spike-001 已完成。
-- Production Package 当前包含 Foundation、已完成的 Task Management Task / Run / Stage Domain / Persistence vertical slice（shared values、UoW / PostgreSQL adapter、Alembic `0002_task_management`、application commands 与 CAS），以及 MVP0-036 交付的 React/Vite no-API Web foundation shell；Source / Review / Brief persistence、API、Worker、LangGraph Runtime、Model / Retrieval Runtime、业务 Skills 与 Web 业务页面仍由后续有界 Issues 负责。
+- Production Package 当前包含 Foundation、已完成的 Task Management Task / Run / Stage Domain / Persistence vertical slice（shared values、UoW / PostgreSQL adapter、Alembic `0002_task_management`、application commands 与 CAS）、首个 Source foundation wave（A1 catalogs/snapshots、A2 SourceVersion/processing domain、A3 association domain、A4 typed ports、单一 `0003_source_evidence` Alembic head 与 real PostgreSQL migration evidence），以及 MVP0-036 交付的 React/Vite no-API Web foundation shell。Source 的 ORM mappings、concrete repositories/UoW/bootstrap、application registration/read、application/persistence processing CAS、Source-owned atomic remove/replace participant、submitted-input metadata、parser/fragment/retrieval/evidence、HTTP/API、Worker、LangGraph Runtime、Model / Retrieval Runtime、业务 Skills 与 Web 业务页面仍由后续有界 Issues 负责；`0003_source_evidence` 的 minimal identity schema 不是 final intake schema。
 - MVP-0 按 DEC-070 使用 JSON / text / TXT / Markdown / CSV + Direct / Exact / PostgreSQL Lexical；PDF 与 Embedding / Semantic / Hybrid 后移 MVP-1。
 - P-71A～P-73A 与完整策划包已接受；规划 PR #59 已合并，Goal 当前为 ACTIVE。
 
@@ -66,7 +66,7 @@
 
 ## 6. Implementation Backlog 候选
 
-M1 的 5 个 ID 已完成，M2 的 6 个 ID 已实例化为 GitHub Issues（见 §13）；其中 MVP0-006～009（Task Management vertical slice）已完成，MVP0-010 / 011 仍待 Gate 与依赖。MVP0-036 已完成 M7 foundation slice（PR #104，merge `adcc38f`），MVP0-037～042 尚未实例化或实现；其余 M3～M6、M8 能力与 M7 业务 slices 仍是 Goal 内候选。Sol 在依赖满足时按实际代码状态逐个创建，不得重复创建 M1 / M2 Issues，或把后续候选能力写成已实现。
+M1 的 5 个 ID 已完成，M2 的 6 个 ID 已实例化为 GitHub Issues（见 §13）；其中 MVP0-006～009（Task Management vertical slice）已完成，MVP0-010 的首个 Source foundation wave 已由 Issues #109～#113 / PR #114～#118 交付，#81 仍为 OPEN tracking parent，MVP0-011 / #82 继续按既有依赖推进。MVP0-036 已完成 M7 foundation slice（PR #104，merge `adcc38f`），MVP0-037～042 尚未实例化或实现；其余 M3～M6、M8 能力与 M7 业务 slices 仍是 Goal 内候选。Sol 在依赖满足时按实际代码状态逐个创建，不得重复创建 M1 / M2 Issues，或把后续候选能力写成已实现。
 
 ### M1
 
@@ -82,7 +82,7 @@ M1 的 5 个 ID 已完成，M2 的 6 个 ID 已实例化为 GitHub Issues（见 
 7. `MVP0-007` — synchronous UoW / repository ports 与 PostgreSQL adapter base。
 8. `MVP0-008` — Alembic baseline、fresh / one-step / recovery verification。
 9. `MVP0-009` — Task / Run / Stage persistence vertical slice。
-10. `MVP0-010` — Source / Source Version / Association persistence vertical slice。
+10. `MVP0-010` — Source / Source Version / Association persistence vertical slice（首个 catalogs/snapshots、domain、ports、single-head migration foundation wave 已交付；剩余 adapters/application participants 仍待实现）。
 11. `MVP0-011` — Review / Approved Strategy / Brief / Export persistence slice。
 
 ### M3
@@ -289,14 +289,14 @@ Sol Review 必须检查实际 Diff 和证据，不根据 PR 描述直接批准�
 ```text
 M0 Planning: COMPLETE (PR #59, merge bb8c658; Issue #58 closed)
 M1 Contract & Compatibility: COMPLETE (PR #69 / #70 / #71 / #72 / #74; Issues #63～#67 closed)
-M2 Domain & Persistence: PARTIAL — Task Management vertical slice COMPLETE (#77 / #78 / #79; tracking parent #80 and seven child PRs); Source / Review / Brief / Export remain pending
+M2 Domain & Persistence: PARTIAL — Task Management vertical slice COMPLETE (#77 / #78 / #79; tracking parent #80 and seven child PRs); Source foundation wave COMPLETE (#109～#113 / PR #114～#118, current main `5415411`, one Alembic head `0003_source_evidence`), while #81 remains OPEN for mappings / repositories / UoW / bootstrap / registration-read / processing-CAS / Source-owned remove-replace participant and #82 Review / Brief / Export remains dependency-blocked
 M3–M6: NOT STARTED
 M7: PARTIAL — MVP0-036 Web Foundation COMPLETE (PR #104, merge `adcc38f`); MVP0-037～042 not instantiated / not implemented
 M8: NOT STARTED
 Active implementation Issues: #81 (Source tracking parent), #82 (Review / Brief / Export tracking parent)
 Archive snapshot active luna-worker write tasks: none; subsequent active task identity is authoritative in its GitHub child Issue / PR
-Current blockers: no remaining user Decision Gate for P-74A～P-81A; #82 migration and complete outcomes remain dependency-blocked by #81 single head and typed Audit / Idempotency / Durable Work Intent participants
-Next: merge the DEC-076 / DEC-077 archive, instantiate bounded #81 child Issues, and dispatch its first public-contract slice to exact `luna-worker`
+Current blockers: no remaining user Decision Gate for P-74A～P-81A; #81 remaining Source adapters/application participants are not implemented; #82 schema progression remains serialized after #81's single migration head, and complete outcomes remain dependency-blocked by typed Audit / Idempotency / Durable Work Intent participants
+Next: continue the remaining bounded #81 Source slices with exact `luna-worker`, then advance #82 only after the remaining #81 child prerequisites and typed transaction-participant prerequisites are met
 ```
 
 ### Instantiated M1 Issues
@@ -317,5 +317,5 @@ Next: merge the DEC-076 / DEC-077 archive, instantiate bounded #81 child Issues,
 | MVP0-007 | [#78](https://github.com/JettxonHo/ai-ecommerce-agent/issues/78) | COMPLETE — PR #85 / merge `4b099d2` — UoW / PostgreSQL adapter foundation |
 | MVP0-008 | [#79](https://github.com/JettxonHo/ai-ecommerce-agent/issues/79) | COMPLETE — PR #86 / merge `fe892bd` — Alembic baseline / migration verification |
 | MVP0-009 | [#80](https://github.com/JettxonHo/ai-ecommerce-agent/issues/80) | COMPLETE tracking parent — seven child Issues #87 / #90 / #91 / #88 / #95 / #98 / #89; PRs #92 / #93 / #94 / #96 / #97 / #99 / #100 merged, latest `cf2dca5` — Task / Run / Stage persistence |
-| MVP0-010 | [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) | OPEN tracking parent — P-74A～P-77A accepted by DEC-076; bounded child Issues pending creation / implementation |
+| MVP0-010 | [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) | OPEN tracking parent — first foundation wave COMPLETE via #109～#113 / PR #114～#118; current main `5415411`, one Alembic head `0003_source_evidence`; mappings, concrete repositories/UoW/bootstrap, application registration/read/CAS and Source-owned remove/replace participant remain |
 | MVP0-011 | [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) | OPEN tracking parent — P-78A～P-81A accepted by DEC-077; schema still follows #81 single head and complete outcomes still wait for typed transaction participants |
