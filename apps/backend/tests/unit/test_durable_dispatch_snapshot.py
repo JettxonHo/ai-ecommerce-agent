@@ -66,6 +66,7 @@ def test_work_intent_snapshot_has_exact_fields_and_immutable_shape() -> None:
         "revision",
         "cancellation_requested",
         "current_lease",
+        "superseded_by",
     )
     expected_types = {
         "envelope": WorkIntentEnvelope,
@@ -73,6 +74,7 @@ def test_work_intent_snapshot_has_exact_fields_and_immutable_shape() -> None:
         "revision": Revision,
         "cancellation_requested": bool,
         "current_lease": WorkIntentLease | None,
+        "superseded_by": DispatchId | None,
     }
     snapshot = WorkIntentSnapshot(
         _build_envelope(),
@@ -106,6 +108,39 @@ def test_snapshot_preserves_supplied_values_and_accepts_absent_lease() -> None:
     assert snapshot.revision is revision
     assert snapshot.cancellation_requested is True
     assert snapshot.current_lease is None
+    assert snapshot.superseded_by is None
+
+
+def test_snapshot_preserves_supersession_reference_and_rejects_self_reference() -> None:
+    envelope = _build_envelope()
+    successor = DispatchId("dispatch-successor")
+
+    snapshot = WorkIntentSnapshot(
+        envelope,
+        WorkIntentStatus.SUPERSEDED,
+        Revision(4),
+        False,
+        None,
+        successor,
+    )
+
+    assert snapshot.superseded_by is successor
+    equal_successor = DispatchId(successor.value)
+    assert equal_successor == snapshot.superseded_by
+    assert equal_successor is not snapshot.superseded_by
+
+    with pytest.raises(ValueError, match="superseded_by"):
+        WorkIntentSnapshot(
+            envelope,
+            WorkIntentStatus.LEASED,
+            Revision(2),
+            False,
+            None,
+            envelope.dispatch_id,
+        )
+
+    with pytest.raises(TypeError):
+        replace(snapshot, superseded_by="dispatch-successor")
 
 
 def test_snapshot_accepts_equal_dispatch_id_without_object_identity() -> None:

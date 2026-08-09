@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from ai_ecommerce_agent.shared_kernel import Revision
 
 from .envelope import WorkIntentEnvelope
+from .identity import DispatchId
 from .ownership import WorkIntentLease
 from .status import WorkIntentStatus
 
@@ -27,6 +28,7 @@ class WorkIntentSnapshot:
     revision: Revision
     cancellation_requested: bool
     current_lease: WorkIntentLease | None
+    superseded_by: DispatchId | None = None
 
     def __post_init__(self) -> None:
         _require_instance(self.envelope, WorkIntentEnvelope, "envelope")
@@ -34,10 +36,13 @@ class WorkIntentSnapshot:
         _require_instance(self.revision, Revision, "revision")
         if type(self.cancellation_requested) is not bool:
             raise TypeError("cancellation_requested must be a bool")
-        if self.current_lease is None:
-            return
-        _require_instance(self.current_lease, WorkIntentLease, "current_lease")
-        if self.current_lease.dispatch_id != self.envelope.dispatch_id:
-            raise ValueError(
-                "current_lease dispatch_id must match envelope dispatch_id"
-            )
+        if self.current_lease is not None:
+            _require_instance(self.current_lease, WorkIntentLease, "current_lease")
+            if self.current_lease.dispatch_id != self.envelope.dispatch_id:
+                raise ValueError(
+                    "current_lease dispatch_id must match envelope dispatch_id"
+                )
+        if self.superseded_by is not None:
+            _require_instance(self.superseded_by, DispatchId, "superseded_by")
+            if self.superseded_by == self.envelope.dispatch_id:
+                raise ValueError("superseded_by must differ from envelope dispatch_id")

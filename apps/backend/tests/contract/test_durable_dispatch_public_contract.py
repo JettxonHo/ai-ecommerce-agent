@@ -21,6 +21,15 @@ _EXPECTED_PUBLIC = [
     "HeartbeatWorkIntentLease",
     "DurableDispatchLeaseApplication",
     "DurableDispatchLeaseError",
+    "CheckOwnedWorkIntentControl",
+    "RequestWorkIntentCancellation",
+    "SupersedeWorkIntent",
+    "AcknowledgeWorkIntentStop",
+    "WorkIntentControlDisposition",
+    "OwnedWorkIntentControlCheck",
+    "WorkIntentSupersessionResult",
+    "DurableDispatchControlApplication",
+    "DurableDispatchControlError",
 ]
 
 

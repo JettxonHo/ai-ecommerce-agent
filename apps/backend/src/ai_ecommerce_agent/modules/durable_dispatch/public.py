@@ -1,5 +1,18 @@
 """Stable, framework-neutral Durable Dispatch public facade."""
 
+from .application.control_commands import (
+    AcknowledgeWorkIntentStop,
+    RequestWorkIntentCancellation,
+    SupersedeWorkIntent,
+)
+from .application.control_errors import DurableDispatchControlError
+from .application.control_protocols import DurableDispatchControlApplication
+from .application.control_queries import CheckOwnedWorkIntentControl
+from .application.control_results import (
+    OwnedWorkIntentControlCheck,
+    WorkIntentControlDisposition,
+    WorkIntentSupersessionResult,
+)
 from .application.lease_commands import ClaimNextWorkIntent, HeartbeatWorkIntentLease
 from .application.lease_errors import DurableDispatchLeaseError
 from .application.lease_protocols import DurableDispatchLeaseApplication
@@ -22,4 +35,13 @@ __all__ = [
     "HeartbeatWorkIntentLease",
     "DurableDispatchLeaseApplication",
     "DurableDispatchLeaseError",
+    "CheckOwnedWorkIntentControl",
+    "RequestWorkIntentCancellation",
+    "SupersedeWorkIntent",
+    "AcknowledgeWorkIntentStop",
+    "WorkIntentControlDisposition",
+    "OwnedWorkIntentControlCheck",
+    "WorkIntentSupersessionResult",
+    "DurableDispatchControlApplication",
+    "DurableDispatchControlError",
 ]
