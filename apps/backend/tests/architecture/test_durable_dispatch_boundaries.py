@@ -31,7 +31,7 @@ _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
     _DISPATCH_ROOT / "domain" / "envelope.py": frozenset({(1, "identity")}),
     _DISPATCH_ROOT / "domain" / "ownership.py": frozenset({(1, "identity")}),
     _DISPATCH_ROOT / "domain" / "snapshots.py": frozenset(
-        {(1, "envelope"), (1, "ownership"), (1, "status")}
+        {(1, "envelope"), (1, "identity"), (1, "ownership"), (1, "status")}
     ),
     _DISPATCH_ROOT / "public.py": frozenset(
         {
@@ -43,6 +43,11 @@ _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
             (1, "application.lease_commands"),
             (1, "application.lease_errors"),
             (1, "application.lease_protocols"),
+            (1, "application.control_commands"),
+            (1, "application.control_errors"),
+            (1, "application.control_protocols"),
+            (1, "application.control_queries"),
+            (1, "application.control_results"),
         }
     ),
 }
