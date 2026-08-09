@@ -33,10 +33,35 @@ _PUBLIC_NAMES = {
     "SourceVersionSnapshot",
     "StartSourceProcessing",
     "SupersedeSourceVersion",
+    "RemoveSourceAssociation",
+    "ReplaceSourceAssociation",
+    "SourceAssociationApplication",
+    "SourceAssociationError",
+    "SourceAssociationReplacementSnapshot",
 }
+
+_PUBLIC_ORDER = [
+    "SourceAssociationMembershipState",
+    "SourceAssociationSnapshot",
+    "SourceEvidenceApplication",
+    "SourceEvidenceError",
+    "SourceProcessingStatus",
+    "SourceVersionSnapshot",
+    "MarkSourceProcessingFailed",
+    "MarkSourceReady",
+    "MarkSourceReadyWithRejections",
+    "StartSourceProcessing",
+    "SupersedeSourceVersion",
+    "RemoveSourceAssociation",
+    "ReplaceSourceAssociation",
+    "SourceAssociationApplication",
+    "SourceAssociationError",
+    "SourceAssociationReplacementSnapshot",
+]
 
 
 def test_source_facade_exports_exactly_the_frozen_symbols() -> None:
+    assert public.__all__ == _PUBLIC_ORDER
     assert set(public.__all__) == _PUBLIC_NAMES
     assert not hasattr(public, "Source")
     assert not hasattr(public, "SourceVersion")

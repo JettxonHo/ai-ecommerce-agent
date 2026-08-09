@@ -21,6 +21,10 @@ _APPLICATION_PUBLIC_MODULES = (
     SOURCE_ROOT / "application" / "errors.py",
     SOURCE_ROOT / "application" / "mappers.py",
     SOURCE_ROOT / "application" / "protocols.py",
+    SOURCE_ROOT / "application" / "association_commands.py",
+    SOURCE_ROOT / "application" / "association_errors.py",
+    SOURCE_ROOT / "application" / "association_protocols.py",
+    SOURCE_ROOT / "application" / "association_results.py",
     SOURCE_ROOT / "public.py",
 )
 _ALLOWED_DECORATORS = {"dataclass", "runtime_checkable"}
