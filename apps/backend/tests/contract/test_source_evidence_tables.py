@@ -28,6 +28,12 @@ _TABLES = (
 _TABLE_BY_NAME = {table.name: table for table in _TABLES}
 
 
+def _normalize_sql(expression: object) -> str:
+    """Compare SQL text while ignoring only formatting whitespace."""
+
+    return " ".join(str(expression).split())
+
+
 def test_metadata_contains_exactly_the_four_migration_tables() -> None:
     assert set(tables.SOURCE_EVIDENCE_METADATA.tables) == {
         table.fullname for table in _TABLES
@@ -198,6 +204,47 @@ def test_foreign_keys_preserve_source_version_and_replacement_ownership() -> Non
         f"{token}.source_evidence_task_source_associations.task_id",
         f"{token}.source_evidence_task_source_associations.source_id",
     ]
+
+
+def test_check_constraint_expressions_match_the_source_migration() -> None:
+    expected = {
+        "source_evidence_sources": {},
+        "source_evidence_source_versions": {
+            "ck_source_evidence_source_versions_version_number_positive": (
+                "version_number >= 1"
+            ),
+        },
+        "source_evidence_source_version_processing": {
+            "ck_source_evidence_source_version_processing_status": (
+                "status IN ('registered', 'processing', 'ready', "
+                "'ready_with_rejections', 'failed', 'superseded')"
+            ),
+            "ck_source_evidence_processing_revision_nonnegative": "revision >= 0",
+        },
+        "source_evidence_task_source_associations": {
+            "ck_source_evidence_task_source_associations_membership_state": (
+                "membership_state IN ('active', 'removed', 'replaced')"
+            ),
+            "ck_source_evidence_assoc_revision_nonnegative": "revision >= 0",
+            "ck_source_evidence_assoc_replacement_distinct": (
+                "replaced_by_association_id IS NULL OR "
+                "replaced_by_association_id <> source_association_id"
+            ),
+            "ck_source_evidence_assoc_replacement_link": (
+                "(membership_state = 'replaced' AND "
+                "replaced_by_association_id IS NOT NULL) OR "
+                "(membership_state <> 'replaced' AND "
+                "replaced_by_association_id IS NULL)"
+            ),
+        },
+    }
+    for table_name, expressions in expected.items():
+        actual = {
+            constraint.name: _normalize_sql(constraint.sqltext)
+            for constraint in _TABLE_BY_NAME[table_name].constraints
+            if isinstance(constraint, CheckConstraint)
+        }
+        assert actual == expressions
 
 
 def test_schema_translation_is_explicit_and_does_not_mutate_metadata() -> None:
