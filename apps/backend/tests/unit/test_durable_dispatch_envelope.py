@@ -246,10 +246,15 @@ def test_typed_fields_reject_raw_values_without_coercion(
 def test_rerun_reference_must_be_a_distinct_dispatch_identity() -> None:
     value = _build_envelope()
     previous_dispatch = DispatchId("dispatch-previous")
+    equal_dispatch = DispatchId(value.dispatch_id.value)
 
     assert replace(value, rerun_of=previous_dispatch).rerun_of is previous_dispatch
     with pytest.raises(ValueError, match="rerun_of"):
         replace(value, rerun_of=value.dispatch_id)
+    assert equal_dispatch == value.dispatch_id
+    assert equal_dispatch is not value.dispatch_id
+    with pytest.raises(ValueError, match="rerun_of"):
+        replace(value, rerun_of=equal_dispatch)
 
 
 def test_available_at_must_not_precede_created_at() -> None:
