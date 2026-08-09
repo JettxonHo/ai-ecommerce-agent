@@ -20,6 +20,7 @@ from .identity import (
     TaskId,
 )
 from .revision import Revision
+from .structured_content import StructuredContent
 from .version import VersionNumber
 
 __all__ = [
@@ -37,6 +38,7 @@ __all__ = [
     "SourceAssociationId",
     "SourceId",
     "SourceVersionId",
+    "StructuredContent",
     "TaskId",
     "VersionNumber",
 ]
