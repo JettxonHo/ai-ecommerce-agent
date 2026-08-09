@@ -8,12 +8,16 @@ from datetime import datetime
 from ai_ecommerce_agent.modules.task_management.public import DomainVersionReference
 from ai_ecommerce_agent.shared_kernel import (
     ContentOrigin,
+    DomainVersionId,
     ReviewDecisionId,
     ReviewDraftId,
     StructuredContent,
+    TaskId,
+    VersionNumber,
 )
 
 from .contracts import (
+    ApprovedStrategySemanticGroupName,
     ReviewDecisionBasis,
     ReviewDecisionOutcome,
     ReviewDraftReference,
@@ -80,10 +84,47 @@ class ReviewDecisionSnapshot:
     decided_at: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class ApprovedStrategySemanticGroup:
+    """Immutable structured content for one Approved Strategy semantic group."""
+
+    group: ApprovedStrategySemanticGroupName
+    content: StructuredContent
+    origin: ContentOrigin | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ApprovedStrategyVersionSnapshot:
+    """Immutable projection of one Approved Strategy domain version."""
+
+    approved_strategy_version_id: DomainVersionId
+    task_id: TaskId
+    version_number: VersionNumber
+    valid: bool
+    created_at: datetime
+    upstream_versions: tuple[DomainVersionReference, ...]
+    semantic_groups: tuple[ApprovedStrategySemanticGroup, ...]
+    hypotheses: tuple[str, ...]
+    evidence_limitations: tuple[str, ...]
+    risks: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        expected_names = tuple(ApprovedStrategySemanticGroupName)
+        supplied_names = tuple(group.group for group in self.semantic_groups)
+        if (
+            len(supplied_names) != len(expected_names)
+            or any(name not in expected_names for name in supplied_names)
+            or any(supplied_names.count(name) != 1 for name in expected_names)
+        ):
+            raise ValueError("invalid approved strategy semantic-group membership")
+
+
 __all__ = [
     "ReviewPackageHeader",
     "ReviewDraftMetadata",
     "ReviewDecisionSnapshot",
     "ReviewSemanticGroup",
     "ReviewPackageSnapshot",
+    "ApprovedStrategySemanticGroup",
+    "ApprovedStrategyVersionSnapshot",
 ]

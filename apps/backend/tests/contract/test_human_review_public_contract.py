@@ -21,10 +21,13 @@ _EXPECTED_PUBLIC = [
     "ReviewSemanticGroupName",
     "ReviewSemanticGroup",
     "ReviewPackageSnapshot",
+    "ApprovedStrategySemanticGroupName",
+    "ApprovedStrategySemanticGroup",
+    "ApprovedStrategyVersionSnapshot",
 ]
 
 
-def test_human_review_facade_is_exactly_twelve_symbols() -> None:
+def test_human_review_facade_is_exactly_fifteen_symbols() -> None:
     assert public.__all__ == _EXPECTED_PUBLIC
     assert {name for name in public.__dict__ if not name.startswith("_")} == set(
         _EXPECTED_PUBLIC

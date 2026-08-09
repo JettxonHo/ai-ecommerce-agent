@@ -45,6 +45,17 @@ class ReviewSemanticGroupName(StrEnum):
     MODEL_RECOMMENDATION = "model_recommendation"
 
 
+class ApprovedStrategySemanticGroupName(StrEnum):
+    """The exact six semantic groups in an Approved Strategy version."""
+
+    TARGET_AND_CONTEXT = "target_and_context"
+    POSITIONING = "positioning"
+    PERSUASION_STRUCTURE = "persuasion_structure"
+    HYPOTHESIS_DECISIONS = "hypothesis_decisions"
+    EVIDENCE_AND_RISKS = "evidence_and_risks"
+    REVIEW_AND_VERSION_METADATA = "review_and_version_metadata"
+
+
 @dataclass(frozen=True, slots=True)
 class ReviewPackageIdentity:
     """Immutable owner and identity tuple for one Review Package snapshot."""
@@ -93,4 +104,5 @@ __all__ = [
     "ReviewDraftReference",
     "ReviewDecisionBasis",
     "ReviewSemanticGroupName",
+    "ApprovedStrategySemanticGroupName",
 ]
