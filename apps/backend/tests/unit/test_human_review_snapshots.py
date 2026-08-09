@@ -17,16 +17,21 @@ from ai_ecommerce_agent.modules.human_review.public import (
     ReviewPackageHeader,
     ReviewPackageIdentity,
     ReviewPackageReference,
+    ReviewPackageSnapshot,
     ReviewPackageStatus,
+    ReviewSemanticGroup,
+    ReviewSemanticGroupName,
 )
 from ai_ecommerce_agent.modules.task_management.public import DomainVersionReference
 from ai_ecommerce_agent.shared_kernel import (
+    ContentOrigin,
     DomainVersionId,
     ReviewDecisionId,
     ReviewDraftId,
     ReviewId,
     ReviewPackageId,
     Revision,
+    StructuredContent,
     TaskId,
     VersionNumber,
 )
@@ -50,6 +55,8 @@ def test_review_snapshot_dtos_are_frozen_slotted_and_exactly_typed() -> None:
             "outcome",
             "decided_at",
         ),
+        ReviewPackageSnapshot: ("header", "semantic_groups"),
+        ReviewSemanticGroup: ("group", "content", "origin"),
     }
     expected_types = {
         ReviewPackageHeader: {
@@ -69,6 +76,15 @@ def test_review_snapshot_dtos_are_frozen_slotted_and_exactly_typed() -> None:
             "basis": ReviewDecisionBasis,
             "outcome": ReviewDecisionOutcome,
             "decided_at": datetime,
+        },
+        ReviewPackageSnapshot: {
+            "header": ReviewPackageHeader,
+            "semantic_groups": tuple[ReviewSemanticGroup, ...],
+        },
+        ReviewSemanticGroup: {
+            "group": ReviewSemanticGroupName,
+            "content": StructuredContent,
+            "origin": ContentOrigin | None,
         },
     }
 
@@ -150,3 +166,81 @@ def test_review_draft_metadata_supersession_is_typed_or_absent() -> None:
         None,
     )
     assert metadata.superseded_by is None
+
+
+def test_review_package_snapshot_preserves_group_order_and_content_identity() -> None:
+    identity = ReviewPackageIdentity(
+        ReviewPackageId("package-1"),
+        ReviewId("review-1"),
+        TaskId("task-1"),
+        VersionNumber(1),
+    )
+    header = ReviewPackageHeader(
+        identity,
+        ReviewPackageStatus.ACTIVE,
+        (),
+        (),
+        (),
+    )
+    content = StructuredContent.from_mapping({"value": {"nested": [1, 2]}})
+    names = tuple(ReviewSemanticGroupName)
+    groups = tuple(
+        ReviewSemanticGroup(
+            name,
+            content,
+            ContentOrigin.MODEL if index % 2 == 0 else None,
+        )
+        for index, name in enumerate(reversed(names))
+    )
+
+    snapshot = ReviewPackageSnapshot(header, groups)
+
+    assert snapshot.header is header
+    assert snapshot.semantic_groups is groups
+    assert tuple(group.group for group in snapshot.semantic_groups) == tuple(
+        reversed(names)
+    )
+    assert all(group.content is content for group in snapshot.semantic_groups)
+    with pytest.raises(FrozenInstanceError):
+        snapshot.header = header  # type: ignore[misc]
+
+
+@pytest.mark.parametrize(
+    "semantic_groups",
+    [
+        tuple(
+            ReviewSemanticGroup(name, StructuredContent.from_mapping({}))
+            for name in tuple(ReviewSemanticGroupName)[:-1]
+        ),
+        tuple(
+            ReviewSemanticGroup(name, StructuredContent.from_mapping({}))
+            for name in (
+                *tuple(ReviewSemanticGroupName)[:-1],
+                ReviewSemanticGroupName.VERSION_CONTEXT,
+            )
+        ),
+        (
+            *tuple(
+                ReviewSemanticGroup(name, StructuredContent.from_mapping({}))
+                for name in tuple(ReviewSemanticGroupName)[:-1]
+            ),
+            ReviewSemanticGroup(
+                "unknown",  # type: ignore[arg-type]
+                StructuredContent.from_mapping({}),
+            ),
+        ),
+    ],
+)
+def test_review_package_snapshot_rejects_invalid_group_membership(
+    semantic_groups: tuple[ReviewSemanticGroup, ...],
+) -> None:
+    identity = ReviewPackageIdentity(
+        ReviewPackageId("package-1"),
+        ReviewId("review-1"),
+        TaskId("task-1"),
+        VersionNumber(1),
+    )
+    header = ReviewPackageHeader(identity, ReviewPackageStatus.ACTIVE, (), (), ())
+
+    with pytest.raises(ValueError):
+        ReviewPackageSnapshot(header, semantic_groups)

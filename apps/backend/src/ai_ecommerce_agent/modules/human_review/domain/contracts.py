@@ -33,6 +33,18 @@ class ReviewDecisionOutcome(StrEnum):
     WITHDRAWN = "withdrawn"
 
 
+class ReviewSemanticGroupName(StrEnum):
+    """The exact seven semantic groups in a Human Review Package."""
+
+    VERSION_CONTEXT = "version_context"
+    POSITIONING_CANDIDATES = "positioning_candidates"
+    KEY_FACTS_AND_INSIGHTS = "key_facts_and_insights"
+    HYPOTHESES = "hypotheses"
+    EVIDENCE_LIMITATIONS = "evidence_limitations"
+    CONFLICTS_AND_STRATEGIC_RISKS = "conflicts_and_strategic_risks"
+    MODEL_RECOMMENDATION = "model_recommendation"
+
+
 @dataclass(frozen=True, slots=True)
 class ReviewPackageIdentity:
     """Immutable owner and identity tuple for one Review Package snapshot."""
@@ -80,4 +92,5 @@ __all__ = [
     "ReviewPackageReference",
     "ReviewDraftReference",
     "ReviewDecisionBasis",
+    "ReviewSemanticGroupName",
 ]

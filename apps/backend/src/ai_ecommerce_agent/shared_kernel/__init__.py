@@ -4,6 +4,7 @@ Only small, domain-neutral values belong here.  Business aggregates, ORM
 models, HTTP DTOs and provider/runtime errors remain owned by their layers.
 """
 
+from .content_origin import ContentOrigin
 from .errors import ProjectError, SafeContext
 from .identity import (
     DomainVersionId,
@@ -24,6 +25,7 @@ from .structured_content import StructuredContent
 from .version import VersionNumber
 
 __all__ = [
+    "ContentOrigin",
     "DomainVersionId",
     "ExportSnapshotId",
     "OpaqueIdentity",
