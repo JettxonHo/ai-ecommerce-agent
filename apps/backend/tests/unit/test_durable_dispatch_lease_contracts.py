@@ -261,6 +261,14 @@ def test_lease_protocol_is_runtime_checkable_sync_and_exactly_two_methods() -> N
         "self",
         "command",
     ]
+    assert list(
+        signature(
+            DurableDispatchLeaseApplication.heartbeat_work_intent_lease
+        ).parameters
+    ) == [
+        "self",
+        "command",
+    ]
 
 
 def test_lease_error_is_slotted_catchable_mutable_and_exactly_typed() -> None:
