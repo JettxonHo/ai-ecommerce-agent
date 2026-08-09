@@ -1,8 +1,10 @@
 """Narrow Human Review public facade.
 
-Only the accepted lifecycle catalogs and immutable identity/reference values
-cross the module boundary. Content, transitions, persistence, and commands
-remain private to later Human Review slices.
+Accepted lifecycle catalogs, immutable identity/reference values, and
+immutable read projections (including semantic-group content) cross the
+module boundary. Mutable Draft content, transitions, persistence, and
+commands remain private to later Human Review slices. Exported constructors
+create read values only; they do not create approval.
 """
 
 from .domain.contracts import (
