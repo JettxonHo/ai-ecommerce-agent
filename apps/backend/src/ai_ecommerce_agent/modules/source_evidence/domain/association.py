@@ -66,6 +66,10 @@ class TaskSourceAssociation:
         if self.membership_state is SourceAssociationMembershipState.REPLACED:
             if self.replaced_by_association_id is None:
                 raise ValueError("replaced association requires replacement link")
+            if self.replaced_by_association_id == self.source_association_id:
+                raise AssociationReplacementError(
+                    reason="association_identity_must_differ"
+                )
         elif self.replaced_by_association_id is not None:
             raise ValueError("only replaced association may have a replacement link")
 

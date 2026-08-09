@@ -196,13 +196,19 @@ def test_reconstitution_enforces_only_replacement_link_invariant() -> None:
             replaced_by_association_id=_REPLACEMENT_ASSOCIATION_ID,
         )
 
-    reconstituted = TaskSourceAssociation(
-        source_association_id=_ASSOCIATION_ID,
-        task_id=_TASK_ID,
-        source_id=_SOURCE_ID,
-        source_version_id=_VERSION_ID,
-        membership_state=SourceAssociationMembershipState.REPLACED,
-        revision=Revision(4),
-        replaced_by_association_id=_ASSOCIATION_ID,
-    )
-    assert reconstituted.replaced_by_association_id == _ASSOCIATION_ID
+    with pytest.raises(AssociationReplacementError) as caught:
+        TaskSourceAssociation(
+            source_association_id=_ASSOCIATION_ID,
+            task_id=_TASK_ID,
+            source_id=_SOURCE_ID,
+            source_version_id=_VERSION_ID,
+            membership_state=SourceAssociationMembershipState.REPLACED,
+            revision=Revision(4),
+            replaced_by_association_id=_ASSOCIATION_ID,
+        )
+    assert caught.value.category == "source_evidence"
+    assert caught.value.code == "invalid_replacement"
+    assert caught.value.safe_context == {
+        "reason": "association_identity_must_differ",
+        "resource": "task_source_association",
+    }
