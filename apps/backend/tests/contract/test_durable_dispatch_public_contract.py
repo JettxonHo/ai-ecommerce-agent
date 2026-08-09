@@ -16,6 +16,7 @@ _EXPECTED_PUBLIC = [
     "WorkIntentEnvelope",
     "LeaseHolderId",
     "WorkIntentLease",
+    "WorkIntentSnapshot",
 ]
 
 
