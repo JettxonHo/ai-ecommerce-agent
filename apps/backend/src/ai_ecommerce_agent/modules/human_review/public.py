@@ -9,6 +9,7 @@ create read values only; they do not create approval.
 
 from .domain.contracts import (
     ApprovedStrategySemanticGroupName,
+    PutReviewDraftRequest,
     ReviewDecisionBasis,
     ReviewDecisionOutcome,
     ReviewDraftReference,
@@ -22,6 +23,7 @@ from .domain.snapshots import (
     ApprovedStrategyVersionSnapshot,
     ReviewDecisionSnapshot,
     ReviewDraftMetadata,
+    ReviewDraftSnapshot,
     ReviewPackageHeader,
     ReviewPackageSnapshot,
     ReviewSemanticGroup,
@@ -36,6 +38,8 @@ __all__ = [
     "ReviewDecisionBasis",
     "ReviewPackageHeader",
     "ReviewDraftMetadata",
+    "ReviewDraftSnapshot",
+    "PutReviewDraftRequest",
     "ReviewDecisionSnapshot",
     "ReviewSemanticGroupName",
     "ReviewSemanticGroup",

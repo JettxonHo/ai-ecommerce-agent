@@ -14,6 +14,7 @@ from ai_ecommerce_agent.modules.human_review.public import (
     ReviewDecisionSnapshot,
     ReviewDraftMetadata,
     ReviewDraftReference,
+    ReviewDraftSnapshot,
     ReviewPackageHeader,
     ReviewPackageIdentity,
     ReviewPackageReference,
@@ -49,6 +50,7 @@ def test_review_snapshot_dtos_are_frozen_slotted_and_exactly_typed() -> None:
             "limitations",
         ),
         ReviewDraftMetadata: ("reference", "saved_at", "superseded_by"),
+        ReviewDraftSnapshot: ("metadata", "content"),
         ReviewDecisionSnapshot: (
             "review_decision_id",
             "basis",
@@ -70,6 +72,10 @@ def test_review_snapshot_dtos_are_frozen_slotted_and_exactly_typed() -> None:
             "reference": ReviewDraftReference,
             "saved_at": datetime,
             "superseded_by": ReviewDraftId | None,
+        },
+        ReviewDraftSnapshot: {
+            "metadata": ReviewDraftMetadata,
+            "content": StructuredContent,
         },
         ReviewDecisionSnapshot: {
             "review_decision_id": ReviewDecisionId,
@@ -166,6 +172,32 @@ def test_review_draft_metadata_supersession_is_typed_or_absent() -> None:
         None,
     )
     assert metadata.superseded_by is None
+
+
+def test_review_draft_snapshot_preserves_metadata_and_content_identity() -> None:
+    reference = ReviewDraftReference(
+        ReviewDraftId("draft-1"),
+        ReviewPackageId("package-1"),
+        Revision(0),
+    )
+    metadata = ReviewDraftMetadata(
+        reference,
+        datetime(2026, 8, 9, tzinfo=UTC),
+        None,
+    )
+    content = StructuredContent.from_mapping(
+        {"candidate": {"selected": [], "notes": "incomplete"}}
+    )
+
+    snapshot = ReviewDraftSnapshot(metadata, content)
+
+    assert snapshot.metadata is metadata
+    assert snapshot.content is content
+    assert snapshot.metadata.reference is reference
+    assert snapshot.metadata.superseded_by is None
+    assert not hasattr(snapshot, "approved_strategy")
+    with pytest.raises(FrozenInstanceError):
+        snapshot.content = StructuredContent.from_mapping({})  # type: ignore[misc]
 
 
 def test_review_package_snapshot_preserves_group_order_and_content_identity() -> None:

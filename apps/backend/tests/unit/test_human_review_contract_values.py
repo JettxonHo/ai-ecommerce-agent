@@ -8,6 +8,7 @@ from typing import Any, cast, get_type_hints
 import pytest
 
 from ai_ecommerce_agent.modules.human_review.public import (
+    PutReviewDraftRequest,
     ReviewDecisionBasis,
     ReviewDecisionOutcome,
     ReviewDraftReference,
@@ -20,6 +21,7 @@ from ai_ecommerce_agent.shared_kernel import (
     ReviewId,
     ReviewPackageId,
     Revision,
+    StructuredContent,
     TaskId,
     VersionNumber,
 )
@@ -124,3 +126,25 @@ def test_decision_basis_requires_matching_package_identity() -> None:
     )
     with pytest.raises(ValueError, match="review_package_id values must match"):
         ReviewDecisionBasis(ReviewId("review-1"), package, mismatched_draft)
+
+
+def test_put_review_draft_request_is_frozen_slotted_and_exactly_typed() -> None:
+    assert is_dataclass(PutReviewDraftRequest)
+    assert cast(Any, PutReviewDraftRequest).__dataclass_params__.frozen
+    assert tuple(field.name for field in fields(PutReviewDraftRequest)) == (
+        "expected_revision",
+        "content",
+    )
+    assert PutReviewDraftRequest.__slots__ == ("expected_revision", "content")
+    assert get_type_hints(PutReviewDraftRequest) == {
+        "expected_revision": Revision,
+        "content": StructuredContent,
+    }
+
+    revision = Revision(0)
+    content = StructuredContent.from_mapping({})
+    request = PutReviewDraftRequest(revision, content)
+    assert request.expected_revision is revision
+    assert request.content is content
+    with pytest.raises(FrozenInstanceError):
+        request.expected_revision = Revision(1)  # type: ignore[misc]

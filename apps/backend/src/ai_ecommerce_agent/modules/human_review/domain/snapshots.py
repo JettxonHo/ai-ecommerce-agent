@@ -75,6 +75,14 @@ class ReviewDraftMetadata:
 
 
 @dataclass(frozen=True, slots=True)
+class ReviewDraftSnapshot:
+    """Immutable full structured content and metadata Draft projection."""
+
+    metadata: ReviewDraftMetadata
+    content: StructuredContent
+
+
+@dataclass(frozen=True, slots=True)
 class ReviewDecisionSnapshot:
     """Immutable outcome projection bound to one exact Package/Draft basis."""
 
@@ -122,6 +130,7 @@ class ApprovedStrategyVersionSnapshot:
 __all__ = [
     "ReviewPackageHeader",
     "ReviewDraftMetadata",
+    "ReviewDraftSnapshot",
     "ReviewDecisionSnapshot",
     "ReviewSemanticGroup",
     "ReviewPackageSnapshot",
