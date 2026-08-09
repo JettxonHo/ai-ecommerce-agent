@@ -398,6 +398,19 @@ def test_supersession_result_enforces_successor_and_old_snapshot_relations() -> 
         successor,
     )
 
+    with pytest.raises(ValueError, match="requires a Lease"):
+        WorkIntentSupersessionResult(replace(old, current_lease=None), successor)
+
+    with pytest.raises(ValueError, match="cannot have a Lease"):
+        WorkIntentSupersessionResult(
+            _snapshot(
+                status=WorkIntentStatus.SUPERSEDED,
+                superseded_by=successor_id,
+                lease=old.current_lease,
+            ),
+            successor,
+        )
+
     invalid_successors = (
         replace(successor, status=WorkIntentStatus.LEASED),
         replace(successor, revision=Revision(1)),

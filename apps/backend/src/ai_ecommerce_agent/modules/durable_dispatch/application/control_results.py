@@ -73,11 +73,16 @@ class WorkIntentSupersessionResult:
             raise ValueError("successor cannot have a Lease")
         if self.successor.superseded_by is not None:
             raise ValueError("successor cannot request supersession")
-        if self.superseded.status not in (
+        if self.superseded.status in (
             WorkIntentStatus.LEASED,
             WorkIntentStatus.IN_PROGRESS,
-            WorkIntentStatus.SUPERSEDED,
         ):
+            if self.superseded.current_lease is None:
+                raise ValueError("active superseded snapshot requires a Lease")
+        elif self.superseded.status is WorkIntentStatus.SUPERSEDED:
+            if self.superseded.current_lease is not None:
+                raise ValueError("terminal superseded snapshot cannot have a Lease")
+        else:
             raise ValueError("superseded snapshot has an invalid status")
 
 
