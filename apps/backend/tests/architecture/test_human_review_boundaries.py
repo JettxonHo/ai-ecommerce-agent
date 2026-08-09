@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 import ai_ecommerce_agent.modules.human_review.domain.contracts as contracts
+import ai_ecommerce_agent.modules.human_review.domain.snapshots as snapshots
 import ai_ecommerce_agent.modules.human_review.public as public
 
 pytestmark = pytest.mark.architecture
@@ -36,7 +37,7 @@ def _module_tree(module: object) -> ast.Module:
 
 
 def test_human_review_contract_modules_are_framework_neutral() -> None:
-    for module in (contracts, public):
+    for module in (contracts, snapshots, public):
         tree = _module_tree(module)
         imports = {
             alias.name
@@ -57,7 +58,7 @@ def test_human_review_contract_modules_are_framework_neutral() -> None:
 
 
 def test_human_review_contract_imports_have_no_io_or_resource_construction() -> None:
-    for module in (contracts, public):
+    for module in (contracts, snapshots, public):
         tree = _module_tree(module)
         module_body = tree.body
         top_level_calls = {
@@ -73,3 +74,19 @@ def test_human_review_contract_imports_have_no_io_or_resource_construction() -> 
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
         )
         assert top_level_calls.isdisjoint(_FORBIDDEN_TOP_LEVEL_CALLS)
+
+
+def test_snapshots_use_only_the_task_public_facade_for_version_references() -> None:
+    tree = _module_tree(snapshots)
+    imports = {
+        node.module
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom) and node.module is not None
+    }
+    assert "ai_ecommerce_agent.modules.task_management.public" in imports
+    assert not any(
+        module is not None
+        and module.startswith("ai_ecommerce_agent.modules.task_management.")
+        and module != "ai_ecommerce_agent.modules.task_management.public"
+        for module in imports
+    )
