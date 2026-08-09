@@ -19,6 +19,7 @@ _PRODUCTION_FILES = (
     _DISPATCH_ROOT / "domain" / "identity.py",
     _DISPATCH_ROOT / "domain" / "status.py",
     _DISPATCH_ROOT / "domain" / "envelope.py",
+    _DISPATCH_ROOT / "domain" / "ownership.py",
     _DISPATCH_ROOT / "public.py",
 )
 _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
@@ -27,8 +28,14 @@ _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
     _DISPATCH_ROOT / "domain" / "identity.py": frozenset(),
     _DISPATCH_ROOT / "domain" / "status.py": frozenset(),
     _DISPATCH_ROOT / "domain" / "envelope.py": frozenset({(1, "identity")}),
+    _DISPATCH_ROOT / "domain" / "ownership.py": frozenset({(1, "identity")}),
     _DISPATCH_ROOT / "public.py": frozenset(
-        {(1, "domain.envelope"), (1, "domain.identity"), (1, "domain.status")}
+        {
+            (1, "domain.envelope"),
+            (1, "domain.identity"),
+            (1, "domain.ownership"),
+            (1, "domain.status"),
+        }
     ),
 }
 _ALLOWED_STDLIB_IMPORTS = {
