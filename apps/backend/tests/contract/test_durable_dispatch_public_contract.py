@@ -13,6 +13,7 @@ _EXPECTED_PUBLIC = [
     "DeliveryAttemptId",
     "FencingToken",
     "WorkIntentStatus",
+    "WorkIntentEnvelope",
 ]
 
 
