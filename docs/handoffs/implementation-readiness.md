@@ -4,7 +4,7 @@
 >
 > Foundation、Product Specification、RFC-001～007、Development Plan、Testing Strategy、MVP-0 Goal 与精简 Readiness Review 已接受。Business / Production Implementation 已在 Active Goal 与有界 Issues 内授权。
 >
-> **Current Gate（2026-08-09）：** MVP-0 Goal 已激活；M1 Issues #63～#67 与 PR #69 / #70 / #71 / #72 / #74 已全部闭合，TS-01 / TS-03 stop-first evidence = PASS。M2 的 Task Management vertical slice 已完成：#77 / #78 / #79 与 tracking parent #80 已关闭，#80 的七个子 Issue 已由 PR #92 / #93 / #94 / #96 / #97 / #99 / #100 合并交付（其基础 PR #84 / #85 / #86 亦已合并）。M7 当前为 PARTIAL：MVP0-036 Web Foundation 已由 PR #104 合并（merge `adcc38f`），业务路由、generated client、API-backed Workbench 与 MVP0-037～042 仍未实现。M2 整体仍开放：#81（Source）等待用户对 Proposed P-74～P-77 的 Decision Gate，#82（Review / Brief / Export）依赖 #81。高风险事项仍按 DEC-072 暂停并请求人工确认。
+> **Current Gate（2026-08-09）：** MVP-0 Goal 已激活并由用户明确恢复执行；M1 Issues #63～#67 与 PR #69 / #70 / #71 / #72 / #74 已全部闭合，TS-01 / TS-03 stop-first evidence = PASS。M2 的 Task Management vertical slice 已完成：#77 / #78 / #79 与 tracking parent #80 已关闭，#80 的七个子 Issue 已由 PR #92 / #93 / #94 / #96 / #97 / #99 / #100 合并交付（其基础 PR #84 / #85 / #86 亦已合并）。P-74A～P-81A 已由 DEC-076 / DEC-077 接受；#81（Source）与 #82（Review / Brief / Export）保持 OPEN tracking parents，下一步先拆分并实现 #81，#82 继续受 #81 single migration head 与完整 outcome participants 依赖约束。M7 当前为 PARTIAL：MVP0-036 Web Foundation 已由 PR #104 合并（merge `adcc38f`），业务路由、generated client、API-backed Workbench 与 MVP0-037～042 仍未实现。高风险事项仍按 DEC-072 暂停并请求人工确认。
 
 进入开发至少需要以下条件**全部**满足，并须先通过 Implementation Readiness Review（见 [../reviews/](../reviews/)），再由用户明确批准。
 

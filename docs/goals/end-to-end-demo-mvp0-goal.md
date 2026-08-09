@@ -293,10 +293,10 @@ M2 Domain & Persistence: PARTIAL — Task Management vertical slice COMPLETE (#7
 M3–M6: NOT STARTED
 M7: PARTIAL — MVP0-036 Web Foundation COMPLETE (PR #104, merge `adcc38f`); MVP0-037～042 not instantiated / not implemented
 M8: NOT STARTED
-Active implementation Issues: #81 (Source, waiting for user Decision Gate), #82 (Review / Brief / Export, blocked by #81)
-Active luna-worker write tasks: none; #81 is not dispatchable until the user Gate is resolved
-Current blockers: #81 awaits user decision on Proposed P-74A + P-75A + P-76A + P-77A; #82 is blocked by #81
-Next: preserve the #81 Gate, obtain the user's decision or changes, then instantiate its bounded child slices before any Source implementation; #82 follows #81
+Active implementation Issues: #81 (Source tracking parent), #82 (Review / Brief / Export tracking parent)
+Archive snapshot active luna-worker write tasks: none; subsequent active task identity is authoritative in its GitHub child Issue / PR
+Current blockers: no remaining user Decision Gate for P-74A～P-81A; #82 migration and complete outcomes remain dependency-blocked by #81 single head and typed Audit / Idempotency / Durable Work Intent participants
+Next: merge the DEC-076 / DEC-077 archive, instantiate bounded #81 child Issues, and dispatch its first public-contract slice to exact `luna-worker`
 ```
 
 ### Instantiated M1 Issues
@@ -317,5 +317,5 @@ Next: preserve the #81 Gate, obtain the user's decision or changes, then instant
 | MVP0-007 | [#78](https://github.com/JettxonHo/ai-ecommerce-agent/issues/78) | COMPLETE — PR #85 / merge `4b099d2` — UoW / PostgreSQL adapter foundation |
 | MVP0-008 | [#79](https://github.com/JettxonHo/ai-ecommerce-agent/issues/79) | COMPLETE — PR #86 / merge `fe892bd` — Alembic baseline / migration verification |
 | MVP0-009 | [#80](https://github.com/JettxonHo/ai-ecommerce-agent/issues/80) | COMPLETE tracking parent — seven child Issues #87 / #90 / #91 / #88 / #95 / #98 / #89; PRs #92 / #93 / #94 / #96 / #97 / #99 / #100 merged, latest `cf2dca5` — Task / Run / Stage persistence |
-| MVP0-010 | [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) | OPEN — **WAITING FOR USER DECISION GATE (Proposed, not accepted):** P-74A + P-75A + P-76A + P-77A; Source persistence must not start before the Gate |
-| MVP0-011 | [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) | OPEN — blocked by #81 — Review / Brief / Export persistence remains pending |
+| MVP0-010 | [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) | OPEN tracking parent — P-74A～P-77A accepted by DEC-076; bounded child Issues pending creation / implementation |
+| MVP0-011 | [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) | OPEN tracking parent — P-78A～P-81A accepted by DEC-077; schema still follows #81 single head and complete outcomes still wait for typed transaction participants |
