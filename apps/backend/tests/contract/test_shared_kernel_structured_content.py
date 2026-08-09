@@ -10,6 +10,7 @@ from typing import Any, cast
 import pytest
 
 import ai_ecommerce_agent.shared_kernel as shared_kernel
+import ai_ecommerce_agent.shared_kernel.content_origin as content_origin
 import ai_ecommerce_agent.shared_kernel.structured_content as structured_content
 
 pytestmark = pytest.mark.contract
@@ -20,6 +21,18 @@ def test_shared_kernel_adds_only_structured_content_to_its_public_exports() -> N
     assert shared_kernel.__all__.count("StructuredContent") == 1
     assert structured_content.__all__ == ["StructuredContent"]
     assert shared_kernel.StructuredContent is structured_content.StructuredContent
+
+
+def test_shared_kernel_exposes_the_shared_content_origin_catalog() -> None:
+    assert list(content_origin.ContentOrigin.__members__) == ["MODEL", "USER"]
+    assert [member.value for member in content_origin.ContentOrigin] == [
+        "model",
+        "user",
+    ]
+    assert "ContentOrigin" in shared_kernel.__all__
+    assert shared_kernel.__all__.count("ContentOrigin") == 1
+    assert shared_kernel.ContentOrigin is content_origin.ContentOrigin
+    assert content_origin.__all__ == ["ContentOrigin"]
 
 
 def test_public_interface_has_the_exact_two_methods() -> None:

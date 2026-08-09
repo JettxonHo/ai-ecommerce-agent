@@ -12,11 +12,14 @@ from .domain.contracts import (
     ReviewPackageIdentity,
     ReviewPackageReference,
     ReviewPackageStatus,
+    ReviewSemanticGroupName,
 )
 from .domain.snapshots import (
     ReviewDecisionSnapshot,
     ReviewDraftMetadata,
     ReviewPackageHeader,
+    ReviewPackageSnapshot,
+    ReviewSemanticGroup,
 )
 
 __all__ = [
@@ -29,4 +32,7 @@ __all__ = [
     "ReviewPackageHeader",
     "ReviewDraftMetadata",
     "ReviewDecisionSnapshot",
+    "ReviewSemanticGroupName",
+    "ReviewSemanticGroup",
+    "ReviewPackageSnapshot",
 ]
