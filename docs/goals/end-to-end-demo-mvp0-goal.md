@@ -82,7 +82,7 @@ M1 的 5 个 ID 已完成，M2 的 6 个 ID 已实例化为 GitHub Issues（见 
 7. `MVP0-007` — synchronous UoW / repository ports 与 PostgreSQL adapter base。
 8. `MVP0-008` — Alembic baseline、fresh / one-step / recovery verification。
 9. `MVP0-009` — Task / Run / Stage persistence vertical slice。
-10. `MVP0-010` — Source / Source Version / Association persistence vertical slice（首个 catalogs/snapshots、domain、ports、single-head migration foundation wave 已交付；剩余 adapters/application participants 仍待实现）。
+10. `MVP0-010` — Source / Source Version / Association persistence vertical slice（Source persistence slices through PR #155 已交付；剩余 registration/intake、submitted-input metadata 与 final RFC-005/API/parser/retrieval/evidence）。
 11. `MVP0-011` — Review / Approved Strategy / Brief / Export persistence slice。
 
 ### M3
