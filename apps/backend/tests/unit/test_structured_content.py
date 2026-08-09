@@ -13,6 +13,33 @@ from ai_ecommerce_agent.shared_kernel import StructuredContent
 pytestmark = pytest.mark.unit
 
 
+class _MutableInt(int):
+    metadata: list[str]
+
+    def __new__(cls, value: int) -> _MutableInt:
+        instance = super().__new__(cls, value)
+        instance.metadata = []
+        return instance
+
+
+class _MutableFloat(float):
+    metadata: list[str]
+
+    def __new__(cls, value: float) -> _MutableFloat:
+        instance = super().__new__(cls, value)
+        instance.metadata = []
+        return instance
+
+
+class _MutableString(str):
+    metadata: list[str]
+
+    def __new__(cls, value: str) -> _MutableString:
+        instance = super().__new__(cls, value)
+        instance.metadata = []
+        return instance
+
+
 def test_nested_values_are_copied_and_round_trip_as_plain_data() -> None:
     values: dict[str, object] = {
         "name": "commuter pack",
@@ -116,3 +143,17 @@ def test_recursive_input_is_rejected() -> None:
 
     with pytest.raises(ValueError):
         StructuredContent.from_mapping(values)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [_MutableInt(1), _MutableFloat(1.5), _MutableString("custom")],
+)
+def test_scalar_subclasses_with_mutable_metadata_are_rejected(value: object) -> None:
+    with pytest.raises(TypeError):
+        StructuredContent.from_mapping({"nested": {"value": value}})
+
+
+def test_string_subclass_keys_with_mutable_metadata_are_rejected() -> None:
+    with pytest.raises(TypeError):
+        StructuredContent.from_mapping({_MutableString("custom-key"): "value"})

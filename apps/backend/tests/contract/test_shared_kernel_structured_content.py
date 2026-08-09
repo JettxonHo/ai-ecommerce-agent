@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -25,6 +26,45 @@ def test_public_interface_has_the_exact_two_methods() -> None:
     assert hasattr(structured_content.StructuredContent, "to_mapping")
     assert not hasattr(structured_content.StructuredContent, "freeze")
     assert not hasattr(structured_content.StructuredContent, "as_dict")
+    assert {
+        name
+        for name in dir(structured_content.StructuredContent)
+        if not name.startswith("_")
+    } == {"from_mapping", "to_mapping"}
+    assert structured_content.StructuredContent.__slots__ == ("_value",)
+
+
+@pytest.mark.parametrize(
+    "args, kwargs",
+    [
+        ((), {}),
+        (({"value": 1},), {}),
+        ((), {"values": {"value": 1}}),
+        ((), {"_value": ()}),
+    ],
+)
+def test_structured_content_is_factory_only(
+    args: tuple[object, ...], kwargs: dict[str, object]
+) -> None:
+    constructor = cast(Any, structured_content.StructuredContent)
+    with pytest.raises(TypeError):
+        constructor(*args, **kwargs)
+
+
+def test_instances_are_opaque_non_hashable_and_immutable() -> None:
+    content = structured_content.StructuredContent.from_mapping(
+        {"secret": "private", "nested": {"value": 1}}
+    )
+
+    assert repr(content) == "StructuredContent(...)"
+    assert "private" not in repr(content)
+    assert "_value" not in repr(content)
+    with pytest.raises(TypeError):
+        hash(content)
+    with pytest.raises(TypeError):
+        cast(Any, content)._value = ()
+    with pytest.raises(TypeError):
+        delattr(content, "_value")
 
 
 def test_structured_content_module_uses_only_stdlib_imports() -> None:

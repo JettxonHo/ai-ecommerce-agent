@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
 from math import isfinite
-from typing import cast
+from typing import NoReturn, cast
 
 
 def _freeze_mapping(
@@ -18,7 +17,7 @@ def _freeze_mapping(
     try:
         entries: list[tuple[str, tuple[str, object]]] = []
         for key, value in values.items():
-            if not isinstance(key, str):
+            if type(key) is not str:
                 raise TypeError("structured content mapping keys must be strings")
             entries.append((key, _freeze(value, active)))
         entries.sort(key=lambda entry: entry[0])
@@ -30,15 +29,15 @@ def _freeze_mapping(
 def _freeze(value: object, active: set[int]) -> tuple[str, object]:
     if value is None:
         return ("none", None)
-    if isinstance(value, bool):
+    if type(value) is bool:
         return ("bool", value)
-    if isinstance(value, int):
+    if type(value) is int:
         return ("int", value)
-    if isinstance(value, float):
+    if type(value) is float:
         if not isfinite(value):
             raise ValueError("structured content floats must be finite")
         return ("float", value)
-    if isinstance(value, str):
+    if type(value) is str:
         return ("str", value)
     if isinstance(value, Mapping):
         return (
@@ -72,11 +71,15 @@ def _thaw(value: tuple[str, object]) -> object:
     raise AssertionError(f"unknown structured content kind: {kind!r}")
 
 
-@dataclass(frozen=True, slots=True, init=False)
 class StructuredContent:
     """A deeply immutable top-level string-keyed structured value."""
 
+    __slots__ = ("_value",)
+
     _value: tuple[tuple[str, tuple[str, object]], ...]
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        raise TypeError("StructuredContent must be created with from_mapping")
 
     @classmethod
     def from_mapping(cls, values: Mapping[str, object]) -> StructuredContent:
@@ -94,6 +97,23 @@ class StructuredContent:
         """Return a new, mutable plain mapping detached from this value."""
 
         return {key: _thaw(value) for key, value in self._value}
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, StructuredContent):
+            return False
+        return self._value == other._value
+
+    def __repr__(self) -> str:
+        return "StructuredContent(...)"
+
+    def __setattr__(self, name: str, value: object) -> NoReturn:
+        raise TypeError("StructuredContent is immutable")
+
+    def __delattr__(self, name: str) -> NoReturn:
+        raise TypeError("StructuredContent is immutable")
+
+    def __hash__(self) -> NoReturn:
+        raise TypeError("StructuredContent instances are not hashable")
 
 
 __all__ = ["StructuredContent"]
