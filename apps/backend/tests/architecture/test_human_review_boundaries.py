@@ -90,3 +90,10 @@ def test_snapshots_use_only_the_task_public_facade_for_version_references() -> N
         and module != "ai_ecommerce_agent.modules.task_management.public"
         for module in imports
     )
+
+
+def test_review_draft_contracts_are_exposed_only_by_the_human_review_facade() -> None:
+    assert hasattr(public, "ReviewDraftSnapshot")
+    assert hasattr(public, "PutReviewDraftRequest")
+    assert not hasattr(contracts, "ReviewDraftSnapshot")
+    assert not hasattr(snapshots, "PutReviewDraftRequest")

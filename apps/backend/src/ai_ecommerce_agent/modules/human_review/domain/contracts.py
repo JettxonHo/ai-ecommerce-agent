@@ -10,6 +10,7 @@ from ai_ecommerce_agent.shared_kernel import (
     ReviewId,
     ReviewPackageId,
     Revision,
+    StructuredContent,
     TaskId,
     VersionNumber,
 )
@@ -96,6 +97,14 @@ class ReviewDecisionBasis:
             raise ValueError("review_package_id values must match")
 
 
+@dataclass(frozen=True, slots=True)
+class PutReviewDraftRequest:
+    """Immutable full-snapshot Draft save request with a revision guard."""
+
+    expected_revision: Revision
+    content: StructuredContent
+
+
 __all__ = [
     "ReviewPackageStatus",
     "ReviewDecisionOutcome",
@@ -103,6 +112,7 @@ __all__ = [
     "ReviewPackageReference",
     "ReviewDraftReference",
     "ReviewDecisionBasis",
+    "PutReviewDraftRequest",
     "ReviewSemanticGroupName",
     "ApprovedStrategySemanticGroupName",
 ]
