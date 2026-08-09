@@ -1,4 +1,4 @@
-"""Internal errors for Source identity and processing lifecycle rules."""
+"""Internal errors for Source identity and membership lifecycle rules."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ def _context(values: Mapping[str, str]) -> SafeContext:
 
 
 class RevisionConflictError(ProjectError):
-    """The caller attempted to mutate stale processing Current Truth."""
+    """The caller attempted to mutate stale Source Current Truth."""
 
     def __init__(
         self,
@@ -37,7 +37,7 @@ class RevisionConflictError(ProjectError):
 
 
 class InvalidTransitionError(ProjectError):
-    """A named processing intent is not legal for the current status."""
+    """A named Source intent is not legal for the current state."""
 
     def __init__(self, *, resource: str, status: str, intent: str) -> None:
         super().__init__(
@@ -47,4 +47,31 @@ class InvalidTransitionError(ProjectError):
         )
 
 
-__all__ = ["InvalidTransitionError", "RevisionConflictError"]
+class OwnershipError(ProjectError):
+    """A Source relationship crosses its owning Source boundary."""
+
+    def __init__(self, *, resource: str) -> None:
+        super().__init__(
+            "source_evidence",
+            "ownership_conflict",
+            _context({"resource": resource}),
+        )
+
+
+class AssociationReplacementError(ProjectError):
+    """A replacement violates a stable association identity invariant."""
+
+    def __init__(self, *, reason: str) -> None:
+        super().__init__(
+            "source_evidence",
+            "invalid_replacement",
+            _context({"resource": "task_source_association", "reason": reason}),
+        )
+
+
+__all__ = [
+    "AssociationReplacementError",
+    "InvalidTransitionError",
+    "OwnershipError",
+    "RevisionConflictError",
+]
