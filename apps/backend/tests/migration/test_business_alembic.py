@@ -1,9 +1,9 @@
-"""Bounded real-PostgreSQL verification for the MVP0-010B1 Source tables.
+"""Bounded real-PostgreSQL verification for the MVP0-018F Business tables.
 
 The suite is opt-in because the default test lane blocks network access.  It
 uses one fixed, test-owned schema and removes that schema during teardown; no
 shared Business or Checkpoint table is touched.  Each test resets that schema
-instead of downgrading the forward-only Task migration.
+instead of downgrading the forward-only migration lineage.
 """
 
 from __future__ import annotations
@@ -40,12 +40,14 @@ if os.environ.get("MVP0_RUN_POSTGRES_MIGRATION") != "1":
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 ALEMBIC_INI = BACKEND_ROOT / "alembic.ini"
-BUSINESS_SCHEMA = "mvp0_010b1_migration"
+BUSINESS_SCHEMA = "mvp0_018f_migration"
 BASELINE_REVISION = "0001_business_baseline"
 TASK_HEAD_REVISION = "0002_task_management"
-HEAD_REVISION = "0003_source_evidence"
+SOURCE_HEAD_REVISION = "0003_source_evidence"
+HEAD_REVISION = "0004_durable_dispatch"
 DATABASE_URL_ENV = "MVP0_MIGRATION_DATABASE_URL"
 DOMAIN_TABLES = (
+    "durable_dispatch_work_intents",
     "source_evidence_source_version_processing",
     "source_evidence_source_versions",
     "source_evidence_sources",
@@ -58,6 +60,76 @@ SOURCE_TABLE = "source_evidence_sources"
 SOURCE_VERSION_TABLE = "source_evidence_source_versions"
 PROCESSING_TABLE = "source_evidence_source_version_processing"
 ASSOCIATION_TABLE = "source_evidence_task_source_associations"
+DURABLE_TABLE = "durable_dispatch_work_intents"
+DURABLE_COLUMNS = (
+    "dispatch_id",
+    "intent_type",
+    "owning_operation",
+    "target_resource_kind",
+    "target_resource_id",
+    "command_id",
+    "stage_run_id",
+    "input_fingerprint",
+    "fingerprint_schema_version",
+    "base_domain_version_id",
+    "expected_revision",
+    "payload_resource_kind",
+    "payload_resource_id",
+    "rerun_of_dispatch_id",
+    "ordering_key",
+    "created_at",
+    "available_at",
+    "status",
+    "revision",
+    "cancellation_requested",
+    "delivery_attempt_id",
+    "lease_holder_id",
+    "fencing_token",
+    "lease_expires_at",
+)
+DURABLE_STATUS_VALUES = (
+    "pending",
+    "available",
+    "leased",
+    "in_progress",
+    "succeeded",
+    "failed_retryable",
+    "failed_terminal",
+    "cancelled",
+    "superseded",
+)
+DURABLE_CHECK_COLUMN_NAMES = {
+    "fingerprint_schema_version": "fp_schema_version",
+    "base_domain_version_id": "base_version",
+}
+DURABLE_CONSTRAINT_NAMES = {
+    "pk_durable_dispatch_work_intents",
+    "fk_durable_dispatch_work_intents_rerun_of",
+    "ck_durable_dispatch_work_intents_dispatch_id_nonempty",
+    "ck_durable_dispatch_work_intents_intent_type_nonempty",
+    "ck_durable_dispatch_work_intents_owning_operation_nonempty",
+    "ck_durable_dispatch_work_intents_target_resource_kind_nonempty",
+    "ck_durable_dispatch_work_intents_target_resource_id_nonempty",
+    "ck_durable_dispatch_work_intents_command_id_nonempty",
+    "ck_durable_dispatch_work_intents_input_fingerprint_nonempty",
+    "ck_durable_dispatch_work_intents_fp_schema_version_nonempty",
+    "ck_durable_dispatch_work_intents_payload_resource_kind_nonempty",
+    "ck_durable_dispatch_work_intents_payload_resource_id_nonempty",
+    "ck_durable_dispatch_work_intents_stage_run_id_nonempty",
+    "ck_durable_dispatch_work_intents_base_version_nonempty",
+    "ck_durable_dispatch_work_intents_rerun_of_dispatch_id_nonempty",
+    "ck_durable_dispatch_work_intents_ordering_key_nonempty",
+    "ck_durable_dispatch_work_intents_delivery_attempt_id_nonempty",
+    "ck_durable_dispatch_work_intents_lease_holder_id_nonempty",
+    "ck_durable_dispatch_work_intents_status",
+    "ck_durable_dispatch_work_intents_revision_nonnegative",
+    "ck_durable_dispatch_work_intents_expected_revision_nonnegative",
+    "ck_durable_dispatch_work_intents_fencing_token_nonnegative",
+    "ck_durable_dispatch_work_intents_available_not_before_created",
+    "ck_durable_dispatch_work_intents_rerun_distinct",
+    "ck_durable_dispatch_work_intents_lease_tuple",
+    "ck_durable_dispatch_work_intents_leased_fencing_token",
+}
 
 
 class InjectedMigrationFailure(RuntimeError):
@@ -76,7 +148,7 @@ def _database_url() -> str:
 
 @pytest.fixture(scope="module")
 def migration_engine() -> Iterator[Engine]:
-    """Own and remove exactly the fixed MVP0-010B1 verification schema."""
+    """Own and remove exactly the fixed MVP0-018F verification schema."""
 
     engine = create_postgres_engine(
         PostgresEngineConfig(
@@ -96,7 +168,7 @@ def migration_engine() -> Iterator[Engine]:
                 text("SELECT count(*) FROM pg_namespace WHERE nspname = :schema"),
                 {"schema": BUSINESS_SCHEMA},
             )
-        assert remaining == 0, "MVP0-010B1 test schema cleanup was not verifiable"
+        assert remaining == 0, "MVP0-018F test schema cleanup was not verifiable"
         engine.dispose()
 
 
@@ -164,6 +236,20 @@ def _columns(engine: Engine, table_name: str) -> list[str]:
         )
 
 
+def _column_details(engine: Engine, table_name: str) -> list[tuple[str, str, str, str]]:
+    with engine.connect() as connection:
+        rows = connection.execute(
+            text(
+                "SELECT column_name, data_type, udt_name, is_nullable "
+                "FROM information_schema.columns "
+                "WHERE table_schema = :schema AND table_name = :table "
+                "ORDER BY ordinal_position"
+            ),
+            {"schema": BUSINESS_SCHEMA, "table": table_name},
+        )
+        return [tuple(row) for row in rows]
+
+
 def _table_exists(engine: Engine, table_name: str) -> bool:
     with engine.connect() as connection:
         return bool(
@@ -191,6 +277,126 @@ def _constraint_names(engine: Engine) -> set[str]:
                 ),
                 {"schema": BUSINESS_SCHEMA},
             )
+        )
+
+
+def _constraint_definitions(engine: Engine, table_name: str) -> dict[str, str]:
+    with engine.connect() as connection:
+        rows = connection.execute(
+            text(
+                "SELECT con.conname, pg_get_constraintdef(con.oid) "
+                "FROM pg_constraint con "
+                "JOIN pg_class rel ON rel.oid = con.conrelid "
+                "JOIN pg_namespace n ON n.oid = rel.relnamespace "
+                "WHERE n.nspname = :schema AND rel.relname = :table "
+                "ORDER BY con.conname"
+            ),
+            {"schema": BUSINESS_SCHEMA, "table": table_name},
+        )
+        definitions: dict[str, str] = {}
+        for row in rows:
+            definitions[str(row[0])] = str(row[1])
+        return definitions
+
+
+def _normalize_constraint_sql(expression: str) -> str:
+    """Ignore PostgreSQL's CHECK wrapper, whitespace, and redundant parens."""
+
+    normalized = expression.lower().replace("check", "", 1)
+    return "".join(
+        char for char in normalized if not char.isspace() and char not in "()"
+    )
+
+
+def _index_names(engine: Engine, table_name: str) -> set[str]:
+    with engine.connect() as connection:
+        return set(
+            connection.scalars(
+                text(
+                    "SELECT indexname FROM pg_indexes "
+                    "WHERE schemaname = :schema AND tablename = :table"
+                ),
+                {"schema": BUSINESS_SCHEMA, "table": table_name},
+            )
+        )
+
+
+def _insert_work_intent(
+    engine: Engine,
+    *,
+    dispatch_id: str,
+    intent_type: str = "source.process",
+    owning_operation: str = "task.run",
+    target_resource_kind: str = "task",
+    target_resource_id: str = "task-01",
+    command_id: str = "command-01",
+    stage_run_id: str | None = None,
+    input_fingerprint: str = "fingerprint-01",
+    fingerprint_schema_version: str = "v1",
+    base_domain_version_id: str | None = None,
+    expected_revision: int | None = None,
+    payload_resource_kind: str = "source_version",
+    payload_resource_id: str = "source-version-01",
+    rerun_of_dispatch_id: str | None = None,
+    ordering_key: str | None = None,
+    created_at: datetime = datetime(2026, 8, 9, 10, 0, tzinfo=UTC),
+    available_at: datetime = datetime(2026, 8, 9, 10, 0, tzinfo=UTC),
+    status: str = "pending",
+    revision: int = 0,
+    cancellation_requested: bool = False,
+    delivery_attempt_id: str | None = None,
+    lease_holder_id: str | None = None,
+    fencing_token: int = 0,
+    lease_expires_at: datetime | None = None,
+) -> None:
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                f'INSERT INTO "{BUSINESS_SCHEMA}"."{DURABLE_TABLE}" '
+                "(dispatch_id, intent_type, owning_operation, "
+                "target_resource_kind, target_resource_id, command_id, "
+                "stage_run_id, input_fingerprint, fingerprint_schema_version, "
+                "base_domain_version_id, expected_revision, "
+                "payload_resource_kind, payload_resource_id, "
+                "rerun_of_dispatch_id, ordering_key, created_at, available_at, "
+                "status, revision, cancellation_requested, delivery_attempt_id, "
+                "lease_holder_id, fencing_token, lease_expires_at) VALUES "
+                "(:dispatch_id, :intent_type, :owning_operation, "
+                ":target_resource_kind, :target_resource_id, :command_id, "
+                ":stage_run_id, :input_fingerprint, :fingerprint_schema_version, "
+                ":base_domain_version_id, :expected_revision, "
+                ":payload_resource_kind, :payload_resource_id, "
+                ":rerun_of_dispatch_id, :ordering_key, :created_at, "
+                ":available_at, :status, :revision, :cancellation_requested, "
+                ":delivery_attempt_id, :lease_holder_id, :fencing_token, "
+                ":lease_expires_at)"
+            ),
+            {
+                "dispatch_id": dispatch_id,
+                "intent_type": intent_type,
+                "owning_operation": owning_operation,
+                "target_resource_kind": target_resource_kind,
+                "target_resource_id": target_resource_id,
+                "command_id": command_id,
+                "stage_run_id": stage_run_id,
+                "input_fingerprint": input_fingerprint,
+                "fingerprint_schema_version": fingerprint_schema_version,
+                "base_domain_version_id": base_domain_version_id,
+                "expected_revision": expected_revision,
+                "payload_resource_kind": payload_resource_kind,
+                "payload_resource_id": payload_resource_id,
+                "rerun_of_dispatch_id": rerun_of_dispatch_id,
+                "ordering_key": ordering_key,
+                "created_at": created_at,
+                "available_at": available_at,
+                "status": status,
+                "revision": revision,
+                "cancellation_requested": cancellation_requested,
+                "delivery_attempt_id": delivery_attempt_id,
+                "lease_holder_id": lease_holder_id,
+                "fencing_token": fencing_token,
+                "lease_expires_at": lease_expires_at,
+            },
         )
 
 
@@ -303,13 +509,16 @@ def _insert_association(
 
 
 def test_revision_graph_has_one_business_head() -> None:
-    """The production lineage has one Source head and a Task parent."""
+    """The production lineage has one Durable Dispatch head and parent."""
 
     script = ScriptDirectory.from_config(_config(_database_url()))
     assert script.get_heads() == [HEAD_REVISION]
     head = script.get_revision(HEAD_REVISION)
     assert head is not None
-    assert head.down_revision == TASK_HEAD_REVISION
+    assert head.down_revision == SOURCE_HEAD_REVISION
+    source_head = script.get_revision(SOURCE_HEAD_REVISION)
+    assert source_head is not None
+    assert source_head.down_revision == TASK_HEAD_REVISION
     task_head = script.get_revision(TASK_HEAD_REVISION)
     assert task_head is not None
     assert task_head.down_revision == BASELINE_REVISION
@@ -318,7 +527,7 @@ def test_revision_graph_has_one_business_head() -> None:
     assert baseline.down_revision is None
 
 
-def test_fresh_upgrade_reaches_task_head(
+def test_fresh_upgrade_reaches_current_head(
     migration_engine: Engine,
 ) -> None:
     """A fresh test schema reaches the single head and creates all tables."""
@@ -333,7 +542,7 @@ def test_fresh_upgrade_reaches_task_head(
 def test_explicit_baseline_to_head_upgrade(
     migration_engine: Engine,
 ) -> None:
-    """A schema explicitly at 0001 can advance to the Source head."""
+    """A schema explicitly at 0001 can advance to the Durable Dispatch head."""
 
     _reset_schema(migration_engine)
     config = _config(_database_url())
@@ -346,10 +555,10 @@ def test_explicit_baseline_to_head_upgrade(
     assert _tables(migration_engine) == ["alembic_version", *DOMAIN_TABLES]
 
 
-def test_existing_task_head_to_source_head_upgrade(
+def test_existing_task_head_to_current_head_upgrade(
     migration_engine: Engine,
 ) -> None:
-    """A schema at the current Task head advances with one Source revision."""
+    """A schema at the Task head advances through Source to the current head."""
 
     _reset_schema(migration_engine)
     config = _config(_database_url())
@@ -367,11 +576,36 @@ def test_existing_task_head_to_source_head_upgrade(
     assert _tables(migration_engine) == ["alembic_version", *DOMAIN_TABLES]
 
 
+def test_existing_source_head_to_durable_head_upgrade(
+    migration_engine: Engine,
+) -> None:
+    """A schema at 0003 adds only the Durable Dispatch table in 0004."""
+
+    _reset_schema(migration_engine)
+    config = _config(_database_url())
+    command.upgrade(config, SOURCE_HEAD_REVISION)
+    assert _version_rows(migration_engine) == [SOURCE_HEAD_REVISION]
+    assert _tables(migration_engine) == [
+        "alembic_version",
+        "source_evidence_source_version_processing",
+        "source_evidence_source_versions",
+        "source_evidence_sources",
+        "source_evidence_task_source_associations",
+        "task_management_runs",
+        "task_management_stages",
+        "task_management_tasks",
+    ]
+
+    command.upgrade(config, HEAD_REVISION)
+    assert _version_rows(migration_engine) == [HEAD_REVISION]
+    assert _tables(migration_engine) == ["alembic_version", *DOMAIN_TABLES]
+
+
 def test_alembic_current_check_and_offline_sql_are_reviewable(
     migration_engine: Engine,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """Current, drift check, and offline SQL identify the Task revision."""
+    """Current, drift check, and offline SQL identify the Durable revision."""
 
     _reset_schema(migration_engine)
     config = _config(_database_url())
@@ -435,6 +669,7 @@ def test_named_tables_and_constraints_are_present(
         "ck_source_evidence_assoc_revision_nonnegative",
         "ck_source_evidence_assoc_replacement_distinct",
         "ck_source_evidence_assoc_replacement_link",
+        *DURABLE_CONSTRAINT_NAMES,
     }
     assert expected_constraints <= _constraint_names(migration_engine)
 
@@ -469,6 +704,254 @@ def test_source_tables_have_exact_minimal_columns(
         "revision",
         "replaced_by_association_id",
     ]
+
+
+def test_durable_work_intent_has_exact_columns_and_types(
+    migration_engine: Engine,
+) -> None:
+    """The Work Intent table has the frozen ordered 24-column shape."""
+
+    _reset_schema(migration_engine)
+    command.upgrade(_config(_database_url()), HEAD_REVISION)
+
+    assert _columns(migration_engine, DURABLE_TABLE) == list(DURABLE_COLUMNS)
+    assert _column_details(migration_engine, DURABLE_TABLE) == [
+        ("dispatch_id", "text", "text", "NO"),
+        ("intent_type", "text", "text", "NO"),
+        ("owning_operation", "text", "text", "NO"),
+        ("target_resource_kind", "text", "text", "NO"),
+        ("target_resource_id", "text", "text", "NO"),
+        ("command_id", "text", "text", "NO"),
+        ("stage_run_id", "text", "text", "YES"),
+        ("input_fingerprint", "text", "text", "NO"),
+        ("fingerprint_schema_version", "text", "text", "NO"),
+        ("base_domain_version_id", "text", "text", "YES"),
+        ("expected_revision", "bigint", "int8", "YES"),
+        ("payload_resource_kind", "text", "text", "NO"),
+        ("payload_resource_id", "text", "text", "NO"),
+        ("rerun_of_dispatch_id", "text", "text", "YES"),
+        ("ordering_key", "text", "text", "YES"),
+        ("created_at", "timestamp with time zone", "timestamptz", "NO"),
+        ("available_at", "timestamp with time zone", "timestamptz", "NO"),
+        ("status", "text", "text", "NO"),
+        ("revision", "bigint", "int8", "NO"),
+        ("cancellation_requested", "boolean", "bool", "NO"),
+        ("delivery_attempt_id", "text", "text", "YES"),
+        ("lease_holder_id", "text", "text", "YES"),
+        ("fencing_token", "bigint", "int8", "NO"),
+        ("lease_expires_at", "timestamp with time zone", "timestamptz", "YES"),
+    ]
+
+
+def test_durable_work_intent_has_named_checks_fk_and_only_primary_index(
+    migration_engine: Engine,
+) -> None:
+    """The Work Intent table exposes only named structural constraints."""
+
+    _reset_schema(migration_engine)
+    command.upgrade(_config(_database_url()), HEAD_REVISION)
+
+    definitions = _constraint_definitions(migration_engine, DURABLE_TABLE)
+    assert set(definitions) == DURABLE_CONSTRAINT_NAMES
+    assert (
+        "PRIMARY KEY (dispatch_id)" in definitions["pk_durable_dispatch_work_intents"]
+    )
+    assert (
+        "FOREIGN KEY (rerun_of_dispatch_id)"
+        in definitions["fk_durable_dispatch_work_intents_rerun_of"]
+    )
+    assert "REFERENCES" in definitions["fk_durable_dispatch_work_intents_rerun_of"]
+    expected_checks = {
+        **{
+            (
+                "ck_durable_dispatch_work_intents_"
+                f"{DURABLE_CHECK_COLUMN_NAMES.get(column, column)}_nonempty"
+            ): (f"length(btrim({column})) > 0")
+            for column in (
+                "dispatch_id",
+                "intent_type",
+                "owning_operation",
+                "target_resource_kind",
+                "target_resource_id",
+                "command_id",
+                "input_fingerprint",
+                "fingerprint_schema_version",
+                "payload_resource_kind",
+                "payload_resource_id",
+            )
+        },
+        **{
+            (
+                "ck_durable_dispatch_work_intents_"
+                f"{DURABLE_CHECK_COLUMN_NAMES.get(column, column)}_nonempty"
+            ): (f"{column} IS NULL OR length(btrim({column})) > 0")
+            for column in (
+                "stage_run_id",
+                "base_domain_version_id",
+                "rerun_of_dispatch_id",
+                "ordering_key",
+                "delivery_attempt_id",
+                "lease_holder_id",
+            )
+        },
+        "ck_durable_dispatch_work_intents_status": (
+            "status = ANY (ARRAY["
+            + ", ".join(f"'{value}'::text" for value in DURABLE_STATUS_VALUES)
+            + "])"
+        ),
+        "ck_durable_dispatch_work_intents_revision_nonnegative": "revision >= 0",
+        "ck_durable_dispatch_work_intents_expected_revision_nonnegative": (
+            "expected_revision IS NULL OR expected_revision >= 0"
+        ),
+        "ck_durable_dispatch_work_intents_fencing_token_nonnegative": (
+            "fencing_token >= 0"
+        ),
+        "ck_durable_dispatch_work_intents_available_not_before_created": (
+            "available_at >= created_at"
+        ),
+        "ck_durable_dispatch_work_intents_rerun_distinct": (
+            "rerun_of_dispatch_id IS NULL OR rerun_of_dispatch_id <> dispatch_id"
+        ),
+        "ck_durable_dispatch_work_intents_lease_tuple": (
+            "(delivery_attempt_id IS NULL AND lease_holder_id IS NULL AND "
+            "lease_expires_at IS NULL) OR "
+            "(delivery_attempt_id IS NOT NULL AND lease_holder_id IS NOT NULL "
+            "AND lease_expires_at IS NOT NULL)"
+        ),
+        "ck_durable_dispatch_work_intents_leased_fencing_token": (
+            "(delivery_attempt_id IS NULL AND lease_holder_id IS NULL AND "
+            "lease_expires_at IS NULL) OR fencing_token >= 1"
+        ),
+    }
+    assert {
+        name: _normalize_constraint_sql(definitions[name]) for name in expected_checks
+    } == {
+        name: _normalize_constraint_sql(expression)
+        for name, expression in expected_checks.items()
+    }
+    assert _index_names(migration_engine, DURABLE_TABLE) == {
+        "pk_durable_dispatch_work_intents"
+    }
+
+
+def test_durable_work_intent_constraints_enforce_catalog_and_lease_shape(
+    migration_engine: Engine,
+) -> None:
+    """Real PostgreSQL rejects invalid identity, state, and lease tuples."""
+
+    _reset_schema(migration_engine)
+    command.upgrade(_config(_database_url()), HEAD_REVISION)
+
+    # A no-lease row may retain the initial zero fencing counter.
+    _insert_work_intent(migration_engine, dispatch_id="dispatch-01")
+    # Distinct dispatch identities may share a command identity; no semantic
+    # command uniqueness is encoded by this revision.
+    _insert_work_intent(
+        migration_engine, dispatch_id="dispatch-02", command_id="command-01"
+    )
+    _insert_work_intent(
+        migration_engine,
+        dispatch_id="dispatch-03",
+        status="leased",
+        delivery_attempt_id="attempt-01",
+        lease_holder_id="worker-01",
+        fencing_token=1,
+        lease_expires_at=datetime(2026, 8, 9, 11, 0, tzinfo=UTC),
+    )
+    _insert_work_intent(
+        migration_engine,
+        dispatch_id="dispatch-04",
+        rerun_of_dispatch_id="dispatch-01",
+    )
+    for index, status in enumerate(DURABLE_STATUS_VALUES, start=10):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id=f"dispatch-status-{index}",
+            status=status,
+        )
+
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine, dispatch_id="dispatch-whitespace", intent_type=" "
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id="dispatch-optional-whitespace",
+            stage_run_id=" ",
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine, dispatch_id="dispatch-status", status="running"
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine, dispatch_id="dispatch-revision", revision=-1
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id="dispatch-expected-revision",
+            expected_revision=-1,
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine, dispatch_id="dispatch-fencing", fencing_token=-1
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id="dispatch-time-order",
+            created_at=datetime(2026, 8, 9, 12, 0, tzinfo=UTC),
+            available_at=datetime(2026, 8, 9, 11, 0, tzinfo=UTC),
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id="dispatch-self-rerun",
+            rerun_of_dispatch_id="dispatch-self-rerun",
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id="dispatch-partial-lease",
+            delivery_attempt_id="attempt-partial",
+            lease_holder_id=None,
+            lease_expires_at=datetime(2026, 8, 9, 11, 0, tzinfo=UTC),
+            fencing_token=1,
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id="dispatch-zero-leased-token",
+            delivery_attempt_id="attempt-zero",
+            lease_holder_id="worker-zero",
+            lease_expires_at=datetime(2026, 8, 9, 11, 0, tzinfo=UTC),
+            fencing_token=0,
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id="dispatch-missing-rerun",
+            rerun_of_dispatch_id="dispatch-missing",
+        )
+
+    with migration_engine.begin() as connection:
+        connection.execute(
+            text(
+                f'UPDATE "{BUSINESS_SCHEMA}"."{DURABLE_TABLE}" '
+                "SET delivery_attempt_id = NULL, lease_holder_id = NULL, "
+                "lease_expires_at = NULL "
+                "WHERE dispatch_id = 'dispatch-03'"
+            )
+        )
+        retained = connection.execute(
+            text(
+                f'SELECT fencing_token FROM "{BUSINESS_SCHEMA}"."{DURABLE_TABLE}" '
+                "WHERE dispatch_id = 'dispatch-03'"
+            )
+        ).scalar_one()
+    assert retained == 1
 
 
 def test_source_constraints_reject_invalid_version_processing_and_revision(
@@ -640,7 +1123,7 @@ def _run_test_only_failure_path(engine: Engine) -> None:
     with engine.begin() as connection:
         operations = Operations(MigrationContext.configure(connection))
         operations.create_table(
-            "mvp0_010b1_failed_probe",
+            "mvp0_018f_failed_probe",
             sa.Column("id", sa.Integer, primary_key=True),
             schema=BUSINESS_SCHEMA,
         )
@@ -653,7 +1136,7 @@ def _run_test_only_forward_repair(engine: Engine) -> None:
     with engine.begin() as connection:
         operations = Operations(MigrationContext.configure(connection))
         operations.create_table(
-            "mvp0_010b1_failed_probe",
+            "mvp0_018f_failed_probe",
             sa.Column("id", sa.Integer, primary_key=True),
             sa.Column(
                 "repaired", sa.Boolean, nullable=False, server_default=sa.false()
@@ -673,7 +1156,7 @@ def test_representative_failure_rolls_back_and_forward_repairs(
     with pytest.raises(InjectedMigrationFailure):
         _run_test_only_failure_path(migration_engine)
 
-    assert not _table_exists(migration_engine, "mvp0_010b1_failed_probe")
+    assert not _table_exists(migration_engine, "mvp0_018f_failed_probe")
     _run_test_only_forward_repair(migration_engine)
-    assert _table_exists(migration_engine, "mvp0_010b1_failed_probe")
+    assert _table_exists(migration_engine, "mvp0_018f_failed_probe")
     assert _version_rows(migration_engine) == [HEAD_REVISION]
