@@ -50,17 +50,6 @@ _FORBIDDEN_IMPORT_PREFIXES = (
     "subprocess",
     "dotenv",
 )
-_FORBIDDEN_CALLS = {
-    "open",
-    "os.getenv",
-    "os.environ",
-    "pathlib.Path",
-    "Path",
-    "socket.socket",
-    "subprocess.run",
-    "subprocess.Popen",
-    "subprocess.call",
-}
 
 
 def _dotted_name(node: ast.AST) -> str | None:
@@ -109,65 +98,149 @@ def test_durable_dispatch_contract_files_are_framework_neutral() -> None:
                 )
 
 
-def _module_scope_calls(tree: ast.Module) -> list[ast.Call]:
-    calls: list[ast.Call] = []
-    for statement in tree.body:
-        if isinstance(statement, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
-            expressions: list[ast.AST] = [*statement.decorator_list]
-            if isinstance(statement, ast.ClassDef):
-                expressions.extend(statement.bases)
-                expressions.extend(keyword.value for keyword in statement.keywords)
-            else:
-                expressions.extend(statement.args.defaults)
-                expressions.extend(
-                    default
-                    for default in statement.args.kw_defaults
-                    if default is not None
-                )
-                if statement.returns is not None:
-                    expressions.append(statement.returns)
-        else:
-            expressions = [statement]
-        calls.extend(
-            node
-            for expression in expressions
-            for node in ast.walk(expression)
-            if isinstance(node, ast.Call)
-        )
-    return calls
-
-
 def _allowed_typevar_calls(tree: ast.Module) -> set[int]:
     allowed: set[int] = set()
     for statement in tree.body:
-        if not isinstance(statement, ast.Assign):
+        if not isinstance(statement, ast.Assign) or len(statement.targets) != 1:
             continue
-        targets = {
-            target.id for target in statement.targets if isinstance(target, ast.Name)
-        }
-        if "_IdentityT" not in targets:
+        target = statement.targets[0]
+        value = statement.value
+        if not isinstance(target, ast.Name) or target.id != "_IdentityT":
             continue
-        allowed.update(
-            id(node)
-            for node in ast.walk(statement)
-            if isinstance(node, ast.Call) and _dotted_name(node.func) == "TypeVar"
-        )
+        if not isinstance(value, ast.Call) or _dotted_name(value.func) != "TypeVar":
+            continue
+        if len(value.args) != 1 or len(value.keywords) != 1:
+            continue
+        bound_keyword = value.keywords[0]
+        if bound_keyword.arg != "bound":
+            continue
+        bound_name = bound_keyword.value
+        if (
+            not isinstance(bound_name, ast.Constant)
+            or bound_name.value != "_OpaqueDispatchIdentity"
+        ):
+            continue
+        typevar_name = value.args[0]
+        if (
+            not isinstance(typevar_name, ast.Constant)
+            or typevar_name.value != "_IdentityT"
+        ):
+            continue
+        allowed.add(id(value))
     return allowed
+
+
+def _import_time_calls(tree: ast.Module) -> tuple[list[ast.Call], set[int], set[int]]:
+    calls: list[ast.Call] = []
+    allowed_dataclass_calls: set[int] = set()
+
+    def visit(node: ast.AST, *, class_decorator: bool = False) -> None:
+        if isinstance(node, ast.Call):
+            calls.append(node)
+            if class_decorator and _dotted_name(node.func) == "dataclass":
+                allowed_dataclass_calls.add(id(node))
+            visit(node.func)
+            for argument in node.args:
+                visit(argument)
+            for keyword in node.keywords:
+                visit(keyword.value)
+            return
+
+        if isinstance(node, ast.Module):
+            for statement in node.body:
+                visit(statement)
+            return
+
+        if isinstance(node, ast.ClassDef):
+            for decorator in node.decorator_list:
+                visit(decorator, class_decorator=True)
+            for base in node.bases:
+                visit(base)
+            for keyword in node.keywords:
+                visit(keyword.value)
+            for statement in node.body:
+                visit(statement)
+            return
+
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for decorator in node.decorator_list:
+                visit(decorator)
+            for default in node.args.defaults:
+                visit(default)
+            for default in node.args.kw_defaults:
+                if default is not None:
+                    visit(default)
+            arguments = [
+                *node.args.posonlyargs,
+                *node.args.args,
+                *node.args.kwonlyargs,
+            ]
+            if node.args.vararg is not None:
+                arguments.append(node.args.vararg)
+            if node.args.kwarg is not None:
+                arguments.append(node.args.kwarg)
+            for argument in arguments:
+                if argument.annotation is not None:
+                    visit(argument.annotation)
+            if node.returns is not None:
+                visit(node.returns)
+            return
+
+        if isinstance(node, ast.Lambda):
+            for default in node.args.defaults:
+                visit(default)
+            for default in node.args.kw_defaults:
+                if default is not None:
+                    visit(default)
+            return
+
+        for child in ast.iter_child_nodes(node):
+            visit(child)
+
+    visit(tree)
+    return calls, allowed_dataclass_calls, _allowed_typevar_calls(tree)
 
 
 def test_durable_dispatch_contract_files_have_no_module_scope_calls() -> None:
     for path, tree in _trees():
-        allowed_typevar_calls = _allowed_typevar_calls(tree)
-        for call in _module_scope_calls(tree):
+        calls, allowed_dataclass_calls, allowed_typevar_calls = _import_time_calls(tree)
+        for call in calls:
             call_name = _dotted_name(call.func)
-            if call_name == "dataclass" or id(call) in allowed_typevar_calls:
+            if id(call) in allowed_dataclass_calls or id(call) in allowed_typevar_calls:
                 continue
-            assert call_name not in _FORBIDDEN_CALLS, (
-                f"{path} performs forbidden module-scope call {call_name!r}"
-            )
             raise AssertionError(
                 f"{path} performs undeclared module-scope call {call_name!r}"
             )
+
+
+def test_module_scope_call_guard_rejects_non_decorator_calls() -> None:
+    tree = ast.parse(
+        """
+from dataclasses import dataclass
+from typing import TypeVar
+from uuid import uuid4
+
+_IdentityT = TypeVar("_IdentityT", bound="_OpaqueDispatchIdentity")
+
+@dataclass(frozen=True)
+class Allowed:
+    pass
+
+class Rejected:
+    token = uuid4()
+
+value = dataclass()
+"""
+    )
+    calls, allowed_dataclass_calls, allowed_typevar_calls = _import_time_calls(tree)
+
+    unexpected = [
+        _dotted_name(call.func)
+        for call in calls
+        if id(call) not in allowed_dataclass_calls
+        and id(call) not in allowed_typevar_calls
+    ]
+    assert unexpected == ["uuid4", "dataclass"]
 
 
 def test_durable_dispatch_package_imports_cleanly() -> None:
