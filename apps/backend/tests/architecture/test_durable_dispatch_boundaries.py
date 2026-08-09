@@ -18,6 +18,7 @@ _PRODUCTION_FILES = (
     _DISPATCH_ROOT / "domain" / "__init__.py",
     _DISPATCH_ROOT / "domain" / "identity.py",
     _DISPATCH_ROOT / "domain" / "status.py",
+    _DISPATCH_ROOT / "domain" / "envelope.py",
     _DISPATCH_ROOT / "public.py",
 )
 _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
@@ -25,17 +26,20 @@ _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
     _DISPATCH_ROOT / "domain" / "__init__.py": frozenset(),
     _DISPATCH_ROOT / "domain" / "identity.py": frozenset(),
     _DISPATCH_ROOT / "domain" / "status.py": frozenset(),
+    _DISPATCH_ROOT / "domain" / "envelope.py": frozenset({(1, "identity")}),
     _DISPATCH_ROOT / "public.py": frozenset(
-        {(1, "domain.identity"), (1, "domain.status")}
+        {(1, "domain.envelope"), (1, "domain.identity"), (1, "domain.status")}
     ),
 }
 _ALLOWED_STDLIB_IMPORTS = {
     "__future__",
     "dataclasses",
+    "datetime",
     "enum",
     "typing",
     "uuid",
 }
+_ALLOWED_ABSOLUTE_IMPORTS = {"ai_ecommerce_agent.shared_kernel"}
 _FORBIDDEN_IMPORT_PREFIXES = (
     "sqlalchemy",
     "psycopg",
@@ -89,6 +93,8 @@ def test_durable_dispatch_contract_files_are_framework_neutral() -> None:
             else:
                 continue
             for imported in imported_names:
+                if imported in _ALLOWED_ABSOLUTE_IMPORTS:
+                    continue
                 root_name = imported.split(".", 1)[0]
                 assert root_name in _ALLOWED_STDLIB_IMPORTS, (
                     f"{path} imports non-stdlib module {imported!r}"
