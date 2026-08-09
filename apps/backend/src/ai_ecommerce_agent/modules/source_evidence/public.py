@@ -1,8 +1,9 @@
 """The narrow Source and Evidence public facade.
 
-Only typed processing and association commands, application protocols/errors,
-accepted catalogs, and immutable snapshots cross the module boundary. Entities,
-transition helpers, repositories, UoW, ORM, and runtime types remain private.
+Only typed processing commands, immutable-read queries, association commands,
+application protocols/errors, accepted catalogs, and immutable snapshots cross
+the module boundary. Entities, transition helpers, repositories, UoW, ORM, and
+runtime types remain private.
 """
 
 from .application.association_commands import (
@@ -21,6 +22,8 @@ from .application.commands import (
 )
 from .application.errors import SourceEvidenceError
 from .application.protocols import SourceEvidenceApplication
+from .application.queries import GetSourceAssociation, GetSourceVersion
+from .application.query_protocols import SourceEvidenceQueryApplication
 from .domain.snapshots import (
     SourceAssociationMembershipState,
     SourceAssociationSnapshot,
@@ -45,4 +48,7 @@ __all__ = [
     "SourceAssociationApplication",
     "SourceAssociationError",
     "SourceAssociationReplacementSnapshot",
+    "GetSourceVersion",
+    "GetSourceAssociation",
+    "SourceEvidenceQueryApplication",
 ]

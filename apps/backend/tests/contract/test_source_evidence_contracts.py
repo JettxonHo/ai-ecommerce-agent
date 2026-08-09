@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import FrozenInstanceError, fields, is_dataclass
 from datetime import UTC, datetime
 from inspect import iscoroutinefunction, signature
-from typing import Any, get_protocol_members, get_type_hints
+from typing import Any, cast, get_protocol_members, get_type_hints
 
 import pytest
 
@@ -38,6 +38,9 @@ _PUBLIC_NAMES = {
     "SourceAssociationApplication",
     "SourceAssociationError",
     "SourceAssociationReplacementSnapshot",
+    "GetSourceVersion",
+    "GetSourceAssociation",
+    "SourceEvidenceQueryApplication",
 }
 
 _PUBLIC_ORDER = [
@@ -57,6 +60,9 @@ _PUBLIC_ORDER = [
     "SourceAssociationApplication",
     "SourceAssociationError",
     "SourceAssociationReplacementSnapshot",
+    "GetSourceVersion",
+    "GetSourceAssociation",
+    "SourceEvidenceQueryApplication",
 ]
 
 
@@ -114,6 +120,75 @@ def test_source_processing_commands_are_frozen_slotted_and_exact() -> None:
         with pytest.raises(FrozenInstanceError):
             instance.source_version_id = SourceVersionId("sv-2")
     assert get_type_hints(public.MarkSourceProcessingFailed)["failure_summary"] is str
+
+
+def test_source_query_values_are_frozen_slotted_and_exact() -> None:
+    query_fields = {
+        public.GetSourceVersion: ("source_version_id",),
+        public.GetSourceAssociation: ("task_id", "source_association_id"),
+    }
+    query_types = {
+        public.GetSourceVersion: {"source_version_id": SourceVersionId},
+        public.GetSourceAssociation: {
+            "task_id": TaskId,
+            "source_association_id": SourceAssociationId,
+        },
+    }
+    values: dict[Any, tuple[Any, ...]] = {
+        public.GetSourceVersion: (SourceVersionId("sv-query"),),
+        public.GetSourceAssociation: (
+            TaskId("task-query"),
+            SourceAssociationId("association-query"),
+        ),
+    }
+    for query, expected_fields in query_fields.items():
+        assert is_dataclass(query)
+        assert cast(Any, query).__dataclass_params__.frozen
+        assert query.__slots__ == expected_fields
+        assert tuple(field.name for field in fields(query)) == expected_fields
+        assert get_type_hints(query) == query_types[query]
+        instance = query(*values[query])
+        with pytest.raises(FrozenInstanceError):
+            instance.__setattr__(expected_fields[0], values[query][0])
+
+
+def test_source_query_protocol_has_exact_sync_methods_and_annotations() -> None:
+    protocol = public.SourceEvidenceQueryApplication
+    assert get_protocol_members(protocol) == {
+        "get_source_version",
+        "get_source_association",
+    }
+    expected = {
+        "get_source_version": (public.GetSourceVersion, public.SourceVersionSnapshot),
+        "get_source_association": (
+            public.GetSourceAssociation,
+            public.SourceAssociationSnapshot,
+        ),
+    }
+    for name, (query, result) in expected.items():
+        method = getattr(protocol, name)
+        assert not iscoroutinefunction(method)
+        assert [
+            parameter.name for parameter in signature(method).parameters.values()
+        ] == ["self", "query"]
+        hints = get_type_hints(method)
+        assert hints["query"] is query
+        assert hints["return"] is result
+
+    class SynchronousImplementation:
+        def get_source_version(
+            self, query: public.GetSourceVersion
+        ) -> public.SourceVersionSnapshot:
+            raise NotImplementedError
+
+        def get_source_association(
+            self, query: public.GetSourceAssociation
+        ) -> public.SourceAssociationSnapshot:
+            raise NotImplementedError
+
+    implementation = SynchronousImplementation()
+    assert isinstance(implementation, protocol)
+    assert not isinstance(object(), protocol)
 
 
 def test_source_processing_commands_reject_naive_timestamps_and_blank_failures() -> (

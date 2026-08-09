@@ -13,6 +13,12 @@ from ai_ecommerce_agent.modules.source_evidence.application import (
 from ai_ecommerce_agent.modules.source_evidence.application.protocols import (
     SourceEvidenceApplication,
 )
+from ai_ecommerce_agent.modules.source_evidence.application.query_protocols import (
+    SourceEvidenceQueryApplication,
+)
+from ai_ecommerce_agent.modules.source_evidence.application.query_services import (
+    SourceEvidenceQueryApplicationService,
+)
 from ai_ecommerce_agent.modules.source_evidence.application.services import (
     SourceEvidenceApplicationService,
 )
@@ -33,6 +39,7 @@ class SourceEvidencePostgresComposition:
     uow_factory: SourceEvidencePostgresUnitOfWorkFactory
     application: SourceEvidenceApplication
     association_application: association_protocols.SourceAssociationApplication
+    query_application: SourceEvidenceQueryApplication
 
     def close(self) -> None:
         """Dispose the process-lifetime engine at application shutdown."""
@@ -56,6 +63,7 @@ def compose_source_evidence_postgres(
         association_application=association_services.SourceAssociationApplicationService(
             uow_factory
         ),
+        query_application=SourceEvidenceQueryApplicationService(uow_factory),
     )
 
 
