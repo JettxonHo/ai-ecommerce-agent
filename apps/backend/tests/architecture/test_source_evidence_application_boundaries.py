@@ -25,6 +25,8 @@ _APPLICATION_PUBLIC_MODULES = (
     SOURCE_ROOT / "application" / "association_errors.py",
     SOURCE_ROOT / "application" / "association_protocols.py",
     SOURCE_ROOT / "application" / "association_results.py",
+    SOURCE_ROOT / "application" / "queries.py",
+    SOURCE_ROOT / "application" / "query_protocols.py",
     SOURCE_ROOT / "public.py",
 )
 _ALLOWED_DECORATORS = {"dataclass", "runtime_checkable"}
@@ -105,3 +107,20 @@ def test_source_public_facade_retains_the_existing_four_symbols() -> None:
         "SourceVersionSnapshot",
     }.issubset(public.__all__)
     assert not hasattr(public, "SourceEvidenceUnitOfWork")
+
+
+def test_source_query_contract_is_public_without_technical_leakage() -> None:
+    assert {
+        "GetSourceVersion",
+        "GetSourceAssociation",
+        "SourceEvidenceQueryApplication",
+    }.issubset(public.__all__)
+    assert not any(
+        hasattr(public, name)
+        for name in (
+            "SourceEvidenceQueryApplicationService",
+            "SourceEvidencePostgresUnitOfWorkFactory",
+            "Engine",
+            "Session",
+        )
+    )
