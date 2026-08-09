@@ -10,7 +10,11 @@ import pytest
 
 from ai_ecommerce_agent.modules.durable_dispatch import infrastructure, public
 from ai_ecommerce_agent.modules.durable_dispatch.application import errors
-from ai_ecommerce_agent.modules.durable_dispatch.infrastructure import repositories, uow
+from ai_ecommerce_agent.modules.durable_dispatch.infrastructure import (
+    lease_repository,
+    repositories,
+    uow,
+)
 
 pytestmark = pytest.mark.architecture
 
@@ -48,8 +52,26 @@ _PRODUCTION_FILES: dict[Path, _ImportRules] = {
         ),
         "stdlib": frozenset({"__future__", "collections.abc", "typing"}),
     },
+    _DISPATCH_ROOT / "infrastructure" / "lease_repository.py": {
+        "relative": frozenset({(1, "mappings"), (1, "repositories"), (1, "tables")}),
+        "absolute": frozenset(
+            {
+                "ai_ecommerce_agent.modules.durable_dispatch.application.errors",
+                "ai_ecommerce_agent.modules.durable_dispatch.application.lease_commands",
+                "ai_ecommerce_agent.modules.durable_dispatch.domain.identity",
+                "ai_ecommerce_agent.modules.durable_dispatch.domain.ownership",
+                "ai_ecommerce_agent.modules.durable_dispatch.domain.snapshots",
+                "ai_ecommerce_agent.modules.durable_dispatch.domain.status",
+                "sqlalchemy",
+                "sqlalchemy.orm",
+            }
+        ),
+        "stdlib": frozenset({"__future__", "dataclasses", "typing"}),
+    },
     _DISPATCH_ROOT / "infrastructure" / "uow.py": {
-        "relative": frozenset({(1, "repositories"), (1, "tables")}),
+        "relative": frozenset(
+            {(1, "lease_repository"), (1, "repositories"), (1, "tables")}
+        ),
         "absolute": frozenset(
             {
                 "ai_ecommerce_agent.modules.durable_dispatch.application.errors",
@@ -86,6 +108,9 @@ def test_private_exports_and_public_facade_boundaries_are_exact() -> None:
         "DurableDispatchRevisionConflictError",
     ]
     assert repositories.__all__ == ["DurableDispatchPostgresWorkIntentRepository"]
+    assert lease_repository.__all__ == [
+        "DurableDispatchPostgresWorkIntentLeaseRepository"
+    ]
     assert uow.__all__ == [
         "DurableDispatchPostgresUnitOfWork",
         "DurableDispatchPostgresUnitOfWorkFactory",
@@ -94,6 +119,7 @@ def test_private_exports_and_public_facade_boundaries_are_exact() -> None:
         hasattr(public, name)
         for name in (
             "DurableDispatchPostgresWorkIntentRepository",
+            "DurableDispatchPostgresWorkIntentLeaseRepository",
             "DurableDispatchPostgresUnitOfWork",
             "DurableDispatchPostgresUnitOfWorkFactory",
             "DurableDispatchPersistenceError",
@@ -112,6 +138,10 @@ def test_private_exports_and_public_facade_boundaries_are_exact() -> None:
 def test_repository_has_no_transaction_lifecycle_methods() -> None:
     assert not any(
         hasattr(repositories.DurableDispatchPostgresWorkIntentRepository, name)
+        for name in ("commit", "rollback", "close")
+    )
+    assert not any(
+        hasattr(lease_repository.DurableDispatchPostgresWorkIntentLeaseRepository, name)
         for name in ("commit", "rollback", "close")
     )
     assert not any(
@@ -148,6 +178,8 @@ def test_adapter_contains_no_claim_lifecycle_or_resource_escape_symbols() -> Non
             node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)
         }
         forbidden_names: set[str] = set(_FORBIDDEN_NAMES)
+        if path.name == "lease_repository.py":
+            forbidden_names.discard("takeover")
         if path.name != "uow.py":
             forbidden_names.add("Engine")
         assert not names & forbidden_names, path
@@ -208,5 +240,7 @@ def test_adapter_has_no_import_time_calls_or_decorators() -> None:
 
         visit(tree)
         assert calls == [], path
-        expected = ["property", "classmethod"] if path.name == "uow.py" else []
+        expected = (
+            ["property", "property", "classmethod"] if path.name == "uow.py" else []
+        )
         assert decorators == expected, path

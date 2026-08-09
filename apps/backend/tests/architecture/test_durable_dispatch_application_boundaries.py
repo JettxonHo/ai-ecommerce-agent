@@ -30,7 +30,11 @@ _PRODUCTION_FILES = (
 _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
     _APPLICATION_ROOT / "__init__.py": frozenset({(1, "ports")}),
     _APPLICATION_ROOT / "ports.py": frozenset(
-        {(2, "domain.identity"), (2, "domain.snapshots")}
+        {
+            (1, "lease_commands"),
+            (2, "domain.identity"),
+            (2, "domain.snapshots"),
+        }
     ),
     _APPLICATION_ROOT / "lease_commands.py": frozenset(
         {(2, "domain.identity"), (2, "domain.ownership")}
@@ -220,6 +224,7 @@ def test_protocols_use_only_exact_bare_runtime_checkable_decorators() -> None:
     expected_protocols = {
         _APPLICATION_ROOT / "ports.py": [
             "WorkIntentRepositoryPort",
+            "WorkIntentLeaseRepositoryPort",
             "DurableDispatchUnitOfWork",
             "DurableDispatchUnitOfWorkFactory",
         ],
@@ -243,8 +248,14 @@ def test_application_ports_allow_only_the_frozen_decorator_applications() -> Non
         _APPLICATION_ROOT / "__init__.py": [],
         _APPLICATION_ROOT / "ports.py": [
             ("class:WorkIntentRepositoryPort", "runtime_checkable", False),
+            ("class:WorkIntentLeaseRepositoryPort", "runtime_checkable", False),
             ("class:DurableDispatchUnitOfWork", "runtime_checkable", False),
             ("method:DurableDispatchUnitOfWork.work_intents", "property", False),
+            (
+                "method:DurableDispatchUnitOfWork.work_intent_leases",
+                "property",
+                False,
+            ),
             ("class:DurableDispatchUnitOfWorkFactory", "runtime_checkable", False),
         ],
         _APPLICATION_ROOT / "lease_commands.py": [
