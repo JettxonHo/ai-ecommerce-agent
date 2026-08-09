@@ -14,6 +14,8 @@ _EXPECTED_PUBLIC = [
     "FencingToken",
     "WorkIntentStatus",
     "WorkIntentEnvelope",
+    "LeaseHolderId",
+    "WorkIntentLease",
 ]
 
 

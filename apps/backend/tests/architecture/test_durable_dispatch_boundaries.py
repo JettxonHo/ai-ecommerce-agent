@@ -19,6 +19,7 @@ _PRODUCTION_FILES = (
     _DISPATCH_ROOT / "domain" / "identity.py",
     _DISPATCH_ROOT / "domain" / "status.py",
     _DISPATCH_ROOT / "domain" / "envelope.py",
+    _DISPATCH_ROOT / "domain" / "ownership.py",
     _DISPATCH_ROOT / "public.py",
 )
 _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
@@ -27,8 +28,14 @@ _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
     _DISPATCH_ROOT / "domain" / "identity.py": frozenset(),
     _DISPATCH_ROOT / "domain" / "status.py": frozenset(),
     _DISPATCH_ROOT / "domain" / "envelope.py": frozenset({(1, "identity")}),
+    _DISPATCH_ROOT / "domain" / "ownership.py": frozenset({(1, "identity")}),
     _DISPATCH_ROOT / "public.py": frozenset(
-        {(1, "domain.envelope"), (1, "domain.identity"), (1, "domain.status")}
+        {
+            (1, "domain.envelope"),
+            (1, "domain.identity"),
+            (1, "domain.ownership"),
+            (1, "domain.status"),
+        }
     ),
 }
 _ALLOWED_STDLIB_IMPORTS = {
@@ -40,6 +47,14 @@ _ALLOWED_STDLIB_IMPORTS = {
     "uuid",
 }
 _ALLOWED_ABSOLUTE_IMPORTS = {"ai_ecommerce_agent.shared_kernel"}
+_PATH_STDLIB_IMPORTS: dict[Path, frozenset[str]] = {
+    _DISPATCH_ROOT / "domain" / "ownership.py": frozenset(
+        {"__future__", "dataclasses", "datetime"}
+    ),
+}
+_PATH_ABSOLUTE_IMPORTS: dict[Path, frozenset[str]] = {
+    _DISPATCH_ROOT / "domain" / "ownership.py": frozenset(),
+}
 _FORBIDDEN_IMPORT_PREFIXES = (
     "sqlalchemy",
     "psycopg",
@@ -77,6 +92,12 @@ def _trees() -> list[tuple[Path, ast.Module]]:
 
 def test_durable_dispatch_contract_files_are_framework_neutral() -> None:
     for path, tree in _trees():
+        allowed_stdlib_imports = _PATH_STDLIB_IMPORTS.get(
+            path, frozenset(_ALLOWED_STDLIB_IMPORTS)
+        )
+        allowed_absolute_imports = _PATH_ABSOLUTE_IMPORTS.get(
+            path, frozenset(_ALLOWED_ABSOLUTE_IMPORTS)
+        )
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 imported_names = [alias.name for alias in node.names]
@@ -93,11 +114,11 @@ def test_durable_dispatch_contract_files_are_framework_neutral() -> None:
             else:
                 continue
             for imported in imported_names:
-                if imported in _ALLOWED_ABSOLUTE_IMPORTS:
+                if imported in allowed_absolute_imports:
                     continue
                 root_name = imported.split(".", 1)[0]
-                assert root_name in _ALLOWED_STDLIB_IMPORTS, (
-                    f"{path} imports non-stdlib module {imported!r}"
+                assert root_name in allowed_stdlib_imports, (
+                    f"{path} imports disallowed module {imported!r}"
                 )
                 assert not imported.startswith(_FORBIDDEN_IMPORT_PREFIXES), (
                     f"{path} imports forbidden module {imported!r}"
