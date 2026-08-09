@@ -6,6 +6,7 @@ remain private to later Human Review slices.
 """
 
 from .domain.contracts import (
+    ApprovedStrategySemanticGroupName,
     ReviewDecisionBasis,
     ReviewDecisionOutcome,
     ReviewDraftReference,
@@ -15,6 +16,8 @@ from .domain.contracts import (
     ReviewSemanticGroupName,
 )
 from .domain.snapshots import (
+    ApprovedStrategySemanticGroup,
+    ApprovedStrategyVersionSnapshot,
     ReviewDecisionSnapshot,
     ReviewDraftMetadata,
     ReviewPackageHeader,
@@ -35,4 +38,7 @@ __all__ = [
     "ReviewSemanticGroupName",
     "ReviewSemanticGroup",
     "ReviewPackageSnapshot",
+    "ApprovedStrategySemanticGroupName",
+    "ApprovedStrategySemanticGroup",
+    "ApprovedStrategyVersionSnapshot",
 ]
