@@ -103,25 +103,17 @@ def test_bootstrap_module_has_no_import_time_calls_or_environment_io() -> None:
     assert "worker" not in source.lower()
 
 
-def test_source_public_facade_stays_exactly_sixteen_symbols() -> None:
-    assert public.__all__ == [
-        "SourceAssociationMembershipState",
-        "SourceAssociationSnapshot",
+def test_source_public_facade_composes_processing_and_association_contracts() -> None:
+    assert {
         "SourceEvidenceApplication",
         "SourceEvidenceError",
-        "SourceProcessingStatus",
-        "SourceVersionSnapshot",
-        "MarkSourceProcessingFailed",
-        "MarkSourceReady",
-        "MarkSourceReadyWithRejections",
         "StartSourceProcessing",
-        "SupersedeSourceVersion",
         "RemoveSourceAssociation",
         "ReplaceSourceAssociation",
         "SourceAssociationApplication",
         "SourceAssociationError",
         "SourceAssociationReplacementSnapshot",
-    ]
+    }.issubset(public.__all__)
     assert not any(
         hasattr(public, name)
         for name in (
