@@ -300,12 +300,26 @@ def _constraint_definitions(engine: Engine, table_name: str) -> dict[str, str]:
 
 
 def _normalize_constraint_sql(expression: str) -> str:
-    """Ignore PostgreSQL's CHECK wrapper, whitespace, and redundant parens."""
+    """Ignore formatting and only redundant outer CHECK parentheses."""
 
-    normalized = expression.lower().replace("check", "", 1)
-    return "".join(
-        char for char in normalized if not char.isspace() and char not in "()"
-    )
+    normalized = " ".join(expression.lower().split())
+    if normalized.startswith("check "):
+        normalized = normalized[6:]
+    while normalized.startswith("(") and normalized.endswith(")"):
+        depth = 0
+        closes_before_end = False
+        for index, character in enumerate(normalized):
+            if character == "(":
+                depth += 1
+            elif character == ")":
+                depth -= 1
+                if depth == 0 and index != len(normalized) - 1:
+                    closes_before_end = True
+                    break
+        if closes_before_end:
+            break
+        normalized = normalized[1:-1].strip()
+    return normalized
 
 
 def _index_names(engine: Engine, table_name: str) -> set[str]:
@@ -601,6 +615,33 @@ def test_existing_source_head_to_durable_head_upgrade(
     assert _tables(migration_engine) == ["alembic_version", *DOMAIN_TABLES]
 
 
+def test_durable_downgrade_is_forward_only_and_preserves_state(
+    migration_engine: Engine,
+) -> None:
+    """A rejected downgrade preserves the head, table, and Work Intent row."""
+
+    _reset_schema(migration_engine)
+    config = _config(_database_url())
+    command.upgrade(config, HEAD_REVISION)
+    _insert_work_intent(migration_engine, dispatch_id="dispatch-downgrade")
+
+    with pytest.raises(RuntimeError, match="forward-fix-only"):
+        command.downgrade(config, SOURCE_HEAD_REVISION)
+
+    assert _version_rows(migration_engine) == [HEAD_REVISION]
+    assert _table_exists(migration_engine, DURABLE_TABLE)
+    with migration_engine.connect() as connection:
+        assert (
+            connection.scalar(
+                text(
+                    f'SELECT count(*) FROM "{BUSINESS_SCHEMA}"."{DURABLE_TABLE}" '
+                    "WHERE dispatch_id = 'dispatch-downgrade'"
+                )
+            )
+            == 1
+        )
+
+
 def test_alembic_current_check_and_offline_sql_are_reviewable(
     migration_engine: Engine,
     capsys: pytest.CaptureFixture[str],
@@ -621,6 +662,9 @@ def test_alembic_current_check_and_offline_sql_are_reviewable(
     # identifier unquoted; the schema-qualified identity is what matters.
     assert f"{BUSINESS_SCHEMA}.alembic_version" in output
     assert all(table in output for table in DOMAIN_TABLES)
+    for table in DOMAIN_TABLES:
+        assert f"CREATE TABLE {BUSINESS_SCHEMA}.{table}" in output
+        assert f"CREATE TABLE {table}" not in output
 
 
 def test_named_tables_and_constraints_are_present(
@@ -753,14 +797,15 @@ def test_durable_work_intent_has_named_checks_fk_and_only_primary_index(
 
     definitions = _constraint_definitions(migration_engine, DURABLE_TABLE)
     assert set(definitions) == DURABLE_CONSTRAINT_NAMES
-    assert (
-        "PRIMARY KEY (dispatch_id)" in definitions["pk_durable_dispatch_work_intents"]
+    assert definitions["pk_durable_dispatch_work_intents"] == (
+        "PRIMARY KEY (dispatch_id)"
     )
-    assert (
-        "FOREIGN KEY (rerun_of_dispatch_id)"
-        in definitions["fk_durable_dispatch_work_intents_rerun_of"]
+    assert _normalize_constraint_sql(
+        definitions["fk_durable_dispatch_work_intents_rerun_of"]
+    ) == _normalize_constraint_sql(
+        "FOREIGN KEY (rerun_of_dispatch_id) REFERENCES "
+        f"{BUSINESS_SCHEMA}.{DURABLE_TABLE}(dispatch_id)"
     )
-    assert "REFERENCES" in definitions["fk_durable_dispatch_work_intents_rerun_of"]
     expected_checks = {
         **{
             (
@@ -784,7 +829,7 @@ def test_durable_work_intent_has_named_checks_fk_and_only_primary_index(
             (
                 "ck_durable_dispatch_work_intents_"
                 f"{DURABLE_CHECK_COLUMN_NAMES.get(column, column)}_nonempty"
-            ): (f"{column} IS NULL OR length(btrim({column})) > 0")
+            ): (f"({column} IS NULL) OR (length(btrim({column})) > 0)")
             for column in (
                 "stage_run_id",
                 "base_domain_version_id",
@@ -801,7 +846,7 @@ def test_durable_work_intent_has_named_checks_fk_and_only_primary_index(
         ),
         "ck_durable_dispatch_work_intents_revision_nonnegative": "revision >= 0",
         "ck_durable_dispatch_work_intents_expected_revision_nonnegative": (
-            "expected_revision IS NULL OR expected_revision >= 0"
+            "(expected_revision IS NULL) OR (expected_revision >= 0)"
         ),
         "ck_durable_dispatch_work_intents_fencing_token_nonnegative": (
             "fencing_token >= 0"
@@ -810,17 +855,18 @@ def test_durable_work_intent_has_named_checks_fk_and_only_primary_index(
             "available_at >= created_at"
         ),
         "ck_durable_dispatch_work_intents_rerun_distinct": (
-            "rerun_of_dispatch_id IS NULL OR rerun_of_dispatch_id <> dispatch_id"
+            "(rerun_of_dispatch_id IS NULL) OR (rerun_of_dispatch_id <> dispatch_id)"
         ),
         "ck_durable_dispatch_work_intents_lease_tuple": (
-            "(delivery_attempt_id IS NULL AND lease_holder_id IS NULL AND "
-            "lease_expires_at IS NULL) OR "
-            "(delivery_attempt_id IS NOT NULL AND lease_holder_id IS NOT NULL "
-            "AND lease_expires_at IS NOT NULL)"
+            "((delivery_attempt_id IS NULL) AND (lease_holder_id IS NULL) AND "
+            "(lease_expires_at IS NULL)) OR "
+            "((delivery_attempt_id IS NOT NULL) AND "
+            "(lease_holder_id IS NOT NULL) AND "
+            "(lease_expires_at IS NOT NULL))"
         ),
         "ck_durable_dispatch_work_intents_leased_fencing_token": (
-            "(delivery_attempt_id IS NULL AND lease_holder_id IS NULL AND "
-            "lease_expires_at IS NULL) OR fencing_token >= 1"
+            "((delivery_attempt_id IS NULL) AND (lease_holder_id IS NULL) AND "
+            "(lease_expires_at IS NULL)) OR (fencing_token >= 1)"
         ),
     }
     assert {
