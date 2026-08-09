@@ -10,12 +10,12 @@ pytestmark = pytest.mark.architecture
 
 
 def test_source_facade_does_not_expose_domain_or_technical_internals() -> None:
-    assert set(public.__all__) == {
+    assert {
         "SourceAssociationMembershipState",
         "SourceAssociationSnapshot",
         "SourceProcessingStatus",
         "SourceVersionSnapshot",
-    }
+    }.issubset(public.__all__)
     for internal_name in (
         "Source",
         "SourceVersion",

@@ -40,13 +40,13 @@ def test_table_module_has_no_process_or_transaction_resources() -> None:
     assert not hasattr(tables.SOURCE_EVIDENCE_METADATA, "bind")
 
 
-def test_source_public_facade_remains_the_four_symbol_contract() -> None:
-    assert set(public.__all__) == {
+def test_source_public_facade_retains_the_existing_four_symbols() -> None:
+    assert {
         "SourceAssociationMembershipState",
         "SourceAssociationSnapshot",
         "SourceProcessingStatus",
         "SourceVersionSnapshot",
-    }
+    }.issubset(public.__all__)
     assert not any(
         hasattr(public, name)
         for name in (

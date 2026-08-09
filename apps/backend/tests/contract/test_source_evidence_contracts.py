@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import fields, is_dataclass
-from datetime import datetime
-from typing import get_type_hints
+from dataclasses import FrozenInstanceError, fields, is_dataclass
+from datetime import UTC, datetime
+from inspect import iscoroutinefunction, signature
+from typing import Any, get_protocol_members, get_type_hints
 
 import pytest
 
@@ -21,14 +22,21 @@ from ai_ecommerce_agent.shared_kernel import (
 pytestmark = pytest.mark.contract
 
 _PUBLIC_NAMES = {
+    "MarkSourceProcessingFailed",
+    "MarkSourceReady",
+    "MarkSourceReadyWithRejections",
     "SourceAssociationMembershipState",
     "SourceAssociationSnapshot",
+    "SourceEvidenceApplication",
+    "SourceEvidenceError",
     "SourceProcessingStatus",
     "SourceVersionSnapshot",
+    "StartSourceProcessing",
+    "SupersedeSourceVersion",
 }
 
 
-def test_source_facade_exports_exactly_the_four_frozen_symbols() -> None:
+def test_source_facade_exports_exactly_the_frozen_symbols() -> None:
     assert set(public.__all__) == _PUBLIC_NAMES
     assert not hasattr(public, "Source")
     assert not hasattr(public, "SourceVersion")
@@ -36,6 +44,206 @@ def test_source_facade_exports_exactly_the_four_frozen_symbols() -> None:
     assert not hasattr(public, "TaskSourceAssociation")
     assert not hasattr(public, "Session")
     assert not hasattr(public, "UnitOfWork")
+
+
+def test_source_processing_commands_are_frozen_slotted_and_exact() -> None:
+    command_fields = {
+        "StartSourceProcessing": (
+            "source_version_id",
+            "expected_revision",
+            "updated_at",
+        ),
+        "MarkSourceReady": ("source_version_id", "expected_revision", "updated_at"),
+        "MarkSourceReadyWithRejections": (
+            "source_version_id",
+            "expected_revision",
+            "updated_at",
+        ),
+        "MarkSourceProcessingFailed": (
+            "source_version_id",
+            "expected_revision",
+            "updated_at",
+            "failure_summary",
+        ),
+        "SupersedeSourceVersion": (
+            "source_version_id",
+            "expected_revision",
+            "updated_at",
+        ),
+    }
+    for name, expected_fields in command_fields.items():
+        command: Any = getattr(public, name)
+        assert bool(is_dataclass(command))
+        assert tuple(field.name for field in fields(command)) == expected_fields
+        assert hasattr(command, "__slots__")
+        hints = get_type_hints(command)
+        assert hints["source_version_id"] is SourceVersionId
+        assert hints["expected_revision"] is Revision
+        assert hints["updated_at"] is datetime
+        instance: Any = command(
+            SourceVersionId("sv-1"),
+            Revision.initial(),
+            datetime(2026, 8, 9, tzinfo=UTC),
+            *(["failed"] if name == "MarkSourceProcessingFailed" else []),
+        )
+        with pytest.raises(FrozenInstanceError):
+            instance.source_version_id = SourceVersionId("sv-2")
+    assert get_type_hints(public.MarkSourceProcessingFailed)["failure_summary"] is str
+
+
+def test_source_processing_commands_reject_naive_timestamps_and_blank_failures() -> (
+    None
+):
+    for command in (
+        public.StartSourceProcessing,
+        public.MarkSourceReady,
+        public.MarkSourceReadyWithRejections,
+        public.SupersedeSourceVersion,
+    ):
+        with pytest.raises(ValueError, match="timezone-aware"):
+            command(
+                source_version_id=SourceVersionId("sv-1"),
+                expected_revision=Revision.initial(),
+                updated_at=datetime(2026, 8, 9),
+            )
+    with pytest.raises(ValueError, match="timezone-aware"):
+        public.MarkSourceProcessingFailed(
+            source_version_id=SourceVersionId("sv-1"),
+            expected_revision=Revision.initial(),
+            updated_at=datetime(2026, 8, 9),
+            failure_summary="parser failed",
+        )
+    with pytest.raises(ValueError, match="non-empty"):
+        public.MarkSourceProcessingFailed(
+            source_version_id=SourceVersionId("sv-1"),
+            expected_revision=Revision.initial(),
+            updated_at=datetime(2026, 8, 9, tzinfo=UTC),
+            failure_summary=" \t\n ",
+        )
+
+
+def test_source_processing_protocol_has_exact_sync_methods_and_annotations() -> None:
+    protocol = public.SourceEvidenceApplication
+    assert get_protocol_members(protocol) == {
+        "start_source_processing",
+        "mark_source_ready",
+        "mark_source_ready_with_rejections",
+        "mark_source_processing_failed",
+        "supersede_source_version",
+    }
+    expected = {
+        "start_source_processing": public.StartSourceProcessing,
+        "mark_source_ready": public.MarkSourceReady,
+        "mark_source_ready_with_rejections": public.MarkSourceReadyWithRejections,
+        "mark_source_processing_failed": public.MarkSourceProcessingFailed,
+        "supersede_source_version": public.SupersedeSourceVersion,
+    }
+    for name, command in expected.items():
+        method = getattr(protocol, name)
+        assert not iscoroutinefunction(method)
+        parameters = list(signature(method).parameters.values())
+        assert [parameter.name for parameter in parameters] == ["self", "command"]
+        assert get_type_hints(method)["command"] is command
+        assert get_type_hints(method)["return"] is public.SourceVersionSnapshot
+
+    class SynchronousImplementation:
+        def start_source_processing(
+            self, command: public.StartSourceProcessing
+        ) -> public.SourceVersionSnapshot:
+            raise NotImplementedError
+
+        def mark_source_ready(
+            self, command: public.MarkSourceReady
+        ) -> public.SourceVersionSnapshot:
+            raise NotImplementedError
+
+        def mark_source_ready_with_rejections(
+            self, command: public.MarkSourceReadyWithRejections
+        ) -> public.SourceVersionSnapshot:
+            raise NotImplementedError
+
+        def mark_source_processing_failed(
+            self, command: public.MarkSourceProcessingFailed
+        ) -> public.SourceVersionSnapshot:
+            raise NotImplementedError
+
+        def supersede_source_version(
+            self, command: public.SupersedeSourceVersion
+        ) -> public.SourceVersionSnapshot:
+            raise NotImplementedError
+
+    implementation = SynchronousImplementation()
+    assert isinstance(implementation, protocol)
+    assert not isinstance(object(), protocol)
+    assert all(
+        not iscoroutinefunction(getattr(implementation, name)) for name in expected
+    )
+
+
+def test_source_evidence_error_is_shallow_typed_and_catchable() -> None:
+    error = public.SourceEvidenceError(
+        error_code="revision_conflict",
+        category="source_evidence",
+        message="The Source Version changed",
+        retryability=False,
+        relevant_reference=SourceVersionId("sv-1"),
+        expected_revision=Revision(1),
+        actual_revision=Revision(2),
+        conflicting_state=public.SourceProcessingStatus.PROCESSING,
+        recovery_hint="refresh_and_compare",
+    )
+    assert isinstance(error, Exception)
+    assert str(error) == "The Source Version changed"
+    assert {field.name for field in fields(public.SourceEvidenceError)} == {
+        "error_code",
+        "category",
+        "message",
+        "retryability",
+        "relevant_reference",
+        "expected_revision",
+        "actual_revision",
+        "conflicting_state",
+        "recovery_hint",
+    }
+    hints = get_type_hints(public.SourceEvidenceError)
+    assert hints["error_code"] is str
+    assert hints["category"] is str
+    assert hints["message"] is str
+    assert hints["retryability"] is bool
+    assert hints["relevant_reference"] is SourceVersionId
+    assert hints["expected_revision"] == Revision | None
+    assert hints["actual_revision"] == Revision | None
+    assert hints["conflicting_state"] == public.SourceProcessingStatus | None
+    assert hints["recovery_hint"] == str | None
+
+
+@pytest.mark.parametrize("field_name", ["error_code", "category", "message"])
+def test_source_evidence_error_rejects_blank_required_text(field_name: str) -> None:
+    with pytest.raises(ValueError, match="non-empty"):
+        if field_name == "error_code":
+            public.SourceEvidenceError(
+                error_code=" \t\n ",
+                category="source_evidence",
+                message="safe message",
+                retryability=False,
+                relevant_reference=SourceVersionId("sv-1"),
+            )
+        elif field_name == "category":
+            public.SourceEvidenceError(
+                error_code="error",
+                category=" \t\n ",
+                message="safe message",
+                retryability=False,
+                relevant_reference=SourceVersionId("sv-1"),
+            )
+        else:
+            public.SourceEvidenceError(
+                error_code="error",
+                category="source_evidence",
+                message=" \t\n ",
+                retryability=False,
+                relevant_reference=SourceVersionId("sv-1"),
+            )
 
 
 def test_processing_catalog_has_exactly_six_values_without_aliases() -> None:

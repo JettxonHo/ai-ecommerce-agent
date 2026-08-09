@@ -3,8 +3,39 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 
-from ai_ecommerce_agent.shared_kernel import ProjectError, Revision, SafeContext
+from ai_ecommerce_agent.modules.source_evidence.domain import (
+    SourceProcessingStatus,
+)
+from ai_ecommerce_agent.shared_kernel import (
+    ProjectError,
+    Revision,
+    SafeContext,
+    SourceVersionId,
+)
+
+
+@dataclass(slots=True)
+class SourceEvidenceError(Exception):
+    """Stable, technology-neutral application error for one Source Version."""
+
+    error_code: str
+    category: str
+    message: str
+    retryability: bool
+    relevant_reference: SourceVersionId
+    expected_revision: Revision | None = None
+    actual_revision: Revision | None = None
+    conflicting_state: SourceProcessingStatus | None = None
+    recovery_hint: str | None = None
+
+    def __post_init__(self) -> None:
+        for name in ("error_code", "category", "message"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must be a non-empty string")
+        Exception.__init__(self, self.message)
 
 
 class SourceEvidencePersistenceError(ProjectError):
@@ -70,6 +101,7 @@ class SourceEvidenceConstraintError(SourceEvidencePersistenceError):
 
 __all__ = [
     "SourceEvidenceConstraintError",
+    "SourceEvidenceError",
     "SourceEvidenceOwnershipError",
     "SourceEvidencePersistenceError",
     "SourceEvidenceRevisionConflictError",
