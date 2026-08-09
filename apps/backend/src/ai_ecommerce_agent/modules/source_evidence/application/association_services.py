@@ -142,9 +142,22 @@ def _invalid_replacement(
     )
 
 
-def _translate_adapter_error(
-    error: Exception, source_association_id: SourceAssociationId
-) -> SourceAssociationError:
+def _translate_project_error(
+    error: ProjectError, source_association_id: SourceAssociationId
+) -> SourceAssociationError | None:
+    if isinstance(error, RevisionConflictError):
+        return _domain_revision_conflict(error, source_association_id)
+    if isinstance(error, InvalidTransitionError):
+        return _invalid_transition(error, source_association_id)
+    if isinstance(error, OwnershipError):
+        return _public_error(
+            source_association_id,
+            error_code="ownership_conflict",
+            message="The Source association violates an ownership boundary",
+            recovery_hint="refresh",
+        )
+    if isinstance(error, AssociationReplacementError):
+        return _invalid_replacement(source_association_id)
     if isinstance(error, SourceEvidenceRevisionConflictError):
         return _adapter_revision_conflict(error, source_association_id)
     if isinstance(error, SourceEvidenceOwnershipError):
@@ -169,7 +182,7 @@ def _translate_adapter_error(
             retryability=True,
             recovery_hint="retry_later",
         )
-    raise error
+    return None
 
 
 class SourceAssociationApplicationService(SourceAssociationApplication):
@@ -200,32 +213,11 @@ class SourceAssociationApplicationService(SourceAssociationApplication):
                 return snapshot
         except SourceAssociationError:
             raise
-        except RevisionConflictError as error:
-            raise _domain_revision_conflict(
-                error, command.source_association_id
-            ) from error
-        except InvalidTransitionError as error:
-            raise _invalid_transition(error, command.source_association_id) from error
-        except OwnershipError:
-            raise _public_error(
-                command.source_association_id,
-                error_code="ownership_conflict",
-                message="The Source association violates an ownership boundary",
-                recovery_hint="refresh",
-            ) from None
-        except AssociationReplacementError as error:
-            raise _invalid_replacement(command.source_association_id) from error
-        except (
-            SourceEvidenceRevisionConflictError,
-            SourceEvidenceOwnershipError,
-            SourceEvidenceConstraintError,
-            SourceEvidencePersistenceError,
-        ) as error:
-            raise _translate_adapter_error(
-                error, command.source_association_id
-            ) from error
-        except ProjectError:
-            raise
+        except ProjectError as error:
+            translated = _translate_project_error(error, command.source_association_id)
+            if translated is None:
+                raise
+            raise translated from error
 
     def replace_source_association(
         self, command: ReplaceSourceAssociation
@@ -259,32 +251,11 @@ class SourceAssociationApplicationService(SourceAssociationApplication):
                 return snapshot
         except SourceAssociationError:
             raise
-        except RevisionConflictError as error:
-            raise _domain_revision_conflict(
-                error, command.source_association_id
-            ) from error
-        except InvalidTransitionError as error:
-            raise _invalid_transition(error, command.source_association_id) from error
-        except OwnershipError as error:
-            raise _public_error(
-                command.source_association_id,
-                error_code="ownership_conflict",
-                message="The Source association violates an ownership boundary",
-                recovery_hint="refresh",
-            ) from error
-        except AssociationReplacementError as error:
-            raise _invalid_replacement(command.source_association_id) from error
-        except (
-            SourceEvidenceRevisionConflictError,
-            SourceEvidenceOwnershipError,
-            SourceEvidenceConstraintError,
-            SourceEvidencePersistenceError,
-        ) as error:
-            raise _translate_adapter_error(
-                error, command.source_association_id
-            ) from error
-        except ProjectError:
-            raise
+        except ProjectError as error:
+            translated = _translate_project_error(error, command.source_association_id)
+            if translated is None:
+                raise
+            raise translated from error
 
 
 __all__ = ["SourceAssociationApplicationService"]
