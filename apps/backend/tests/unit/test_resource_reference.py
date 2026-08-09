@@ -13,6 +13,25 @@ from ai_ecommerce_agent.shared_kernel import ResourceReference
 pytestmark = pytest.mark.unit
 
 
+class _PlainStringSubclass(str):
+    """A normal subclass still rejected by the primitive-string boundary."""
+
+
+class _StripOverrideString(str):
+    def strip(self, chars: str | None = None) -> str:
+        del chars
+        return ""
+
+
+class _MutableString(str):
+    state: list[object]
+
+    def __new__(cls, value: str) -> _MutableString:
+        instance = super().__new__(cls, value)
+        instance.state = []
+        return instance
+
+
 def test_resource_reference_is_an_exact_frozen_slotted_shared_value() -> None:
     assert is_dataclass(ResourceReference)
     assert cast(Any, ResourceReference).__dataclass_params__.frozen
@@ -66,3 +85,35 @@ def test_resource_reference_rejects_non_string_values(
 
     with pytest.raises(TypeError):
         ResourceReference(**cast(Any, values))
+
+
+@pytest.mark.parametrize("field_name", ["resource_kind", "resource_id"])
+@pytest.mark.parametrize(
+    "value",
+    [
+        _PlainStringSubclass("source_fragment"),
+        _StripOverrideString("source_fragment"),
+        _MutableString("source_fragment"),
+    ],
+)
+def test_resource_reference_rejects_string_subclasses(
+    field_name: str, value: str
+) -> None:
+    values: dict[str, object] = {
+        "resource_kind": "source_fragment",
+        "resource_id": "fragment-1",
+    }
+    values[field_name] = value
+
+    with pytest.raises(TypeError):
+        ResourceReference(**cast(Any, values))
+
+
+def test_resource_reference_keeps_plain_string_values_unchanged() -> None:
+    kind = " source_fragment "
+    identifier = " fragment-1 "
+
+    reference = ResourceReference(kind, identifier)
+
+    assert reference.resource_kind == kind
+    assert reference.resource_id == identifier

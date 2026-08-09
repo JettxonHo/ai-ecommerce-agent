@@ -15,7 +15,7 @@ class ResourceReference:
     def __post_init__(self) -> None:
         for field_name in ("resource_kind", "resource_id"):
             value = getattr(self, field_name)
-            if not isinstance(value, str):
+            if type(value) is not str:
                 raise TypeError(f"{field_name} must be a string")
             if not value.strip():
                 raise ValueError(f"{field_name} must be non-empty")
