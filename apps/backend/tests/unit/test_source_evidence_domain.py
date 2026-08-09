@@ -104,6 +104,20 @@ def test_registered_can_complete_with_rejections_or_fail() -> None:
     assert failed.revision == Revision(1)
 
 
+def test_registered_can_be_marked_ready_directly() -> None:
+    registered = _registered()
+
+    ready = registered.mark_ready(
+        expected_revision=Revision.initial(),
+        updated_at=_T1,
+    )
+
+    assert ready.status is SourceProcessingStatus.READY
+    assert ready.revision == Revision(1)
+    assert ready.updated_at == _T1
+    assert ready.failure_summary is None
+
+
 def test_failed_retry_clears_summary_then_can_become_ready() -> None:
     failed = _processing().mark_failed(
         "parser unavailable",
