@@ -338,7 +338,7 @@ def test_uow_lifecycle_failures_translate() -> None:
     assert session.rollback_calls == 1 and session.close_calls == 1
 
 
-def test_factory_creates_fresh_uows_and_exposes_only_work_intents() -> None:
+def test_factory_creates_fresh_uows_and_exposes_private_repositories() -> None:
     sessions: list[_LifecycleSession] = []
 
     def make_session() -> Session:
@@ -351,6 +351,7 @@ def test_factory_creates_fresh_uows_and_exposes_only_work_intents() -> None:
     assert first is not second
     assert len(sessions) == 2
     assert first.work_intents is not second.work_intents
+    assert first.work_intent_leases is not second.work_intent_leases
     assert not any(
         hasattr(first, name) for name in ("session", "registry", "execute_sql")
     )

@@ -9,6 +9,7 @@ from ai_ecommerce_agent.shared_kernel import Revision
 
 from ..domain.identity import DispatchId
 from ..domain.snapshots import WorkIntentSnapshot
+from .lease_commands import ClaimNextWorkIntent, HeartbeatWorkIntentLease
 
 
 @runtime_checkable
@@ -37,12 +38,33 @@ class WorkIntentRepositoryPort(Protocol):
 
 
 @runtime_checkable
+class WorkIntentLeaseRepositoryPort(Protocol):
+    """Claim and heartbeat private Durable Dispatch Work Intent leases."""
+
+    def claim_next(self, command: ClaimNextWorkIntent) -> WorkIntentSnapshot | None:
+        """Claim at most one eligible Work Intent in the caller transaction."""
+
+        ...
+
+    def heartbeat(self, command: HeartbeatWorkIntentLease) -> WorkIntentSnapshot | None:
+        """Extend one still-owned lease, or return ``None`` on mismatch."""
+
+        ...
+
+
+@runtime_checkable
 class DurableDispatchUnitOfWork(UnitOfWork, Protocol):
-    """One-shot UoW exposing only the typed Work Intent repository."""
+    """One-shot UoW exposing only typed private Work Intent repositories."""
 
     @property
     def work_intents(self) -> WorkIntentRepositoryPort:
         """Repository capability owned by Durable Dispatch."""
+
+        ...
+
+    @property
+    def work_intent_leases(self) -> WorkIntentLeaseRepositoryPort:
+        """Private claim and heartbeat capability on the same transaction."""
 
         ...
 
@@ -61,4 +83,5 @@ __all__ = [
     "DurableDispatchUnitOfWork",
     "DurableDispatchUnitOfWorkFactory",
     "WorkIntentRepositoryPort",
+    "WorkIntentLeaseRepositoryPort",
 ]

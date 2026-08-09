@@ -15,6 +15,13 @@ from ai_ecommerce_agent.modules.durable_dispatch.application import (
     DurableDispatchUnitOfWorkFactory,
     WorkIntentRepositoryPort,
 )
+from ai_ecommerce_agent.modules.durable_dispatch.application.lease_commands import (
+    ClaimNextWorkIntent,
+    HeartbeatWorkIntentLease,
+)
+from ai_ecommerce_agent.modules.durable_dispatch.application.ports import (
+    WorkIntentLeaseRepositoryPort,
+)
 from ai_ecommerce_agent.modules.durable_dispatch.domain.identity import DispatchId
 from ai_ecommerce_agent.modules.durable_dispatch.domain.snapshots import (
     WorkIntentSnapshot,
@@ -39,6 +46,14 @@ class _RepositoryDouble:
         expected_revision: Revision,
     ) -> None:
         del snapshot, expected_revision
+
+    def claim_next(self, command: ClaimNextWorkIntent) -> WorkIntentSnapshot | None:
+        del command
+        return None
+
+    def heartbeat(self, command: HeartbeatWorkIntentLease) -> WorkIntentSnapshot | None:
+        del command
+        return None
 
 
 class _UnitOfWorkDouble:
@@ -68,6 +83,10 @@ class _UnitOfWorkDouble:
 
     @property
     def work_intents(self) -> WorkIntentRepositoryPort:
+        return _RepositoryDouble()
+
+    @property
+    def work_intent_leases(self) -> WorkIntentLeaseRepositoryPort:
         return _RepositoryDouble()
 
 
@@ -140,6 +159,27 @@ def test_repository_port_has_exact_typed_cas_methods() -> None:
         "return": type(None),
     }
 
+    assert all(
+        callable(getattr(WorkIntentLeaseRepositoryPort, name))
+        for name in ("claim_next", "heartbeat")
+    )
+    claim_method = WorkIntentLeaseRepositoryPort.claim_next
+    assert list(signature(claim_method).parameters) == ["self", "command"]
+    assert get_type_hints(claim_method) == {
+        "command": ClaimNextWorkIntent,
+        "return": WorkIntentSnapshot | None,
+    }
+    heartbeat_method = WorkIntentLeaseRepositoryPort.heartbeat
+    assert list(signature(heartbeat_method).parameters) == ["self", "command"]
+    assert get_type_hints(heartbeat_method) == {
+        "command": HeartbeatWorkIntentLease,
+        "return": WorkIntentSnapshot | None,
+    }
+    assert not any(
+        hasattr(WorkIntentLeaseRepositoryPort, name)
+        for name in ("commit", "rollback", "close", "session", "execute_sql")
+    )
+
 
 def test_specialized_uow_reuses_shared_lifecycle_and_one_typed_repository() -> None:
     assert UnitOfWork in getmro(DurableDispatchUnitOfWork)
@@ -147,6 +187,13 @@ def test_specialized_uow_reuses_shared_lifecycle_and_one_typed_repository() -> N
     assert isinstance(work_intents, property)
     assert work_intents.fget is not None
     assert get_type_hints(work_intents.fget)["return"] is WorkIntentRepositoryPort
+    work_intent_leases = getattr_static(DurableDispatchUnitOfWork, "work_intent_leases")
+    assert isinstance(work_intent_leases, property)
+    assert work_intent_leases.fget is not None
+    assert (
+        get_type_hints(work_intent_leases.fget)["return"]
+        is WorkIntentLeaseRepositoryPort
+    )
     assert not any(
         hasattr(DurableDispatchUnitOfWork, name)
         for name in (
@@ -180,5 +227,6 @@ def test_private_ports_do_not_leak_through_stable_public_facade() -> None:
         "DurableDispatchUnitOfWork",
         "DurableDispatchUnitOfWorkFactory",
         "WorkIntentRepositoryPort",
+        "WorkIntentLeaseRepositoryPort",
     ):
         assert not hasattr(public, name)

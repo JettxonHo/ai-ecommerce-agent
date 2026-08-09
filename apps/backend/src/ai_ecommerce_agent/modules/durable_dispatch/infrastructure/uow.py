@@ -14,10 +14,12 @@ from ai_ecommerce_agent.modules.durable_dispatch.application.errors import (
     DurableDispatchPersistenceError,
 )
 from ai_ecommerce_agent.modules.durable_dispatch.application.ports import (
+    WorkIntentLeaseRepositoryPort,
     WorkIntentRepositoryPort,
 )
 from ai_ecommerce_agent.platform.postgres.uow import PostgresUnitOfWork
 
+from .lease_repository import DurableDispatchPostgresWorkIntentLeaseRepository
 from .repositories import DurableDispatchPostgresWorkIntentRepository
 from .tables import schema_translate_map
 
@@ -25,12 +27,15 @@ SessionFactory = Callable[[], Session]
 
 
 class DurableDispatchPostgresUnitOfWork(PostgresUnitOfWork):
-    """A disposable UoW exposing only the typed Work Intent repository."""
+    """A disposable UoW exposing only typed private Work Intent repositories."""
 
     def __init__(self, session_factory: SessionFactory) -> None:
         session = session_factory()
         super().__init__(lambda: session)
         self._work_intents = DurableDispatchPostgresWorkIntentRepository(session)
+        self._work_intent_leases = DurableDispatchPostgresWorkIntentLeaseRepository(
+            session
+        )
 
     def __enter__(self) -> Self:
         try:
@@ -71,6 +76,10 @@ class DurableDispatchPostgresUnitOfWork(PostgresUnitOfWork):
     @property
     def work_intents(self) -> WorkIntentRepositoryPort:
         return self._work_intents
+
+    @property
+    def work_intent_leases(self) -> WorkIntentLeaseRepositoryPort:
+        return self._work_intent_leases
 
 
 class DurableDispatchPostgresUnitOfWorkFactory:
