@@ -23,16 +23,33 @@ _APPLICATION_ROOT = (
 _PRODUCTION_FILES = (
     _APPLICATION_ROOT / "__init__.py",
     _APPLICATION_ROOT / "ports.py",
+    _APPLICATION_ROOT / "lease_commands.py",
+    _APPLICATION_ROOT / "lease_protocols.py",
+    _APPLICATION_ROOT / "lease_errors.py",
 )
 _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
     _APPLICATION_ROOT / "__init__.py": frozenset({(1, "ports")}),
     _APPLICATION_ROOT / "ports.py": frozenset(
         {(2, "domain.identity"), (2, "domain.snapshots")}
     ),
+    _APPLICATION_ROOT / "lease_commands.py": frozenset(
+        {(2, "domain.identity"), (2, "domain.ownership")}
+    ),
+    _APPLICATION_ROOT / "lease_protocols.py": frozenset(
+        {(1, "lease_commands"), (2, "domain.snapshots")}
+    ),
+    _APPLICATION_ROOT / "lease_errors.py": frozenset(
+        {(2, "domain.identity"), (2, "domain.status")}
+    ),
 }
 _ALLOWED_STDLIB_IMPORTS: dict[Path, frozenset[str]] = {
     _APPLICATION_ROOT / "__init__.py": frozenset(),
     _APPLICATION_ROOT / "ports.py": frozenset({"__future__", "typing"}),
+    _APPLICATION_ROOT / "lease_commands.py": frozenset(
+        {"__future__", "dataclasses", "datetime"}
+    ),
+    _APPLICATION_ROOT / "lease_protocols.py": frozenset({"__future__", "typing"}),
+    _APPLICATION_ROOT / "lease_errors.py": frozenset({"__future__", "dataclasses"}),
 }
 _ALLOWED_ABSOLUTE_IMPORTS: dict[Path, frozenset[str]] = {
     _APPLICATION_ROOT / "__init__.py": frozenset(),
@@ -41,6 +58,13 @@ _ALLOWED_ABSOLUTE_IMPORTS: dict[Path, frozenset[str]] = {
             "ai_ecommerce_agent.application.ports",
             "ai_ecommerce_agent.shared_kernel",
         }
+    ),
+    _APPLICATION_ROOT / "lease_commands.py": frozenset(
+        {"ai_ecommerce_agent.shared_kernel"}
+    ),
+    _APPLICATION_ROOT / "lease_protocols.py": frozenset(),
+    _APPLICATION_ROOT / "lease_errors.py": frozenset(
+        {"ai_ecommerce_agent.shared_kernel"}
     ),
 }
 _FORBIDDEN_IMPORT_PREFIXES = (
@@ -193,41 +217,68 @@ def _import_time_effects(
 
 
 def test_protocols_use_only_exact_bare_runtime_checkable_decorators() -> None:
-    path = _APPLICATION_ROOT / "ports.py"
-    tree = ast.parse(path.read_text(encoding="utf-8"))
-    protocol_classes = [node for node in tree.body if isinstance(node, ast.ClassDef)]
-    assert [node.name for node in protocol_classes] == [
-        "WorkIntentRepositoryPort",
-        "DurableDispatchUnitOfWork",
-        "DurableDispatchUnitOfWorkFactory",
-    ]
-    for protocol_class in protocol_classes:
-        assert len(protocol_class.decorator_list) == 1
-        decorator = protocol_class.decorator_list[0]
-        assert isinstance(decorator, ast.Name)
-        assert decorator.id == "runtime_checkable"
+    expected_protocols = {
+        _APPLICATION_ROOT / "ports.py": [
+            "WorkIntentRepositoryPort",
+            "DurableDispatchUnitOfWork",
+            "DurableDispatchUnitOfWorkFactory",
+        ],
+        _APPLICATION_ROOT / "lease_protocols.py": ["DurableDispatchLeaseApplication"],
+    }
+    for path, expected_names in expected_protocols.items():
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        protocol_classes = [
+            node for node in tree.body if isinstance(node, ast.ClassDef)
+        ]
+        assert [node.name for node in protocol_classes] == expected_names
+        for protocol_class in protocol_classes:
+            assert len(protocol_class.decorator_list) == 1
+            decorator = protocol_class.decorator_list[0]
+            assert isinstance(decorator, ast.Name)
+            assert decorator.id == "runtime_checkable"
 
 
 def test_application_ports_allow_only_the_frozen_decorator_applications() -> None:
-    expected = [
-        ("class:WorkIntentRepositoryPort", "runtime_checkable", False),
-        ("class:DurableDispatchUnitOfWork", "runtime_checkable", False),
-        ("method:DurableDispatchUnitOfWork.work_intents", "property", False),
-        ("class:DurableDispatchUnitOfWorkFactory", "runtime_checkable", False),
-    ]
+    expected_decorators = {
+        _APPLICATION_ROOT / "__init__.py": [],
+        _APPLICATION_ROOT / "ports.py": [
+            ("class:WorkIntentRepositoryPort", "runtime_checkable", False),
+            ("class:DurableDispatchUnitOfWork", "runtime_checkable", False),
+            ("method:DurableDispatchUnitOfWork.work_intents", "property", False),
+            ("class:DurableDispatchUnitOfWorkFactory", "runtime_checkable", False),
+        ],
+        _APPLICATION_ROOT / "lease_commands.py": [
+            ("class:ClaimNextWorkIntent", "dataclass", True),
+            ("class:HeartbeatWorkIntentLease", "dataclass", True),
+        ],
+        _APPLICATION_ROOT / "lease_protocols.py": [
+            ("class:DurableDispatchLeaseApplication", "runtime_checkable", False),
+        ],
+        _APPLICATION_ROOT / "lease_errors.py": [
+            ("class:DurableDispatchLeaseError", "dataclass", True),
+        ],
+    }
+    expected_calls = {
+        _APPLICATION_ROOT / "__init__.py": [],
+        _APPLICATION_ROOT / "ports.py": [],
+        _APPLICATION_ROOT / "lease_commands.py": ["dataclass", "dataclass"],
+        _APPLICATION_ROOT / "lease_protocols.py": [],
+        _APPLICATION_ROOT / "lease_errors.py": ["dataclass"],
+    }
     for path, tree in _trees():
         calls, decorators = _import_time_effects(tree)
-        assert not calls, path
-        assert decorators == (expected if path.name == "ports.py" else [])
+        assert [_dotted_name(call.func) for call in calls] == expected_calls[path]
+        assert decorators == expected_decorators[path]
 
 
-def test_application_ports_have_no_import_time_resource_or_behavior_calls() -> None:
+def test_application_modules_have_only_frozen_import_time_calls() -> None:
     for path, tree in _trees():
         calls, _ = _import_time_effects(tree)
-        assert not calls, (
-            f"{path} performs undeclared import-time call(s): "
-            f"{[_dotted_name(call.func) for call in calls]!r}"
-        )
+        expected = {
+            _APPLICATION_ROOT / "lease_commands.py": ["dataclass", "dataclass"],
+            _APPLICATION_ROOT / "lease_errors.py": ["dataclass"],
+        }.get(path, [])
+        assert [_dotted_name(call.func) for call in calls] == expected, path
 
 
 def test_import_time_guard_rejects_calls_and_bare_behavior_decorators() -> None:

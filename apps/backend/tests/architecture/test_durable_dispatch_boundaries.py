@@ -40,6 +40,9 @@ _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
             (1, "domain.ownership"),
             (1, "domain.snapshots"),
             (1, "domain.status"),
+            (1, "application.lease_commands"),
+            (1, "application.lease_errors"),
+            (1, "application.lease_protocols"),
         }
     ),
 }
