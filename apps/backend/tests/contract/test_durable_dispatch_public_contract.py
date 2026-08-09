@@ -17,6 +17,10 @@ _EXPECTED_PUBLIC = [
     "LeaseHolderId",
     "WorkIntentLease",
     "WorkIntentSnapshot",
+    "ClaimNextWorkIntent",
+    "HeartbeatWorkIntentLease",
+    "DurableDispatchLeaseApplication",
+    "DurableDispatchLeaseError",
 ]
 
 

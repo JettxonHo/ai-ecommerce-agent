@@ -86,17 +86,7 @@ def test_table_module_exposes_only_the_exact_four_contract_symbols() -> None:
     assert not hasattr(tables.DURABLE_DISPATCH_METADATA, "bind")
 
 
-def test_existing_durable_public_facade_is_unchanged_and_technical_free() -> None:
-    assert public.__all__ == [
-        "DispatchId",
-        "DeliveryAttemptId",
-        "FencingToken",
-        "WorkIntentStatus",
-        "WorkIntentEnvelope",
-        "LeaseHolderId",
-        "WorkIntentLease",
-        "WorkIntentSnapshot",
-    ]
+def test_durable_public_facade_remains_technical_free() -> None:
     assert not any(
         hasattr(public, name)
         for name in (
