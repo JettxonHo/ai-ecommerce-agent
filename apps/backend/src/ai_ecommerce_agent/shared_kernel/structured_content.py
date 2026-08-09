@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from math import isfinite
-from typing import NoReturn, cast
+from typing import cast
 
 
 def _freeze_mapping(
@@ -106,14 +106,13 @@ class StructuredContent:
     def __repr__(self) -> str:
         return "StructuredContent(...)"
 
-    def __setattr__(self, name: str, value: object) -> NoReturn:
+    def __setattr__(self, name: str, value: object) -> None:
         raise TypeError("StructuredContent is immutable")
 
-    def __delattr__(self, name: str) -> NoReturn:
+    def __delattr__(self, name: str) -> None:
         raise TypeError("StructuredContent is immutable")
 
-    def __hash__(self) -> NoReturn:
-        raise TypeError("StructuredContent instances are not hashable")
+    __hash__: None = None  # pyright: ignore[reportIncompatibleMethodOverride]
 
 
 __all__ = ["StructuredContent"]

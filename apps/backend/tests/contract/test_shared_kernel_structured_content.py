@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+from collections.abc import Hashable
 from pathlib import Path
 from typing import Any, cast
 
@@ -59,6 +60,7 @@ def test_instances_are_opaque_non_hashable_and_immutable() -> None:
     assert repr(content) == "StructuredContent(...)"
     assert "private" not in repr(content)
     assert "_value" not in repr(content)
+    assert not isinstance(content, Hashable)
     with pytest.raises(TypeError):
         hash(content)
     with pytest.raises(TypeError):
