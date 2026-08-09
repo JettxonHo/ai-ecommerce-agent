@@ -6,6 +6,10 @@ from dataclasses import dataclass
 
 from sqlalchemy import Engine
 
+from ai_ecommerce_agent.modules.source_evidence.application import (
+    association_protocols,
+    association_services,
+)
 from ai_ecommerce_agent.modules.source_evidence.application.protocols import (
     SourceEvidenceApplication,
 )
@@ -28,6 +32,7 @@ class SourceEvidencePostgresComposition:
     engine: Engine
     uow_factory: SourceEvidencePostgresUnitOfWorkFactory
     application: SourceEvidenceApplication
+    association_application: association_protocols.SourceAssociationApplication
 
     def close(self) -> None:
         """Dispose the process-lifetime engine at application shutdown."""
@@ -48,6 +53,9 @@ def compose_source_evidence_postgres(
         engine=engine,
         uow_factory=uow_factory,
         application=SourceEvidenceApplicationService(uow_factory),
+        association_application=association_services.SourceAssociationApplicationService(
+            uow_factory
+        ),
     )
 
 

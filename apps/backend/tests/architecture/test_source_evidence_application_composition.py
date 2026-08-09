@@ -10,6 +10,9 @@ import pytest
 
 from ai_ecommerce_agent.bootstrap import source_evidence_postgres
 from ai_ecommerce_agent.modules.source_evidence import public
+from ai_ecommerce_agent.modules.source_evidence.application import (
+    association_protocols,
+)
 from ai_ecommerce_agent.modules.source_evidence.application.protocols import (
     SourceEvidenceApplication,
 )
@@ -74,7 +77,15 @@ def test_composition_wires_engine_factory_and_protocol_without_connecting(
     assert seen_configs == [config]
     assert _Factory.calls == [(engine, "mvp0_source_application")]
     assert isinstance(composition.application, SourceEvidenceApplication)
+    assert isinstance(
+        composition.association_application,
+        association_protocols.SourceAssociationApplication,
+    )
     assert get_type_hints(type(composition))["application"] is SourceEvidenceApplication
+    assert (
+        get_type_hints(type(composition))["association_application"]
+        is association_protocols.SourceAssociationApplication
+    )
     assert engine.dispose_calls == 0
 
     composition.close()
@@ -129,8 +140,17 @@ def test_composition_contract_exposes_only_lifecycle_objects() -> None:
     annotations = get_type_hints(
         source_evidence_postgres.SourceEvidencePostgresComposition
     )
-    assert set(annotations) == {"engine", "uow_factory", "application"}
+    assert set(annotations) == {
+        "engine",
+        "uow_factory",
+        "application",
+        "association_application",
+    }
     assert annotations["application"] is SourceEvidenceApplication
+    assert (
+        annotations["association_application"]
+        is association_protocols.SourceAssociationApplication
+    )
     assert not hasattr(
         source_evidence_postgres.SourceEvidencePostgresComposition, "commit"
     )
