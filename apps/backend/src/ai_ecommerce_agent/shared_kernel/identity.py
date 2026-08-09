@@ -77,7 +77,7 @@ class ReviewId(OpaqueIdentity):
 
 @dataclass(frozen=True, slots=True, order=True)
 class ReviewPackageId(OpaqueIdentity):
-    """Stable identity of an immutable Review Package family."""
+    """Stable identity of an immutable Review Package snapshot."""
 
 
 @dataclass(frozen=True, slots=True, order=True)
