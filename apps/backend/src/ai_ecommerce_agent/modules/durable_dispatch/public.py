@@ -3,6 +3,7 @@
 from .domain.envelope import WorkIntentEnvelope
 from .domain.identity import DeliveryAttemptId, DispatchId, FencingToken
 from .domain.ownership import LeaseHolderId, WorkIntentLease
+from .domain.snapshots import WorkIntentSnapshot
 from .domain.status import WorkIntentStatus
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "WorkIntentEnvelope",
     "LeaseHolderId",
     "WorkIntentLease",
+    "WorkIntentSnapshot",
 ]

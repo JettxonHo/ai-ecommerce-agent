@@ -20,6 +20,7 @@ _PRODUCTION_FILES = (
     _DISPATCH_ROOT / "domain" / "status.py",
     _DISPATCH_ROOT / "domain" / "envelope.py",
     _DISPATCH_ROOT / "domain" / "ownership.py",
+    _DISPATCH_ROOT / "domain" / "snapshots.py",
     _DISPATCH_ROOT / "public.py",
 )
 _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
@@ -29,11 +30,15 @@ _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
     _DISPATCH_ROOT / "domain" / "status.py": frozenset(),
     _DISPATCH_ROOT / "domain" / "envelope.py": frozenset({(1, "identity")}),
     _DISPATCH_ROOT / "domain" / "ownership.py": frozenset({(1, "identity")}),
+    _DISPATCH_ROOT / "domain" / "snapshots.py": frozenset(
+        {(1, "envelope"), (1, "ownership"), (1, "status")}
+    ),
     _DISPATCH_ROOT / "public.py": frozenset(
         {
             (1, "domain.envelope"),
             (1, "domain.identity"),
             (1, "domain.ownership"),
+            (1, "domain.snapshots"),
             (1, "domain.status"),
         }
     ),
@@ -51,9 +56,15 @@ _PATH_STDLIB_IMPORTS: dict[Path, frozenset[str]] = {
     _DISPATCH_ROOT / "domain" / "ownership.py": frozenset(
         {"__future__", "dataclasses", "datetime"}
     ),
+    _DISPATCH_ROOT / "domain" / "snapshots.py": frozenset(
+        {"__future__", "dataclasses"}
+    ),
 }
 _PATH_ABSOLUTE_IMPORTS: dict[Path, frozenset[str]] = {
     _DISPATCH_ROOT / "domain" / "ownership.py": frozenset(),
+    _DISPATCH_ROOT / "domain" / "snapshots.py": frozenset(
+        {"ai_ecommerce_agent.shared_kernel"}
+    ),
 }
 _FORBIDDEN_IMPORT_PREFIXES = (
     "sqlalchemy",
