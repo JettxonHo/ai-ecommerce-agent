@@ -20,6 +20,7 @@ from .identity import (
     SourceVersionId,
     TaskId,
 )
+from .resource_reference import ResourceReference
 from .revision import Revision
 from .structured_content import StructuredContent
 from .version import VersionNumber
@@ -35,6 +36,7 @@ __all__ = [
     "ReviewId",
     "ReviewPackageId",
     "Revision",
+    "ResourceReference",
     "RunId",
     "SafeContext",
     "SourceAssociationId",
