@@ -166,15 +166,14 @@ def test_snapshot_rejects_raw_values_without_coercion(
 
 
 def test_snapshot_does_not_infer_lifecycle_or_expose_runtime_behavior() -> None:
-    for status in (
-        WorkIntentStatus.PENDING,
-        WorkIntentStatus.SUCCEEDED,
-        WorkIntentStatus.CANCELLED,
-    ):
+    snapshot: WorkIntentSnapshot | None = None
+    for status in WorkIntentStatus:
         snapshot = WorkIntentSnapshot(
             _build_envelope(), status, Revision(2), False, None
         )
         assert snapshot.current_lease is None
+
+    assert snapshot is not None
 
     for forbidden_name in (
         "available",
