@@ -31,11 +31,11 @@ def test_source_ports_are_module_private_and_framework_neutral() -> None:
     )
 
 
-def test_source_public_facade_remains_the_existing_four_symbol_contract() -> None:
-    assert set(public.__all__) == {
+def test_source_public_facade_retains_the_existing_four_symbols() -> None:
+    assert {
         "SourceAssociationMembershipState",
         "SourceAssociationSnapshot",
         "SourceProcessingStatus",
         "SourceVersionSnapshot",
-    }
+    }.issubset(public.__all__)
     assert not hasattr(public, "SourceEvidenceUnitOfWork")

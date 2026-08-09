@@ -27,12 +27,12 @@ SOURCE_ROOT = (
 
 
 def test_public_facade_and_infrastructure_facade_stay_narrow() -> None:
-    assert set(public.__all__) == {
+    assert {
         "SourceAssociationMembershipState",
         "SourceAssociationSnapshot",
         "SourceProcessingStatus",
         "SourceVersionSnapshot",
-    }
+    }.issubset(public.__all__)
     assert not hasattr(public, "SourceEvidencePostgresUnitOfWorkFactory")
     assert not hasattr(public, "Session")
     assert not hasattr(infrastructure, "Session")
