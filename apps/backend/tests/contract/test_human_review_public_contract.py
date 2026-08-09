@@ -15,10 +15,13 @@ _EXPECTED_PUBLIC = [
     "ReviewPackageReference",
     "ReviewDraftReference",
     "ReviewDecisionBasis",
+    "ReviewPackageHeader",
+    "ReviewDraftMetadata",
+    "ReviewDecisionSnapshot",
 ]
 
 
-def test_human_review_facade_is_exactly_six_symbols() -> None:
+def test_human_review_facade_is_exactly_nine_symbols() -> None:
     assert public.__all__ == _EXPECTED_PUBLIC
     assert {name for name in public.__dict__ if not name.startswith("_")} == set(
         _EXPECTED_PUBLIC
@@ -37,5 +40,7 @@ def test_human_review_facade_exposes_no_private_or_technical_types() -> None:
         "Engine",
         "StateGraph",
         "SubmitReview",
+        "DomainVersionReference",
+        "ReviewPackageSemanticGroup",
     ):
         assert not hasattr(public, private_name)

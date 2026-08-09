@@ -13,6 +13,11 @@ from .domain.contracts import (
     ReviewPackageReference,
     ReviewPackageStatus,
 )
+from .domain.snapshots import (
+    ReviewDecisionSnapshot,
+    ReviewDraftMetadata,
+    ReviewPackageHeader,
+)
 
 __all__ = [
     "ReviewPackageStatus",
@@ -21,4 +26,7 @@ __all__ = [
     "ReviewPackageReference",
     "ReviewDraftReference",
     "ReviewDecisionBasis",
+    "ReviewPackageHeader",
+    "ReviewDraftMetadata",
+    "ReviewDecisionSnapshot",
 ]
