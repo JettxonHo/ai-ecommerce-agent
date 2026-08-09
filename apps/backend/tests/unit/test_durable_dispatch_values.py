@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from dataclasses import FrozenInstanceError, fields, is_dataclass
+from typing import Any, cast, get_type_hints
 
 import pytest
 
@@ -38,6 +39,27 @@ def test_dispatch_and_delivery_attempt_identities_are_distinct_and_opaque() -> N
     assert dispatch_id.value == "dispatch-01"
     assert DispatchId.new() != DispatchId.new()
     assert DeliveryAttemptId.new() != DeliveryAttemptId.new()
+
+
+def test_public_values_are_frozen_slotted_dataclasses_with_exact_value_fields() -> None:
+    values = (
+        (DispatchId("dispatch-01"), str),
+        (DeliveryAttemptId("attempt-01"), str),
+        (FencingToken(0), int),
+    )
+
+    for value, expected_type in values:
+        value_type = type(value)
+        assert is_dataclass(value_type)
+        assert [field.name for field in fields(value_type)] == ["value"]
+        assert get_type_hints(value_type) == {"value": expected_type}
+        assert not hasattr(value, "__dict__")
+
+        field_name = "value"
+        with pytest.raises(FrozenInstanceError):
+            setattr(value, field_name, value.value)
+        with pytest.raises(FrozenInstanceError):
+            delattr(value, field_name)
 
 
 def test_identity_values_reject_empty_values_without_coercing_valid_strings() -> None:
