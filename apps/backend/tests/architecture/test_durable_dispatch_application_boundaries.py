@@ -102,8 +102,10 @@ def test_application_ports_have_only_framework_neutral_allowlisted_imports() -> 
                 )
 
 
-def _import_time_calls(tree: ast.Module) -> list[ast.Call]:
-    """Collect calls executed while importing modules/classes.
+def _import_time_effects(
+    tree: ast.Module,
+) -> tuple[list[ast.Call], list[tuple[str, str | None, bool]]]:
+    """Collect calls and decorator applications executed at import time.
 
     Function and method bodies are intentionally skipped. Their decorators,
     defaults, annotations, and return annotations are still visited because
@@ -111,8 +113,16 @@ def _import_time_calls(tree: ast.Module) -> list[ast.Call]:
     """
 
     calls: list[ast.Call] = []
+    decorators: list[tuple[str, str | None, bool]] = []
 
-    def visit(node: ast.AST) -> None:
+    def visit_decorator(node: ast.AST, scope: str) -> None:
+        if isinstance(node, ast.Call):
+            decorators.append((scope, _dotted_name(node.func), True))
+        else:
+            decorators.append((scope, _dotted_name(node), False))
+        visit(node)
+
+    def visit(node: ast.AST, *, class_name: str | None = None) -> None:
         if isinstance(node, ast.Call):
             calls.append(node)
             visit(node.func)
@@ -129,18 +139,23 @@ def _import_time_calls(tree: ast.Module) -> list[ast.Call]:
 
         if isinstance(node, ast.ClassDef):
             for decorator in node.decorator_list:
-                visit(decorator)
+                visit_decorator(decorator, f"class:{node.name}")
             for base in node.bases:
                 visit(base)
             for keyword in node.keywords:
                 visit(keyword.value)
             for statement in node.body:
-                visit(statement)
+                visit(statement, class_name=node.name)
             return
 
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            scope = (
+                f"method:{class_name}.{node.name}"
+                if class_name is not None
+                else f"function:{node.name}"
+            )
             for decorator in node.decorator_list:
-                visit(decorator)
+                visit_decorator(decorator, scope)
             for default in node.args.defaults:
                 visit(default)
             for default in node.args.kw_defaults:
@@ -174,7 +189,7 @@ def _import_time_calls(tree: ast.Module) -> list[ast.Call]:
             visit(child)
 
     visit(tree)
-    return calls
+    return calls, decorators
 
 
 def test_protocols_use_only_exact_bare_runtime_checkable_decorators() -> None:
@@ -193,30 +208,57 @@ def test_protocols_use_only_exact_bare_runtime_checkable_decorators() -> None:
         assert decorator.id == "runtime_checkable"
 
 
+def test_application_ports_allow_only_the_frozen_decorator_applications() -> None:
+    expected = [
+        ("class:WorkIntentRepositoryPort", "runtime_checkable", False),
+        ("class:DurableDispatchUnitOfWork", "runtime_checkable", False),
+        ("method:DurableDispatchUnitOfWork.work_intents", "property", False),
+        ("class:DurableDispatchUnitOfWorkFactory", "runtime_checkable", False),
+    ]
+    for path, tree in _trees():
+        calls, decorators = _import_time_effects(tree)
+        assert not calls, path
+        assert decorators == (expected if path.name == "ports.py" else [])
+
+
 def test_application_ports_have_no_import_time_resource_or_behavior_calls() -> None:
     for path, tree in _trees():
-        calls = _import_time_calls(tree)
+        calls, _ = _import_time_effects(tree)
         assert not calls, (
             f"{path} performs undeclared import-time call(s): "
             f"{[_dotted_name(call.func) for call in calls]!r}"
         )
 
 
-def test_import_time_guard_rejects_runtime_checkable_calls() -> None:
+def test_import_time_guard_rejects_calls_and_bare_behavior_decorators() -> None:
     tree = ast.parse(
         """
 from typing import Protocol, runtime_checkable
 
 @runtime_checkable
 class Allowed(Protocol):
-    pass
+    @property
+    def value(self):
+        pass
 
 @runtime_checkable()
 class RejectedDecorator(Protocol):
     pass
 
+@print
+def leaked():
+    pass
+
 class RejectedClass:
+    @print
+    def method(self):
+        pass
+
     token = runtime_checkable()
+
+@print
+class RejectedClassDecorator:
+    pass
 
 value = runtime_checkable()
 
@@ -224,14 +266,21 @@ def rejected_function(default=runtime_checkable()):
     pass
 """
     )
-    calls = _import_time_calls(tree)
-    unexpected = [_dotted_name(call.func) for call in calls]
-    assert unexpected == [
+    calls, decorators = _import_time_effects(tree)
+    assert [_dotted_name(call.func) for call in calls] == [
         "runtime_checkable",
         "runtime_checkable",
         "runtime_checkable",
         "runtime_checkable",
     ]
+    assert ("class:Allowed", "runtime_checkable", False) in decorators
+    assert ("method:Allowed.value", "property", False) in decorators
+    assert {
+        ("class:RejectedDecorator", "runtime_checkable", True),
+        ("function:leaked", "print", False),
+        ("method:RejectedClass.method", "print", False),
+        ("class:RejectedClassDecorator", "print", False),
+    }.issubset(set(decorators))
 
 
 def test_application_ports_remain_private_to_durable_dispatch() -> None:
