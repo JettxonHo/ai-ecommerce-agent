@@ -148,6 +148,8 @@ def test_export_dtos_preserve_supplied_basis_and_metadata() -> None:
     assert snapshot.upstream_versions is basis.upstream_versions
     assert snapshot.exported_at is exported_at
     assert snapshot.file_name == "chosen-name.md"
+    assert preview.media_type == "text/markdown; charset=utf-8"
+    assert snapshot.media_type == "text/markdown; charset=utf-8"
     assert snapshot.content_location == "chosen-location"
 
     with pytest.raises(FrozenInstanceError):
@@ -185,3 +187,27 @@ def test_export_metadata_guards_reject_empty_strings(
 ) -> None:
     with pytest.raises(ValueError, match=field_name):
         factory()
+
+
+@pytest.mark.parametrize("media_type", ["text/plain", "application/octet-stream"])
+def test_export_preview_rejects_non_markdown_media_types(media_type: str) -> None:
+    with pytest.raises(ValueError, match="media_type"):
+        ExportPreview(_basis(), "v1", "name.md", media_type)
+
+
+@pytest.mark.parametrize("media_type", ["text/plain", "application/octet-stream"])
+def test_export_snapshot_rejects_non_markdown_media_types(media_type: str) -> None:
+    basis = _basis()
+    with pytest.raises(ValueError, match="media_type"):
+        ExportSnapshot(
+            ExportSnapshotId("export-1"),
+            basis.task_id,
+            basis.brief_kind,
+            basis.brief_version,
+            basis.upstream_versions,
+            datetime(2026, 8, 9, tzinfo=UTC),
+            "name.md",
+            media_type,
+            "location",
+            "v1",
+        )

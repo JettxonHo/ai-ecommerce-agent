@@ -9,6 +9,8 @@ from enum import StrEnum
 from ai_ecommerce_agent.modules.task_management.public import DomainVersionReference
 from ai_ecommerce_agent.shared_kernel import ExportSnapshotId, Revision, TaskId
 
+_MARKDOWN_MEDIA_TYPE = "text/markdown; charset=utf-8"
+
 
 class ExportBriefKind(StrEnum):
     """The two brief families that can be exported."""
@@ -22,6 +24,12 @@ def _require_non_empty(value: object, field_name: str) -> None:
         raise TypeError(f"{field_name} must be a string")
     if not value.strip():
         raise ValueError(f"{field_name} must be non-empty")
+
+
+def _require_markdown_media_type(value: object, field_name: str) -> None:
+    _require_non_empty(value, field_name)
+    if value != _MARKDOWN_MEDIA_TYPE:
+        raise ValueError(f"{field_name} must be {_MARKDOWN_MEDIA_TYPE!r}")
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,7 +58,7 @@ class ExportPreview:
     def __post_init__(self) -> None:
         _require_non_empty(self.template_version, "template_version")
         _require_non_empty(self.file_name, "file_name")
-        _require_non_empty(self.media_type, "media_type")
+        _require_markdown_media_type(self.media_type, "media_type")
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,7 +85,7 @@ class ExportSnapshot:
 
     def __post_init__(self) -> None:
         _require_non_empty(self.file_name, "file_name")
-        _require_non_empty(self.media_type, "media_type")
+        _require_markdown_media_type(self.media_type, "media_type")
         _require_non_empty(self.content_location, "content_location")
         _require_non_empty(self.template_version, "template_version")
 
