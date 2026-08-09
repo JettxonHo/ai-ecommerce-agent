@@ -40,13 +40,13 @@ AI Ecommerce Agent 是面向中小电商商品与内容运营人员的**证据�
 
 ## 当前执行入口
 
-开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。[PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 已合并并激活 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md)。M1 Issues #63～#67 已全部关闭：authored OpenAPI、虚构验收资料、local PostgreSQL lifecycle、TS-01 transaction / fencing 与 TS-03 PostgresSaver / reconciliation 证据已交付；两个 stop-first Slice 均为 PASS。M2 的 Task Management vertical slice 也已完成：#77 / #78 / #79 与 tracking parent [#80](https://github.com/JettxonHo/ai-ecommerce-agent/issues/80) 已关闭。#77 / #78 / #79 foundation 由 PR #84 / #85 / #86 交付（shared values、UoW / PostgreSQL adapter foundation、Alembic baseline）；#80 的七个子 Issue 由 PR #92 / #93 / #94 / #96 / #97 / #99 / #100 合并交付（Task Management contracts、domain、schema、adapter、application 与 CAS）。M2 整体仍未完成：Source [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) 正在等待用户对 Proposed P-74～P-77 的 Decision Gate，Review / Brief / Export [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) 依赖 #81。
+开发前 Gate 已闭合：P-68A～P-70A 与 RFC-007 整体由 DEC-073 接受，P-71A～P-73A 由 DEC-074 接受，Development Plan、Testing Strategy、Goal 与 Readiness Review 由 DEC-075 接受。[PR #59](https://github.com/JettxonHo/ai-ecommerce-agent/pull/59) 已合并并激活 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md)。M1 Issues #63～#67 已全部关闭：authored OpenAPI、虚构验收资料、local PostgreSQL lifecycle、TS-01 transaction / fencing 与 TS-03 PostgresSaver / reconciliation 证据已交付；两个 stop-first Slice 均为 PASS。M2 的 Task Management vertical slice 也已完成：#77 / #78 / #79 与 tracking parent [#80](https://github.com/JettxonHo/ai-ecommerce-agent/issues/80) 已关闭。#77 / #78 / #79 foundation 由 PR #84 / #85 / #86 交付（shared values、UoW / PostgreSQL adapter foundation、Alembic baseline）；#80 的七个子 Issue 由 PR #92 / #93 / #94 / #96 / #97 / #99 / #100 合并交付（Task Management contracts、domain、schema、adapter、application 与 CAS）。用户已于 2026-08-09 接受 P-74A～P-81A，DEC-076 / DEC-077 已冻结 Source、Review / Brief / Export 的实现所有权与原子边界并恢复 Goal 执行；M2 整体仍未完成，[#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) / [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) 继续作为 OPEN tracking parents。
 
-- 当前执行顺序：M1 与 M2 的 Task Management vertical slice（#77～#80 及七个子 Issue）已完成；#81 是当前 Source Decision Gate，等待用户确认或修改 Proposed P-74～P-77 后才能拆分实现；#82 继续依赖 #81；
+- 当前执行顺序：M1 与 M2 的 Task Management vertical slice（#77～#80 及七个子 Issue）已完成；先拆分并实现 #81 的 Source contracts / domain / single-head migration / adapter / application 子切片，再按 #81 migration head 与 typed participant 依赖推进 #82；
 - 每个 Issue 使用独立分支、任务合同、测试和 PR；实现者不得批准或合并自己的变更；
 - 高风险 / 不可逆 / 范围或公共契约变化继续请求用户确认。
 
-Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。M1 交付的是 Contract、Fixture、环境与兼容性证据；M2 当前仅完成 Task / Run / Stage 的 Domain / Persistence vertical slice。Source、Review / Brief / Export、Retrieval、Runtime、API、Worker 与 Web 业务切片仍只在后续有界 Issues 中实现；MVP0-036 仅提供无 API foundation shell 与 Web checks，且不得把 #81 的 Proposed P-74～P-77 写成已接受。
+Persona / JTBD 真实研究与完整 ARP-02 / 03 / 09、ARP-05～08、TS-02 / 04 / 05 已按快速 Gate 后移 MVP-1 / Beta，不阻塞 MVP-0。M1 交付的是 Contract、Fixture、环境与兼容性证据；M2 当前仅完成 Task / Run / Stage 的 Domain / Persistence vertical slice。Source、Review / Brief / Export、Retrieval、Runtime、API、Worker 与 Web 业务切片仍只在后续有界 Issues 中实现；MVP0-036 仅提供无 API foundation shell 与 Web checks。P-74A～P-81A 已接受，但不得把 Decision acceptance 写成业务能力已实现。
 
 ## MVP-0 本地 PostgreSQL 生命周期
 
@@ -136,4 +136,4 @@ PostgreSQL 16 仍在官方支持周期内（[PostgreSQL versioning policy](https
 
 ## 开发状态
 
-**ACTIVE（MVP-0 Goal execution）** — Foundation、Product Specification、RFC-001～007、Development Plan、Testing Strategy、MVP-0 Goal 与精简 Readiness Review 已接受，Goal 已激活并按有界 Issues 持续执行。M1 与 M2 的 Task Management vertical slice 已完成；Source #81 仍等待用户对 Proposed P-74～P-77 的 Decision Gate，Review / Brief / Export #82 依赖该 Gate，M2 整体及 M3～M8 尚未完成。详见 [Implementation Readiness](docs/handoffs/implementation-readiness.md) 与 [AGENTS.md](AGENTS.md)。
+**ACTIVE（MVP-0 Goal execution）** — Foundation、Product Specification、RFC-001～007、Development Plan、Testing Strategy、MVP-0 Goal 与精简 Readiness Review 已接受，Goal 已激活并按有界 Issues 持续执行。M1 与 M2 的 Task Management vertical slice 已完成；P-74A～P-81A 已由 DEC-076 / DEC-077 接受，Source #81 与 Review / Brief / Export #82 进入 tracking-parent 子 Issue 执行阶段；相关生产能力仍未实现，M2 整体及 M3～M8 尚未完成。详见 [Implementation Readiness](docs/handoffs/implementation-readiness.md) 与 [AGENTS.md](AGENTS.md)。

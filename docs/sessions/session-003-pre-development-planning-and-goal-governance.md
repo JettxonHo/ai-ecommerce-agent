@@ -4,12 +4,12 @@
 
 - Status: In Discussion
 - Date: 2026-08-06
-- Last Updated: 2026-08-07
+- Last Updated: 2026-08-09
 - Topic: 正式开发前策划、文档一致性、端到端演示 MVP 与长期 Agent 执行治理
 - Related RFCs: RFC-001、RFC-002、RFC-003 至 RFC-007
-- Related Decisions: DEC-039～DEC-066
+- Related Decisions: DEC-039～DEC-077
 - Frontend Proposal Status: P-36～P-41 全部 Accepted；Frontend Architecture overall Accepted
-- Current Planning Gate: RFC-005（Product Specification 与 RFC-004 已于 2026-08-07 整体闭合；随后为 RFC-007）
+- Current Planning Gate: MVP-0 Goal execution（Source / Review persistence ownership Gate accepted）
 - Product Closure Status: P-42～P-47 = Accepted；Product Specification Final Consistency Review = PASS；User Overall Acceptance = Accepted
 
 ## Context
@@ -1693,3 +1693,24 @@ RFC-005 整体接受后，用户授权继续已确认的最小 RFC-007 与快速
 - 首批执行从 contract / fixture / local PostgreSQL 与 TS-01 / TS-03 stop-first compatibility Issues 开始；每个 Issue 使用独立任务合同、分支、测试和 PR。
 - 边界明确的实现只路由准确自定义 Agent `luna-worker`；未经用户对具体任务明确许可不使用 Terra。
 - 高风险、不可逆、产品范围或公共契约变化、主要技术栈更换、敏感数据与降低质量标准继续保留人工 Gate。
+
+## Source / Review Persistence Gate Acceptance Archive（2026-08-09）
+
+### User Decision
+
+用户明确回复：
+
+> “接受 P-74A、P-75A、P-76A、P-77A；接受 P-78A、P-79A、P-80A、P-81A；恢复 Goal 执行。”
+
+提案文本与方案备选继续以 [Issue #81 proposal comment](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81#issuecomment-5227664121) 和 [Issue #82 proposal comment](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82#issuecomment-5227772862) 为追踪依据；接受来源是上述当前用户指令，而不是 GitHub 评论本身。
+
+### Accepted Decisions
+
+- [DEC-076](../decisions/dec-076-source-evidence-persistence-ownership-and-processing-current-truth.md) 接受 P-74A～P-77A：`modules/source_evidence/` 是 Source / Evidence 唯一 owner；replace 产生新 active association identity；processing 使用有界六值迁移图；immutable SourceVersion、revisioned SourceVersionProcessing 与独立 revisioned TaskSourceAssociation 分离。
+- [DEC-077](../decisions/dec-077-review-brief-export-persistence-ownership-and-atomic-outcomes.md) 接受 P-78A～P-81A：Human Review、Marketing Brief、XHS Adapter、Export Delivery 具有明确唯一 owner；identity、version 与 Version State 分离；Task Management Stage pointers 是唯一 persisted Current Truth selector；完整 outcome 等待 Audit、Idempotency Result 与 Durable Work Intent 后由一个 outer transaction 原子提交。
+
+### Archive Result
+
+- `P-74A～P-81A = ACCEPTED`；#81 与 #82 保持 OPEN tracking parents。接受不等于 Source、Review、Brief、Export、Audit、Idempotency 或 Dispatch 已实现。
+- MVP-0 Goal 依据 DEC-072 / DEC-075 恢复执行。下一步先创建并实现 #81 的有界 child Issues，再按 single migration head 与 typed participant 依赖推进 #82。
+- 本轮只归档 Accepted Decisions 与 Current Truth；不创建生产代码、Schema / Migration、API、Parser、Retrieval、Worker、Frontend、Live Provider 或额外公共字段 / 状态。
