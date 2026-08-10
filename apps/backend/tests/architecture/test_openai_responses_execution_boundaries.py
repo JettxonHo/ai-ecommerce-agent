@@ -231,6 +231,18 @@ def _module_effects(tree: ast.Module) -> list[ast.AST]:
             for default in (*node.args.defaults, *node.args.kw_defaults):
                 if default:
                     expression(default)
+            annotations = [
+                *node.args.posonlyargs,
+                *node.args.args,
+                *node.args.kwonlyargs,
+            ]
+            if node.args.vararg:
+                annotations.append(node.args.vararg)
+            if node.args.kwarg:
+                annotations.append(node.args.kwarg)
+            for argument in annotations:
+                if argument.annotation:
+                    expression(argument.annotation)
             if node.returns:
                 expression(node.returns)
             return
@@ -474,6 +486,7 @@ def execute(*, client: _openai.OpenAI, payload: object) -> object:
         "\ngetattr(client.responses, 'create')()\n",
         "\ncreate = client.responses.create\n",
         "\ndef leaked(value: _openai.OpenAI()):\n    return value\n",
+        "\ndef leaked(value: factory()):\n    return value\n",
         "\ndef leaked(value=open('x')):\n    return value\n",
         "\nfrom time import sleep as monotonic\n",
     ],
