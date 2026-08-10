@@ -48,6 +48,9 @@ from ai_ecommerce_agent.modules.durable_dispatch.domain.snapshots import (
     WorkIntentSnapshot,
 )
 from ai_ecommerce_agent.modules.durable_dispatch.domain.status import WorkIntentStatus
+from ai_ecommerce_agent.modules.durable_dispatch.infrastructure.repositories import (
+    DurableDispatchPostgresWorkIntentRepository,
+)
 from ai_ecommerce_agent.platform.postgres import (
     PostgresEngineConfig,
     create_postgres_engine,
@@ -243,6 +246,10 @@ def _raw_row(engine: Engine, dispatch_id: DispatchId) -> dict[str, object]:
     return dict(row)
 
 
+def _changed_keys(before: dict[str, object], after: dict[str, object]) -> set[str]:
+    return {key for key in before if before[key] != after[key]}
+
+
 def _cancel(snapshot: WorkIntentSnapshot) -> RequestWorkIntentCancellation:
     return RequestWorkIntentCancellation(
         snapshot.envelope.dispatch_id, snapshot.revision, _NOW
@@ -282,27 +289,47 @@ def test_control_query_and_active_cancellation_commit_once_and_release_connectio
 ) -> None:
     initial = _leased_snapshot("query-cancel")
     _seed(composition, initial)
+    before_query = _raw_row(composition.engine, initial.envelope.dispatch_id)
     checked = composition.control_application.check_owned_work_intent_control(
         _owned_query(initial)
     )
     assert checked.disposition is WorkIntentControlDisposition.CONTINUE_EXECUTION
+    after_query = _raw_row(composition.engine, initial.envelope.dispatch_id)
+    assert after_query == before_query
     requested = composition.control_application.request_work_intent_cancellation(
         _cancel(initial)
     )
     assert requested.status is WorkIntentStatus.LEASED
     assert requested.cancellation_requested is True
     assert requested.revision == Revision(1)
-    row = _raw_row(composition.engine, initial.envelope.dispatch_id)
-    assert row["status"] == WorkIntentStatus.LEASED.value
-    assert row["cancellation_requested"] is True
-    assert row["revision"] == 1
-    assert row["fencing_token"] == 4
+    after_cancel = _raw_row(composition.engine, initial.envelope.dispatch_id)
+    assert _changed_keys(after_query, after_cancel) == {
+        "revision",
+        "cancellation_requested",
+    }
+    assert after_cancel["status"] == WorkIntentStatus.LEASED.value
+    assert after_cancel["cancellation_requested"] is True
+    assert after_cancel["revision"] == 1
+    assert after_cancel["fencing_token"] == 4
     assert (
         composition.control_application.check_owned_work_intent_control(
             _owned_query(requested)
         ).disposition
         is WorkIntentControlDisposition.STOP_FOR_CANCELLATION
     )
+    acknowledged = composition.control_application.acknowledge_work_intent_stop(
+        _ack(requested)
+    )
+    assert acknowledged.status is WorkIntentStatus.CANCELLED
+    after_ack = _raw_row(composition.engine, initial.envelope.dispatch_id)
+    assert _changed_keys(after_cancel, after_ack) == {
+        "revision",
+        "status",
+        "delivery_attempt_id",
+        "lease_holder_id",
+        "lease_expires_at",
+    }
+    assert after_ack["fencing_token"] == 4
 
 
 def test_unowned_and_expired_cancellation_terminalize_without_fencing_drift(
@@ -322,10 +349,16 @@ def test_unowned_and_expired_cancellation_terminalize_without_fencing_drift(
     assert cancelled.status is WorkIntentStatus.CANCELLED
     assert cancelled.current_lease is None
     available_after = _raw_row(composition.engine, available.envelope.dispatch_id)
+    assert _changed_keys(available_before, available_after) == {
+        "status",
+        "revision",
+        "cancellation_requested",
+    }
     assert available_after["status"] == WorkIntentStatus.CANCELLED.value
     assert available_after["revision"] == 1
     assert available_after["fencing_token"] == available_before["fencing_token"]
     assert available_after["delivery_attempt_id"] is None
+    expired_before = _raw_row(composition.engine, expired.envelope.dispatch_id)
     expired_cancelled = (
         composition.control_application.request_work_intent_cancellation(
             _cancel(expired)
@@ -334,6 +367,14 @@ def test_unowned_and_expired_cancellation_terminalize_without_fencing_drift(
     assert expired_cancelled.status is WorkIntentStatus.CANCELLED
     assert expired_cancelled.current_lease is None
     expired_after = _raw_row(composition.engine, expired.envelope.dispatch_id)
+    assert _changed_keys(expired_before, expired_after) == {
+        "status",
+        "revision",
+        "cancellation_requested",
+        "delivery_attempt_id",
+        "lease_holder_id",
+        "lease_expires_at",
+    }
     assert expired_after["status"] == WorkIntentStatus.CANCELLED.value
     assert expired_after["fencing_token"] == 7
     assert expired_after["delivery_attempt_id"] is None
@@ -345,6 +386,7 @@ def test_supersession_adds_successor_and_acknowledges_only_current_owner(
     old = _leased_snapshot("supersede-active", token=8)
     successor = _successor_envelope(old)
     _seed(composition, old)
+    old_before = _raw_row(composition.engine, old.envelope.dispatch_id)
     result = composition.control_application.supersede_work_intent(
         SupersedeWorkIntent(old.envelope.dispatch_id, successor, old.revision, _NOW)
     )
@@ -352,6 +394,10 @@ def test_supersession_adds_successor_and_acknowledges_only_current_owner(
     assert result.superseded.current_lease == old.current_lease
     assert result.successor.status is WorkIntentStatus.AVAILABLE
     old_row = _raw_row(composition.engine, old.envelope.dispatch_id)
+    assert _changed_keys(old_before, old_row) == {
+        "revision",
+        "superseded_by_dispatch_id",
+    }
     assert old_row["superseded_by_dispatch_id"] == successor.dispatch_id.value
     assert old_row["status"] == WorkIntentStatus.LEASED.value
     assert old_row["revision"] == 1
@@ -364,10 +410,129 @@ def test_supersession_adds_successor_and_acknowledges_only_current_owner(
     )
     assert acknowledged.status is WorkIntentStatus.SUPERSEDED
     assert acknowledged.current_lease is None
-    assert (
-        _raw_row(composition.engine, old.envelope.dispatch_id)["status"]
-        == WorkIntentStatus.SUPERSEDED.value
+    after_ack = _raw_row(composition.engine, old.envelope.dispatch_id)
+    assert _changed_keys(old_row, after_ack) == {
+        "status",
+        "revision",
+        "delivery_attempt_id",
+        "lease_holder_id",
+        "lease_expires_at",
+    }
+    assert after_ack["fencing_token"] == 8
+    assert after_ack["status"] == WorkIntentStatus.SUPERSEDED.value
+
+
+def test_unowned_and_expired_supersession_terminalize_old_and_add_available_successor(
+    composition: DurableDispatchPostgresComposition,
+) -> None:
+    unowned = _snapshot("supersede-unowned")
+    unowned_successor = _successor_envelope(unowned, "successor-unowned")
+    _seed(composition, unowned)
+    unowned_before = _raw_row(composition.engine, unowned.envelope.dispatch_id)
+    unowned_result = composition.control_application.supersede_work_intent(
+        SupersedeWorkIntent(
+            unowned.envelope.dispatch_id,
+            unowned_successor,
+            unowned.revision,
+            _NOW,
+        )
     )
+    assert unowned_result.superseded.status is WorkIntentStatus.SUPERSEDED
+    assert unowned_result.superseded.current_lease is None
+    unowned_after = _raw_row(composition.engine, unowned.envelope.dispatch_id)
+    assert _changed_keys(unowned_before, unowned_after) == {
+        "status",
+        "revision",
+        "superseded_by_dispatch_id",
+    }
+    assert (
+        _raw_row(composition.engine, unowned_successor.dispatch_id)["status"]
+        == WorkIntentStatus.AVAILABLE.value
+    )
+
+    expired = _leased_snapshot(
+        "supersede-expired",
+        expires_at=_NOW - timedelta(minutes=1),
+    )
+    expired_successor = _successor_envelope(expired, "successor-expired")
+    _seed(composition, expired)
+    expired_result = composition.control_application.supersede_work_intent(
+        SupersedeWorkIntent(
+            expired.envelope.dispatch_id,
+            expired_successor,
+            expired.revision,
+            _NOW,
+        )
+    )
+    assert expired_result.superseded.status is WorkIntentStatus.SUPERSEDED
+    assert expired_result.superseded.current_lease is None
+    assert expired_result.successor.status is WorkIntentStatus.AVAILABLE
+
+
+def test_supersession_cas_loss_rolls_back_successor_and_keeps_competitor_update(
+    composition: DurableDispatchPostgresComposition,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    old = _leased_snapshot("supersede-cas-loss", token=9)
+    successor = _successor_envelope(old, "successor-cas-loss")
+    _seed(composition, old)
+    before = _raw_row(composition.engine, old.envelope.dispatch_id)
+    competitor = create_postgres_engine(
+        PostgresEngineConfig(
+            database_url=_database_url(),
+            pool_size=1,
+            max_overflow=0,
+            pool_timeout=3,
+        )
+    )
+    original_add = DurableDispatchPostgresWorkIntentRepository.add
+
+    def add_then_heartbeat(
+        repository: DurableDispatchPostgresWorkIntentRepository,
+        snapshot: WorkIntentSnapshot,
+    ) -> None:
+        original_add(repository, snapshot)
+        with competitor.begin() as connection:
+            connection.execute(
+                text(
+                    f'UPDATE "{_SCHEMA}"."durable_dispatch_work_intents" '
+                    "SET revision = revision + 1, "
+                    "lease_expires_at = lease_expires_at + interval '5 minutes' "
+                    "WHERE dispatch_id = :dispatch_id"
+                ),
+                {"dispatch_id": old.envelope.dispatch_id.value},
+            )
+
+    monkeypatch.setattr(
+        DurableDispatchPostgresWorkIntentRepository,
+        "add",
+        add_then_heartbeat,
+    )
+    try:
+        with pytest.raises(DurableDispatchControlError) as raised:
+            composition.control_application.supersede_work_intent(
+                SupersedeWorkIntent(
+                    old.envelope.dispatch_id,
+                    successor,
+                    old.revision,
+                    _NOW,
+                )
+            )
+    finally:
+        competitor.dispose()
+    assert raised.value.error_code == "revision_conflict"
+    after = _raw_row(composition.engine, old.envelope.dispatch_id)
+    assert _changed_keys(before, after) == {"revision", "lease_expires_at"}
+    assert after["revision"] == 1
+    with composition.engine.connect() as connection:
+        count = connection.execute(
+            text(
+                f'SELECT count(*) FROM "{_SCHEMA}"."durable_dispatch_work_intents" '
+                "WHERE dispatch_id = :dispatch_id"
+            ),
+            {"dispatch_id": successor.dispatch_id.value},
+        ).scalar_one()
+    assert count == 0
 
 
 def test_control_errors_preserve_rows_on_owner_loss_and_no_stop_ack(
