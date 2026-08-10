@@ -17,6 +17,7 @@ _FILES = [
     _PACKAGE / "_schema_compatibility.py",
     _PACKAGE / "request_preparation.py",
     _PACKAGE / "_response_mapping.py",
+    _PACKAGE / "_execution.py",
 ]
 
 _ALLOWED_STDLIB: dict[str, set[str]] = {
@@ -30,6 +31,7 @@ _ALLOWED_STDLIB: dict[str, set[str]] = {
     },
     "request_preparation.py": {"__future__", "dataclasses", "enum", "json"},
     "_response_mapping.py": {"__future__", "typing"},
+    "_execution.py": {"__future__", "time", "typing"},
 }
 _ALLOWED_ABSOLUTE: dict[str, set[str]] = {
     "__init__.py": set(),
@@ -43,12 +45,19 @@ _ALLOWED_ABSOLUTE: dict[str, set[str]] = {
         "openai",
         "openai.types.responses",
     },
+    "_execution.py": {
+        "ai_ecommerce_agent.application.model_runtime",
+        "openai",
+        "openai.types.responses",
+        "openai.types.responses.response_create_params",
+    },
 }
 _ALLOWED_RELATIVE: dict[str, set[str]] = {
     "__init__.py": {".request_preparation"},
     "_schema_compatibility.py": set(),
     "request_preparation.py": {"._schema_compatibility"},
     "_response_mapping.py": set(),
+    "_execution.py": {"._response_mapping", ".request_preparation"},
 }
 _ALLOWED_MAPPER_IMPORTS: dict[tuple[str, str], set[tuple[str, str | None]]] = {
     ("import", "openai"): {("openai", "_openai")},
@@ -340,6 +349,7 @@ def test_private_mapper_has_exact_path_specific_imports_and_no_public_reexport()
 ):
     assert sorted(path.name for path in _PACKAGE.glob("*.py")) == [
         "__init__.py",
+        "_execution.py",
         "_response_mapping.py",
         "_schema_compatibility.py",
         "request_preparation.py",
@@ -367,7 +377,7 @@ def test_only_private_mapper_imports_openai_and_no_unauthorized_consumers_exist(
                 module == "openai" or module.startswith("openai.")
             ):
                 consumers.add(path)
-    assert consumers == {_PACKAGE / "_response_mapping.py"}
+    assert consumers == {_PACKAGE / "_response_mapping.py", _PACKAGE / "_execution.py"}
     mapper_text = (_PACKAGE / "_response_mapping.py").read_text(encoding="utf-8")
     assert "Client" not in mapper_text
     assert "AsyncOpenAI" not in mapper_text
