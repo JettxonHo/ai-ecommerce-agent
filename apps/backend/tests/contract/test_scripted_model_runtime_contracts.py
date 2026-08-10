@@ -359,7 +359,10 @@ def test_strict_text_nested_and_outcome_boundaries_reject_raw_null_subclasses() 
 def test_runtime_is_synchronous_port_conformant_and_signature_exact() -> None:
     runtime = ScriptedModelRuntime(scenario=ScriptedModelScenario("scenario", ()))
     method = ScriptedModelRuntime.execute
-    assert list(signature(method).parameters) == ["self", "request"]
+    execute_params = signature(method).parameters
+    assert list(execute_params) == ["self", "request"]
+    assert execute_params["self"].kind is Parameter.POSITIONAL_OR_KEYWORD
+    assert execute_params["request"].kind is Parameter.POSITIONAL_OR_KEYWORD
     assert get_type_hints(method) == {
         "request": ModelCallRequest,
         "return": ModelCallResult,
@@ -371,5 +374,7 @@ def test_runtime_is_synchronous_port_conformant_and_signature_exact() -> None:
         "scenario": ScriptedModelScenario,
         "return": type(None),
     }
-    assert list(signature(ScriptedModelRuntime.assert_exhausted).parameters) == ["self"]
+    exhausted = ScriptedModelRuntime.assert_exhausted
+    assert list(signature(exhausted).parameters) == ["self"]
+    assert get_type_hints(exhausted) == {"return": type(None)}
     assert isinstance(runtime, ModelRuntimePort)

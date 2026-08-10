@@ -277,7 +277,7 @@ def test_import_guard_rejects_nested_calls_decorators_and_mutable_globals() -> N
     assert _allowed_effects(_PACKAGE_ROOT / "scripted.py", baseline)
     assert _module_assignment_names(baseline) == ["__all__"]
     source = ast.unparse(baseline)
-    probes = (
+    effect_probes = (
         source.replace(
             "@_dataclass(frozen=True, slots=True)\nclass ScriptedModelStep",
             "@print\nclass ScriptedModelStep",
@@ -288,17 +288,20 @@ def test_import_guard_rejects_nested_calls_decorators_and_mutable_globals() -> N
             "class ScriptedModelStep:\n    token = uuid4()",
             1,
         ),
-        source + "\n@print\ndef leaked(value=open('x')):\n    return value\n",
+        source + "\ndef leaked(value=open('x')):\n    return value\n",
+        source + "\ndef leaked(value: open('x')):\n    return value\n",
+        source + "\ndef leaked() -> open('x'):\n    return None\n",
         source + "\nif open('x'):\n    leaked = True\n",
         source + "\nfor value in open('x'):\n    leaked = value\n",
         source + "\nfor sink[open('x')] in [1]:\n    leaked = True\n",
         source + "\nwith open('x') as handle:\n    leaked = handle\n",
+    )
+    for probe in effect_probes:
+        assert not _allowed_effects(_PACKAGE_ROOT / "scripted.py", ast.parse(probe))
+    for probe in (
         source + "\nif True:\n    _CACHE = []\n",
         source + "\ntry:\n    _CACHE = []\nexcept Exception:\n    pass\n",
-    )
-    for probe in probes[:7]:
-        assert not _allowed_effects(_PACKAGE_ROOT / "scripted.py", ast.parse(probe))
-    for probe in probes[7:]:
+    ):
         tree = ast.parse(probe)
         assert _allowed_effects(_PACKAGE_ROOT / "scripted.py", tree)
         assert _module_assignment_names(tree) != ["__all__"]
