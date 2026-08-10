@@ -255,6 +255,23 @@ def test_data_values_are_not_walked_as_schema_nodes() -> None:
     assert _check(schema) is None
 
 
+@pytest.mark.parametrize("reference", ["#/$defs", "#/properties"])
+def test_reference_containers_are_not_schema_targets_when_keys_collide(
+    reference: str,
+) -> None:
+    schema = _base_schema()
+    if reference == "#/$defs":
+        schema["properties"] = {"value": {"$ref": reference}}
+        schema["$defs"] = {"type": {"type": "string"}}
+    else:
+        schema["properties"] = {
+            "type": {"type": "string"},
+            "value": {"$ref": reference},
+        }
+        schema["required"] = ["type", "value"]
+    _invalid(schema)
+
+
 def test_boolean_schema_nodes_are_rejected() -> None:
     mutations: tuple[dict[str, object], ...] = (
         {"properties": {"value": True}},

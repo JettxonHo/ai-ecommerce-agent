@@ -80,10 +80,8 @@ def _error(model_call_id: _ModelCallId) -> _ModelRuntimeError:
 
 
 def _mapping(value: object) -> dict[str, object]:
-    if type(value) is not dict:
-        raise _SchemaError
     result = _cast(dict[str, object], value)
-    if any(type(key) is not str for key in result):
+    if type(value) is not dict or any(type(key) is not str for key in result):
         raise _SchemaError
     return result
 
@@ -121,12 +119,9 @@ def _type_value(value: object) -> None:
 
 def _required(mapping: dict[str, object], properties: dict[str, object]) -> None:
     required = mapping.get("required")
-    if type(required) is not list:
+    names = _cast(list[str], required)
+    if type(required) is not list or any(type(item) is not str for item in names):
         raise _SchemaError
-    values = _cast(list[object], required)
-    if any(type(item) is not str for item in values):
-        raise _SchemaError
-    names = _cast(list[str], values)
     if len(names) != len(set(names)) or set(names) != set(properties):
         raise _SchemaError
 
@@ -146,6 +141,7 @@ def _reference(root: dict[str, object], reference: object) -> None:
     if first_token not in ("$defs", "properties", "items", "anyOf"):
         raise _SchemaError
     current: object = root
+    context = "schema"
     for raw_token in raw_tokens:
         if _fullmatch(r"(?:[^~]|~[01])*", raw_token) is None:
             raise _SchemaError
@@ -153,10 +149,21 @@ def _reference(root: dict[str, object], reference: object) -> None:
         candidate = _cast(object, current)
         if type(candidate) is dict:
             mapping = _cast(dict[str, object], candidate)
-            if token in mapping:
-                current = mapping[token]
-                continue
+            if token not in mapping:
+                raise _SchemaError
+            current = mapping[token]
+            if context == "schema" and token in ("$defs", "properties", "anyOf"):
+                context = token
+            elif context in ("$defs", "properties") or (
+                context == "schema" and token == "items"
+            ):
+                context = "schema"
+            else:
+                context = "data"
+            continue
         if isinstance(candidate, list):
+            if context != "anyOf":
+                raise _SchemaError
             values = _list(_cast(object, candidate))
             if _fullmatch(r"0|[1-9][0-9]*", token) is None:
                 raise _SchemaError
@@ -165,9 +172,10 @@ def _reference(root: dict[str, object], reference: object) -> None:
             index = int(token)
             if index < len(values):
                 current = values[index]
+                context = "schema"
                 continue
         raise _SchemaError
-    if not any(key in _KEYWORDS for key in _mapping(current)):
+    if context != "schema" or not any(key in _KEYWORDS for key in _mapping(current)):
         raise _SchemaError
 
 
