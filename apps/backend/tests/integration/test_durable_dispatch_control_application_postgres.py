@@ -469,7 +469,7 @@ def test_unowned_and_expired_supersession_terminalize_old_and_add_available_succ
     assert expired_result.successor.status is WorkIntentStatus.AVAILABLE
 
 
-def test_supersession_cas_loss_rolls_back_successor_and_keeps_competitor_update(
+def test_supersession_cas_loss_rolls_back_successor_and_keeps_competing_cas_update(
     composition: DurableDispatchPostgresComposition,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -487,7 +487,7 @@ def test_supersession_cas_loss_rolls_back_successor_and_keeps_competitor_update(
     )
     original_add = DurableDispatchPostgresWorkIntentRepository.add
 
-    def add_then_heartbeat(
+    def add_then_competing_cas(
         repository: DurableDispatchPostgresWorkIntentRepository,
         snapshot: WorkIntentSnapshot,
     ) -> None:
@@ -506,7 +506,7 @@ def test_supersession_cas_loss_rolls_back_successor_and_keeps_competitor_update(
     monkeypatch.setattr(
         DurableDispatchPostgresWorkIntentRepository,
         "add",
-        add_then_heartbeat,
+        add_then_competing_cas,
     )
     try:
         with pytest.raises(DurableDispatchControlError) as raised:
@@ -533,6 +533,56 @@ def test_supersession_cas_loss_rolls_back_successor_and_keeps_competitor_update(
             {"dispatch_id": successor.dispatch_id.value},
         ).scalar_one()
     assert count == 0
+
+
+def test_duplicate_successor_constraint_rolls_back_old_without_orphan(
+    composition: DurableDispatchPostgresComposition,
+) -> None:
+    old = _snapshot("supersede-duplicate", status=WorkIntentStatus.AVAILABLE)
+    existing_successor = _snapshot(
+        "successor-duplicate",
+        status=WorkIntentStatus.AVAILABLE,
+        rerun_of=old.envelope.dispatch_id,
+    )
+    _seed(composition, old, existing_successor)
+    old_before = _raw_row(composition.engine, old.envelope.dispatch_id)
+    with pytest.raises(DurableDispatchControlError) as raised:
+        composition.control_application.supersede_work_intent(
+            SupersedeWorkIntent(
+                old.envelope.dispatch_id,
+                _successor_envelope(old, "successor-duplicate"),
+                old.revision,
+                _NOW,
+            )
+        )
+    assert raised.value.error_code == "constraint_violation"
+    assert _raw_row(composition.engine, old.envelope.dispatch_id) == old_before
+    with composition.engine.connect() as connection:
+        count = connection.execute(
+            text(
+                f'SELECT count(*) FROM "{_SCHEMA}"."durable_dispatch_work_intents" '
+                "WHERE dispatch_id = :dispatch_id"
+            ),
+            {"dispatch_id": existing_successor.envelope.dispatch_id.value},
+        ).scalar_one()
+    assert count == 1
+
+
+def test_expired_owned_check_preserves_full_row_without_write(
+    composition: DurableDispatchPostgresComposition,
+) -> None:
+    expired = _leased_snapshot(
+        "expired-owned-check",
+        expires_at=_NOW - timedelta(minutes=1),
+    )
+    _seed(composition, expired)
+    before = _raw_row(composition.engine, expired.envelope.dispatch_id)
+    with pytest.raises(DurableDispatchControlError) as raised:
+        composition.control_application.check_owned_work_intent_control(
+            _owned_query(expired)
+        )
+    assert raised.value.error_code == "ownership_lost"
+    assert _raw_row(composition.engine, expired.envelope.dispatch_id) == before
 
 
 def test_control_errors_preserve_rows_on_owner_loss_and_no_stop_ack(

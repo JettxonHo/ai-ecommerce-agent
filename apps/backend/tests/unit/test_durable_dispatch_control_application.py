@@ -29,6 +29,7 @@ from ai_ecommerce_agent.modules.durable_dispatch.application.control_services im
 )
 from ai_ecommerce_agent.modules.durable_dispatch.application.errors import (
     DurableDispatchConstraintError,
+    DurableDispatchPersistenceError,
     DurableDispatchRevisionConflictError,
 )
 from ai_ecommerce_agent.modules.durable_dispatch.application.ports import (
@@ -401,6 +402,65 @@ def test_supersession_adds_successor_before_old_cas_and_preserves_active_owner()
     ]
 
 
+@pytest.mark.parametrize(
+    ("status", "with_lease", "expected_status"),
+    [
+        (WorkIntentStatus.LEASED, True, WorkIntentStatus.LEASED),
+        (WorkIntentStatus.IN_PROGRESS, True, WorkIntentStatus.IN_PROGRESS),
+        (WorkIntentStatus.PENDING, False, WorkIntentStatus.SUPERSEDED),
+        (WorkIntentStatus.AVAILABLE, False, WorkIntentStatus.SUPERSEDED),
+        (WorkIntentStatus.FAILED_RETRYABLE, False, WorkIntentStatus.SUPERSEDED),
+    ],
+)
+def test_supersession_classifies_each_eligible_status(
+    status: WorkIntentStatus,
+    with_lease: bool,
+    expected_status: WorkIntentStatus,
+) -> None:
+    old = _snapshot(f"supersede-{status.value}", status=status, with_lease=with_lease)
+    successor = _envelope(
+        f"supersede-{status.value}-next", rerun_of=old.envelope.dispatch_id
+    )
+    factory = _Factory(old)
+    result = DurableDispatchControlApplicationService(factory).supersede_work_intent(
+        SupersedeWorkIntent(old.envelope.dispatch_id, successor, old.revision, NOW)
+    )
+    assert result.superseded.status is expected_status
+    assert result.superseded.revision == old.revision.next()
+    assert result.successor.status is WorkIntentStatus.AVAILABLE
+    if status in {WorkIntentStatus.LEASED, WorkIntentStatus.IN_PROGRESS}:
+        assert result.superseded.current_lease is old.current_lease
+    else:
+        assert result.superseded.current_lease is None
+    assert factory.uows[0].commits == 1
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        WorkIntentStatus.SUCCEEDED,
+        WorkIntentStatus.FAILED_TERMINAL,
+        WorkIntentStatus.CANCELLED,
+        WorkIntentStatus.SUPERSEDED,
+    ],
+)
+def test_supersession_rejects_terminal_history(status: WorkIntentStatus) -> None:
+    old = _snapshot(
+        f"supersede-terminal-{status.value}", status=status, with_lease=False
+    )
+    successor = _envelope(
+        f"supersede-terminal-{status.value}-next", rerun_of=old.envelope.dispatch_id
+    )
+    factory = _Factory(old)
+    with pytest.raises(DurableDispatchControlError) as raised:
+        DurableDispatchControlApplicationService(factory).supersede_work_intent(
+            SupersedeWorkIntent(old.envelope.dispatch_id, successor, old.revision, NOW)
+        )
+    assert raised.value.error_code == "invalid_state"
+    assert factory.uows[0].commits == 0
+    assert not any(event[0] == "add" for event in factory.uows[0].events)
+
+
 def test_supersession_constraint_failure_rolls_back_without_orphan() -> None:
     old = _snapshot(status=WorkIntentStatus.AVAILABLE, with_lease=False)
     successor_envelope = _envelope("next", rerun_of=old.envelope.dispatch_id)
@@ -508,3 +568,201 @@ def test_acknowledgement_requires_a_stop_request_and_exact_owner() -> None:
             _Factory(snapshot)
         ).acknowledge_work_intent_stop(_ack(snapshot, expected=2))
     assert stale_revision.value.error_code == "ownership_lost"
+
+
+def test_owned_check_accepts_in_progress_exact_owner() -> None:
+    snapshot = _snapshot(status=WorkIntentStatus.IN_PROGRESS)
+    factory = _Factory(snapshot)
+    result = DurableDispatchControlApplicationService(
+        factory
+    ).check_owned_work_intent_control(_query(snapshot))
+    assert result.snapshot is snapshot
+    assert result.disposition is WorkIntentControlDisposition.CONTINUE_EXECUTION
+    assert factory.uows[0].commits == 0
+    assert factory.uows[0].rollbacks == 1
+
+
+@pytest.mark.parametrize(
+    ("status", "expected_status"),
+    [
+        (WorkIntentStatus.LEASED, WorkIntentStatus.LEASED),
+        (WorkIntentStatus.IN_PROGRESS, WorkIntentStatus.IN_PROGRESS),
+        (WorkIntentStatus.PENDING, WorkIntentStatus.CANCELLED),
+        (WorkIntentStatus.AVAILABLE, WorkIntentStatus.CANCELLED),
+        (WorkIntentStatus.FAILED_RETRYABLE, WorkIntentStatus.CANCELLED),
+        (WorkIntentStatus.CANCELLED, WorkIntentStatus.CANCELLED),
+    ],
+)
+def test_cancellation_classifies_active_unowned_and_cancelled_statuses(
+    status: WorkIntentStatus, expected_status: WorkIntentStatus
+) -> None:
+    snapshot = _snapshot(
+        status=status,
+        with_lease=status in {WorkIntentStatus.LEASED, WorkIntentStatus.IN_PROGRESS},
+        cancellation_requested=status is WorkIntentStatus.CANCELLED,
+    )
+    factory = _Factory(snapshot)
+    result = DurableDispatchControlApplicationService(
+        factory
+    ).request_work_intent_cancellation(_cancel(snapshot))
+    assert result.status is expected_status
+    assert result.cancellation_requested is True
+    if status in {WorkIntentStatus.LEASED, WorkIntentStatus.IN_PROGRESS}:
+        assert result.current_lease is snapshot.current_lease
+    assert factory.uows[0].commits == 1
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        WorkIntentStatus.SUCCEEDED,
+        WorkIntentStatus.FAILED_TERMINAL,
+        WorkIntentStatus.SUPERSEDED,
+    ],
+)
+def test_cancellation_rejects_terminal_history(status: WorkIntentStatus) -> None:
+    snapshot = _snapshot(status=status, with_lease=False)
+    factory = _Factory(snapshot)
+    with pytest.raises(DurableDispatchControlError) as raised:
+        DurableDispatchControlApplicationService(
+            factory
+        ).request_work_intent_cancellation(_cancel(snapshot))
+    assert raised.value.error_code == "invalid_state"
+    assert factory.uows[0].commits == 0
+    assert factory.uows[0].rollbacks == 1
+
+
+def test_cancellation_rejects_contradictory_non_active_lease() -> None:
+    snapshot = _snapshot(status=WorkIntentStatus.AVAILABLE)
+    factory = _Factory(snapshot)
+    with pytest.raises(DurableDispatchControlError) as raised:
+        DurableDispatchControlApplicationService(
+            factory
+        ).request_work_intent_cancellation(_cancel(snapshot))
+    assert raised.value.error_code == "invalid_state"
+    assert not any(event[0] == "save" for event in factory.uows[0].events)
+
+
+@pytest.mark.parametrize(
+    "snapshot",
+    [
+        _snapshot(status=WorkIntentStatus.IN_PROGRESS, with_lease=False),
+        _snapshot(
+            lease=WorkIntentLease(
+                DispatchId("dispatch-old"),
+                DeliveryAttemptId("attempt-old"),
+                LeaseHolderId("holder-old"),
+                FencingToken(4),
+                NOW,
+            )
+        ),
+    ],
+)
+def test_missing_or_expired_active_lease_terminalizes(
+    snapshot: WorkIntentSnapshot,
+) -> None:
+    factory = _Factory(snapshot)
+    result = DurableDispatchControlApplicationService(
+        factory
+    ).request_work_intent_cancellation(_cancel(snapshot))
+    assert result.status is WorkIntentStatus.CANCELLED
+    assert result.current_lease is None
+    assert result.revision == snapshot.revision.next()
+    assert factory.uows[0].commits == 1
+
+
+def test_active_stop_requests_and_second_supersede_are_noop_or_rejected() -> None:
+    active_cancel = _snapshot(cancellation_requested=True)
+    cancel_factory = _Factory(active_cancel)
+    cancelled = DurableDispatchControlApplicationService(
+        cancel_factory
+    ).request_work_intent_cancellation(_cancel(active_cancel))
+    assert cancelled is active_cancel
+    assert cancel_factory.uows[0].commits == 1
+    assert not any(event[0] == "save" for event in cancel_factory.uows[0].events)
+
+    active_superseded = _snapshot(superseded_by=DispatchId("dispatch-next"))
+    sup_factory = _Factory(active_superseded)
+    sup_noop = DurableDispatchControlApplicationService(
+        sup_factory
+    ).request_work_intent_cancellation(_cancel(active_superseded))
+    assert sup_noop is active_superseded
+    assert sup_factory.uows[0].commits == 1
+    assert not any(event[0] == "save" for event in sup_factory.uows[0].events)
+
+    successor = _envelope("second", rerun_of=active_superseded.envelope.dispatch_id)
+    reject_factory = _Factory(active_superseded)
+    with pytest.raises(DurableDispatchControlError) as raised:
+        DurableDispatchControlApplicationService(reject_factory).supersede_work_intent(
+            SupersedeWorkIntent(
+                active_superseded.envelope.dispatch_id,
+                successor,
+                active_superseded.revision,
+                NOW,
+            )
+        )
+    assert raised.value.error_code == "invalid_state"
+    assert not any(event[0] == "add" for event in reject_factory.uows[0].events)
+
+
+@pytest.mark.parametrize("case", ["lower", "mismatch", "expiry"])
+def test_owned_check_rejects_lower_revision_owner_mismatch_and_expiry(
+    case: str,
+) -> None:
+    snapshot = _snapshot()
+    if case == "lower":
+        query = _query(snapshot, expected=2)
+    elif case == "mismatch":
+        query = replace(_query(snapshot), holder_id=LeaseHolderId("wrong-holder"))
+    else:
+        assert snapshot.current_lease is not None
+        snapshot = replace(
+            snapshot,
+            current_lease=replace(snapshot.current_lease, lease_expires_at=NOW),
+        )
+        query = _query(snapshot)
+    with pytest.raises(DurableDispatchControlError) as raised:
+        DurableDispatchControlApplicationService(
+            _Factory(snapshot)
+        ).check_owned_work_intent_control(query)
+    assert raised.value.error_code == "ownership_lost"
+
+
+def test_error_translation_and_identity_preservation() -> None:
+    snapshot = _snapshot()
+    persistence = DurableDispatchPersistenceError()
+    with pytest.raises(DurableDispatchControlError) as translated:
+        DurableDispatchControlApplicationService(
+            _Factory(snapshot, get_error=persistence)
+        ).request_work_intent_cancellation(_cancel(snapshot))
+    assert translated.value.error_code == "persistence_error"
+    assert translated.value.retryability is True
+
+    existing = DurableDispatchControlError(
+        "existing", "control", "existing", False, snapshot.envelope.dispatch_id
+    )
+    with pytest.raises(DurableDispatchControlError) as same:
+        DurableDispatchControlApplicationService(
+            _Factory(snapshot, get_error=existing)
+        ).request_work_intent_cancellation(_cancel(snapshot))
+    assert same.value is existing
+
+    runtime = RuntimeError("runtime")
+    with pytest.raises(RuntimeError) as raw:
+        DurableDispatchControlApplicationService(
+            _Factory(snapshot, get_error=runtime)
+        ).request_work_intent_cancellation(_cancel(snapshot))
+    assert raw.value is runtime
+
+
+def test_commit_failure_rolls_back_and_keeps_store_unchanged() -> None:
+    snapshot = _snapshot()
+    persistence = DurableDispatchPersistenceError()
+    factory = _Factory(snapshot, commit_error=persistence)
+    with pytest.raises(DurableDispatchControlError) as raised:
+        DurableDispatchControlApplicationService(
+            factory
+        ).request_work_intent_cancellation(_cancel(snapshot))
+    assert raised.value.error_code == "persistence_error"
+    assert factory.uows[0].rollbacks == 1
+    assert factory.store[snapshot.envelope.dispatch_id] is snapshot
