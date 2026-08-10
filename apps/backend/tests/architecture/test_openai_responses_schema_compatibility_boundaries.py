@@ -13,17 +13,29 @@ pytestmark = pytest.mark.architecture
 
 _BACKEND = Path(__file__).resolve().parents[2]
 _PACKAGE = _BACKEND / "src/ai_ecommerce_agent/platform/model_runtime/openai_responses"
-_FILES = [_PACKAGE / "__init__.py", _PACKAGE / "_schema_compatibility.py"]
+_FILES = [
+    _PACKAGE / "__init__.py",
+    _PACKAGE / "_schema_compatibility.py",
+    _PACKAGE / "request_preparation.py",
+]
 _ALLOWED_STDLIB = {
     "__future__",
     "collections.abc",
     "dataclasses",
+    "enum",
+    "json",
     "re",
     "typing",
     "urllib.parse",
 }
 _ALLOWED_ABSOLUTE = {
     "ai_ecommerce_agent.application.model_runtime",
+    "ai_ecommerce_agent.shared_kernel",
+}
+_ALLOWED_RELATIVE: dict[str, set[str]] = {
+    "__init__.py": {".request_preparation"},
+    "_schema_compatibility.py": set(),
+    "request_preparation.py": {"._schema_compatibility"},
 }
 _FORBIDDEN = (
     "openai",
@@ -64,9 +76,22 @@ def _import_time_effects(tree: ast.Module) -> tuple[list[ast.Call], list[ast.exp
             candidate for candidate in ast.walk(node) if isinstance(candidate, ast.Call)
         )
 
-    def scan_decorators(nodes: list[ast.expr]) -> None:
+    def scan_decorators(nodes: list[ast.expr], class_name: str | None = None) -> None:
         for decorator in nodes:
-            if isinstance(decorator, ast.Call):
+            allowed_dataclass = (
+                class_name
+                in {"OpenAIResponsesCallParameters", "PreparedOpenAIResponsesCall"}
+                and isinstance(decorator, ast.Call)
+                and isinstance(decorator.func, ast.Name)
+                and decorator.func.id == "_dataclass"
+            )
+            if allowed_dataclass:
+                calls.extend(
+                    candidate
+                    for candidate in ast.walk(decorator)
+                    if isinstance(candidate, ast.Call) and candidate is not decorator
+                )
+            elif isinstance(decorator, ast.Call):
                 scan_expression(decorator)
             else:
                 bare_decorators.append(decorator)
@@ -95,7 +120,7 @@ def _import_time_effects(tree: ast.Module) -> tuple[list[ast.Call], list[ast.exp
                 scan_expression(node.returns)
             return
         if isinstance(node, ast.ClassDef):
-            scan_decorators(node.decorator_list)
+            scan_decorators(node.decorator_list, node.name)
             for base in node.bases:
                 scan_expression(base)
             for keyword in node.keywords:
@@ -247,17 +272,32 @@ def test_exact_inventory_imports_and_private_facade() -> None:
     assert sorted(path.name for path in _PACKAGE.glob("*.py")) == [
         "__init__.py",
         "_schema_compatibility.py",
+        "request_preparation.py",
     ]
     for path in _FILES:
         for module in _imports(_tree(path)):
             if module in _ALLOWED_STDLIB or module in _ALLOWED_ABSOLUTE:
                 continue
+            if module in _ALLOWED_RELATIVE[path.name]:
+                continue
             if module.startswith(_FORBIDDEN) or module.startswith("ai_ecommerce_agent"):
                 pytest.fail(f"forbidden import in {path.name}: {module}")
             pytest.fail(f"unexpected import in {path.name}: {module}")
     assert _module_assignments(_tree(_FILES[0])) == ["__all__"]
-    assert ast.literal_eval(_tree(_FILES[0]).body[-1].value) == []  # type: ignore[union-attr]
+    assert ast.literal_eval(_tree(_FILES[0]).body[-1].value) == [  # type: ignore[union-attr]
+        "OpenAIReasoningEffort",
+        "OpenAIResponsesCallParameters",
+        "PreparedOpenAIResponsesCall",
+        "prepare_openai_responses_call",
+    ]
     assert not hasattr(application_package, "ensure_openai_responses_schema_compatible")
+
+
+def test_request_preparation_is_the_only_private_schema_consumer() -> None:
+    preparation_imports = _imports(_tree(_PACKAGE / "request_preparation.py"))
+    schema_imports = _imports(_tree(_PACKAGE / "_schema_compatibility.py"))
+    assert "._schema_compatibility" in preparation_imports
+    assert all("request_preparation" not in module for module in schema_imports)
 
 
 def test_no_import_time_calls_or_mutable_globals() -> None:
