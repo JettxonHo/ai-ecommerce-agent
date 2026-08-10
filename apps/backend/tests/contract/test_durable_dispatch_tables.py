@@ -46,6 +46,7 @@ _COLUMN_ORDER = [
     "lease_holder_id",
     "fencing_token",
     "lease_expires_at",
+    "superseded_by_dispatch_id",
 ]
 _COLUMN_CONTRACT = {
     "dispatch_id": (Text, False),
@@ -72,6 +73,7 @@ _COLUMN_CONTRACT = {
     "lease_holder_id": (Text, True),
     "fencing_token": (BigInteger, False),
     "lease_expires_at": (DateTime, True),
+    "superseded_by_dispatch_id": (Text, True),
 }
 _STATUS_VALUES = (
     "pending",
@@ -87,6 +89,7 @@ _STATUS_VALUES = (
 _CHECK_NAMES = {
     "pk_durable_dispatch_work_intents",
     "fk_durable_dispatch_work_intents_rerun_of",
+    "fk_durable_dispatch_work_intents_superseded_by",
     "ck_durable_dispatch_work_intents_dispatch_id_nonempty",
     "ck_durable_dispatch_work_intents_intent_type_nonempty",
     "ck_durable_dispatch_work_intents_owning_operation_nonempty",
@@ -111,6 +114,8 @@ _CHECK_NAMES = {
     "ck_durable_dispatch_work_intents_rerun_distinct",
     "ck_durable_dispatch_work_intents_lease_tuple",
     "ck_durable_dispatch_work_intents_leased_fencing_token",
+    "ck_durable_dispatch_work_intents_superseded_by_nonempty",
+    "ck_durable_dispatch_work_intents_superseded_by_distinct",
 }
 
 
@@ -157,6 +162,14 @@ def test_constraints_match_names_targets_and_exact_sql() -> None:
     assert isinstance(foreign_key, ForeignKeyConstraint)
     assert tuple(foreign_key.column_keys) == ("rerun_of_dispatch_id",)
     assert [element.target_fullname for element in foreign_key.elements] == [
+        f"{tables.DURABLE_DISPATCH_SCHEMA_TOKEN}."
+        "durable_dispatch_work_intents.dispatch_id"
+    ]
+
+    superseded_by = constraints["fk_durable_dispatch_work_intents_superseded_by"]
+    assert isinstance(superseded_by, ForeignKeyConstraint)
+    assert tuple(superseded_by.column_keys) == ("superseded_by_dispatch_id",)
+    assert [element.target_fullname for element in superseded_by.elements] == [
         f"{tables.DURABLE_DISPATCH_SCHEMA_TOKEN}."
         "durable_dispatch_work_intents.dispatch_id"
     ]
@@ -236,6 +249,14 @@ def test_constraints_match_names_targets_and_exact_sql() -> None:
         "ck_durable_dispatch_work_intents_leased_fencing_token": (
             "(delivery_attempt_id IS NULL AND lease_holder_id IS NULL AND "
             "lease_expires_at IS NULL) OR fencing_token >= 1"
+        ),
+        "ck_durable_dispatch_work_intents_superseded_by_nonempty": (
+            "superseded_by_dispatch_id IS NULL OR "
+            "length(btrim(superseded_by_dispatch_id)) > 0"
+        ),
+        "ck_durable_dispatch_work_intents_superseded_by_distinct": (
+            "superseded_by_dispatch_id IS NULL OR "
+            "superseded_by_dispatch_id <> dispatch_id"
         ),
     }
     actual_checks = {

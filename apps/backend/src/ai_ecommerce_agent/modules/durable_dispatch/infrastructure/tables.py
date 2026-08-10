@@ -122,11 +122,17 @@ WORK_INTENTS_TABLE = Table(
     Column("lease_holder_id", Text(), nullable=True),
     Column("fencing_token", BigInteger(), nullable=False),
     Column("lease_expires_at", DateTime(timezone=True), nullable=True),
+    Column("superseded_by_dispatch_id", Text(), nullable=True),
     PrimaryKeyConstraint("dispatch_id", name="pk_durable_dispatch_work_intents"),
     ForeignKeyConstraint(
         ["rerun_of_dispatch_id"],
         [f"{DURABLE_DISPATCH_SCHEMA_TOKEN}.durable_dispatch_work_intents.dispatch_id"],
         name="fk_durable_dispatch_work_intents_rerun_of",
+    ),
+    ForeignKeyConstraint(
+        ["superseded_by_dispatch_id"],
+        [f"{DURABLE_DISPATCH_SCHEMA_TOKEN}.durable_dispatch_work_intents.dispatch_id"],
+        name="fk_durable_dispatch_work_intents_superseded_by",
     ),
     *_required_string_checks(),
     *_optional_string_checks(),
@@ -153,6 +159,15 @@ WORK_INTENTS_TABLE = Table(
     CheckConstraint(
         "rerun_of_dispatch_id IS NULL OR rerun_of_dispatch_id <> dispatch_id",
         name="ck_durable_dispatch_work_intents_rerun_distinct",
+    ),
+    CheckConstraint(
+        "superseded_by_dispatch_id IS NULL OR "
+        "length(btrim(superseded_by_dispatch_id)) > 0",
+        name="ck_durable_dispatch_work_intents_superseded_by_nonempty",
+    ),
+    CheckConstraint(
+        "superseded_by_dispatch_id IS NULL OR superseded_by_dispatch_id <> dispatch_id",
+        name="ck_durable_dispatch_work_intents_superseded_by_distinct",
     ),
     CheckConstraint(
         "(delivery_attempt_id IS NULL AND lease_holder_id IS NULL AND "
