@@ -282,6 +282,53 @@ def test_exact_annotations_for_identity_request_result_and_error() -> None:
         "execution_profile": ModelExecutionProfile,
         "contract_versions": ModelCallContractVersions,
     }
+    assert get_type_hints(ModelExecutionProfile) == {
+        "execution_profile_id": str,
+        "execution_profile_version": str,
+    }
+    assert get_type_hints(StructuredOutputSpec) == {
+        "output_schema_id": str,
+        "output_schema_version": str,
+        "schema": StructuredContent,
+    }
+    assert get_type_hints(ModelCallContractVersions) == {
+        "prompt_template_id": str,
+        "prompt_template_version": str,
+        "skill_contract_version": str,
+        "domain_validator_version": str,
+        "context_assembly_version": str,
+    }
+    assert get_type_hints(ModelRuntimeVersionTuple) == {
+        "provider_id": str,
+        "api_family": str,
+        "sdk_version": str,
+        "configured_model_id": str,
+        "resolved_model_id": str | None,
+        "prompt_template_id": str,
+        "prompt_template_version": str,
+        "output_schema_id": str,
+        "output_schema_version": str,
+        "skill_contract_version": str,
+        "domain_validator_version": str,
+        "execution_profile_id": str,
+        "execution_profile_version": str,
+        "context_assembly_version": str,
+    }
+    assert get_type_hints(ModelTokenUsage) == {
+        "input_tokens": int,
+        "output_tokens": int,
+        "total_tokens": int,
+    }
+    assert get_type_hints(ProviderCallMetadata) == {
+        "model_call_id": ModelCallId,
+        "provider_attempt_ids": tuple[ProviderAttemptId, ...],
+        "version_tuple": ModelRuntimeVersionTuple,
+        "provider_response_id": str | None,
+        "provider_request_id": str | None,
+        "usage": ModelTokenUsage | None,
+        "latency_ms": int,
+    }
+    assert get_type_hints(ModelOutputEnvelope) == {"payload_text": str}
     assert get_type_hints(ModelCallResult) == {
         "output_envelope": ModelOutputEnvelope,
         "provider_metadata": ProviderCallMetadata,
@@ -322,6 +369,7 @@ def test_nested_fields_reject_raw_values_and_preserve_exact_instances() -> None:
     )
     for field_name, raw_value in (
         ("model_call_id", {"raw": "id"}),
+        ("recovers_call_id", "raw"),
         ("recovery_kind", "repair"),
     ):
         with pytest.raises(TypeError):
@@ -370,6 +418,8 @@ def test_nested_fields_reject_raw_values_and_preserve_exact_instances() -> None:
         replace(error, category="invalid_request")
     with pytest.raises(TypeError):
         replace(error, model_call_id="call-1")
+    with pytest.raises(TypeError):
+        replace(error, provider_metadata={"raw": "metadata"})
     usage = ModelTokenUsage(1, 2, 99)
     assert usage.total_tokens == 99
 
@@ -387,6 +437,24 @@ def test_error_is_non_frozen_and_accepts_both_supplied_retryability_values() -> 
         assert error.message == "updated"
         del error.provider_metadata
         assert not hasattr(error, "provider_metadata")
+
+
+def test_exact_integer_validation_covers_usage_and_latency_fields() -> None:
+    for field_name in ("input_tokens", "output_tokens", "total_tokens"):
+        usage = ModelTokenUsage(1, 2, 99)
+        with pytest.raises(TypeError):
+            replace(usage, **{field_name: True})
+        with pytest.raises(TypeError):
+            replace(usage, **{field_name: _IntSubclass(1)})
+        with pytest.raises(ValueError):
+            replace(usage, **{field_name: -1})
+    metadata = _metadata()
+    with pytest.raises(TypeError):
+        replace(metadata, latency_ms=_IntSubclass(1))
+    with pytest.raises(TypeError):
+        replace(metadata, latency_ms=True)
+    with pytest.raises(ValueError):
+        replace(metadata, latency_ms=-1)
 
 
 def test_recovery_pair_and_self_recovery_invariants() -> None:

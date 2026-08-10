@@ -193,15 +193,47 @@ def _allowed_import(module: str) -> bool:
     )
 
 
+def _target_names(target: ast.AST) -> list[str]:
+    if isinstance(target, ast.Name):
+        return [target.id]
+    if isinstance(target, (ast.Tuple, ast.List)):
+        names: list[str] = []
+        for element in target.elts:
+            names.extend(_target_names(element))
+        return names
+    return []
+
+
 def _module_assignment_names(tree: ast.Module) -> list[str]:
     names: list[str] = []
-    for node in tree.body:
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name):
-                    names.append(target.id)
-        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
-            names.append(node.target.id)
+
+    def scan(statements: list[ast.stmt]) -> None:
+        for node in statements:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                continue
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    names.extend(_target_names(target))
+            elif isinstance(node, ast.AnnAssign):
+                names.extend(_target_names(node.target))
+            elif isinstance(node, (ast.For, ast.AsyncFor)):
+                names.extend(_target_names(node.target))
+                scan([*node.body, *node.orelse])
+            elif isinstance(node, (ast.While, ast.If)):
+                scan([*node.body, *node.orelse])
+            elif isinstance(node, (ast.With, ast.AsyncWith)):
+                for item in node.items:
+                    if item.optional_vars is not None:
+                        names.extend(_target_names(item.optional_vars))
+                scan(node.body)
+            elif isinstance(node, ast.Try):
+                scan([*node.body, *node.orelse, *node.finalbody])
+                for handler in node.handlers:
+                    if handler.name:
+                        names.append(handler.name)
+                    scan(handler.body)
+
+    scan(tree.body)
     return names
 
 
@@ -283,5 +315,11 @@ def test_import_guard_rejects_forbidden_alias_imports() -> None:
 
 
 def test_import_guard_rejects_unauthorized_mutable_module_globals() -> None:
-    for source in ("_CACHE = []\n", "_STATE: list[str] = []\n"):
+    for source in (
+        "_CACHE = []\n",
+        "_STATE: list[str] = []\n",
+        "if True:\n    _CACHE = []\n",
+        "for value in [1]:\n    _CACHE = []\n",
+        "try:\n    _CACHE = []\nexcept Exception:\n    pass\n",
+    ):
         assert _module_assignment_names(ast.parse(source)) != ["__all__"]
