@@ -34,6 +34,9 @@ pytestmark = pytest.mark.unit
 _PROFILE = ModelExecutionProfile("profile-1", "v1")
 _CALL_ID = ModelCallId("call-1")
 _ATTEMPTS = (ProviderAttemptId("attempt-1"), ProviderAttemptId("attempt-2"))
+_PRIVATE_BODY_MARKER = "private-body-marker"
+_PRIVATE_HEADER_MARKER = "private-header-marker"
+_PRIVATE_URL_MARKER = "https://private-url-marker.invalid/responses"
 
 
 class _AttemptSubclass(ProviderAttemptId):
@@ -117,6 +120,18 @@ def _error_response(status: int, request_id: str = "error-request") -> httpx.Res
     )
 
 
+def _marked_error_response(status: int, request_id: str) -> httpx.Response:
+    return httpx.Response(
+        status,
+        headers={
+            "x-request-id": request_id,
+            "x-private-header": _PRIVATE_HEADER_MARKER,
+        },
+        json={"error": {"message": _PRIVATE_BODY_MARKER}},
+        request=httpx.Request("POST", _PRIVATE_URL_MARKER),
+    )
+
+
 def _success_handler(request: httpx.Request) -> httpx.Response:
     return httpx.Response(200, headers={"x-request-id": "success"}, json=_payload())
 
@@ -134,7 +149,18 @@ def _traceback_contains_raw_transport_value(value: object, seen: set[int]) -> bo
     if identity in seen:
         return False
     seen.add(identity)
-    if isinstance(value, (openai.OpenAIError, httpx.Response, httpx.Headers)):
+    if isinstance(
+        value, (openai.OpenAIError, httpx.Response, httpx.Headers, httpx.URL)
+    ):
+        return True
+    if isinstance(value, str) and any(
+        marker in value
+        for marker in (
+            _PRIVATE_BODY_MARKER,
+            _PRIVATE_HEADER_MARKER,
+            _PRIVATE_URL_MARKER,
+        )
+    ):
         return True
     if isinstance(value, dict):
         mapping = cast(dict[object, object], value)
@@ -477,6 +503,43 @@ def test_x_should_retry_header_does_not_change_raw_eligibility(
     client.close()
 
 
+def test_x_should_retry_true_does_not_retry_noneligible_status(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+    sleeps: list[float] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(
+            400,
+            headers={
+                "x-request-id": "first-request",
+                "x-should-retry": "true",
+            },
+            json={"error": {"message": "invalid"}},
+        )
+
+    monkeypatch.setattr(_execution, "sleep", sleeps.append)
+    client = _client(handler)
+    with pytest.raises(ModelRuntimeError) as caught:
+        _execution.execute_openai_responses_with_transport_retry(
+            client=client,
+            request=_request(),
+            parameters=_parameters(),
+            provider_attempt_ids=_ATTEMPTS,
+            overall_deadline_monotonic=1_000_000_000_000.0,
+            fallback_retry_delay_seconds=2.0,
+        )
+    assert calls == 1
+    assert sleeps == []
+    assert caught.value.provider_metadata is not None
+    assert caught.value.provider_metadata.provider_attempt_ids == (_ATTEMPTS[0],)
+    assert caught.value.provider_metadata.provider_attempt_ids[0] is _ATTEMPTS[0]
+    client.close()
+
+
 @pytest.mark.parametrize("outcome", ["refusal", "incomplete", "invalid_candidate"])
 def test_mapped_outcomes_never_retry(
     outcome: str, monkeypatch: pytest.MonkeyPatch
@@ -575,7 +638,7 @@ def test_final_mapped_traceback_has_no_raw_transport_objects(
     def handler(request: httpx.Request) -> httpx.Response:
         nonlocal calls
         calls += 1
-        return _error_response(500, f"request-{calls}")
+        return _marked_error_response(500, f"request-{calls}")
 
     monkeypatch.setattr(_execution, "sleep", _noop_sleep)
     monkeypatch.setattr(_execution, "random", lambda: 0.25)
