@@ -10,7 +10,9 @@ readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "alembic==1.16.4",
+    "jsonschema==4.26.0",
     "psycopg[binary]==3.2.9",
+    "referencing==0.37.0",
     "sqlalchemy==2.0.43",
 ]
 
