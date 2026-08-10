@@ -190,6 +190,9 @@ def test_workflow_runtime_imports_only_stdlib_and_shared_identities() -> None:
 def test_package_initializers_are_private_and_reexport_nothing() -> None:
     for path in (_ORCHESTRATION_ROOT / "__init__.py", _RUNTIME_ROOT / "__init__.py"):
         tree = ast.parse(path.read_text(encoding="utf-8"))
+        calls, decorators = _import_time_effects(tree)
+        assert calls == []
+        assert decorators == []
         assert not any(
             isinstance(node, (ast.Import, ast.ImportFrom)) for node in tree.body
         )
@@ -198,6 +201,15 @@ def test_package_initializers_are_private_and_reexport_nothing() -> None:
         )
         assert not any(
             isinstance(node, (ast.ClassDef, ast.FunctionDef)) for node in tree.body
+        )
+        assert all(
+            isinstance(node, ast.Pass)
+            or (
+                isinstance(node, ast.Expr)
+                and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)
+            )
+            for node in tree.body
         )
 
 
@@ -276,3 +288,18 @@ def rejected_dataclass_decorator():
         "object",
         "dataclass",
     ]
+
+
+def test_initializer_probe_catches_import_time_calls_and_bare_decorators() -> None:
+    tree = ast.parse(
+        """
+@print
+def leaked():
+    pass
+
+value = object()
+"""
+    )
+    calls, decorators = _import_time_effects(tree)
+    assert [_dotted_name(call.func) for call in calls] == ["object"]
+    assert decorators == [("function:leaked", "print", False)]
