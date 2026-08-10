@@ -224,6 +224,7 @@ def test_claim_selects_one_locked_candidate_and_returns_retained_token_plus_one(
     assert "FOR UPDATE" in select_sql and "SKIP LOCKED" in select_sql
     assert "LIMIT" in select_sql and "ORDER BY" in select_sql
     assert "CANCELLATION_REQUESTED" in select_sql
+    assert "SUPERSEDED_BY_DISPATCH_ID IS NULL" in select_sql
     update_sql = str(_compile(session.statements[1])).upper()
     assert update_sql.startswith("UPDATE")
     assert "RETURNING" in update_sql

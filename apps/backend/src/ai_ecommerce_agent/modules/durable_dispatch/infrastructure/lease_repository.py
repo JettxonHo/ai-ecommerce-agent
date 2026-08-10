@@ -141,6 +141,7 @@ class DurableDispatchPostgresWorkIntentLeaseRepository:
         return (
             select(WORK_INTENTS_TABLE)
             .where(columns.cancellation_requested.is_(False))
+            .where(columns.superseded_by_dispatch_id.is_(None))
             .where(or_(fresh, takeover))
             .order_by(
                 columns.available_at,

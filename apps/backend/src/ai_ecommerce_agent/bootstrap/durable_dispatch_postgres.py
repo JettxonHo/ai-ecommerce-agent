@@ -6,6 +6,12 @@ from dataclasses import dataclass
 
 from sqlalchemy import Engine
 
+from ai_ecommerce_agent.modules.durable_dispatch.application.control_protocols import (
+    DurableDispatchControlApplication,
+)
+from ai_ecommerce_agent.modules.durable_dispatch.application.control_services import (
+    DurableDispatchControlApplicationService,
+)
 from ai_ecommerce_agent.modules.durable_dispatch.application.lease_protocols import (
     DurableDispatchLeaseApplication,
 )
@@ -28,6 +34,7 @@ class DurableDispatchPostgresComposition:
     engine: Engine
     uow_factory: DurableDispatchPostgresUnitOfWorkFactory
     lease_application: DurableDispatchLeaseApplication
+    control_application: DurableDispatchControlApplication
 
     def close(self) -> None:
         """Dispose the process-lifetime engine at application shutdown."""
@@ -48,6 +55,7 @@ def compose_durable_dispatch_postgres(
         engine=engine,
         uow_factory=uow_factory,
         lease_application=DurableDispatchLeaseApplicationService(uow_factory),
+        control_application=DurableDispatchControlApplicationService(uow_factory),
     )
 
 
