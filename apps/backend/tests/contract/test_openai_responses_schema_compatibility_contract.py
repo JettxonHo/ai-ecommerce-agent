@@ -17,7 +17,11 @@ from ai_ecommerce_agent.application.model_runtime import (
 )
 from ai_ecommerce_agent.platform.model_runtime import openai_responses
 from ai_ecommerce_agent.platform.model_runtime.openai_responses import (
+    OpenAIReasoningEffort,
+    OpenAIResponsesCallParameters,
+    PreparedOpenAIResponsesCall,
     _schema_compatibility,
+    prepare_openai_responses_call,
 )
 from ai_ecommerce_agent.shared_kernel import StructuredContent
 
@@ -54,7 +58,20 @@ class _ModelCallIdSubclass(ModelCallId):
 
 def test_private_facade_and_module_interface_are_exact() -> None:
     facade_exports: object = openai_responses.__dict__["__all__"]
-    assert cast(list[str], facade_exports) == []
+    assert cast(list[str], facade_exports) == [
+        "OpenAIReasoningEffort",
+        "OpenAIResponsesCallParameters",
+        "PreparedOpenAIResponsesCall",
+        "prepare_openai_responses_call",
+    ]
+    assert [
+        getattr(openai_responses, name) for name in cast(list[str], facade_exports)
+    ] == [
+        OpenAIReasoningEffort,
+        OpenAIResponsesCallParameters,
+        PreparedOpenAIResponsesCall,
+        prepare_openai_responses_call,
+    ]
     assert not hasattr(openai_responses, "ensure_openai_responses_schema_compatible")
     private_exports: object = _schema_compatibility.__dict__["__all__"]
     assert cast(list[str], private_exports) == [

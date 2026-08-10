@@ -1,3 +1,15 @@
-"""Private OpenAI Responses adapter package."""
+"""OpenAI Responses request-preparation facade."""
 
-__all__ = []
+from .request_preparation import (
+    OpenAIReasoningEffort,
+    OpenAIResponsesCallParameters,
+    PreparedOpenAIResponsesCall,
+    prepare_openai_responses_call,
+)
+
+__all__ = [
+    "OpenAIReasoningEffort",
+    "OpenAIResponsesCallParameters",
+    "PreparedOpenAIResponsesCall",
+    "prepare_openai_responses_call",
+]
