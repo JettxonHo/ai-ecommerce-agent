@@ -41,6 +41,10 @@ class _ParametersSubclass(OpenAIResponsesCallParameters):
     pass
 
 
+class _ProfileSubclass(ModelExecutionProfile):
+    pass
+
+
 class _IntSubclass(int):
     pass
 
@@ -225,6 +229,53 @@ def test_request_and_parameter_dto_types_are_exact() -> None:
         _prepare(parameters=subclass_parameters)
 
 
+@pytest.mark.parametrize(
+    ("raw_request", "raw_parameters"),
+    [
+        (None, _parameters()),
+        (object(), _parameters()),
+        (_request(), None),
+        (_request(), object()),
+    ],
+)
+def test_request_and_parameter_raw_or_none_values_are_rejected(
+    raw_request: object, raw_parameters: object
+) -> None:
+    with pytest.raises(TypeError):
+        prepare_openai_responses_call(
+            request=cast(ModelCallRequest, raw_request),
+            parameters=cast(OpenAIResponsesCallParameters, raw_parameters),
+        )
+
+
+@pytest.mark.parametrize(
+    "profile",
+    [None, object(), _ProfileSubclass("profile-1", "v1")],
+)
+def test_parameter_execution_profile_requires_exact_dto(
+    profile: object,
+) -> None:
+    parameters = _parameters()
+    object.__setattr__(parameters, "execution_profile", profile)
+    with pytest.raises(TypeError):
+        _prepare(parameters=parameters)
+
+
+def test_profile_matching_is_value_based_but_supplied_identity_is_preserved() -> None:
+    request_profile = ModelExecutionProfile("profile-1", "v1")
+    parameter_profile = ModelExecutionProfile("profile-1", "v1")
+    parameters = _parameters(profile=parameter_profile)
+    assert parameters.execution_profile is parameter_profile
+    assert parameter_profile is not request_profile
+    result = _prepare(_request(profile=request_profile), parameters)
+    assert result.timeout_seconds == parameters.timeout_seconds
+
+    mismatched = _parameters(profile=ModelExecutionProfile("profile-2", "v1"))
+    with pytest.raises(ModelRuntimeError) as caught:
+        _prepare(_request(profile=request_profile), mismatched)
+    assert caught.value.model_call_id is _CALL_ID
+
+
 def test_profile_mismatch_is_a_safe_error_with_original_call_identity() -> None:
     request = _request()
     parameters = _parameters(profile=ModelExecutionProfile("other", "v1"))
@@ -247,15 +298,22 @@ def test_helper_is_called_before_projection_and_errors_keep_identity(
 
     module = cast(Any, request_preparation)
     events: list[str] = []
-    original = module._ensure_schema_compatible
+
+    class _ExplodingContext:
+        def to_mapping(self) -> object:
+            events.append("projection")
+            raise RuntimeError("projection boundary")
+
+    request = _request()
+    object.__setattr__(request, "context", _ExplodingContext())
 
     def helper(**kwargs: object) -> None:
         events.append("helper")
-        original(**kwargs)  # type: ignore[arg-type]
 
     monkeypatch.setattr(module, "_ensure_schema_compatible", helper)
-    _prepare()
-    assert events == ["helper"]
+    with pytest.raises(RuntimeError, match="projection boundary"):
+        _prepare(request=request)
+    assert events == ["helper", "projection"]
 
     expected = ModelRuntimeError(
         ModelRuntimeErrorCategory.INVALID_REQUEST,

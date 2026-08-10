@@ -18,19 +18,24 @@ _FILES = [
     _PACKAGE / "_schema_compatibility.py",
     _PACKAGE / "request_preparation.py",
 ]
-_ALLOWED_STDLIB = {
-    "__future__",
-    "collections.abc",
-    "dataclasses",
-    "enum",
-    "json",
-    "re",
-    "typing",
-    "urllib.parse",
+_ALLOWED_STDLIB_BY_FILE: dict[str, set[str]] = {
+    "__init__.py": {"__future__"},
+    "_schema_compatibility.py": {
+        "__future__",
+        "collections.abc",
+        "re",
+        "typing",
+        "urllib.parse",
+    },
+    "request_preparation.py": {"__future__", "dataclasses", "enum", "json"},
 }
-_ALLOWED_ABSOLUTE = {
-    "ai_ecommerce_agent.application.model_runtime",
-    "ai_ecommerce_agent.shared_kernel",
+_ALLOWED_ABSOLUTE_BY_FILE: dict[str, set[str]] = {
+    "__init__.py": set(),
+    "_schema_compatibility.py": {"ai_ecommerce_agent.application.model_runtime"},
+    "request_preparation.py": {
+        "ai_ecommerce_agent.application.model_runtime",
+        "ai_ecommerce_agent.shared_kernel",
+    },
 }
 _ALLOWED_RELATIVE: dict[str, set[str]] = {
     "__init__.py": {".request_preparation"},
@@ -65,6 +70,77 @@ def _imports(tree: ast.Module) -> list[str]:
         elif isinstance(node, ast.ImportFrom):
             values.append("." * node.level + (node.module or ""))
     return values
+
+
+def _unexpected_imports(path: Path, tree: ast.Module) -> list[str]:
+    allowed_stdlib = _ALLOWED_STDLIB_BY_FILE[path.name]
+    allowed_absolute = _ALLOWED_ABSOLUTE_BY_FILE[path.name]
+    unexpected: list[str] = []
+    for module in _imports(tree):
+        if module in allowed_stdlib or module in allowed_absolute:
+            continue
+        if module in _ALLOWED_RELATIVE[path.name]:
+            continue
+        unexpected.append(module)
+    return unexpected
+
+
+def _module_name(path: Path) -> str:
+    relative = path.relative_to(_BACKEND / "src").with_suffix("")
+    parts = list(relative.parts)
+    if parts[-1] == "__init__":
+        parts.pop()
+    return ".".join(parts)
+
+
+_HELPER_MODULE = (
+    "ai_ecommerce_agent.platform.model_runtime.openai_responses._schema_compatibility"
+)
+_HELPER_SYMBOL = "ensure_openai_responses_schema_compatible"
+_EXPECTED_HELPER_CONSUMER = _PACKAGE / "request_preparation.py"
+
+
+def _private_helper_consumers() -> set[Path]:
+    consumers: set[Path] = set()
+    source_root = _BACKEND / "src"
+    for path in source_root.rglob("*.py"):
+        tree = _tree(path)
+        current_module = _module_name(path)
+        current_package = (
+            current_module
+            if path.name == "__init__.py"
+            else current_module.rsplit(".", 1)[0]
+        )
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                if any(
+                    alias.name == _HELPER_MODULE
+                    or alias.name.startswith(f"{_HELPER_MODULE}.")
+                    for alias in node.names
+                ):
+                    consumers.add(path)
+                continue
+            if not isinstance(node, ast.ImportFrom):
+                continue
+            if node.level:
+                base_parts = current_package.split(".")
+                if node.level > len(base_parts):
+                    continue
+                base = ".".join(base_parts[: len(base_parts) - node.level + 1])
+                imported_module = ".".join(
+                    part for part in (base, node.module or "") if part
+                )
+            else:
+                imported_module = node.module or ""
+            if imported_module == _HELPER_MODULE and any(
+                alias.name in {_HELPER_SYMBOL, "*"} for alias in node.names
+            ):
+                consumers.add(path)
+            elif imported_module == _HELPER_MODULE.rsplit(".", 1)[0] and any(
+                alias.name == "_schema_compatibility" for alias in node.names
+            ):
+                consumers.add(path)
+    return consumers
 
 
 def _import_time_effects(tree: ast.Module) -> tuple[list[ast.Call], list[ast.expr]]:
@@ -275,14 +351,9 @@ def test_exact_inventory_imports_and_private_facade() -> None:
         "request_preparation.py",
     ]
     for path in _FILES:
-        for module in _imports(_tree(path)):
-            if module in _ALLOWED_STDLIB or module in _ALLOWED_ABSOLUTE:
-                continue
-            if module in _ALLOWED_RELATIVE[path.name]:
-                continue
-            if module.startswith(_FORBIDDEN) or module.startswith("ai_ecommerce_agent"):
-                pytest.fail(f"forbidden import in {path.name}: {module}")
-            pytest.fail(f"unexpected import in {path.name}: {module}")
+        unexpected = _unexpected_imports(path, _tree(path))
+        if unexpected:
+            pytest.fail(f"unexpected import in {path.name}: {unexpected}")
     assert _module_assignments(_tree(_FILES[0])) == ["__all__"]
     assert ast.literal_eval(_tree(_FILES[0]).body[-1].value) == [  # type: ignore[union-attr]
         "OpenAIReasoningEffort",
@@ -294,10 +365,26 @@ def test_exact_inventory_imports_and_private_facade() -> None:
 
 
 def test_request_preparation_is_the_only_private_schema_consumer() -> None:
-    preparation_imports = _imports(_tree(_PACKAGE / "request_preparation.py"))
-    schema_imports = _imports(_tree(_PACKAGE / "_schema_compatibility.py"))
-    assert "._schema_compatibility" in preparation_imports
-    assert all("request_preparation" not in module for module in schema_imports)
+    assert _private_helper_consumers() == {_EXPECTED_HELPER_CONSUMER}
+
+
+@pytest.mark.parametrize(
+    ("filename", "source"),
+    [
+        ("_schema_compatibility.py", "import json"),
+        ("_schema_compatibility.py", "from enum import StrEnum"),
+        (
+            "_schema_compatibility.py",
+            "from ai_ecommerce_agent.shared_kernel import StructuredContent",
+        ),
+        ("request_preparation.py", "from re import fullmatch"),
+    ],
+)
+def test_path_specific_import_allowlist_rejects_cross_slice_mutations(
+    filename: str, source: str
+) -> None:
+    path = _PACKAGE / filename
+    assert _unexpected_imports(path, ast.parse(source))
 
 
 def test_no_import_time_calls_or_mutable_globals() -> None:
