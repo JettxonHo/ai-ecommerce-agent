@@ -109,8 +109,10 @@ def _type_value(value: object) -> None:
         return
     if type(value) is list:
         values = _cast(list[object], value)
-        if not values or any(
-            type(item) is not str or item not in _TYPES for item in values
+        if (
+            len(values) != 2
+            or values.count("null") != 1
+            or sum(item in _TYPES[:-1] for item in values) != 1
         ):
             raise _SchemaError
         return
@@ -137,8 +139,16 @@ def _reference(root: dict[str, object], reference: object) -> None:
         return
     if not fragment.startswith("/"):
         raise _SchemaError
+    raw_tokens = fragment[1:].split("/")
+    if _fullmatch(r"(?:[^~]|~[01])*", raw_tokens[0]) is None:
+        raise _SchemaError
+    first_token = raw_tokens[0].replace("~1", "/").replace("~0", "~")
+    if first_token not in ("$defs", "properties", "items", "anyOf"):
+        raise _SchemaError
     current: object = root
-    for raw_token in fragment[1:].split("/"):
+    for raw_token in raw_tokens:
+        if _fullmatch(r"(?:[^~]|~[01])*", raw_token) is None:
+            raise _SchemaError
         token = raw_token.replace("~1", "/").replace("~0", "~")
         candidate = _cast(object, current)
         if type(candidate) is dict:
@@ -148,9 +158,16 @@ def _reference(root: dict[str, object], reference: object) -> None:
                 continue
         if isinstance(candidate, list):
             values = _list(_cast(object, candidate))
-            if token.isdigit() and int(token) < len(values):
-                current = values[int(token)]
+            if _fullmatch(r"0|[1-9][0-9]*", token) is None:
+                raise _SchemaError
+            if len(token) > len(str(len(values))):
+                raise _SchemaError
+            index = int(token)
+            if index < len(values):
+                current = values[index]
                 continue
+        raise _SchemaError
+    if not any(key in _KEYWORDS for key in _mapping(current)):
         raise _SchemaError
 
 
@@ -164,9 +181,9 @@ def _object_schema(mapping: dict[str, object]) -> bool:
 
 
 def _enum(mapping: dict[str, object], stats: dict[str, int]) -> None:
-    values = mapping.get("enum")
-    if values is None:
+    if "enum" not in mapping:
         return
+    values = mapping["enum"]
     if type(values) is not list or not values:
         raise _SchemaError
     enum_values = _cast(list[object], values)
@@ -182,7 +199,7 @@ def _walk(
     value: object, root: dict[str, object], depth: int, stats: dict[str, int]
 ) -> None:
     if type(value) is bool:
-        return
+        raise _SchemaError
     mapping = _mapping(value)
     if depth > 10 or any(key not in _KEYWORDS for key in mapping):
         raise _SchemaError

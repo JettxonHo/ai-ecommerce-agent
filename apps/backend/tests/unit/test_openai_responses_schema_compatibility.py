@@ -255,6 +255,71 @@ def test_data_values_are_not_walked_as_schema_nodes() -> None:
     assert _check(schema) is None
 
 
+def test_boolean_schema_nodes_are_rejected() -> None:
+    mutations: tuple[dict[str, object], ...] = (
+        {"properties": {"value": True}},
+        {"properties": {"value": {"anyOf": [True]}}},
+        {"properties": {"value": {"type": "array", "items": False}}},
+        {
+            "properties": {"value": {"$ref": "#/$defs/node"}},
+            "$defs": {"node": True},
+        },
+    )
+    for mutation in mutations:
+        schema = _base_schema()
+        schema.update(mutation)
+        _invalid(schema)
+
+
+def test_explicit_null_enum_is_rejected() -> None:
+    schema = _base_schema()
+    schema["properties"] = {"value": {"type": "string", "enum": None}}
+    _invalid(schema)
+
+
+def test_nullable_type_arrays_require_one_supported_type_and_one_null() -> None:
+    for type_value in (["string", "null"], ["null", "integer"]):
+        schema = _base_schema()
+        schema["properties"] = {"value": {"type": type_value}}
+        assert _check(schema) is None
+
+    for type_value in (
+        ["string", "string"],
+        ["string", "null", "integer"],
+        ["null", "null"],
+        ["string", "boolean"],
+        ["string"],
+    ):
+        schema = _base_schema()
+        schema["properties"] = {"value": {"type": type_value}}
+        _invalid(schema)
+
+
+@pytest.mark.parametrize(
+    "reference",
+    [
+        "#/$defs/choices/anyOf/00",
+        "#/$defs/choices/anyOf/01",
+        "#/$defs/choices/anyOf/" + "9" * 10_000,
+        "#/$defs/choices~2",
+        "#/required/0",
+        "#/const",
+        "#/enum/0",
+    ],
+)
+def test_local_references_require_canonical_indexes_and_schema_targets(
+    reference: str,
+) -> None:
+    schema = _base_schema()
+    schema["properties"] = {"value": {"$ref": reference}}
+    schema["$defs"] = {
+        "choices": {"anyOf": [{"type": "string"}, {"type": "number"}]},
+    }
+    schema["const"] = "instance data"
+    schema["enum"] = ["instance data"]
+    _invalid(schema)
+
+
 @pytest.mark.parametrize(
     ("format_name",),
     [
