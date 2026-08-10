@@ -60,7 +60,7 @@ if os.environ.get("MVP0_RUN_DURABLE_DISPATCH_POSTGRES") != "1":
     )
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
-SCHEMA = "mvp0_018i_durable_dispatch"
+SCHEMA = "mvp0_019b_durable_dispatch"
 URL_ENV = "MVP0_DURABLE_DISPATCH_DATABASE_URL"
 DEFAULT_URL = URL.create(
     "postgresql+psycopg",
@@ -112,6 +112,8 @@ def _snapshot(
     *,
     revision: int = 0,
     lease: WorkIntentLease | None = None,
+    status: WorkIntentStatus = WorkIntentStatus.AVAILABLE,
+    superseded_by: DispatchId | None = None,
 ) -> WorkIntentSnapshot:
     dispatch_id = DispatchId(f"dispatch-{suffix}")
     timestamp = datetime(2026, 8, 10, 12, 0, tzinfo=UTC)
@@ -133,10 +135,11 @@ def _snapshot(
             timestamp,
             timestamp,
         ),
-        WorkIntentStatus.AVAILABLE,
+        status,
         Revision(revision),
         False,
         lease,
+        superseded_by,
     )
 
 
@@ -187,6 +190,45 @@ def test_add_get_commit_and_uncommitted_rollback(postgres_engine: Engine) -> Non
     with factory() as uow:
         assert uow.work_intents.get(rolled_back.envelope.dispatch_id) is None
         uow.commit()
+
+
+def test_supersession_reference_round_trips_through_repository(
+    postgres_engine: Engine,
+) -> None:
+    factory = _factory(postgres_engine)
+    successor = _snapshot("successor")
+    superseded = _snapshot(
+        "superseded",
+        revision=1,
+        status=WorkIntentStatus.SUPERSEDED,
+        superseded_by=successor.envelope.dispatch_id,
+    )
+    with factory() as uow:
+        uow.work_intents.add(successor)
+        uow.work_intents.add(superseded)
+        uow.commit()
+
+    with factory() as uow:
+        loaded = uow.work_intents.get(superseded.envelope.dispatch_id)
+        assert loaded == superseded
+        assert loaded is not None and loaded.superseded_by is not None
+        assert loaded.superseded_by == successor.envelope.dispatch_id
+        uow.commit()
+
+    row = _raw_row(postgres_engine, superseded.envelope.dispatch_id)
+    assert row["superseded_by_dispatch_id"] == successor.envelope.dispatch_id.value
+
+    with factory() as uow:
+        loaded = uow.work_intents.get(superseded.envelope.dispatch_id)
+        assert loaded is not None
+        cleared = replace(loaded, superseded_by=None, revision=Revision(2))
+        uow.work_intents.save(cleared, expected_revision=Revision(1))
+        uow.commit()
+
+    cleared_row = _raw_row(postgres_engine, superseded.envelope.dispatch_id)
+    assert cleared_row["superseded_by_dispatch_id"] is None
+    assert cleared_row["dispatch_id"] == superseded.envelope.dispatch_id.value
+    assert cleared_row["status"] == WorkIntentStatus.SUPERSEDED.value
 
 
 def test_two_independent_uows_have_one_exact_revision_cas_winner(

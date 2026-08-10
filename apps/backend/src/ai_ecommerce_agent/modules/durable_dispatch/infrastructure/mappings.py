@@ -129,12 +129,19 @@ def work_intent_row_to_snapshot(
         _timestamp(row, "available_at"),
     )
     fencing_token = FencingToken(_integer(row, "fencing_token"))
+    superseded_by = (
+        DispatchId(superseded_by_value)
+        if (superseded_by_value := _nullable_text(row, "superseded_by_dispatch_id"))
+        is not None
+        else None
+    )
     return WorkIntentSnapshot(
         envelope,
         WorkIntentStatus(_text(row, "status")),
         Revision(_integer(row, "revision")),
         cast(bool, row["cancellation_requested"]),
         _lease_from_row(row, dispatch_id, fencing_token),
+        superseded_by,
     )
 
 
@@ -182,6 +189,9 @@ def work_intent_snapshot_to_insert_row(
         if lease is not None
         else FencingToken.initial().value,
         "lease_expires_at": lease.lease_expires_at if lease is not None else None,
+        "superseded_by_dispatch_id": snapshot.superseded_by.value
+        if snapshot.superseded_by is not None
+        else None,
     }
 
 
@@ -200,6 +210,9 @@ def work_intent_snapshot_to_update_values(
         ),
         "lease_holder_id": lease.holder_id.value if lease is not None else None,
         "lease_expires_at": lease.lease_expires_at if lease is not None else None,
+        "superseded_by_dispatch_id": (
+            snapshot.superseded_by.value if snapshot.superseded_by is not None else None
+        ),
     }
     if lease is not None:
         values["fencing_token"] = lease.fencing_token.value

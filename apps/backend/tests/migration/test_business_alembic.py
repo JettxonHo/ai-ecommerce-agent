@@ -1,4 +1,4 @@
-"""Bounded real-PostgreSQL verification for the MVP0-018F Business tables.
+"""Bounded real-PostgreSQL verification for the MVP0-019B Business tables.
 
 The suite is opt-in because the default test lane blocks network access.  It
 uses one fixed, test-owned schema and removes that schema during teardown; no
@@ -40,11 +40,12 @@ if os.environ.get("MVP0_RUN_POSTGRES_MIGRATION") != "1":
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 ALEMBIC_INI = BACKEND_ROOT / "alembic.ini"
-BUSINESS_SCHEMA = "mvp0_018f_migration"
+BUSINESS_SCHEMA = "mvp0_019b_migration"
 BASELINE_REVISION = "0001_business_baseline"
 TASK_HEAD_REVISION = "0002_task_management"
 SOURCE_HEAD_REVISION = "0003_source_evidence"
-HEAD_REVISION = "0004_durable_dispatch"
+PREVIOUS_HEAD_REVISION = "0004_durable_dispatch"
+HEAD_REVISION = "0005_dispatch_supersession"
 DATABASE_URL_ENV = "MVP0_MIGRATION_DATABASE_URL"
 DOMAIN_TABLES = (
     "durable_dispatch_work_intents",
@@ -86,6 +87,7 @@ DURABLE_COLUMNS = (
     "lease_holder_id",
     "fencing_token",
     "lease_expires_at",
+    "superseded_by_dispatch_id",
 )
 DURABLE_STATUS_VALUES = (
     "pending",
@@ -129,6 +131,9 @@ DURABLE_CONSTRAINT_NAMES = {
     "ck_durable_dispatch_work_intents_rerun_distinct",
     "ck_durable_dispatch_work_intents_lease_tuple",
     "ck_durable_dispatch_work_intents_leased_fencing_token",
+    "fk_durable_dispatch_work_intents_superseded_by",
+    "ck_durable_dispatch_work_intents_superseded_by_nonempty",
+    "ck_durable_dispatch_work_intents_superseded_by_distinct",
 }
 
 
@@ -148,7 +153,7 @@ def _database_url() -> str:
 
 @pytest.fixture(scope="module")
 def migration_engine() -> Iterator[Engine]:
-    """Own and remove exactly the fixed MVP0-018F verification schema."""
+    """Own and remove exactly the fixed MVP0-019B verification schema."""
 
     engine = create_postgres_engine(
         PostgresEngineConfig(
@@ -168,7 +173,7 @@ def migration_engine() -> Iterator[Engine]:
                 text("SELECT count(*) FROM pg_namespace WHERE nspname = :schema"),
                 {"schema": BUSINESS_SCHEMA},
             )
-        assert remaining == 0, "MVP0-018F test schema cleanup was not verifiable"
+        assert remaining == 0, "MVP0-019B test schema cleanup was not verifiable"
         engine.dispose()
 
 
@@ -280,6 +285,20 @@ def _constraint_names(engine: Engine) -> set[str]:
         )
 
 
+def _version_num_details(engine: Engine) -> tuple[str, int | None]:
+    with engine.connect() as connection:
+        row = connection.execute(
+            text(
+                "SELECT data_type, character_maximum_length "
+                "FROM information_schema.columns "
+                "WHERE table_schema = :schema AND table_name = 'alembic_version' "
+                "AND column_name = 'version_num'"
+            ),
+            {"schema": BUSINESS_SCHEMA},
+        ).one()
+    return str(row[0]), row[1]
+
+
 def _constraint_definitions(engine: Engine, table_name: str) -> dict[str, str]:
     with engine.connect() as connection:
         rows = connection.execute(
@@ -339,6 +358,7 @@ def _insert_work_intent(
     engine: Engine,
     *,
     dispatch_id: str,
+    include_superseded_by: bool = True,
     intent_type: str = "source.process",
     owning_operation: str = "task.run",
     target_resource_kind: str = "task",
@@ -352,6 +372,7 @@ def _insert_work_intent(
     payload_resource_kind: str = "source_version",
     payload_resource_id: str = "source-version-01",
     rerun_of_dispatch_id: str | None = None,
+    superseded_by_dispatch_id: str | None = None,
     ordering_key: str | None = None,
     created_at: datetime = datetime(2026, 8, 9, 10, 0, tzinfo=UTC),
     available_at: datetime = datetime(2026, 8, 9, 10, 0, tzinfo=UTC),
@@ -363,27 +384,32 @@ def _insert_work_intent(
     fencing_token: int = 0,
     lease_expires_at: datetime | None = None,
 ) -> None:
+    columns = (
+        "dispatch_id, intent_type, owning_operation, target_resource_kind, "
+        "target_resource_id, command_id, stage_run_id, input_fingerprint, "
+        "fingerprint_schema_version, base_domain_version_id, expected_revision, "
+        "payload_resource_kind, payload_resource_id, rerun_of_dispatch_id, "
+        "ordering_key, created_at, available_at, status, revision, "
+        "cancellation_requested, delivery_attempt_id, lease_holder_id, "
+        "fencing_token, lease_expires_at"
+    )
+    values = (
+        ":dispatch_id, :intent_type, :owning_operation, :target_resource_kind, "
+        ":target_resource_id, :command_id, :stage_run_id, :input_fingerprint, "
+        ":fingerprint_schema_version, :base_domain_version_id, "
+        ":expected_revision, :payload_resource_kind, :payload_resource_id, "
+        ":rerun_of_dispatch_id, :ordering_key, :created_at, :available_at, "
+        ":status, :revision, :cancellation_requested, :delivery_attempt_id, "
+        ":lease_holder_id, :fencing_token, :lease_expires_at"
+    )
+    if include_superseded_by:
+        columns += ", superseded_by_dispatch_id"
+        values += ", :superseded_by_dispatch_id"
     with engine.begin() as connection:
         connection.execute(
             text(
                 f'INSERT INTO "{BUSINESS_SCHEMA}"."{DURABLE_TABLE}" '
-                "(dispatch_id, intent_type, owning_operation, "
-                "target_resource_kind, target_resource_id, command_id, "
-                "stage_run_id, input_fingerprint, fingerprint_schema_version, "
-                "base_domain_version_id, expected_revision, "
-                "payload_resource_kind, payload_resource_id, "
-                "rerun_of_dispatch_id, ordering_key, created_at, available_at, "
-                "status, revision, cancellation_requested, delivery_attempt_id, "
-                "lease_holder_id, fencing_token, lease_expires_at) VALUES "
-                "(:dispatch_id, :intent_type, :owning_operation, "
-                ":target_resource_kind, :target_resource_id, :command_id, "
-                ":stage_run_id, :input_fingerprint, :fingerprint_schema_version, "
-                ":base_domain_version_id, :expected_revision, "
-                ":payload_resource_kind, :payload_resource_id, "
-                ":rerun_of_dispatch_id, :ordering_key, :created_at, "
-                ":available_at, :status, :revision, :cancellation_requested, "
-                ":delivery_attempt_id, :lease_holder_id, :fencing_token, "
-                ":lease_expires_at)"
+                f"({columns}) VALUES ({values})"
             ),
             {
                 "dispatch_id": dispatch_id,
@@ -400,6 +426,7 @@ def _insert_work_intent(
                 "payload_resource_kind": payload_resource_kind,
                 "payload_resource_id": payload_resource_id,
                 "rerun_of_dispatch_id": rerun_of_dispatch_id,
+                "superseded_by_dispatch_id": superseded_by_dispatch_id,
                 "ordering_key": ordering_key,
                 "created_at": created_at,
                 "available_at": available_at,
@@ -526,10 +553,14 @@ def test_revision_graph_has_one_business_head() -> None:
     """The production lineage has one Durable Dispatch head and parent."""
 
     script = ScriptDirectory.from_config(_config(_database_url()))
+    assert len(HEAD_REVISION) <= 32
     assert script.get_heads() == [HEAD_REVISION]
     head = script.get_revision(HEAD_REVISION)
     assert head is not None
-    assert head.down_revision == SOURCE_HEAD_REVISION
+    assert head.down_revision == PREVIOUS_HEAD_REVISION
+    previous_head = script.get_revision(PREVIOUS_HEAD_REVISION)
+    assert previous_head is not None
+    assert previous_head.down_revision == SOURCE_HEAD_REVISION
     source_head = script.get_revision(SOURCE_HEAD_REVISION)
     assert source_head is not None
     assert source_head.down_revision == TASK_HEAD_REVISION
@@ -551,6 +582,7 @@ def test_fresh_upgrade_reaches_current_head(
 
     assert _version_rows(migration_engine) == [HEAD_REVISION]
     assert _tables(migration_engine) == ["alembic_version", *DOMAIN_TABLES]
+    assert _version_num_details(migration_engine) == ("character varying", 32)
 
 
 def test_explicit_baseline_to_head_upgrade(
@@ -593,7 +625,7 @@ def test_existing_task_head_to_current_head_upgrade(
 def test_existing_source_head_to_durable_head_upgrade(
     migration_engine: Engine,
 ) -> None:
-    """A schema at 0003 adds only the Durable Dispatch table in 0004."""
+    """A schema at 0003 adds Durable Dispatch and its 0005 column."""
 
     _reset_schema(migration_engine)
     config = _config(_database_url())
@@ -613,6 +645,38 @@ def test_existing_source_head_to_durable_head_upgrade(
     command.upgrade(config, HEAD_REVISION)
     assert _version_rows(migration_engine) == [HEAD_REVISION]
     assert _tables(migration_engine) == ["alembic_version", *DOMAIN_TABLES]
+    assert _columns(migration_engine, DURABLE_TABLE)[-1] == (
+        "superseded_by_dispatch_id"
+    )
+
+
+def test_existing_durable_head_to_supersession_head_preserves_rows(
+    migration_engine: Engine,
+) -> None:
+    """A 0004 row survives the additive 0005 upgrade with a null reference."""
+
+    _reset_schema(migration_engine)
+    config = _config(_database_url())
+    command.upgrade(config, PREVIOUS_HEAD_REVISION)
+    _insert_work_intent(
+        migration_engine,
+        dispatch_id="dispatch-0004",
+        include_superseded_by=False,
+    )
+
+    command.upgrade(config, HEAD_REVISION)
+
+    assert _version_rows(migration_engine) == [HEAD_REVISION]
+    with migration_engine.connect() as connection:
+        assert (
+            connection.execute(
+                text(
+                    f'SELECT superseded_by_dispatch_id FROM "{BUSINESS_SCHEMA}".'
+                    f"\"{DURABLE_TABLE}\" WHERE dispatch_id = 'dispatch-0004'"
+                )
+            ).scalar_one()
+            is None
+        )
 
 
 def test_durable_downgrade_is_forward_only_and_preserves_state(
@@ -626,10 +690,19 @@ def test_durable_downgrade_is_forward_only_and_preserves_state(
     _insert_work_intent(migration_engine, dispatch_id="dispatch-downgrade")
 
     with pytest.raises(RuntimeError, match="forward-fix-only"):
-        command.downgrade(config, SOURCE_HEAD_REVISION)
+        command.downgrade(config, PREVIOUS_HEAD_REVISION)
 
     assert _version_rows(migration_engine) == [HEAD_REVISION]
+    assert _version_num_details(migration_engine) == ("character varying", 32)
     assert _table_exists(migration_engine, DURABLE_TABLE)
+    assert _columns(migration_engine, DURABLE_TABLE)[-1] == (
+        "superseded_by_dispatch_id"
+    )
+    assert {
+        "fk_durable_dispatch_work_intents_superseded_by",
+        "ck_durable_dispatch_work_intents_superseded_by_nonempty",
+        "ck_durable_dispatch_work_intents_superseded_by_distinct",
+    } <= _constraint_names(migration_engine)
     with migration_engine.connect() as connection:
         assert (
             connection.scalar(
@@ -665,6 +738,8 @@ def test_alembic_current_check_and_offline_sql_are_reviewable(
     for table in DOMAIN_TABLES:
         assert f"CREATE TABLE {BUSINESS_SCHEMA}.{table}" in output
         assert f"CREATE TABLE {table}" not in output
+    assert f"ALTER TABLE {BUSINESS_SCHEMA}.{DURABLE_TABLE}" in output
+    assert f"ALTER TABLE {DURABLE_TABLE}" not in output
 
 
 def test_named_tables_and_constraints_are_present(
@@ -753,7 +828,7 @@ def test_source_tables_have_exact_minimal_columns(
 def test_durable_work_intent_has_exact_columns_and_types(
     migration_engine: Engine,
 ) -> None:
-    """The Work Intent table has the frozen ordered 24-column shape."""
+    """The Work Intent table has the frozen ordered 25-column shape."""
 
     _reset_schema(migration_engine)
     command.upgrade(_config(_database_url()), HEAD_REVISION)
@@ -784,6 +859,7 @@ def test_durable_work_intent_has_exact_columns_and_types(
         ("lease_holder_id", "text", "text", "YES"),
         ("fencing_token", "bigint", "int8", "NO"),
         ("lease_expires_at", "timestamp with time zone", "timestamptz", "YES"),
+        ("superseded_by_dispatch_id", "text", "text", "YES"),
     ]
 
 
@@ -868,6 +944,18 @@ def test_durable_work_intent_has_named_checks_fk_and_only_primary_index(
             "((delivery_attempt_id IS NULL) AND (lease_holder_id IS NULL) AND "
             "(lease_expires_at IS NULL)) OR (fencing_token >= 1)"
         ),
+        "fk_durable_dispatch_work_intents_superseded_by": (
+            "FOREIGN KEY (superseded_by_dispatch_id) REFERENCES "
+            f"{BUSINESS_SCHEMA}.{DURABLE_TABLE}(dispatch_id)"
+        ),
+        "ck_durable_dispatch_work_intents_superseded_by_nonempty": (
+            "(superseded_by_dispatch_id IS NULL) OR "
+            "(length(btrim(superseded_by_dispatch_id)) > 0)"
+        ),
+        "ck_durable_dispatch_work_intents_superseded_by_distinct": (
+            "(superseded_by_dispatch_id IS NULL) OR "
+            "(superseded_by_dispatch_id <> dispatch_id)"
+        ),
     }
     assert {
         name: _normalize_constraint_sql(definitions[name]) for name in expected_checks
@@ -908,6 +996,7 @@ def test_durable_work_intent_constraints_enforce_catalog_and_lease_shape(
         migration_engine,
         dispatch_id="dispatch-04",
         rerun_of_dispatch_id="dispatch-01",
+        superseded_by_dispatch_id="dispatch-02",
     )
     for index, status in enumerate(DURABLE_STATUS_VALUES, start=10):
         _insert_work_intent(
@@ -980,6 +1069,24 @@ def test_durable_work_intent_constraints_enforce_catalog_and_lease_shape(
             migration_engine,
             dispatch_id="dispatch-missing-rerun",
             rerun_of_dispatch_id="dispatch-missing",
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id="dispatch-superseded-whitespace",
+            superseded_by_dispatch_id=" ",
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id="dispatch-superseded-self",
+            superseded_by_dispatch_id="dispatch-superseded-self",
+        )
+    with pytest.raises(IntegrityError):
+        _insert_work_intent(
+            migration_engine,
+            dispatch_id="dispatch-superseded-missing",
+            superseded_by_dispatch_id="dispatch-not-present",
         )
 
     with migration_engine.begin() as connection:

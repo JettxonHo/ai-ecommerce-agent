@@ -66,6 +66,7 @@ _INSERT_KEYS = [
     "lease_holder_id",
     "fencing_token",
     "lease_expires_at",
+    "superseded_by_dispatch_id",
 ]
 
 
@@ -73,6 +74,7 @@ def _build_snapshot(
     *,
     current_lease: WorkIntentLease | None = None,
     optional_fields: bool = True,
+    superseded_by: DispatchId | None = None,
 ) -> WorkIntentSnapshot:
     envelope = WorkIntentEnvelope(
         DispatchId("dispatch-01"),
@@ -97,6 +99,7 @@ def _build_snapshot(
         Revision(3),
         True,
         current_lease,
+        superseded_by,
     )
 
 
@@ -112,7 +115,7 @@ def _build_leased_snapshot() -> WorkIntentSnapshot:
     return _build_snapshot(current_lease=lease)
 
 
-def test_no_lease_insert_uses_exact_24_keys_and_initial_fencing_token() -> None:
+def test_no_lease_insert_uses_exact_25_keys_and_initial_fencing_token() -> None:
     snapshot = _build_snapshot(optional_fields=False)
 
     row = work_intent_snapshot_to_insert_row(snapshot)
@@ -143,6 +146,7 @@ def test_no_lease_insert_uses_exact_24_keys_and_initial_fencing_token() -> None:
         "lease_holder_id": None,
         "fencing_token": 0,
         "lease_expires_at": None,
+        "superseded_by_dispatch_id": None,
     }
     assert work_intent_row_to_snapshot(row) == snapshot
 
@@ -162,6 +166,27 @@ def test_leased_insert_preserves_lease_primitives_and_round_trips() -> None:
     assert restored.current_lease.dispatch_id == restored.envelope.dispatch_id
 
 
+def test_supersession_reference_round_trips_and_updates_as_a_primitive() -> None:
+    successor = DispatchId("dispatch-successor")
+    snapshot = _build_snapshot(superseded_by=successor)
+
+    inserted = work_intent_snapshot_to_insert_row(snapshot)
+    assert list(inserted)[-1] == "superseded_by_dispatch_id"
+    assert inserted["superseded_by_dispatch_id"] == "dispatch-successor"
+    restored = work_intent_row_to_snapshot(inserted)
+    assert restored.superseded_by is not None
+    assert restored.superseded_by == successor
+    assert restored.superseded_by is not successor
+
+    update_values = work_intent_snapshot_to_update_values(restored)
+    assert update_values["superseded_by_dispatch_id"] == "dispatch-successor"
+    cleared = _build_snapshot(superseded_by=None)
+    assert (
+        work_intent_snapshot_to_update_values(cleared)["superseded_by_dispatch_id"]
+        is None
+    )
+
+
 def test_retained_fencing_token_is_validated_but_hidden_from_no_lease_snapshot() -> (
     None
 ):
@@ -173,6 +198,7 @@ def test_retained_fencing_token_is_validated_but_hidden_from_no_lease_snapshot()
 
     assert restored == snapshot
     assert restored.current_lease is None
+    assert restored.superseded_by is None
     update_values = work_intent_snapshot_to_update_values(restored)
     assert "fencing_token" not in update_values
     assert update_values["delivery_attempt_id"] is None
@@ -190,6 +216,7 @@ def test_no_lease_update_values_clear_only_mutable_lease_columns() -> None:
         "delivery_attempt_id": None,
         "lease_holder_id": None,
         "lease_expires_at": None,
+        "superseded_by_dispatch_id": None,
     }
     assert "fencing_token" not in values
     assert (
@@ -220,6 +247,7 @@ def test_leased_update_values_include_current_fencing_token() -> None:
         "lease_holder_id": " holder-01 ",
         "lease_expires_at": _LEASE_EXPIRES_AT,
         "fencing_token": 7,
+        "superseded_by_dispatch_id": None,
     }
 
 
@@ -262,6 +290,7 @@ def test_partial_lease_tuple_is_rejected_with_stable_value_error(
         ("expected_revision", -1, ValueError),
         ("fencing_token", -1, ValueError),
         ("rerun_of_dispatch_id", "dispatch-01", ValueError),
+        ("superseded_by_dispatch_id", "dispatch-01", ValueError),
         (
             "available_at",
             _CREATED_AT - timedelta(seconds=1),
