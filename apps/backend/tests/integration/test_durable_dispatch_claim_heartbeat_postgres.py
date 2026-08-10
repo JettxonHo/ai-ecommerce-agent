@@ -121,6 +121,8 @@ def _snapshot(
     cancellation_requested: bool = False,
     created_at: datetime = _BASE_TIME,
     available_at: datetime = _BASE_TIME,
+    rerun_of: DispatchId | None = None,
+    superseded_by: DispatchId | None = None,
 ) -> WorkIntentSnapshot:
     dispatch_id = DispatchId(f"dispatch-{suffix}")
     return WorkIntentSnapshot(
@@ -136,7 +138,7 @@ def _snapshot(
             DomainVersionId(f"domain-version-{suffix}"),
             Revision(2),
             ResourceReference("source_version", f"source-version-{suffix}"),
-            None,
+            rerun_of,
             f"ordering-{suffix}",
             created_at,
             available_at,
@@ -145,6 +147,7 @@ def _snapshot(
         Revision(revision),
         cancellation_requested,
         lease,
+        superseded_by,
     )
 
 
@@ -155,6 +158,7 @@ def _leased_snapshot(
     status: WorkIntentStatus = WorkIntentStatus.LEASED,
     revision: int = 0,
     expires_at: datetime = _BASE_TIME + timedelta(hours=1),
+    superseded_by: DispatchId | None = None,
 ) -> WorkIntentSnapshot:
     dispatch_id = DispatchId(f"dispatch-{suffix}")
     lease = WorkIntentLease(
@@ -169,6 +173,7 @@ def _leased_snapshot(
         status=status,
         revision=revision,
         lease=lease,
+        superseded_by=superseded_by,
     )
 
 
@@ -413,6 +418,8 @@ def test_pending_retryable_terminal_superseded_and_cancelled_rows_are_excluded(
     postgres_engine: Engine,
 ) -> None:
     factory = _factory(postgres_engine)
+    superseded_id = DispatchId("dispatch-superseded-active")
+    successor_id = DispatchId("dispatch-successor")
     snapshots = [
         _snapshot("pending", status=WorkIntentStatus.PENDING),
         _snapshot("retryable", status=WorkIntentStatus.FAILED_RETRYABLE),
@@ -431,8 +438,42 @@ def test_pending_retryable_terminal_superseded_and_cancelled_rows_are_excluded(
             status=WorkIntentStatus.AVAILABLE,
             expires_at=_BASE_TIME - timedelta(hours=1),
         ),
+        _leased_snapshot(
+            "superseded-active",
+            token=6,
+            status=WorkIntentStatus.IN_PROGRESS,
+        ),
     ]
     _seed(factory, *snapshots)
+    successor = _snapshot("successor", rerun_of=superseded_id)
+    _seed(factory, successor)
+    with factory() as uow:
+        current = uow.work_intents.get(superseded_id)
+        assert current is not None
+        uow.work_intents.save(
+            replace(current, superseded_by=successor_id),
+            expected_revision=current.revision,
+        )
+        uow.commit()
+
+    with factory() as uow:
+        claimed = uow.work_intent_leases.claim_next(_claim("successor"))
+        assert claimed is not None
+        assert claimed.envelope.dispatch_id == successor_id
+        uow.commit()
+
+    with factory() as uow:
+        current = uow.work_intents.get(superseded_id)
+        assert current is not None and current.current_lease is not None
+        expired = replace(
+            current.current_lease,
+            lease_expires_at=_BASE_TIME - timedelta(minutes=1),
+        )
+        uow.work_intents.save(
+            replace(current, current_lease=expired, revision=Revision(1)),
+            expected_revision=Revision(0),
+        )
+        uow.commit()
 
     with factory() as uow:
         assert uow.work_intent_leases.claim_next(_claim("excluded")) is None

@@ -10,6 +10,9 @@ import pytest
 
 from ai_ecommerce_agent.bootstrap import durable_dispatch_postgres
 from ai_ecommerce_agent.modules.durable_dispatch import public
+from ai_ecommerce_agent.modules.durable_dispatch.application.control_protocols import (
+    DurableDispatchControlApplication,
+)
 from ai_ecommerce_agent.modules.durable_dispatch.application.lease_protocols import (
     DurableDispatchLeaseApplication,
 )
@@ -43,6 +46,20 @@ class _Application:
         del command
 
 
+class _ControlApplication:
+    def check_owned_work_intent_control(self, query: object) -> None:
+        del query
+
+    def request_work_intent_cancellation(self, command: object) -> None:
+        del command
+
+    def supersede_work_intent(self, command: object) -> None:
+        del command
+
+    def acknowledge_work_intent_stop(self, command: object) -> None:
+        del command
+
+
 class _Factory:
     calls: list[tuple[object, str]] = []
 
@@ -57,6 +74,7 @@ def test_composition_wires_one_engine_factory_and_protocol_without_connecting(
 ) -> None:
     engine = _Engine()
     application = _Application()
+    control_application = _ControlApplication()
     config = PostgresEngineConfig(
         database_url="postgresql+psycopg://user:password@127.0.0.1:5432/database"
     )
@@ -69,6 +87,10 @@ def test_composition_wires_one_engine_factory_and_protocol_without_connecting(
     def create_application(factory: object) -> _Application:
         assert isinstance(factory, _Factory)
         return application
+
+    def create_control_application(factory: object) -> _ControlApplication:
+        assert isinstance(factory, _Factory)
+        return control_application
 
     _Factory.calls.clear()
     monkeypatch.setattr(
@@ -84,6 +106,11 @@ def test_composition_wires_one_engine_factory_and_protocol_without_connecting(
         "DurableDispatchLeaseApplicationService",
         create_application,
     )
+    monkeypatch.setattr(
+        durable_dispatch_postgres,
+        "DurableDispatchControlApplicationService",
+        create_control_application,
+    )
 
     composition = durable_dispatch_postgres.compose_durable_dispatch_postgres(
         config, schema="mvp0_018l_application"
@@ -94,9 +121,25 @@ def test_composition_wires_one_engine_factory_and_protocol_without_connecting(
     assert composition.engine is engine
     assert composition.lease_application is application
     assert isinstance(composition.lease_application, DurableDispatchLeaseApplication)
+    assert composition.control_application is control_application
+    assert isinstance(
+        composition.control_application, DurableDispatchControlApplication
+    )
     annotations = get_type_hints(type(composition))
-    assert set(annotations) == {"engine", "uow_factory", "lease_application"}
+    assert tuple(type(composition).__dataclass_fields__) == (
+        "engine",
+        "uow_factory",
+        "lease_application",
+        "control_application",
+    )
+    assert set(annotations) == {
+        "engine",
+        "uow_factory",
+        "lease_application",
+        "control_application",
+    }
     assert annotations["lease_application"] is DurableDispatchLeaseApplication
+    assert annotations["control_application"] is DurableDispatchControlApplication
     assert engine.dispose_calls == 0
 
     composition.close()
@@ -107,6 +150,8 @@ def test_composition_module_has_only_explicit_imports() -> None:
     tree = ast.parse(_BOOTSTRAP_PATH.read_text(encoding="utf-8"))
     allowed_absolute = {
         "sqlalchemy",
+        "ai_ecommerce_agent.modules.durable_dispatch.application.control_protocols",
+        "ai_ecommerce_agent.modules.durable_dispatch.application.control_services",
         "ai_ecommerce_agent.modules.durable_dispatch.application.lease_protocols",
         "ai_ecommerce_agent.modules.durable_dispatch.application.lease_services",
         "ai_ecommerce_agent.modules.durable_dispatch.infrastructure.uow",

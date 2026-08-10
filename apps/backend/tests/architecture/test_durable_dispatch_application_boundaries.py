@@ -32,6 +32,7 @@ _PRODUCTION_FILES = (
     _APPLICATION_ROOT / "control_results.py",
     _APPLICATION_ROOT / "control_protocols.py",
     _APPLICATION_ROOT / "control_errors.py",
+    _APPLICATION_ROOT / "control_services.py",
 )
 _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
     _APPLICATION_ROOT / "__init__.py": frozenset({(1, "ports")}),
@@ -85,6 +86,18 @@ _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
     _APPLICATION_ROOT / "control_errors.py": frozenset(
         {(2, "domain.identity"), (2, "domain.status")}
     ),
+    _APPLICATION_ROOT / "control_services.py": frozenset(
+        {
+            (1, "control_commands"),
+            (1, "control_errors"),
+            (1, "control_protocols"),
+            (1, "control_queries"),
+            (1, "control_results"),
+            (1, "ports"),
+            (2, "domain.snapshots"),
+            (2, "domain.status"),
+        }
+    ),
 }
 _ALLOWED_STDLIB_IMPORTS: dict[Path, frozenset[str]] = {
     _APPLICATION_ROOT / "__init__.py": frozenset(),
@@ -106,6 +119,9 @@ _ALLOWED_STDLIB_IMPORTS: dict[Path, frozenset[str]] = {
     ),
     _APPLICATION_ROOT / "control_protocols.py": frozenset({"__future__", "typing"}),
     _APPLICATION_ROOT / "control_errors.py": frozenset({"__future__", "dataclasses"}),
+    _APPLICATION_ROOT / "control_services.py": frozenset(
+        {"__future__", "collections", "dataclasses", "datetime", "typing"}
+    ),
 }
 _ALLOWED_ABSOLUTE_IMPORTS: dict[Path, frozenset[str]] = {
     _APPLICATION_ROOT / "__init__.py": frozenset(),
@@ -140,6 +156,12 @@ _ALLOWED_ABSOLUTE_IMPORTS: dict[Path, frozenset[str]] = {
     _APPLICATION_ROOT / "control_protocols.py": frozenset(),
     _APPLICATION_ROOT / "control_errors.py": frozenset(
         {"ai_ecommerce_agent.shared_kernel"}
+    ),
+    _APPLICATION_ROOT / "control_services.py": frozenset(
+        {
+            "ai_ecommerce_agent.modules.durable_dispatch.application.errors",
+            "ai_ecommerce_agent.shared_kernel",
+        }
     ),
 }
 _FORBIDDEN_IMPORT_PREFIXES = (
@@ -361,6 +383,7 @@ def test_application_ports_allow_only_the_frozen_decorator_applications() -> Non
         _APPLICATION_ROOT / "control_errors.py": [
             ("class:DurableDispatchControlError", "dataclass", True),
         ],
+        _APPLICATION_ROOT / "control_services.py": [],
     }
     expected_calls = {
         _APPLICATION_ROOT / "__init__.py": [],
@@ -378,6 +401,7 @@ def test_application_ports_allow_only_the_frozen_decorator_applications() -> Non
         _APPLICATION_ROOT / "control_results.py": ["dataclass", "dataclass"],
         _APPLICATION_ROOT / "control_protocols.py": [],
         _APPLICATION_ROOT / "control_errors.py": ["dataclass"],
+        _APPLICATION_ROOT / "control_services.py": [],
     }
     for path, tree in _trees():
         calls, decorators = _import_time_effects(tree)
