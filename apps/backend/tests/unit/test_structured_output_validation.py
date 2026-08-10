@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import socket
+from typing import cast
 
 import pytest
 
@@ -279,6 +280,89 @@ def test_fragment_local_defs_reference_succeeds_without_network() -> None:
     ).to_mapping() == {"item": {"name": "ok"}}
 
 
+def test_schema_data_objects_and_business_property_names_are_not_walked() -> None:
+    schema = StructuredContent.from_mapping(
+        {
+            "type": "object",
+            "properties": {
+                "format": {"type": "string"},
+                "properties": {"type": "string"},
+                "const_value": {"const": {"format": {"properties": "business-data"}}},
+            },
+            "required": ["format", "properties", "const_value"],
+            "additionalProperties": False,
+        }
+    )
+    result = _result(
+        '{"format":"known","properties":"named","const_value":'
+        '{"format":{"properties":"business-data"}}}'
+    )
+    assert parse_and_validate_structured_output(
+        result=result, spec=_spec(schema)
+    ).to_mapping() == {
+        "format": "known",
+        "properties": "named",
+        "const_value": {"format": {"properties": "business-data"}},
+    }
+
+
+_SCHEMA_BEARING_CASES = cast(
+    tuple[tuple[str, object], ...],
+    (
+        (
+            "allOf",
+            [{"type": "object", "properties": {}}],
+        ),
+        (
+            "anyOf",
+            [{"type": "object", "properties": {}}],
+        ),
+        (
+            "oneOf",
+            [{"type": "object", "properties": {}}],
+        ),
+        ("not", {"type": "object", "properties": {}}),
+        ("if", {"type": "object", "properties": {}}),
+        ("then", {"type": "object", "properties": {}}),
+        ("else", {"type": "object", "properties": {}}),
+        ("items", {"type": "object", "properties": {}}),
+        (
+            "prefixItems",
+            [{"type": "object", "properties": {}}],
+        ),
+        ("contains", {"type": "object", "properties": {}}),
+        ("contentSchema", {"type": "object", "properties": {}}),
+        ("propertyNames", {"type": "object", "properties": {}}),
+        ("additionalProperties", {"type": "object", "properties": {}}),
+        ("unevaluatedItems", {"type": "object", "properties": {}}),
+        ("unevaluatedProperties", {"type": "object", "properties": {}}),
+        (
+            "dependentSchemas",
+            {"branch": {"type": "object", "properties": {}}},
+        ),
+        (
+            "patternProperties",
+            {"^branch$": {"type": "object", "properties": {}}},
+        ),
+        ("properties", {"branch": {"type": "object", "properties": {}}}),
+        ("$defs", {"branch": {"type": "object", "properties": {}}}),
+    ),
+)
+
+
+@pytest.mark.parametrize("keyword, value", _SCHEMA_BEARING_CASES)
+def test_schema_bearing_containers_and_combinators_are_preflighted(
+    keyword: str, value: object
+) -> None:
+    schema = {"type": "object", "additionalProperties": False, keyword: value}
+    error = _assert_error(
+        _result("{}"),
+        _spec(StructuredContent.from_mapping(schema)),
+        ModelRuntimeErrorCategory.INVALID_REQUEST,
+    )
+    assert error.message == "structured output project schema is invalid"
+
+
 def test_remote_reference_never_opens_a_socket(monkeypatch: pytest.MonkeyPatch) -> None:
     def fail_socket(*args: object, **kwargs: object) -> socket.socket:
         raise AssertionError("remote schema retrieval attempted")
@@ -296,6 +380,30 @@ def test_remote_reference_never_opens_a_socket(monkeypatch: pytest.MonkeyPatch) 
         _spec(schema),
         ModelRuntimeErrorCategory.INVALID_REQUEST,
     )
+
+
+def test_fragment_local_dynamic_reference_succeeds_without_network() -> None:
+    schema = StructuredContent.from_mapping(
+        {
+            "$defs": {
+                "item": {
+                    "$dynamicAnchor": "item",
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                    "required": ["name"],
+                    "additionalProperties": False,
+                }
+            },
+            "type": "object",
+            "properties": {"item": {"$dynamicRef": "#item"}},
+            "required": ["item"],
+            "additionalProperties": False,
+        }
+    )
+    result = _result('{"item":{"name":"ok"}}')
+    assert parse_and_validate_structured_output(
+        result=result, spec=_spec(schema)
+    ).to_mapping() == {"item": {"name": "ok"}}
 
 
 def test_diagnostics_are_fixed_and_safe() -> None:

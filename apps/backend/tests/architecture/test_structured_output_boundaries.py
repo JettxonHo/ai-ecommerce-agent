@@ -137,44 +137,6 @@ def _import_time_effects(tree: ast.Module) -> tuple[list[ast.Call], list[ast.exp
     return calls, bare_decorators
 
 
-def _module_assignments(tree: ast.Module) -> list[str]:
-    names: list[str] = []
-
-    def target_names(node: ast.AST) -> None:
-        if isinstance(node, ast.Name):
-            names.append(node.id)
-        elif isinstance(node, (ast.Tuple, ast.List)):
-            for element in node.elts:
-                target_names(element)
-
-    def statements(nodes: list[ast.stmt]) -> None:
-        for node in nodes:
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                continue
-            if isinstance(node, ast.Assign):
-                for target in node.targets:
-                    target_names(target)
-            elif isinstance(node, ast.AnnAssign):
-                target_names(node.target)
-            elif isinstance(node, (ast.For, ast.AsyncFor)):
-                target_names(node.target)
-                statements([*node.body, *node.orelse])
-            elif isinstance(node, (ast.If, ast.While)):
-                statements([*node.body, *node.orelse])
-            elif isinstance(node, (ast.With, ast.AsyncWith)):
-                for item in node.items:
-                    if item.optional_vars is not None:
-                        target_names(item.optional_vars)
-                statements(node.body)
-            elif isinstance(node, ast.Try):
-                statements([*node.body, *node.orelse, *node.finalbody])
-                for handler in node.handlers:
-                    statements(handler.body)
-
-    statements(tree.body)
-    return names
-
-
 def _module_assignment_values(tree: ast.Module) -> dict[str, ast.expr]:
     values: dict[str, ast.expr] = {}
 
@@ -188,6 +150,12 @@ def _module_assignment_values(tree: ast.Module) -> dict[str, ast.expr]:
             return names
         return []
 
+    def named_assignments(node: ast.AST) -> None:
+        for candidate in ast.walk(node):
+            if isinstance(candidate, ast.NamedExpr):
+                for name in target_names(candidate.target):
+                    values[name] = candidate.value
+
     def statements(nodes: list[ast.stmt]) -> None:
         for node in nodes:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
@@ -196,25 +164,34 @@ def _module_assignment_values(tree: ast.Module) -> dict[str, ast.expr]:
                 for target in node.targets:
                     for name in target_names(target):
                         values[name] = node.value
+                named_assignments(node.value)
             elif isinstance(node, ast.AnnAssign):
                 if node.value is not None:
                     for name in target_names(node.target):
                         values[name] = node.value
+                    named_assignments(node.value)
             elif isinstance(node, (ast.For, ast.AsyncFor)):
                 for name in target_names(node.target):
                     values[name] = node.iter
+                named_assignments(node.iter)
+                named_assignments(node.target)
                 statements([*node.body, *node.orelse])
             elif isinstance(node, (ast.If, ast.While)):
+                named_assignments(node.test)
                 statements([*node.body, *node.orelse])
             elif isinstance(node, (ast.With, ast.AsyncWith)):
                 for item in node.items:
+                    named_assignments(item.context_expr)
                     if item.optional_vars is not None:
                         for name in target_names(item.optional_vars):
                             values[name] = item.context_expr
+                        named_assignments(item.optional_vars)
                 statements(node.body)
             elif isinstance(node, ast.Try):
                 statements([*node.body, *node.orelse, *node.finalbody])
                 for handler in node.handlers:
+                    if handler.type is not None:
+                        named_assignments(handler.type)
                     statements(handler.body)
 
     statements(tree.body)
@@ -280,30 +257,74 @@ def test_import_time_effects_and_mutable_globals_are_absent() -> None:
 
 
 def test_valid_baseline_and_single_import_time_mutations_are_distinguishable() -> None:
-    baseline = ast.parse(
-        """\
-__all__ = ['parse_and_validate_structured_output']
+    baseline_source = """\
+from __future__ import annotations
+import json
+from collections.abc import Mapping
+from jsonschema import Draft202012Validator
+from referencing import Registry
+from ai_ecommerce_agent.application.model_runtime import (
+    ModelCallResult,
+    StructuredOutputSpec,
+)
+from ai_ecommerce_agent.shared_kernel.structured_content import StructuredContent
+
+_SCHEMA_IDENTITY_MESSAGE = 'fixed'
+_OBJECT_KEYWORDS = ('properties',)
+
+class _Marker:
+    pass
+
 def parse_and_validate_structured_output(*, result, spec):
     return result
+
+__all__ = ['parse_and_validate_structured_output']
 """
-    )
+    baseline = ast.parse(baseline_source)
     calls, bare_decorators = _import_time_effects(baseline)
     assert calls == []
     assert bare_decorators == []
-    assert _module_assignments(baseline) == ["__all__"]
+    allowed_globals = {
+        "_SCHEMA_IDENTITY_MESSAGE",
+        "_OBJECT_KEYWORDS",
+        "__all__",
+    }
+    assert set(_module_assignment_values(baseline)) == allowed_globals
     probes = (
-        "__all__ = ['x']\nopen('x')\n",
-        "__all__ = ['x']\n@print\ndef parse(*, result, spec):\n    return result\n",
-        "__all__ = ['x']\ndef parse(*, result=open('x'), spec):\n    return result\n",
-        "__all__ = ['x']\ndef parse(*, result: open('x'), spec):\n    return result\n",
-        "__all__ = ['x']\ndef parse(*, result, spec) -> open('x'):\n"
-        "    return result\n",
-        "__all__ = ['x']\n_CACHE = []\n",
+        baseline_source.replace("__all__ =", "open('x')\n\n__all__ =", 1),
+        baseline_source.replace(
+            "class _Marker:\n    pass",
+            "class _Marker:\n    token = uuid4()",
+            1,
+        ),
+        baseline_source.replace(
+            "def parse_and_validate_structured_output",
+            "@print\ndef parse_and_validate_structured_output",
+            1,
+        ),
+        baseline_source.replace(
+            "spec):",
+            "spec=open('x')):",
+            1,
+        ),
+        baseline_source.replace(
+            "result, spec):",
+            "result: open('x'), spec):",
+            1,
+        ),
+        baseline_source.replace(
+            "spec):",
+            "spec) -> open('x'):",
+            1,
+        ),
+        baseline_source + "\nif True:\n    _CACHE = []\n",
+        baseline_source + "\nif (_CACHE := []):\n    pass\n",
     )
-    for source in probes:
-        tree = ast.parse(source)
+    for probe in probes:
+        tree = ast.parse(probe)
         calls, bare_decorators = _import_time_effects(tree)
-        assert calls or bare_decorators or _module_assignments(tree) != ["__all__"]
+        values = _module_assignment_values(tree)
+        assert calls or bare_decorators or set(values) != allowed_globals
 
 
 def test_dependencies_are_exact_and_no_second_schema_engine_is_declared() -> None:

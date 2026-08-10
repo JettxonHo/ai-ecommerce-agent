@@ -108,32 +108,56 @@ def _resolve_local_reference(schema: Mapping[str, object], reference: str) -> No
 
 
 def _walk_schema(value: object, root: Mapping[str, object]) -> None:
-    if isinstance(value, Mapping):
-        mapping = cast(Mapping[str, object], value)
-        for reference_key in ("$ref", "$dynamicRef"):
-            if reference_key in mapping:
-                reference = mapping[reference_key]
-                if type(reference) is not str or not reference.startswith("#"):
-                    raise _ProjectSchemaError
-                _resolve_local_reference(root, reference)
-        if "format" in mapping:
-            format_name = mapping["format"]
-            if (
-                type(format_name) is not str
-                or format_name not in Draft202012Validator.FORMAT_CHECKER.checkers
-            ):
+    if not isinstance(value, Mapping):
+        return
+    mapping = cast(Mapping[str, object], value)
+    for reference_key in ("$ref", "$dynamicRef"):
+        if reference_key in mapping:
+            reference = mapping[reference_key]
+            if type(reference) is not str or not reference.startswith("#"):
                 raise _ProjectSchemaError
+            _resolve_local_reference(root, reference)
+    if "format" in mapping:
+        format_name = mapping["format"]
         if (
-            _is_object_schema(mapping)
-            and mapping.get("additionalProperties") is not False
+            type(format_name) is not str
+            or format_name not in Draft202012Validator.FORMAT_CHECKER.checkers
         ):
             raise _ProjectSchemaError
-        for child in mapping.values():
-            _walk_schema(child, root)
-    elif type(value) is list:
-        values = cast(list[object], value)
-        for child in values:
-            _walk_schema(child, root)
+    if _is_object_schema(mapping) and mapping.get("additionalProperties") is not False:
+        raise _ProjectSchemaError
+    for keyword in (
+        "additionalProperties",
+        "contains",
+        "contentSchema",
+        "else",
+        "if",
+        "items",
+        "not",
+        "propertyNames",
+        "then",
+        "unevaluatedItems",
+        "unevaluatedProperties",
+    ):
+        if keyword in mapping:
+            _walk_schema(mapping[keyword], root)
+    for keyword in ("allOf", "anyOf", "oneOf", "prefixItems"):
+        child = mapping.get(keyword)
+        if type(child) is list:
+            for schema in cast(list[object], child):
+                _walk_schema(schema, root)
+    for keyword in (
+        "$defs",
+        "definitions",
+        "dependentSchemas",
+        "patternProperties",
+        "properties",
+    ):
+        child = mapping.get(keyword)
+        if isinstance(child, Mapping):
+            children = cast(Mapping[str, object], child)
+            for schema in children.values():
+                _walk_schema(schema, root)
 
 
 def _preflight_schema(schema: object) -> dict[str, object]:
