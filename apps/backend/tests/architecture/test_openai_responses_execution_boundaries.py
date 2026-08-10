@@ -89,6 +89,50 @@ def _imports(tree: ast.Module) -> list[tuple[str, str]]:
     return values
 
 
+def _import_bindings(tree: ast.Module) -> list[tuple[str, str, str, str | None]]:
+    values: list[tuple[str, str, str, str | None]] = []
+    for node in tree.body:
+        if isinstance(node, ast.Import):
+            values.extend(
+                ("import", alias.name, "", alias.asname) for alias in node.names
+            )
+        elif isinstance(node, ast.ImportFrom):
+            module = "." * node.level + (node.module or "")
+            values.extend(
+                ("from", module, alias.name, alias.asname) for alias in node.names
+            )
+    return values
+
+
+_EXPECTED_EXECUTION_IMPORTS = [
+    ("from", "__future__", "annotations", None),
+    ("from", "time", "monotonic", None),
+    ("from", "typing", "cast", None),
+    ("import", "openai", "", "_openai"),
+    ("import", "openai.types.responses", "", "_responses"),
+    ("import", "openai.types.responses.response_create_params", "", "_response_params"),
+    ("import", "ai_ecommerce_agent.application.model_runtime", "", "_contracts"),
+    (
+        "from",
+        "._response_mapping",
+        "map_openai_responses_response",
+        None,
+    ),
+    (
+        "from",
+        ".request_preparation",
+        "OpenAIResponsesCallParameters",
+        None,
+    ),
+    (
+        "from",
+        ".request_preparation",
+        "prepare_openai_responses_call",
+        None,
+    ),
+]
+
+
 def _dotted(node: ast.AST) -> str | None:
     if isinstance(node, ast.Name):
         return node.id
@@ -111,15 +155,43 @@ def _runtime_violations(tree: ast.Module) -> list[ast.AST]:
         "open",
         "print",
     }
+    forbidden_aliases: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            module = node.module or ""
+            for alias in node.names:
+                if (module == "openai" and alias.name in forbidden_calls) or (
+                    module == "time" and alias.name == "sleep"
+                ):
+                    forbidden_aliases.add(alias.asname or alias.name)
+    parents = {
+        child: parent
+        for parent in ast.walk(tree)
+        for child in ast.iter_child_nodes(parent)
+    }
     for node in ast.walk(tree):
         if isinstance(node, ast.Call):
             dotted = _dotted(node.func)
             if dotted == "client.responses.create":
                 continue
-            if dotted and (
-                (dotted.startswith("_openai.") and dotted != "_openai.__version__")
-                or dotted.rsplit(".", 1)[-1] in forbidden_calls
-                or dotted.endswith(".responses.create")
+            target = _dotted(node.args[0]) if node.args else None
+            indirect_create = (
+                dotted == "getattr"
+                and len(node.args) >= 2
+                and target is not None
+                and target.endswith(".responses")
+                and isinstance(node.args[1], ast.Constant)
+                and node.args[1].value == "create"
+            )
+            if (
+                dotted
+                and (
+                    (dotted.startswith("_openai.") and dotted != "_openai.__version__")
+                    or dotted.rsplit(".", 1)[-1] in forbidden_calls
+                    or dotted in forbidden_aliases
+                    or dotted.endswith(".responses.create")
+                )
+                or indirect_create
             ):
                 violations.append(node)
         elif isinstance(node, ast.Attribute):
@@ -130,6 +202,14 @@ def _runtime_violations(tree: ast.Module) -> list[ast.AST]:
                 and dotted.rsplit(".", 1)[-1] not in _ALLOWED_OPENAI_ATTRIBUTES
             ):
                 violations.append(node)
+            elif dotted and dotted.endswith(".responses.create"):
+                parent = parents.get(node)
+                if not (
+                    isinstance(parent, ast.Call)
+                    and parent.func is node
+                    and dotted == "client.responses.create"
+                ):
+                    violations.append(node)
     return violations
 
 
@@ -283,6 +363,7 @@ def test_executor_has_exact_single_sdk_call_and_no_runtime_escape() -> None:
 
 def test_executor_import_aliases_are_exact_and_call_is_private_only() -> None:
     tree = _tree(_EXECUTION)
+    assert _import_bindings(tree) == _EXPECTED_EXECUTION_IMPORTS
     imports = [
         node for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))
     ]
@@ -302,6 +383,13 @@ def test_executor_import_aliases_are_exact_and_call_is_private_only() -> None:
     assert _runtime_violations(ast.parse("import openai as sdk\nsdk.OpenAI()"))
     assert _runtime_violations(
         ast.parse("import openai as sdk\nsdk.responses.create({})")
+    )
+    assert _runtime_violations(
+        ast.parse("from openai import OpenAI as Factory\nFactory()")
+    )
+    assert (
+        not _import_bindings(ast.parse("from time import sleep as monotonic\n"))
+        == _EXPECTED_EXECUTION_IMPORTS
     )
 
 
@@ -361,3 +449,45 @@ def test_runtime_provider_alias_mutations_are_rejected(source: str) -> None:
     baseline = ast.parse("import openai as sdk\ndef execute():\n    return 1\n")
     assert _runtime_violations(baseline) == []
     assert _runtime_violations(ast.parse("import openai as sdk\n" + source))
+
+
+def _production_shaped_source() -> str:
+    return """\
+from __future__ import annotations
+from time import monotonic
+from typing import cast
+import openai as _openai
+
+def execute(*, client: _openai.OpenAI, payload: object) -> object:
+    request_body = cast(object, payload)
+    start = monotonic()
+    response = client.responses.create(**request_body)
+    finish = monotonic()
+    return response
+"""
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "\nfrom openai import OpenAI as Factory\nFactory()\n",
+        "\ngetattr(client.responses, 'create')()\n",
+        "\ncreate = client.responses.create\n",
+        "\ndef leaked(value: _openai.OpenAI()):\n    return value\n",
+        "\ndef leaked(value=open('x')):\n    return value\n",
+        "\nfrom time import sleep as monotonic\n",
+    ],
+)
+def test_production_shaped_single_mutations_are_rejected(mutation: str) -> None:
+    baseline = ast.parse(_production_shaped_source())
+    assert _runtime_violations(baseline) == []
+    assert _module_effects(baseline) == []
+    assert _mutable_globals(baseline) == []
+
+    mutated = ast.parse(_production_shaped_source() + mutation)
+    assert (
+        _runtime_violations(mutated)
+        or _module_effects(mutated)
+        or _mutable_globals(mutated)
+        or _import_bindings(mutated) != _import_bindings(baseline)
+    )

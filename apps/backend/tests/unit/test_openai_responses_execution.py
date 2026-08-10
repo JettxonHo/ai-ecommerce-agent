@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 from typing import Any, cast
 
 import httpx
@@ -46,11 +47,19 @@ class _AttemptSubclass(ProviderAttemptId):
     pass
 
 
+class _TupleSubclass(tuple[ProviderAttemptId, ...]):
+    pass
+
+
 class _ClientSubclass(openai.OpenAI):
     pass
 
 
-def _request() -> ModelCallRequest:
+def _request(
+    *,
+    schema: StructuredContent | None = None,
+    profile: ModelExecutionProfile = _PROFILE,
+) -> ModelCallRequest:
     return ModelCallRequest(
         ModelCallIdentity(_CALL_ID),
         "instruction-marker",
@@ -58,7 +67,8 @@ def _request() -> ModelCallRequest:
         StructuredOutputSpec(
             "schema-1",
             "v1",
-            StructuredContent.from_mapping(
+            schema
+            or StructuredContent.from_mapping(
                 {
                     "type": "object",
                     "properties": {"value": {"type": "string"}},
@@ -67,14 +77,16 @@ def _request() -> ModelCallRequest:
                 }
             ),
         ),
-        _PROFILE,
+        profile,
         ModelCallContractVersions("prompt-1", "v1", "skill-1", "domain-1", "context-1"),
     )
 
 
-def _parameters() -> request_preparation.OpenAIResponsesCallParameters:
+def _parameters(
+    profile: ModelExecutionProfile = _PROFILE,
+) -> request_preparation.OpenAIResponsesCallParameters:
     return request_preparation.OpenAIResponsesCallParameters(
-        _PROFILE, request_preparation.OpenAIReasoningEffort.LOW, 32, 19
+        profile, request_preparation.OpenAIReasoningEffort.LOW, 32, 19
     )
 
 
@@ -175,7 +187,17 @@ def test_prepare_precedes_io_and_mapper_receives_exact_response(
         parameters: request_preparation.OpenAIResponsesCallParameters,
     ) -> object:
         events.append("prepare")
-        return original_prepare(request=request, parameters=parameters)
+        prepared = original_prepare(request=request, parameters=parameters)
+
+        class _BodyProxy:
+            def to_mapping(self) -> object:
+                events.append("to_mapping")
+                return prepared.request_body.to_mapping()
+
+        return SimpleNamespace(
+            request_body=_BodyProxy(),
+            timeout_seconds=prepared.timeout_seconds,
+        )
 
     def map_response(**kwargs: object) -> object:
         events.append("map")
@@ -183,9 +205,19 @@ def test_prepare_precedes_io_and_mapper_receives_exact_response(
 
     monkeypatch.setattr(_execution, "prepare_openai_responses_call", prepare)
     monkeypatch.setattr(_execution, "map_openai_responses_response", map_response)
+    clock_ticks = iter((10.0, 10.001))
+    clock_calls = 0
+
+    def clock() -> float:
+        nonlocal clock_calls
+        events.append("start" if clock_calls == 0 else "finish")
+        clock_calls += 1
+        return next(clock_ticks)
+
+    monkeypatch.setattr(_execution, "monotonic", clock)
 
     def handler(request: httpx.Request) -> httpx.Response:
-        events.append("io")
+        events.append("create")
         return httpx.Response(
             200, headers={"x-request-id": "request-id"}, json=_response_payload()
         )
@@ -193,7 +225,7 @@ def test_prepare_precedes_io_and_mapper_receives_exact_response(
     client = _client(handler)
     _execute(client)
     client.close()
-    assert events == ["prepare", "io", "map"]
+    assert events == ["prepare", "to_mapping", "start", "create", "finish", "map"]
 
 
 def test_existing_preparation_and_mapper_errors_propagate_by_identity(
@@ -270,7 +302,7 @@ def test_invalid_parameters_attempt_tuple_client_or_retries_make_zero_requests()
         return httpx.Response(200, json=_response_payload())
 
     client = _client(handler)
-    for parameters, attempts, candidate_client in (
+    cases: list[tuple[Any, Any, openai.OpenAI]] = [
         (None, _ATTEMPTS, client),
         (
             _ParametersSubclass(
@@ -280,14 +312,19 @@ def test_invalid_parameters_attempt_tuple_client_or_retries_make_zero_requests()
             client,
         ),
         (_parameters(), (), client),
+        (_parameters(), None, client),
+        (_parameters(), [], client),
+        (_parameters(), _TupleSubclass(_ATTEMPTS), client),
+        (_parameters(), (object(),), client),
         (_parameters(), (_AttemptSubclass("bad"),), client),
         (_parameters(), _ATTEMPTS, _ClientSubclass(api_key="test-key", max_retries=0)),
-    ):
+    ]
+    for parameters, attempts, candidate_client in cases:
         with pytest.raises((TypeError, ValueError)):
             _execution.execute_openai_responses_attempt(
                 client=candidate_client,
                 request=_request(),
-                parameters=cast(Any, parameters),
+                parameters=parameters,
                 provider_attempt_ids=attempts,
             )
     client.close()
@@ -302,6 +339,39 @@ def test_invalid_parameters_attempt_tuple_client_or_retries_make_zero_requests()
     assert caught.value.__cause__ is None
     assert caught.value.__context__ is None
     retry_client.close()
+
+
+def test_invalid_schema_or_profile_makes_zero_requests() -> None:
+    invalid_schema = StructuredContent.from_mapping(
+        {
+            "type": "object",
+            "properties": {"value": {"type": "string"}},
+            "required": ["value"],
+            "additionalProperties": True,
+        }
+    )
+    for request, parameters in (
+        (_request(schema=invalid_schema), _parameters()),
+        (_request(), _parameters(ModelExecutionProfile("other-profile", "v1"))),
+    ):
+        calls = 0
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            return _success(request)
+
+        client = _client(handler)
+        with pytest.raises(ModelRuntimeError) as caught:
+            _execution.execute_openai_responses_attempt(
+                client=client,
+                request=request,
+                parameters=parameters,
+                provider_attempt_ids=_ATTEMPTS,
+            )
+        assert caught.value.category is ModelRuntimeErrorCategory.INVALID_REQUEST
+        assert calls == 0
+        client.close()
 
 
 @pytest.mark.parametrize(
@@ -393,6 +463,95 @@ def test_status_errors_are_provider_neutral_and_metadata_safe(
     assert error.provider_metadata.latency_ms >= 0
     assert error.__cause__ is None
     assert error.__context__ is None
+    client.close()
+
+
+@pytest.mark.parametrize("error_kind", ["validation", "api", "base"])
+def test_generic_openai_errors_map_to_transient_without_raw_details(
+    error_kind: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    request = httpx.Request("POST", "https://example.test")
+    if error_kind == "validation":
+        error: openai.OpenAIError = openai.APIResponseValidationError(
+            httpx.Response(200, request=request),
+            {"secret": "response-body"},
+        )
+    elif error_kind == "api":
+        error = openai.APIError(
+            "secret-api-message", request, body={"secret": "response-body"}
+        )
+    else:
+        error = openai.OpenAIError("secret-base-message")
+
+    client = _client(_success)
+
+    def raise_error(**kwargs: object) -> object:
+        raise error
+
+    monkeypatch.setattr(cast(Any, client.responses), "create", raise_error)
+    with pytest.raises(ModelRuntimeError) as caught:
+        _execute(client)
+    mapped = caught.value
+    assert mapped.category is ModelRuntimeErrorCategory.TRANSIENT_PROVIDER_FAILURE
+    assert mapped.retryability is True
+    assert mapped.message == "OpenAI Responses provider transport failed"
+    assert "secret" not in mapped.message
+    assert mapped.provider_metadata is not None
+    assert mapped.__cause__ is None
+    assert mapped.__context__ is None
+    client.close()
+
+
+@pytest.mark.parametrize("request_id", ["", "  \t", object()])
+def test_blank_or_non_string_status_request_ids_are_omitted(
+    request_id: object,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    error = openai.BadRequestError(
+        "invalid",
+        response=httpx.Response(
+            400,
+            request=httpx.Request("POST", "https://example.test"),
+            headers={"x-request-id": " "},
+        ),
+        body={"secret": "body"},
+    )
+    cast(Any, error).request_id = request_id
+    client = _client(_success)
+
+    def raise_error(**kwargs: object) -> object:
+        raise error
+
+    monkeypatch.setattr(cast(Any, client.responses), "create", raise_error)
+    with pytest.raises(ModelRuntimeError) as caught:
+        _execute(client)
+    assert caught.value.category is ModelRuntimeErrorCategory.INVALID_REQUEST
+    assert caught.value.provider_metadata is not None
+    assert caught.value.provider_metadata.provider_request_id is None
+    client.close()
+
+
+def test_best_effort_metadata_failure_preserves_provider_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def no_metadata(**kwargs: object) -> None:
+        return None
+
+    monkeypatch.setattr(_execution, "_failure_metadata", no_metadata)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(429, headers={"x-request-id": "request-id"}, json={})
+
+    client = _client(handler)
+    with pytest.raises(ModelRuntimeError) as caught:
+        _execute(client)
+    assert caught.value.category is ModelRuntimeErrorCategory.TRANSIENT_PROVIDER_FAILURE
+    assert caught.value.retryability is True
+    assert caught.value.message == "OpenAI Responses provider transport failed"
+    assert caught.value.provider_metadata is None
+    assert caught.value.__cause__ is None
+    assert caught.value.__context__ is None
     client.close()
 
 

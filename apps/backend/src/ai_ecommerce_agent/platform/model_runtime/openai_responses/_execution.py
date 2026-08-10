@@ -151,15 +151,15 @@ def execute_openai_responses_attempt(
         provider_attempt_ids=provider_attempt_ids,
     )
     prepared = prepare_openai_responses_call(request=request, parameters=parameters)
+    request_body = cast(
+        _response_params.ResponseCreateParamsNonStreaming,
+        prepared.request_body.to_mapping(),
+    )
     start = monotonic()
     classification: tuple[_contracts.ModelRuntimeErrorCategory, bool, str] | None = None
     provider_request_id: str | None = None
     response: object | None = None
     try:
-        request_body = cast(
-            _response_params.ResponseCreateParamsNonStreaming,
-            prepared.request_body.to_mapping(),
-        )
         response = client.responses.create(
             **request_body,
             timeout=prepared.timeout_seconds,
