@@ -276,13 +276,20 @@ def test_exhaustion_and_empty_scenario_fail_without_ordinal_change() -> None:
     request = _request()
     runtime = _runtime(request, _result(request))
     assert runtime.execute(request)
+    assert runtime._ordinal == 2  # type: ignore[attr-defined]
     with pytest.raises(AssertionError, match="script_exhausted"):
         runtime.execute(request)
+    assert runtime._ordinal == 2  # type: ignore[attr-defined]
     with pytest.raises(AssertionError, match="script_exhausted"):
         runtime.execute(request)
+    assert runtime._ordinal == 2  # type: ignore[attr-defined]
     empty = ScriptedModelRuntime(scenario=ScriptedModelScenario("empty", ()))
     with pytest.raises(AssertionError, match="script_exhausted"):
         empty.execute(request)
+    assert empty._ordinal == 1  # type: ignore[attr-defined]
+    with pytest.raises(AssertionError, match="script_exhausted"):
+        empty.execute(request)
+    assert empty._ordinal == 1  # type: ignore[attr-defined]
     assert empty.assert_exhausted() is None
 
 
@@ -311,6 +318,30 @@ def test_diagnostics_exclude_unsafe_request_and_outcome_content() -> None:
         "error-message-marker",
     ):
         assert unsafe not in message
+
+    declared_error = _error(request, message="error-message-secret")
+    error_runtime = _runtime(request, declared_error)
+    with pytest.raises(AssertionError) as caught:
+        error_runtime.execute(bad_request)
+    assert "error-message-secret" not in str(caught.value)
+
+    wrong_result_request = _request(call_id="outcome-call")
+    wrong_result = _result(wrong_result_request, payload="outcome-payload-secret")
+    outcome_runtime = _runtime(request, wrong_result)
+    with pytest.raises(AssertionError) as caught:
+        outcome_runtime.execute(request)
+    assert "outcome-payload-secret" not in str(caught.value)
+
+    bad_version = replace(
+        _version_tuple(request), context_assembly_version="version-secret"
+    )
+    version_result = _result(
+        request, metadata=_metadata(request, version_tuple=bad_version)
+    )
+    version_runtime = _runtime(request, version_result)
+    with pytest.raises(AssertionError) as caught:
+        version_runtime.execute(request)
+    assert "version-secret" not in str(caught.value)
 
 
 def test_request_scenario_step_and_outcome_remain_unmodified() -> None:

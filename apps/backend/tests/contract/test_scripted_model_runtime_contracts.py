@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError, fields, is_dataclass
-from inspect import signature
+from inspect import Parameter, signature
 from typing import get_type_hints
 
 import pytest
@@ -73,6 +73,10 @@ class _ProfileSubclass(ModelExecutionProfile):
 
 
 class _ResultSubclass(ModelCallResult):
+    pass
+
+
+class _StepSubclass(ScriptedModelStep):
     pass
 
 
@@ -244,6 +248,15 @@ def test_scenario_empty_tuple_is_valid_and_exact_tuple_boundaries_are_strict() -
         ScriptedModelScenario("subclass", _TupleSubclass((step,)))
     with pytest.raises(TypeError):
         ScriptedModelScenario("raw-item", (object(),))  # type: ignore[arg-type]
+    subclass = _StepSubclass(
+        step.expected_identity,
+        step.expected_execution_profile,
+        step.expected_output_schema_id,
+        step.expected_output_schema_version,
+        step.outcome,
+    )
+    with pytest.raises(TypeError):
+        ScriptedModelScenario("subclass-item", (subclass,))
 
 
 def test_strict_text_nested_and_outcome_boundaries_reject_raw_null_subclasses() -> None:
@@ -260,6 +273,14 @@ def test_strict_text_nested_and_outcome_boundaries_reject_raw_null_subclasses() 
     with pytest.raises(TypeError):
         ScriptedModelStep(
             _IdentitySubclass(ModelCallId("identity-subclass")),
+            request.execution_profile,
+            "schema",
+            "v1",
+            outcome,
+        )
+    with pytest.raises(TypeError):
+        ScriptedModelStep(
+            None,  # type: ignore[arg-type]
             request.execution_profile,
             "schema",
             "v1",
@@ -284,9 +305,25 @@ def test_strict_text_nested_and_outcome_boundaries_reject_raw_null_subclasses() 
     with pytest.raises(TypeError):
         ScriptedModelStep(
             request.identity,
+            None,  # type: ignore[arg-type]
+            "schema",
+            "v1",
+            outcome,
+        )
+    with pytest.raises(TypeError):
+        ScriptedModelStep(
+            request.identity,
             request.execution_profile,
             _TextSubclass("schema"),
             "v1",
+            outcome,
+        )
+    with pytest.raises(TypeError):
+        ScriptedModelStep(
+            request.identity,
+            request.execution_profile,
+            "schema",
+            _TextSubclass("v1"),
             outcome,
         )
     with pytest.raises((TypeError, ValueError)):
@@ -327,4 +364,12 @@ def test_runtime_is_synchronous_port_conformant_and_signature_exact() -> None:
         "request": ModelCallRequest,
         "return": ModelCallResult,
     }
+    init_params = signature(ScriptedModelRuntime.__init__).parameters
+    assert list(init_params) == ["self", "scenario"]
+    assert init_params["scenario"].kind is Parameter.KEYWORD_ONLY
+    assert get_type_hints(ScriptedModelRuntime.__init__) == {
+        "scenario": ScriptedModelScenario,
+        "return": type(None),
+    }
+    assert list(signature(ScriptedModelRuntime.assert_exhausted).parameters) == ["self"]
     assert isinstance(runtime, ModelRuntimePort)

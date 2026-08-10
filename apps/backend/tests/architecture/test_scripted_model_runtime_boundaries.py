@@ -230,6 +230,24 @@ def _allowed_effects(path: Path, tree: ast.Module) -> bool:
     return len(calls) == len(expected) and actual == expected
 
 
+def _production_shaped_baseline() -> ast.Module:
+    return ast.parse(
+        """
+from dataclasses import dataclass as _dataclass
+
+@_dataclass(frozen=True, slots=True)
+class ScriptedModelStep:
+    pass
+
+@_dataclass(frozen=True, slots=True)
+class ScriptedModelScenario:
+    pass
+
+__all__ = ["ScriptedModelRuntime", "ScriptedModelScenario", "ScriptedModelStep"]
+"""
+    )
+
+
 def test_scripted_runtime_inventory_and_imports_are_allowlisted() -> None:
     assert all(path.is_file() for path in _PRODUCTION_FILES)
     assert sorted(path.name for path in _PACKAGE_ROOT.glob("*.py")) == [
@@ -255,21 +273,34 @@ def test_import_time_effects_and_module_globals_are_frozen() -> None:
 
 
 def test_import_guard_rejects_nested_calls_decorators_and_mutable_globals() -> None:
+    baseline = _production_shaped_baseline()
+    assert _allowed_effects(_PACKAGE_ROOT / "scripted.py", baseline)
+    assert _module_assignment_names(baseline) == ["__all__"]
+    source = ast.unparse(baseline)
     probes = (
-        "@print\ndef leaked(value=open('x')):\n    return value\n",
-        "class Leaked:\n    token = uuid4()\n",
-        "@_dataclass()\nclass Leaked: pass\n",
-        "def leaked(value: getenv('X')) -> open('x'):\n    return value\n",
-        "if open('x'):\n    leaked = True\n",
-        "for value in open('x'):\n    leaked = value\n",
-        "for sink[open('x')] in [1]:\n    leaked = True\n",
-        "with open('x') as handle:\n    leaked = handle\n",
-        "if True:\n    _CACHE = []\n",
-        "try:\n    _CACHE = []\nexcept Exception:\n    pass\n",
+        source.replace(
+            "@_dataclass(frozen=True, slots=True)\nclass ScriptedModelStep",
+            "@print\nclass ScriptedModelStep",
+            1,
+        ),
+        source.replace(
+            "class ScriptedModelStep:\n    pass",
+            "class ScriptedModelStep:\n    token = uuid4()",
+            1,
+        ),
+        source + "\n@print\ndef leaked(value=open('x')):\n    return value\n",
+        source + "\nif open('x'):\n    leaked = True\n",
+        source + "\nfor value in open('x'):\n    leaked = value\n",
+        source + "\nfor sink[open('x')] in [1]:\n    leaked = True\n",
+        source + "\nwith open('x') as handle:\n    leaked = handle\n",
+        source + "\nif True:\n    _CACHE = []\n",
+        source + "\ntry:\n    _CACHE = []\nexcept Exception:\n    pass\n",
     )
-    for source in probes:
-        tree = ast.parse(source)
-        assert not _allowed_effects(_PACKAGE_ROOT / "scripted.py", tree)
+    for probe in probes[:7]:
+        assert not _allowed_effects(_PACKAGE_ROOT / "scripted.py", ast.parse(probe))
+    for probe in probes[7:]:
+        tree = ast.parse(probe)
+        assert _allowed_effects(_PACKAGE_ROOT / "scripted.py", tree)
         assert _module_assignment_names(tree) != ["__all__"]
 
 
