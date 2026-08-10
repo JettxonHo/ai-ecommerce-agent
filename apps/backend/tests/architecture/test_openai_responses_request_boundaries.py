@@ -242,6 +242,7 @@ def _mutable_module_globals(tree: ast.Module) -> list[str]:
 def test_inventory_import_direction_and_private_schema_consumer() -> None:
     assert sorted(path.name for path in _PACKAGE.glob("*.py")) == [
         "__init__.py",
+        "_response_mapping.py",
         "_schema_compatibility.py",
         "request_preparation.py",
     ]

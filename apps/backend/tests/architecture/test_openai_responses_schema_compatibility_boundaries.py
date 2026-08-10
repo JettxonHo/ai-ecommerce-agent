@@ -347,6 +347,7 @@ def _mutable_module_assignments(tree: ast.Module) -> list[str]:
 def test_exact_inventory_imports_and_private_facade() -> None:
     assert sorted(path.name for path in _PACKAGE.glob("*.py")) == [
         "__init__.py",
+        "_response_mapping.py",
         "_schema_compatibility.py",
         "request_preparation.py",
     ]
