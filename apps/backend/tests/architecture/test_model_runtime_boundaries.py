@@ -134,20 +134,36 @@ def _import_time_effects(
             return
         if isinstance(node, (ast.Import, ast.ImportFrom, ast.Pass)):
             return
-        if isinstance(
-            node,
-            (
-                ast.For,
-                ast.AsyncFor,
-                ast.While,
-                ast.If,
-                ast.Try,
-                ast.With,
-                ast.AsyncWith,
-            ),
-        ):
-            for child in ast.iter_child_nodes(node):
-                if isinstance(child, ast.stmt):
+        if isinstance(node, (ast.For, ast.AsyncFor)):
+            scan_expression(node.iter)
+            for child in (*node.body, *node.orelse):
+                scan_statement(child, scope)
+            return
+        if isinstance(node, ast.While):
+            scan_expression(node.test)
+            for child in (*node.body, *node.orelse):
+                scan_statement(child, scope)
+            return
+        if isinstance(node, ast.If):
+            scan_expression(node.test)
+            for child in (*node.body, *node.orelse):
+                scan_statement(child, scope)
+            return
+        if isinstance(node, (ast.With, ast.AsyncWith)):
+            for item in node.items:
+                scan_expression(item.context_expr)
+                if item.optional_vars is not None:
+                    scan_expression(item.optional_vars)
+            for child in node.body:
+                scan_statement(child, scope)
+            return
+        if isinstance(node, ast.Try):
+            for child in (*node.body, *node.orelse, *node.finalbody):
+                scan_statement(child, scope)
+            for handler in node.handlers:
+                if handler.type is not None:
+                    scan_expression(handler.type)
+                for child in handler.body:
                     scan_statement(child, scope)
             return
         calls.extend(_expression_calls(node))
@@ -225,6 +241,8 @@ def test_import_time_effect_guard_rejects_synthetic_effects() -> None:
         "class Leaked:\n    token = uuid4()\n",
         "@_runtime_checkable()\nclass Leaked: pass\n",
         "def leaked(value: getenv('X')) -> open('x'):\n    return value\n",
+        "if open('x'):\n    leaked = True\n",
+        "for value in open('x'):\n    leaked = value\n",
     )
     for source in probes:
         calls, decorators = _import_time_effects(ast.parse(source))
