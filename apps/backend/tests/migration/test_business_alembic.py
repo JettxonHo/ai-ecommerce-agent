@@ -828,7 +828,7 @@ def test_source_tables_have_exact_minimal_columns(
 def test_durable_work_intent_has_exact_columns_and_types(
     migration_engine: Engine,
 ) -> None:
-    """The Work Intent table has the frozen ordered 24-column shape."""
+    """The Work Intent table has the frozen ordered 25-column shape."""
 
     _reset_schema(migration_engine)
     command.upgrade(_config(_database_url()), HEAD_REVISION)
