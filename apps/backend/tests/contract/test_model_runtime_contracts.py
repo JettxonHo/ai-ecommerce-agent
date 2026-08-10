@@ -8,6 +8,7 @@ from typing import get_type_hints
 
 import pytest
 
+from ai_ecommerce_agent import application as application_package
 from ai_ecommerce_agent.application import model_runtime
 from ai_ecommerce_agent.application.model_runtime import (
     ModelCallContractVersions,
@@ -147,6 +148,10 @@ def test_facade_has_exact_ordered_symbols_and_no_alias() -> None:
         if not name.startswith("_") and name != "annotations"
     }
     assert public_names == set(_EXPECTED_PUBLIC)
+
+
+def test_model_runtime_symbols_are_not_reexported_by_application_package() -> None:
+    assert all(not hasattr(application_package, name) for name in _EXPECTED_PUBLIC)
 
 
 @pytest.mark.parametrize(
@@ -309,6 +314,79 @@ def test_nested_values_are_supplied_identity_and_order_preserving() -> None:
     metadata = _metadata(provider_attempt_ids=attempts)
     assert metadata.provider_attempt_ids is attempts
     assert metadata.provider_attempt_ids == attempts
+
+
+def test_nested_fields_reject_raw_values_and_preserve_exact_instances() -> None:
+    recovered_identity = ModelCallIdentity(
+        ModelCallId("call"), ModelCallId("previous"), ModelRecoveryKind.REPAIR
+    )
+    for field_name, raw_value in (
+        ("model_call_id", {"raw": "id"}),
+        ("recovery_kind", "repair"),
+    ):
+        with pytest.raises(TypeError):
+            replace(recovered_identity, **{field_name: raw_value})
+
+    with pytest.raises(TypeError):
+        replace(_schema(), schema={"raw": "schema"})
+    request = _request()
+    for field_name, raw_value in (
+        ("identity", {"raw": "identity"}),
+        ("context", {"raw": "context"}),
+        ("structured_output", {"raw": "schema"}),
+        ("execution_profile", {"raw": "profile"}),
+        ("contract_versions", {"raw": "versions"}),
+    ):
+        with pytest.raises(TypeError):
+            replace(request, **{field_name: raw_value})
+
+    metadata = _metadata()
+    for field_name, raw_value in (
+        ("provider_attempt_ids", [ProviderAttemptId("raw")]),
+        ("provider_attempt_ids", ("raw",)),
+        ("version_tuple", {"raw": "version"}),
+        ("usage", {"raw": "usage"}),
+    ):
+        with pytest.raises(TypeError):
+            replace(metadata, **{field_name: raw_value})
+    with pytest.raises(TypeError):
+        replace(metadata, latency_ms=True)
+    with pytest.raises(ValueError):
+        replace(metadata, latency_ms=-1)
+
+    result = ModelCallResult(ModelOutputEnvelope("payload"), metadata)
+    with pytest.raises(TypeError):
+        replace(result, output_envelope="raw")
+    with pytest.raises(TypeError):
+        replace(result, provider_metadata={"raw": "metadata"})
+
+    error = ModelRuntimeError(
+        ModelRuntimeErrorCategory.INVALID_REQUEST,
+        "message",
+        True,
+        ModelCallId("call-1"),
+    )
+    with pytest.raises(TypeError):
+        replace(error, category="invalid_request")
+    with pytest.raises(TypeError):
+        replace(error, model_call_id="call-1")
+    usage = ModelTokenUsage(1, 2, 99)
+    assert usage.total_tokens == 99
+
+
+def test_error_is_non_frozen_and_accepts_both_supplied_retryability_values() -> None:
+    for retryability in (False, True):
+        error = ModelRuntimeError(
+            ModelRuntimeErrorCategory.TRANSIENT_PROVIDER_FAILURE,
+            "message",
+            retryability,
+            ModelCallId("call"),
+        )
+        assert error.retryability is retryability
+        error.message = "updated"
+        assert error.message == "updated"
+        del error.provider_metadata
+        assert not hasattr(error, "provider_metadata")
 
 
 def test_recovery_pair_and_self_recovery_invariants() -> None:

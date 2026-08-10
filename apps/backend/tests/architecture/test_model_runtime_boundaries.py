@@ -136,6 +136,7 @@ def _import_time_effects(
             return
         if isinstance(node, (ast.For, ast.AsyncFor)):
             scan_expression(node.iter)
+            scan_expression(node.target)
             for child in (*node.body, *node.orelse):
                 scan_statement(child, scope)
             return
@@ -192,6 +193,18 @@ def _allowed_import(module: str) -> bool:
     )
 
 
+def _module_assignment_names(tree: ast.Module) -> list[str]:
+    names: list[str] = []
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    names.append(target.id)
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names.append(node.target.id)
+    return names
+
+
 def test_production_inventory_and_imports_are_narrow() -> None:
     assert _PRODUCTION_FILE.is_file()
     assert sorted(path.name for path in _PRODUCTION_FILE.parent.glob("*.py")) == [
@@ -212,6 +225,7 @@ def test_production_inventory_and_imports_are_narrow() -> None:
         ):
             pytest.fail(f"technical or business import is not allowed: {module}")
         pytest.fail(f"unexpected import: {module}")
+    assert _module_assignment_names(_tree()) == ["__all__"]
 
 
 def test_import_time_effect_guard_allows_only_exact_dataclass_decorators() -> None:
@@ -243,6 +257,7 @@ def test_import_time_effect_guard_rejects_synthetic_effects() -> None:
         "def leaked(value: getenv('X')) -> open('x'):\n    return value\n",
         "if open('x'):\n    leaked = True\n",
         "for value in open('x'):\n    leaked = value\n",
+        "for sink[open('x')] in [1]:\n    leaked = True\n",
     )
     for source in probes:
         calls, decorators = _import_time_effects(ast.parse(source))
@@ -265,3 +280,8 @@ def test_import_guard_rejects_forbidden_alias_imports() -> None:
     imports = _import_names(ast.parse("from openai import Client as _Client\n"))
     assert imports == [("openai", "Client", "_Client")]
     assert not _allowed_import(imports[0][0])
+
+
+def test_import_guard_rejects_unauthorized_mutable_module_globals() -> None:
+    for source in ("_CACHE = []\n", "_STATE: list[str] = []\n"):
+        assert _module_assignment_names(ast.parse(source)) != ["__all__"]
