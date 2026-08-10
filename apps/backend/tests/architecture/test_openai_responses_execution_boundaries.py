@@ -23,6 +23,9 @@ _PRODUCTION_FILES = [
 
 _ALLOWED_STDLIB = {
     "__future__",
+    "email.utils",
+    "math",
+    "random",
     "time",
     "typing",
 }
@@ -106,7 +109,12 @@ def _import_bindings(tree: ast.Module) -> list[tuple[str, str, str, str | None]]
 
 _EXPECTED_EXECUTION_IMPORTS = [
     ("from", "__future__", "annotations", None),
+    ("from", "email.utils", "parsedate_to_datetime", None),
+    ("from", "math", "isfinite", None),
+    ("from", "random", "random", None),
     ("from", "time", "monotonic", None),
+    ("from", "time", "sleep", None),
+    ("from", "time", "time", None),
     ("from", "typing", "cast", None),
     ("import", "openai", "", "_openai"),
     ("import", "openai.types.responses", "", "_responses"),
@@ -169,6 +177,26 @@ def _runtime_violations(tree: ast.Module) -> list[ast.AST]:
         for parent in ast.walk(tree)
         for child in ast.iter_child_nodes(parent)
     }
+
+    def enclosing_function(node: ast.AST) -> str | None:
+        parent = parents.get(node)
+        while parent is not None:
+            if isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                return parent.name
+            parent = parents.get(parent)
+        return None
+
+    bounded_calls = {
+        "isfinite",
+        "parsedate_to_datetime",
+        "random",
+        "sleep",
+        "time",
+    }
+    bounded_functions = {
+        "_retry_delay",
+        "execute_openai_responses_with_transport_retry",
+    }
     for node in ast.walk(tree):
         if isinstance(node, ast.Call):
             dotted = _dotted(node.func)
@@ -187,8 +215,20 @@ def _runtime_violations(tree: ast.Module) -> list[ast.AST]:
                 dotted
                 and (
                     (dotted.startswith("_openai.") and dotted != "_openai.__version__")
-                    or dotted.rsplit(".", 1)[-1] in forbidden_calls
-                    or dotted in forbidden_aliases
+                    or (
+                        dotted.rsplit(".", 1)[-1] in forbidden_calls
+                        and not (
+                            dotted in bounded_calls
+                            and enclosing_function(node) in bounded_functions
+                        )
+                    )
+                    or (
+                        dotted in forbidden_aliases
+                        and not (
+                            dotted in bounded_calls
+                            and enclosing_function(node) in bounded_functions
+                        )
+                    )
                     or dotted.endswith(".responses.create")
                 )
                 or indirect_create
@@ -368,6 +408,23 @@ def test_executor_has_exact_single_sdk_call_and_no_runtime_escape() -> None:
         and _dotted(node.func) == "client.responses.create"
     ]
     assert len(create_calls) == 1
+    owner = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef)
+        and any(call is create_calls[0] for call in ast.walk(node))
+    )
+    assert owner.name == "_transport_attempt"
+    retry_function = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef)
+        and node.name == "execute_openai_responses_with_transport_retry"
+    )
+    assert not any(
+        isinstance(node, (ast.For, ast.AsyncFor, ast.While))
+        for node in ast.walk(retry_function)
+    )
     assert not _runtime_violations(tree)
     assert not _module_effects(tree)
     assert not _mutable_globals(tree)
@@ -433,6 +490,7 @@ def test_only_executor_calls_responses_create_across_production() -> None:
         "if (_CACHE := []):\n    pass\n",
         "client.responses.create(payload={})\n",
         "_openai.OpenAI()\n",
+        "sleep(0.5)\n",
     ],
 )
 def test_single_mutation_probes_are_rejected(source: str) -> None:
@@ -489,6 +547,7 @@ def execute(*, client: _openai.OpenAI, payload: object) -> object:
         "\ndef leaked(value: factory()):\n    return value\n",
         "\ndef leaked(value=open('x')):\n    return value\n",
         "\nfrom time import sleep as monotonic\n",
+        "\ndef leaked():\n    return sleep(0.5)\n",
     ],
 )
 def test_production_shaped_single_mutations_are_rejected(mutation: str) -> None:

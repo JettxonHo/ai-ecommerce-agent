@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from time import monotonic
+from email.utils import parsedate_to_datetime
+from math import isfinite
+from random import random
+from time import monotonic, sleep, time
 from typing import cast
 
 import openai as _openai
@@ -20,42 +23,25 @@ from .request_preparation import (
 _CONFIGURATION_MESSAGE = "OpenAI Responses configuration/access failure"
 _INVALID_REQUEST_MESSAGE = "OpenAI Responses request was invalid"
 _TRANSIENT_MESSAGE = "OpenAI Responses provider transport failed"
+_CONFIGURATION_CATEGORY = _contracts.ModelRuntimeErrorCategory.CONFIGURATION_OR_ACCESS
+_INVALID_REQUEST_CATEGORY = _contracts.ModelRuntimeErrorCategory.INVALID_REQUEST
+_TRANSIENT_CATEGORY = _contracts.ModelRuntimeErrorCategory.TRANSIENT_PROVIDER_FAILURE
 
 
 def _failure_classification(
     error: _openai.OpenAIError,
 ) -> tuple[_contracts.ModelRuntimeErrorCategory, bool, str]:
     if isinstance(error, (_openai.APITimeoutError, _openai.APIConnectionError)):
-        return (
-            _contracts.ModelRuntimeErrorCategory.TRANSIENT_PROVIDER_FAILURE,
-            True,
-            _TRANSIENT_MESSAGE,
-        )
+        return _TRANSIENT_CATEGORY, True, _TRANSIENT_MESSAGE
     status_code = getattr(error, "status_code", None)
     if type(status_code) is int:
         if status_code in {401, 403, 404}:
-            return (
-                _contracts.ModelRuntimeErrorCategory.CONFIGURATION_OR_ACCESS,
-                False,
-                _CONFIGURATION_MESSAGE,
-            )
+            return _CONFIGURATION_CATEGORY, False, _CONFIGURATION_MESSAGE
         if status_code == 408 or status_code in {409, 429} or status_code >= 500:
-            return (
-                _contracts.ModelRuntimeErrorCategory.TRANSIENT_PROVIDER_FAILURE,
-                True,
-                _TRANSIENT_MESSAGE,
-            )
+            return _TRANSIENT_CATEGORY, True, _TRANSIENT_MESSAGE
         if 400 <= status_code < 500:
-            return (
-                _contracts.ModelRuntimeErrorCategory.INVALID_REQUEST,
-                False,
-                _INVALID_REQUEST_MESSAGE,
-            )
-    return (
-        _contracts.ModelRuntimeErrorCategory.TRANSIENT_PROVIDER_FAILURE,
-        True,
-        _TRANSIENT_MESSAGE,
-    )
+            return _INVALID_REQUEST_CATEGORY, False, _INVALID_REQUEST_MESSAGE
+    return _TRANSIENT_CATEGORY, True, _TRANSIENT_MESSAGE
 
 
 def _request_id(error: _openai.OpenAIError) -> str | None:
@@ -155,40 +141,186 @@ def execute_openai_responses_attempt(
         _response_params.ResponseCreateParamsNonStreaming,
         prepared.request_body.to_mapping(),
     )
-    start = monotonic()
-    classification: tuple[_contracts.ModelRuntimeErrorCategory, bool, str] | None = None
-    provider_request_id: str | None = None
-    response: object | None = None
-    try:
-        response = client.responses.create(
-            **request_body,
-            timeout=prepared.timeout_seconds,
-        )
-    except _openai.OpenAIError as error:
-        finish = monotonic()
-        classification = _failure_classification(error)
-        provider_request_id = _request_id(error)
-    else:
-        finish = monotonic()
-    latency_ms = _latency_ms(start, finish)
-    if classification is not None:
-        category, retryability, message = classification
-        metadata = _failure_metadata(
+    response, error, latency_ms = _transport_attempt(
+        client=client,
+        request_body=request_body,
+        timeout_seconds=prepared.timeout_seconds,
+    )
+    if error is not None:
+        raise _mapped_error(
             request=request,
+            error=error,
             provider_attempt_ids=provider_attempt_ids,
-            provider_request_id=provider_request_id,
             latency_ms=latency_ms,
-        )
-        raise _contracts.ModelRuntimeError(
-            category=category,
-            message=message,
-            retryability=retryability,
-            model_call_id=request.identity.model_call_id,
-            provider_metadata=metadata,
         )
     return map_openai_responses_response(
         request=request,
         response=cast(_responses.Response, response),
+        provider_attempt_ids=provider_attempt_ids,
+        latency_ms=latency_ms,
+    )
+
+
+def _retry_delay(error: _openai.OpenAIError, fallback: float) -> float:
+    def positive(value: str | None, scale: float = 1.0) -> float | None:
+        value = value or ""
+        try:
+            result = float(value) * scale
+        except (TypeError, ValueError, OverflowError):
+            return None
+        return result if isfinite(result) and result > 0 else None
+
+    try:
+        headers = cast(dict[str, str], error.response.headers)  # type: ignore[attr-defined]
+        delay = positive(headers.get("retry-after-ms"), 0.001)
+        if delay is not None:
+            return delay
+        value = headers.get("Retry-After")
+        delay = positive(value)
+        if delay is not None:
+            return delay
+        if type(value) is str:
+            date = parsedate_to_datetime(value)
+            if date.tzinfo is not None:
+                delay = date.timestamp() - time()
+                if isfinite(delay) and delay > 0:
+                    return delay
+    except (AttributeError, TypeError, ValueError, OverflowError, IndexError, OSError):
+        pass
+    return fallback * random()
+
+
+def _transport_attempt(
+    *,
+    client: _openai.OpenAI,
+    request_body: _response_params.ResponseCreateParamsNonStreaming,
+    timeout_seconds: float,
+) -> tuple[object | None, _openai.OpenAIError | None, int]:
+    start = monotonic()
+    try:
+        response = client.responses.create(**request_body, timeout=timeout_seconds)
+    except _openai.OpenAIError as error:
+        return None, error, _latency_ms(start, monotonic())
+    return response, None, _latency_ms(start, monotonic())
+
+
+def _mapped_error(
+    *,
+    request: _contracts.ModelCallRequest,
+    error: _openai.OpenAIError,
+    provider_attempt_ids: tuple[_contracts.ProviderAttemptId, ...],
+    latency_ms: int,
+) -> _contracts.ModelRuntimeError:
+    category, retryability, message = _failure_classification(error)
+    return _contracts.ModelRuntimeError(
+        category=category,
+        message=message,
+        retryability=retryability,
+        model_call_id=request.identity.model_call_id,
+        provider_metadata=_failure_metadata(
+            request=request,
+            provider_attempt_ids=provider_attempt_ids,
+            provider_request_id=_request_id(error),
+            latency_ms=latency_ms,
+        ),
+    )
+
+
+def execute_openai_responses_with_transport_retry(
+    *,
+    client: _openai.OpenAI,
+    request: _contracts.ModelCallRequest,
+    parameters: OpenAIResponsesCallParameters,
+    provider_attempt_ids: tuple[_contracts.ProviderAttemptId, ...],
+    overall_deadline_monotonic: float,
+    fallback_retry_delay_seconds: float,
+) -> _contracts.ModelCallResult:
+    """Execute at most two injected transport attempts inside one deadline."""
+    _validate(
+        client=client,
+        request=request,
+        parameters=parameters,
+        provider_attempt_ids=provider_attempt_ids,
+    )
+    if len(provider_attempt_ids) not in (1, 2):
+        raise ValueError("provider_attempt_ids must contain one or two IDs")
+    if len(provider_attempt_ids) == 2 and (
+        provider_attempt_ids[0].value == provider_attempt_ids[1].value
+    ):
+        raise ValueError("provider_attempt_ids must be distinct")
+    if type(overall_deadline_monotonic) is not float:
+        raise TypeError("overall_deadline_monotonic must be a float")
+    if not isfinite(overall_deadline_monotonic):
+        raise ValueError("overall_deadline_monotonic must be finite")
+    if type(fallback_retry_delay_seconds) is not float:
+        raise TypeError("fallback_retry_delay_seconds must be a float")
+    if not isfinite(fallback_retry_delay_seconds) or fallback_retry_delay_seconds <= 0:
+        raise ValueError("fallback_retry_delay_seconds must be positive and finite")
+
+    prepared = prepare_openai_responses_call(request=request, parameters=parameters)
+    request_body = cast(
+        _response_params.ResponseCreateParamsNonStreaming,
+        prepared.request_body.to_mapping(),
+    )
+    first_attempt_ids = provider_attempt_ids[:1]
+    remaining = overall_deadline_monotonic - monotonic()
+    if remaining <= 0:
+        raise _contracts.ModelRuntimeError(
+            category=_contracts.ModelRuntimeErrorCategory.TRANSIENT_PROVIDER_FAILURE,
+            message=_TRANSIENT_MESSAGE,
+            retryability=True,
+            model_call_id=request.identity.model_call_id,
+            provider_metadata=None,
+        )
+    response, error, latency_ms = _transport_attempt(
+        client=client,
+        request_body=request_body,
+        timeout_seconds=min(parameters.timeout_seconds, remaining),
+    )
+    if error is None:
+        return map_openai_responses_response(
+            request=request,
+            response=cast(_responses.Response, response),
+            provider_attempt_ids=first_attempt_ids,
+            latency_ms=latency_ms,
+        )
+    status_code = getattr(error, "status_code", None)
+    retryable = isinstance(
+        error, (_openai.APITimeoutError, _openai.APIConnectionError)
+    ) or (
+        type(status_code) is int
+        and (status_code in {408, 409, 429} or status_code >= 500)
+    )
+    first_error = _mapped_error(
+        request=request,
+        error=error,
+        provider_attempt_ids=first_attempt_ids,
+        latency_ms=latency_ms,
+    )
+    if len(provider_attempt_ids) == 1 or not retryable:
+        raise first_error
+    delay = _retry_delay(error, fallback_retry_delay_seconds)
+    if overall_deadline_monotonic - monotonic() <= delay:
+        raise first_error
+    sleep(delay)
+    remaining = overall_deadline_monotonic - monotonic()
+    if remaining <= 0:
+        raise first_error
+    response, error, latency_ms = _transport_attempt(
+        client=client,
+        request_body=request_body,
+        timeout_seconds=min(parameters.timeout_seconds, remaining),
+    )
+    if error is None:
+        return map_openai_responses_response(
+            request=request,
+            response=cast(_responses.Response, response),
+            provider_attempt_ids=provider_attempt_ids,
+            latency_ms=latency_ms,
+        )
+    raise _mapped_error(
+        request=request,
+        error=error,
         provider_attempt_ids=provider_attempt_ids,
         latency_ms=latency_ms,
     )

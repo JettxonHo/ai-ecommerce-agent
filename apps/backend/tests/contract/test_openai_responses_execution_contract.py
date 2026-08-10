@@ -43,6 +43,31 @@ def test_private_executor_signature_and_hints_are_exact() -> None:
     }
 
 
+def test_retry_executor_signature_and_hints_are_exact() -> None:
+    function = _execution.execute_openai_responses_with_transport_retry
+    assert list(signature(function).parameters) == [
+        "client",
+        "request",
+        "parameters",
+        "provider_attempt_ids",
+        "overall_deadline_monotonic",
+        "fallback_retry_delay_seconds",
+    ]
+    assert all(
+        item.kind is Parameter.KEYWORD_ONLY
+        for item in signature(function).parameters.values()
+    )
+    assert get_type_hints(function) == {
+        "client": openai.OpenAI,
+        "request": ModelCallRequest,
+        "parameters": request_preparation.OpenAIResponsesCallParameters,
+        "provider_attempt_ids": tuple[ProviderAttemptId, ...],
+        "overall_deadline_monotonic": float,
+        "fallback_retry_delay_seconds": float,
+        "return": ModelCallResult,
+    }
+
+
 def test_executor_module_has_no_public_facade_or_new_contract_types() -> None:
     from ai_ecommerce_agent.platform.model_runtime import openai_responses
 
