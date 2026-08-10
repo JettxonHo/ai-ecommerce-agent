@@ -31,7 +31,14 @@ _ALLOWED_STDLIB: dict[str, set[str]] = {
     },
     "request_preparation.py": {"__future__", "dataclasses", "enum", "json"},
     "_response_mapping.py": {"__future__", "typing"},
-    "_execution.py": {"__future__", "time", "typing"},
+    "_execution.py": {
+        "__future__",
+        "email.utils",
+        "math",
+        "random",
+        "time",
+        "typing",
+    },
 }
 _ALLOWED_ABSOLUTE: dict[str, set[str]] = {
     "__init__.py": set(),
