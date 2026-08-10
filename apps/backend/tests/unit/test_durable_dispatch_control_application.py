@@ -711,7 +711,7 @@ def test_owned_check_rejects_lower_revision_owner_mismatch_and_expiry(
 ) -> None:
     snapshot = _snapshot()
     if case == "lower":
-        query = _query(snapshot, expected=2)
+        query = _query(snapshot, expected=4)
     elif case == "mismatch":
         query = replace(_query(snapshot), holder_id=LeaseHolderId("wrong-holder"))
     else:
