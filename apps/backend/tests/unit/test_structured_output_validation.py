@@ -406,6 +406,96 @@ def test_fragment_local_dynamic_reference_succeeds_without_network() -> None:
     ).to_mapping() == {"item": {"name": "ok"}}
 
 
+def test_fragment_local_anchor_reference_succeeds_in_schema_defs() -> None:
+    schema = StructuredContent.from_mapping(
+        {
+            "$defs": {
+                "item": {
+                    "$anchor": "item",
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                    "required": ["name"],
+                    "additionalProperties": False,
+                }
+            },
+            "type": "object",
+            "properties": {"item": {"$ref": "#item"}},
+            "required": ["item"],
+            "additionalProperties": False,
+        }
+    )
+    result = _result('{"item":{"name":"ok"}}')
+    assert parse_and_validate_structured_output(
+        result=result, spec=_spec(schema)
+    ).to_mapping() == {"item": {"name": "ok"}}
+
+
+def test_percent_encoded_fragment_reference_succeeds_without_network() -> None:
+    schema = StructuredContent.from_mapping(
+        {
+            "$defs": {
+                "a b": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                    "required": ["name"],
+                    "additionalProperties": False,
+                }
+            },
+            "type": "object",
+            "properties": {"item": {"$ref": "#/$defs/a%20b"}},
+            "required": ["item"],
+            "additionalProperties": False,
+        }
+    )
+    result = _result('{"item":{"name":"ok"}}')
+    assert parse_and_validate_structured_output(
+        result=result, spec=_spec(schema)
+    ).to_mapping() == {"item": {"name": "ok"}}
+
+
+@pytest.mark.parametrize("data_keyword", ["const", "default", "examples", "enum"])
+def test_anchors_inside_data_keywords_are_not_schema_references(
+    data_keyword: str,
+) -> None:
+    data_value: object = {"$anchor": "data-anchor"}
+    if data_keyword == "examples":
+        data_value = [data_value]
+    elif data_keyword == "enum":
+        data_value = [data_value]
+    schema = StructuredContent.from_mapping(
+        {
+            "type": "object",
+            "properties": {"value": {"$ref": "#data-anchor"}},
+            "required": ["value"],
+            "additionalProperties": False,
+            data_keyword: data_value,
+        }
+    )
+    _assert_error(
+        _result('{"value":"ok"}'),
+        _spec(schema),
+        ModelRuntimeErrorCategory.INVALID_REQUEST,
+    )
+
+
+def test_duplicate_local_anchor_names_resolve_stably() -> None:
+    schema = StructuredContent.from_mapping(
+        {
+            "$defs": {
+                "one": {"$anchor": "duplicate", "type": "string"},
+                "two": {"$anchor": "duplicate", "type": "integer"},
+            },
+            "type": "object",
+            "properties": {"value": {"$ref": "#duplicate"}},
+            "required": ["value"],
+            "additionalProperties": False,
+        }
+    )
+    assert parse_and_validate_structured_output(
+        result=_result('{"value":"ok"}'), spec=_spec(schema)
+    ).to_mapping() == {"value": "ok"}
+
+
 def test_diagnostics_are_fixed_and_safe() -> None:
     result = _result(
         '{"title":"payload-secret","items":[],"email":"a@example.com","status":"ready"}'

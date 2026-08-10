@@ -15,7 +15,7 @@ _PACKAGE_ROOT = (
     _BACKEND_ROOT / "src" / "ai_ecommerce_agent" / "application" / "structured_output"
 )
 _PRODUCTION_FILES = (_PACKAGE_ROOT / "__init__.py", _PACKAGE_ROOT / "validation.py")
-_ALLOWED_STDLIB = {"__future__", "collections", "json", "typing"}
+_ALLOWED_STDLIB = {"__future__", "collections", "json", "typing", "urllib"}
 _ALLOWED_EXTERNAL = {"jsonschema", "referencing"}
 _ALLOWED_ABSOLUTE = {
     "ai_ecommerce_agent.application.model_runtime",

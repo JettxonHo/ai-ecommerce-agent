@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from typing import Any, NoReturn, cast
+from urllib.parse import unquote
 
 from jsonschema import Draft202012Validator
 from referencing import Registry
@@ -65,15 +66,46 @@ def _is_object_schema(schema: Mapping[str, object]) -> bool:
     return any(keyword in schema for keyword in _OBJECT_KEYWORDS)
 
 
+def _schema_children(mapping: Mapping[str, object]) -> list[object]:
+    children: list[object] = []
+    for keyword in (
+        "additionalProperties",
+        "contains",
+        "contentSchema",
+        "else",
+        "if",
+        "items",
+        "not",
+        "propertyNames",
+        "then",
+        "unevaluatedItems",
+        "unevaluatedProperties",
+    ):
+        if keyword in mapping:
+            children.append(mapping[keyword])
+    for keyword in ("allOf", "anyOf", "oneOf", "prefixItems"):
+        child = mapping.get(keyword)
+        if type(child) is list:
+            children.extend(cast(list[object], child))
+    for keyword in (
+        "$defs",
+        "definitions",
+        "dependentSchemas",
+        "patternProperties",
+        "properties",
+    ):
+        child = mapping.get(keyword)
+        if isinstance(child, Mapping):
+            children.extend(cast(Mapping[str, object], child).values())
+    return children
+
+
 def _anchor_exists(schema: object, anchor: str) -> bool:
     if isinstance(schema, Mapping):
         mapping = cast(Mapping[str, object], schema)
         if mapping.get("$anchor") == anchor or mapping.get("$dynamicAnchor") == anchor:
             return True
-        return any(_anchor_exists(value, anchor) for value in mapping.values())
-    if type(schema) is list:
-        values = cast(list[object], schema)
-        return any(_anchor_exists(value, anchor) for value in values)
+        return any(_anchor_exists(value, anchor) for value in _schema_children(mapping))
     return False
 
 
@@ -82,7 +114,7 @@ def _resolve_local_reference(schema: Mapping[str, object], reference: str) -> No
         return
     if not reference.startswith("#"):
         raise _ProjectSchemaError
-    fragment = reference[1:]
+    fragment = unquote(reference[1:])
     if not fragment.startswith("/"):
         if _anchor_exists(schema, fragment):
             return
@@ -126,38 +158,8 @@ def _walk_schema(value: object, root: Mapping[str, object]) -> None:
             raise _ProjectSchemaError
     if _is_object_schema(mapping) and mapping.get("additionalProperties") is not False:
         raise _ProjectSchemaError
-    for keyword in (
-        "additionalProperties",
-        "contains",
-        "contentSchema",
-        "else",
-        "if",
-        "items",
-        "not",
-        "propertyNames",
-        "then",
-        "unevaluatedItems",
-        "unevaluatedProperties",
-    ):
-        if keyword in mapping:
-            _walk_schema(mapping[keyword], root)
-    for keyword in ("allOf", "anyOf", "oneOf", "prefixItems"):
-        child = mapping.get(keyword)
-        if type(child) is list:
-            for schema in cast(list[object], child):
-                _walk_schema(schema, root)
-    for keyword in (
-        "$defs",
-        "definitions",
-        "dependentSchemas",
-        "patternProperties",
-        "properties",
-    ):
-        child = mapping.get(keyword)
-        if isinstance(child, Mapping):
-            children = cast(Mapping[str, object], child)
-            for schema in children.values():
-                _walk_schema(schema, root)
+    for child in _schema_children(mapping):
+        _walk_schema(child, root)
 
 
 def _preflight_schema(schema: object) -> dict[str, object]:
