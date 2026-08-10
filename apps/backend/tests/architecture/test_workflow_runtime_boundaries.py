@@ -70,10 +70,20 @@ def _dotted_name(node: ast.AST) -> str | None:
     return None
 
 
-def _import_time_calls(tree: ast.Module) -> list[ast.Call]:
+def _import_time_effects(
+    tree: ast.Module,
+) -> tuple[list[ast.Call], list[tuple[str, str | None, bool]]]:
     calls: list[ast.Call] = []
+    decorators: list[tuple[str, str | None, bool]] = []
 
-    def visit(node: ast.AST) -> None:
+    def visit_decorator(node: ast.AST, scope: str) -> None:
+        if isinstance(node, ast.Call):
+            decorators.append((scope, _dotted_name(node.func), True))
+        else:
+            decorators.append((scope, _dotted_name(node), False))
+        visit(node)
+
+    def visit(node: ast.AST, *, class_name: str | None = None) -> None:
         if isinstance(node, ast.Call):
             calls.append(node)
             visit(node.func)
@@ -88,17 +98,22 @@ def _import_time_calls(tree: ast.Module) -> list[ast.Call]:
             return
         if isinstance(node, ast.ClassDef):
             for decorator in node.decorator_list:
-                visit(decorator)
+                visit_decorator(decorator, f"class:{node.name}")
             for base in node.bases:
                 visit(base)
             for keyword in node.keywords:
                 visit(keyword.value)
             for statement in node.body:
-                visit(statement)
+                visit(statement, class_name=node.name)
             return
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             for decorator in node.decorator_list:
-                visit(decorator)
+                scope = (
+                    f"method:{class_name}.{node.name}"
+                    if class_name is not None
+                    else f"function:{node.name}"
+                )
+                visit_decorator(decorator, scope)
             for default in node.args.defaults:
                 visit(default)
             for default in node.args.kw_defaults:
@@ -130,7 +145,7 @@ def _import_time_calls(tree: ast.Module) -> list[ast.Call]:
             visit(child)
 
     visit(tree)
-    return calls
+    return calls, decorators
 
 
 def test_workflow_runtime_has_exact_three_production_files() -> None:
@@ -189,11 +204,16 @@ def test_package_initializers_are_private_and_reexport_nothing() -> None:
 def test_checkpoint_module_has_no_import_time_io_or_mutable_global_state() -> None:
     path = _RUNTIME_ROOT / "checkpoint_state.py"
     tree = ast.parse(path.read_text(encoding="utf-8"))
-    calls = _import_time_calls(tree)
+    calls, decorators = _import_time_effects(tree)
     assert [_dotted_name(call.func) for call in calls] == [
         "dataclass",
         "dataclass",
         "dataclass",
+    ]
+    assert decorators == [
+        ("class:ThreadId", "dataclass", True),
+        ("class:WorkflowRuntimeCompatibility", "dataclass", True),
+        ("class:WorkflowCheckpointHeader", "dataclass", True),
     ]
     assert all(_dotted_name(call.func) not in _FORBIDDEN_CALL_NAMES for call in calls)
     for statement in tree.body:
@@ -214,3 +234,45 @@ def test_checkpoint_module_has_no_business_or_public_facade_imports() -> None:
         module.startswith("ai_ecommerce_agent.modules.") for module in imported
     )
     assert "ai_ecommerce_agent.modules" not in imported
+
+
+def test_import_time_guard_rejects_extra_calls_and_decorators() -> None:
+    tree = ast.parse(
+        """
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Allowed:
+    pass
+
+@print
+def leaked():
+    pass
+
+class Rejected:
+    token = object()
+
+    @print
+    def method(self):
+        pass
+
+@dataclass()
+def rejected_dataclass_decorator():
+    pass
+"""
+    )
+    calls, decorators = _import_time_effects(tree)
+    assert [
+        (scope, name, called)
+        for scope, name, called in decorators
+        if (scope, name, called) != ("class:Allowed", "dataclass", True)
+    ] == [
+        ("function:leaked", "print", False),
+        ("method:Rejected.method", "print", False),
+        ("function:rejected_dataclass_decorator", "dataclass", True),
+    ]
+    assert [_dotted_name(call.func) for call in calls] == [
+        "dataclass",
+        "object",
+        "dataclass",
+    ]
