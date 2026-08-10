@@ -150,6 +150,46 @@ def _dotted(node: ast.AST) -> str | None:
     return None
 
 
+def _controlled_call_owners(tree: ast.Module) -> dict[str, tuple[str, ...]]:
+    controlled = {
+        "monotonic",
+        "isfinite",
+        "parsedate_to_datetime",
+        "random",
+        "sleep",
+        "time",
+    }
+    parents = {
+        child: parent
+        for parent in ast.walk(tree)
+        for child in ast.iter_child_nodes(parent)
+    }
+
+    def owner(node: ast.AST) -> str:
+        names: list[str] = []
+        parent = parents.get(node)
+        while parent is not None:
+            if isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                names.append(parent.name)
+            parent = parents.get(parent)
+        return ".".join(reversed(names)) or "<module>"
+
+    values: dict[str, list[str]] = {name: [] for name in controlled}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            dotted = _dotted(node.func)
+            if dotted in controlled:
+                values[dotted].append(owner(node))
+    return {name: tuple(sorted(owners)) for name, owners in values.items()}
+
+
+def _transport_attempt_call_count(function: ast.FunctionDef) -> int:
+    return sum(
+        isinstance(node, ast.Call) and _dotted(node.func) == "_transport_attempt"
+        for node in ast.walk(function)
+    )
+
+
 def _runtime_violations(tree: ast.Module) -> list[ast.AST]:
     violations: list[ast.AST] = []
     forbidden_calls = {
@@ -428,6 +468,80 @@ def test_executor_has_exact_single_sdk_call_and_no_runtime_escape() -> None:
     assert not _runtime_violations(tree)
     assert not _module_effects(tree)
     assert not _mutable_globals(tree)
+
+
+def test_controlled_calls_have_exact_private_owners_and_attempt_counts() -> None:
+    tree = _tree(_EXECUTION)
+    owners = _controlled_call_owners(tree)
+    assert owners == {
+        "isfinite": (
+            "_retry_delay",
+            "_retry_delay.positive",
+            "execute_openai_responses_with_transport_retry",
+            "execute_openai_responses_with_transport_retry",
+        ),
+        "monotonic": (
+            "_transport_attempt",
+            "_transport_attempt",
+            "_transport_attempt",
+            "execute_openai_responses_with_transport_retry",
+            "execute_openai_responses_with_transport_retry",
+            "execute_openai_responses_with_transport_retry",
+        ),
+        "parsedate_to_datetime": ("_retry_delay",),
+        "random": ("_retry_delay",),
+        "sleep": ("execute_openai_responses_with_transport_retry",),
+        "time": ("_retry_delay",),
+    }
+    functions = {
+        node.name: node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+    }
+    assert (
+        _transport_attempt_call_count(functions["execute_openai_responses_attempt"])
+        == 1
+    )
+    assert (
+        _transport_attempt_call_count(
+            functions["execute_openai_responses_with_transport_retry"]
+        )
+        == 2
+    )
+    third_attempt = ast.parse(
+        "def execute_openai_responses_with_transport_retry():\n"
+        "    _transport_attempt()\n"
+        "    _transport_attempt()\n"
+        "    _transport_attempt()\n"
+    )
+    mutated = next(
+        node for node in ast.walk(third_attempt) if isinstance(node, ast.FunctionDef)
+    )
+    assert _transport_attempt_call_count(mutated) == 3
+    assert _transport_attempt_call_count(mutated) != 2
+
+
+@pytest.mark.parametrize(
+    ("name", "source"),
+    [
+        ("monotonic", "def leaked():\n    return monotonic()\n"),
+        ("isfinite", "def leaked():\n    return isfinite(1.0)\n"),
+        (
+            "parsedate_to_datetime",
+            "def leaked():\n    return parsedate_to_datetime('x')\n",
+        ),
+        ("random", "def leaked():\n    return random()\n"),
+        ("sleep", "def leaked():\n    return sleep(0.5)\n"),
+        ("time", "def leaked():\n    return time()\n"),
+    ],
+)
+def test_controlled_call_wrong_owner_is_rejected(name: str, source: str) -> None:
+    owners = _controlled_call_owners(ast.parse(source))
+    assert owners[name] == ("leaked",)
+    assert owners[name] not in {
+        ("_retry_delay",),
+        ("_retry_delay.positive",),
+        ("_transport_attempt",),
+        ("execute_openai_responses_with_transport_retry",),
+    }
 
 
 def test_executor_import_aliases_are_exact_and_call_is_private_only() -> None:

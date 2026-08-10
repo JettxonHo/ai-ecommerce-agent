@@ -129,6 +129,39 @@ def _noop_sleep(delay: float) -> None:
     return None
 
 
+def _traceback_contains_raw_transport_value(value: object, seen: set[int]) -> bool:
+    identity = id(value)
+    if identity in seen:
+        return False
+    seen.add(identity)
+    if isinstance(value, (openai.OpenAIError, httpx.Response, httpx.Headers)):
+        return True
+    if isinstance(value, dict):
+        mapping = cast(dict[object, object], value)
+        return any(
+            _traceback_contains_raw_transport_value(item, seen)
+            for item in (*mapping.keys(), *mapping.values())
+        )
+    if isinstance(value, (list, tuple, set, frozenset)):
+        items = cast(tuple[object, ...], tuple(cast(Any, value)))
+        return any(
+            _traceback_contains_raw_transport_value(item, seen) for item in items
+        )
+    return False
+
+
+def _assert_no_raw_transport_references(error: BaseException) -> None:
+    traceback = error.__traceback__
+    while traceback is not None:
+        for name, value in traceback.tb_frame.f_locals.items():
+            assert not _traceback_contains_raw_transport_value(value, set()), (
+                traceback.tb_frame.f_code.co_name,
+                name,
+                type(value).__name__,
+            )
+        traceback = traceback.tb_next
+
+
 def test_eligible_failure_retries_once_with_clipped_timeout_and_same_body(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -346,6 +379,230 @@ def test_connection_and_timeout_failures_retry(
     )
     assert calls == 2
     assert cast(Any, result).provider_metadata.provider_attempt_ids == _ATTEMPTS
+    client.close()
+
+
+@pytest.mark.parametrize("transport_error", ["connection", "timeout"])
+def test_connection_and_timeout_second_failure_maps_safe_metadata(
+    transport_error: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        if transport_error == "connection":
+            raise httpx.ConnectError(f"temporary-{calls}", request=request)
+        raise httpx.ReadTimeout(f"temporary-{calls}", request=request)
+
+    clock = _ticks()
+    monkeypatch.setattr(_execution, "monotonic", lambda: next(clock))
+    monkeypatch.setattr(_execution, "sleep", _noop_sleep)
+    monkeypatch.setattr(_execution, "random", lambda: 0.25)
+    client = _client(handler)
+    with pytest.raises(ModelRuntimeError) as caught:
+        _execution.execute_openai_responses_with_transport_retry(
+            client=client,
+            request=_request(),
+            parameters=_parameters(),
+            provider_attempt_ids=_ATTEMPTS,
+            overall_deadline_monotonic=100.0,
+            fallback_retry_delay_seconds=2.0,
+        )
+    assert calls == 2
+    assert caught.value.provider_metadata is not None
+    assert caught.value.provider_metadata.provider_attempt_ids == _ATTEMPTS
+    assert caught.value.provider_metadata.provider_request_id is None
+    _assert_no_raw_transport_references(caught.value)
+    client.close()
+
+
+def test_one_supplied_id_never_sleeps_or_consumes_second_attempt(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+    sleeps: list[float] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return _error_response(500)
+
+    monkeypatch.setattr(_execution, "sleep", sleeps.append)
+    client = _client(handler)
+    with pytest.raises(ModelRuntimeError) as caught:
+        _execution.execute_openai_responses_with_transport_retry(
+            client=client,
+            request=_request(),
+            parameters=_parameters(),
+            provider_attempt_ids=(_ATTEMPTS[0],),
+            overall_deadline_monotonic=1_000_000_000_000.0,
+            fallback_retry_delay_seconds=2.0,
+        )
+    assert calls == 1
+    assert sleeps == []
+    _assert_no_raw_transport_references(caught.value)
+    client.close()
+
+
+@pytest.mark.parametrize("header_value", ["true", "false"])
+def test_x_should_retry_header_does_not_change_raw_eligibility(
+    header_value: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        if len(calls) == 1:
+            return httpx.Response(
+                500,
+                headers={"x-should-retry": header_value},
+                json={"error": {"message": "temporary"}},
+            )
+        return httpx.Response(200, headers={"x-request-id": "success"}, json=_payload())
+
+    monkeypatch.setattr(_execution, "monotonic", lambda: next(_ticks()))
+    monkeypatch.setattr(_execution, "sleep", _noop_sleep)
+    monkeypatch.setattr(_execution, "random", lambda: 0.25)
+    client = _client(handler)
+    _execution.execute_openai_responses_with_transport_retry(
+        client=client,
+        request=_request(),
+        parameters=_parameters(),
+        provider_attempt_ids=_ATTEMPTS,
+        overall_deadline_monotonic=100.0,
+        fallback_retry_delay_seconds=2.0,
+    )
+    assert len(calls) == 2
+    client.close()
+
+
+@pytest.mark.parametrize("outcome", ["refusal", "incomplete", "invalid_candidate"])
+def test_mapped_outcomes_never_retry(
+    outcome: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = 0
+    payload = _payload()
+    if outcome == "refusal":
+        payload["output"] = [
+            {
+                "id": "message-1",
+                "content": [
+                    {"annotations": [], "refusal": "not allowed", "type": "refusal"}
+                ],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+            }
+        ]
+    elif outcome == "incomplete":
+        payload["status"] = "incomplete"
+        payload["incomplete_details"] = {"reason": "max_output_tokens"}
+        payload["output"] = []
+    else:
+        payload["output"] = [
+            {
+                "id": "message-1",
+                "content": [{"annotations": [], "text": "", "type": "output_text"}],
+                "role": "assistant",
+                "status": "completed",
+                "type": "message",
+            }
+        ]
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(200, json=payload)
+
+    def fail_sleep(delay: float) -> None:
+        pytest.fail("retry")
+
+    monkeypatch.setattr(_execution, "sleep", fail_sleep)
+    client = _client(handler)
+    with pytest.raises(ModelRuntimeError):
+        _execution.execute_openai_responses_with_transport_retry(
+            client=client,
+            request=_request(),
+            parameters=_parameters(),
+            provider_attempt_ids=_ATTEMPTS,
+            overall_deadline_monotonic=1_000_000_000_000.0,
+            fallback_retry_delay_seconds=2.0,
+        )
+    assert calls == 1
+    client.close()
+
+
+def test_two_attempt_metadata_preserves_tuple_member_identity(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        return (
+            _error_response(500)
+            if len(calls) == 1
+            else httpx.Response(
+                200, headers={"x-request-id": "success"}, json=_payload()
+            )
+        )
+
+    monkeypatch.setattr(_execution, "monotonic", lambda: next(_ticks()))
+    monkeypatch.setattr(_execution, "sleep", _noop_sleep)
+    monkeypatch.setattr(_execution, "random", lambda: 0.25)
+    client = _client(handler)
+    result = _execution.execute_openai_responses_with_transport_retry(
+        client=client,
+        request=_request(),
+        parameters=_parameters(),
+        provider_attempt_ids=_ATTEMPTS,
+        overall_deadline_monotonic=100.0,
+        fallback_retry_delay_seconds=2.0,
+    )
+    attempts = cast(Any, result).provider_metadata.provider_attempt_ids
+    assert attempts[0] is _ATTEMPTS[0]
+    assert attempts[1] is _ATTEMPTS[1]
+    client.close()
+
+
+@pytest.mark.parametrize("mode", ["single", "retry_first", "retry_second"])
+def test_final_mapped_traceback_has_no_raw_transport_objects(
+    mode: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return _error_response(500, f"request-{calls}")
+
+    monkeypatch.setattr(_execution, "sleep", _noop_sleep)
+    monkeypatch.setattr(_execution, "random", lambda: 0.25)
+    if mode != "single":
+        monkeypatch.setattr(_execution, "monotonic", lambda: next(_ticks()))
+    client = _client(handler)
+    with pytest.raises(ModelRuntimeError) as caught:
+        if mode == "single":
+            _execution.execute_openai_responses_attempt(
+                client=client,
+                request=_request(),
+                parameters=_parameters(),
+                provider_attempt_ids=_ATTEMPTS,
+            )
+        else:
+            _execution.execute_openai_responses_with_transport_retry(
+                client=client,
+                request=_request(),
+                parameters=_parameters(),
+                provider_attempt_ids=(
+                    (_ATTEMPTS[0],) if mode == "retry_first" else _ATTEMPTS
+                ),
+                overall_deadline_monotonic=1_000_000_000_000.0,
+                fallback_retry_delay_seconds=2.0,
+            )
+    assert calls == (1 if mode == "retry_first" else 2 if mode == "retry_second" else 1)
+    _assert_no_raw_transport_references(caught.value)
     client.close()
 
 

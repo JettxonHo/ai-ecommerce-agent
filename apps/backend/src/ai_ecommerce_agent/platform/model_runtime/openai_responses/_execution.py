@@ -44,6 +44,14 @@ def _failure_classification(
     return _TRANSIENT_CATEGORY, True, _TRANSIENT_MESSAGE
 
 
+def _retryable_failure(error: _openai.OpenAIError) -> bool:
+    status_code = getattr(error, "status_code", None)
+    return isinstance(error, (_openai.APITimeoutError, _openai.APIConnectionError)) or (
+        type(status_code) is int
+        and (status_code in {408, 409, 429} or status_code >= 500)
+    )
+
+
 def _request_id(error: _openai.OpenAIError) -> str | None:
     value = getattr(error, "request_id", None)
     if type(value) is str and value.strip():
@@ -147,12 +155,14 @@ def execute_openai_responses_attempt(
         timeout_seconds=prepared.timeout_seconds,
     )
     if error is not None:
-        raise _mapped_error(
+        mapped = _mapped_error(
             request=request,
             error=error,
             provider_attempt_ids=provider_attempt_ids,
             latency_ms=latency_ms,
         )
+        del error
+        raise mapped
     return map_openai_responses_response(
         request=request,
         response=cast(_responses.Response, response),
@@ -262,7 +272,6 @@ def execute_openai_responses_with_transport_retry(
         _response_params.ResponseCreateParamsNonStreaming,
         prepared.request_body.to_mapping(),
     )
-    first_attempt_ids = provider_attempt_ids[:1]
     remaining = overall_deadline_monotonic - monotonic()
     if remaining <= 0:
         raise _contracts.ModelRuntimeError(
@@ -281,25 +290,21 @@ def execute_openai_responses_with_transport_retry(
         return map_openai_responses_response(
             request=request,
             response=cast(_responses.Response, response),
-            provider_attempt_ids=first_attempt_ids,
+            provider_attempt_ids=provider_attempt_ids[:1],
             latency_ms=latency_ms,
         )
-    status_code = getattr(error, "status_code", None)
-    retryable = isinstance(
-        error, (_openai.APITimeoutError, _openai.APIConnectionError)
-    ) or (
-        type(status_code) is int
-        and (status_code in {408, 409, 429} or status_code >= 500)
-    )
+    retryable = _retryable_failure(error)
     first_error = _mapped_error(
         request=request,
         error=error,
-        provider_attempt_ids=first_attempt_ids,
+        provider_attempt_ids=provider_attempt_ids[:1],
         latency_ms=latency_ms,
     )
     if len(provider_attempt_ids) == 1 or not retryable:
+        del error
         raise first_error
     delay = _retry_delay(error, fallback_retry_delay_seconds)
+    del error
     if overall_deadline_monotonic - monotonic() <= delay:
         raise first_error
     sleep(delay)
@@ -318,9 +323,11 @@ def execute_openai_responses_with_transport_retry(
             provider_attempt_ids=provider_attempt_ids,
             latency_ms=latency_ms,
         )
-    raise _mapped_error(
+    mapped = _mapped_error(
         request=request,
         error=error,
         provider_attempt_ids=provider_attempt_ids,
         latency_ms=latency_ms,
     )
+    del error
+    raise mapped
