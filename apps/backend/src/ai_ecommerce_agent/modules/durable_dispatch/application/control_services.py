@@ -101,11 +101,7 @@ def _error(
             if snapshot is not None
             else command.dispatch_id
         ),
-        delivery_attempt_id=(
-            snapshot.current_lease.delivery_attempt_id
-            if snapshot is not None and snapshot.current_lease is not None
-            else attempt
-        ),
+        delivery_attempt_id=attempt,
         expected_revision=command.expected_revision,
         conflicting_state=snapshot.status if snapshot is not None else None,
         recovery_hint=recovery,
@@ -154,9 +150,14 @@ def _load(uow: DurableDispatchUnitOfWork, command: _ControlInput) -> WorkIntentS
     return snapshot
 
 
-def _require_revision(command: _ControlInput, snapshot: WorkIntentSnapshot) -> None:
+def _require_revision(
+    command: _ControlInput,
+    snapshot: WorkIntentSnapshot,
+    *,
+    code: str = "revision_conflict",
+) -> None:
     if snapshot.revision != command.expected_revision:
-        _raise(command, "revision_conflict", snapshot)
+        _raise(command, code, snapshot)
 
 
 def _require_state(command: _ControlInput, snapshot: WorkIntentSnapshot) -> None:
@@ -337,7 +338,7 @@ class DurableDispatchControlApplicationService(DurableDispatchControlApplication
         self, uow: DurableDispatchUnitOfWork, command: AcknowledgeWorkIntentStop
     ) -> WorkIntentSnapshot:
         snapshot = _load(uow, command)
-        _require_revision(command, snapshot)
+        _require_revision(command, snapshot, code="ownership_lost")
         if not _owner_current(command, snapshot):
             _raise(command, "ownership_lost", snapshot)
         if not snapshot.cancellation_requested and snapshot.superseded_by is None:

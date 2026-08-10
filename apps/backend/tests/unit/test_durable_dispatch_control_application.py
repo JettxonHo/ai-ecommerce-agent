@@ -493,7 +493,7 @@ def test_acknowledgement_requires_a_stop_request_and_exact_owner() -> None:
         ).acknowledge_work_intent_stop(
             AcknowledgeWorkIntentStop(
                 snapshot.envelope.dispatch_id,
-                DeliveryAttemptId("wrong"),
+                DeliveryAttemptId("wrong-attempt"),
                 snapshot.current_lease.holder_id,  # type: ignore[union-attr]
                 snapshot.current_lease.fencing_token,  # type: ignore[union-attr]
                 snapshot.revision,
@@ -501,3 +501,10 @@ def test_acknowledgement_requires_a_stop_request_and_exact_owner() -> None:
             )
         )
     assert owner_lost.value.error_code == "ownership_lost"
+    assert owner_lost.value.delivery_attempt_id == DeliveryAttemptId("wrong-attempt")
+
+    with pytest.raises(DurableDispatchControlError) as stale_revision:
+        DurableDispatchControlApplicationService(
+            _Factory(snapshot)
+        ).acknowledge_work_intent_stop(_ack(snapshot, expected=2))
+    assert stale_revision.value.error_code == "ownership_lost"
