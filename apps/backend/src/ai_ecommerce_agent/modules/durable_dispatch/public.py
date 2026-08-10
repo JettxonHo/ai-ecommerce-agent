@@ -1,5 +1,8 @@
 """Stable, framework-neutral Durable Dispatch public facade."""
 
+from .application.completion_commands import CompleteOwnedWorkIntent
+from .application.completion_protocols import DurableDispatchCommitFenceParticipant
+from .application.completion_results import WorkIntentCompletionResult
 from .application.control_commands import (
     AcknowledgeWorkIntentStop,
     RequestWorkIntentCancellation,
@@ -44,4 +47,7 @@ __all__ = [
     "WorkIntentSupersessionResult",
     "DurableDispatchControlApplication",
     "DurableDispatchControlError",
+    "CompleteOwnedWorkIntent",
+    "WorkIntentCompletionResult",
+    "DurableDispatchCommitFenceParticipant",
 ]

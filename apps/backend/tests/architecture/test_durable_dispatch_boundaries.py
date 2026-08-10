@@ -48,6 +48,9 @@ _ALLOWED_RELATIVE_IMPORTS: dict[Path, frozenset[tuple[int, str | None]]] = {
             (1, "application.control_protocols"),
             (1, "application.control_queries"),
             (1, "application.control_results"),
+            (1, "application.completion_commands"),
+            (1, "application.completion_results"),
+            (1, "application.completion_protocols"),
         }
     ),
 }
