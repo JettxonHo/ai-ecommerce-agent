@@ -66,7 +66,7 @@
 
 ## 6. Implementation Backlog 候选
 
-M1 的 5 个 ID 已完成，M2 的 Task Management 与 Source persistence slices 已交付其既定边界（Source 至 PR #155）。MVP0-018～023 已交付 Durable Dispatch / Workflow checkpoint / provider-neutral Model Runtime seams，MVP0-025～029 已交付五个 output-only candidate contracts；这些是后续纵向实现的前置合同，不代表 M4/M5 vertical 完成。#81、#82 仍为 OPEN tracking parents；P-82A～P-86A 与 P-87A/P-88A/P-89A lifecycle / Source registration proposals 尚未接受，Issue #190 的 migration/participant 仍需独立授权。MVP0-036 已完成 M7 foundation slice（PR #104，merge `adcc38f`），MVP0-037～042 尚未实例化或实现；M3 Source intake/retrieval、M4 graph/Worker/recovery、M5 Skills、M6 API/Review、M7 business slices 与 M8 仍按依赖推进。Sol 在依赖满足时按实际代码状态逐个创建，不得重复创建已交付 Issue，或把候选能力写成已实现。
+M1 的 5 个 ID 已完成，M2 的 Task Management 与 Source persistence slices 已交付其既定边界（Source 至 PR #155）。MVP0-018/019/020/022/023 仅部分交付 bounded seams：Durable Dispatch contracts/claim/lease/control/completion、Workflow checkpoint header、以及 provider-neutral Model Runtime contracts/substitute/output/retry seams；MVP0-019 仍缺 Issue #190 completion migration/participant，MVP0-020 只有 checkpoint header，MVP0-021 尚未开始。MVP0-025～029 已交付五个 output-only candidate contracts；这些是后续纵向实现的前置合同，不代表 M4/M5 vertical 完成。#81、#82 仍为 OPEN tracking parents；P-82A～P-86A 与 P-87A/P-88A/P-89A lifecycle / Source registration proposals 尚未接受。MVP0-036 已完成 M7 foundation slice（PR #104，merge `adcc38f`），MVP0-037～042 尚未实例化或实现；M3 Source intake/retrieval、M4 graph/Worker/recovery、M5 Skills、M6 API/Review、M7 business slices 与 M8 仍按依赖推进。Sol 在依赖满足时按实际代码状态逐个创建，不得重复创建已交付 Issue，或把候选能力写成已实现。
 
 ### M1
 
@@ -289,7 +289,7 @@ Sol Review 必须检查实际 Diff 和证据，不根据 PR 描述直接批准�
 ```text
 M0 Planning: COMPLETE (PR #59, merge bb8c658; Issue #58 closed)
 M1 Contract & Compatibility: COMPLETE (PR #69 / #70 / #71 / #72 / #74; Issues #63～#67 closed)
-M2 Domain & Persistence: PARTIAL — Task Management vertical slice COMPLETE; Source persistence slices through PR #155 COMPLETE for the merged scope (one Alembic head `0003_source_evidence`), while #81 remains OPEN for registration/intake, submitted-input metadata and final RFC-005/API/parser/retrieval/evidence boundaries; #82 remains OPEN with P-82A～P-86A Proposed/pending and Review lifecycle/schema/complete outcomes blocked
+M2 Domain & Persistence: PARTIAL — Task Management vertical slice COMPLETE; Source persistence slices through PR #155 COMPLETE for the merged scope. The sole Alembic head is `0005_dispatch_supersession`; `0003_source_evidence` remains the Source minimal schema revision, not the head. #81 remains OPEN for registration/intake, submitted-input metadata and final RFC-005/API/parser/retrieval/evidence boundaries; #82 remains OPEN with P-82A～P-86A Proposed/pending and Review lifecycle/schema/complete outcomes blocked
 M3: PARTIAL FOUNDATION ONLY — Source persistence exists through PR #155; registration/intake, submitted-input metadata, parser, retrieval and evidence runtime remain absent
 M4: PARTIAL SEAMS ONLY — Durable Dispatch bounded contracts/claim/lease/heartbeat/control/completion and Workflow checkpoint header are merged; Issue #190 completion migration/participant, full graph, Worker, resume/recovery and end-to-end runtime remain absent
 M5: PARTIAL OUTPUT CONTRACTS ONLY — MVP0-025～029 module-private provider-neutral candidate schemas/facades are merged; complete Fact/Insight/Positioning/Marketing Brief/XHS Skills, context/prompt, Domain Validator, Current Truth/evidence commit and E2E remain absent
