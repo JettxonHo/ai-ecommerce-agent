@@ -105,7 +105,15 @@ def test_event_is_frozen_slotted_and_has_exact_annotations_and_order() -> None:
     )
     assert [field.name for field in fields(event_type)] == list(event_type.__slots__)
     assert not hasattr(_minimal_event(), "__dict__")
-    assert list(get_type_hints(event_type)) == list(event_type.__slots__)
+    assert get_type_hints(event_type) == {
+        "occurred_at": datetime,
+        "level": runtime_diagnostics.RuntimeDiagnosticLevel,
+        "event_name": str,
+        "service": str,
+        "environment": str,
+        "correlation_id": runtime_diagnostics.CorrelationId,
+        **dict.fromkeys(_IDENTITY_FIELDS, str | None),
+    }
     assert list(
         signature(runtime_diagnostics.encode_runtime_diagnostic_event).parameters
     ) == ["event"]

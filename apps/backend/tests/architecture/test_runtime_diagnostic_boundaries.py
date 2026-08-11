@@ -12,8 +12,11 @@ import ai_ecommerce_agent.application as application_package
 pytestmark = pytest.mark.architecture
 
 _BACKEND_ROOT = Path(__file__).resolve().parents[2]
+_SRC_ROOT = _BACKEND_ROOT / "src"
 _APPLICATION_ROOT = _BACKEND_ROOT / "src" / "ai_ecommerce_agent" / "application"
+_APPLICATION_INIT = _APPLICATION_ROOT / "__init__.py"
 _MODULE = _APPLICATION_ROOT / "runtime_diagnostics.py"
+_RUNTIME_MODULE = "ai_ecommerce_agent.application.runtime_diagnostics"
 _EXPECTED_EXPORTS = [
     "CorrelationId",
     "RuntimeDiagnosticLevel",
@@ -55,6 +58,47 @@ def _name(node: ast.AST) -> str | None:
 
 def _calls(node: ast.AST) -> list[ast.Call]:
     return [child for child in ast.walk(node) if isinstance(child, ast.Call)]
+
+
+def _package_for(path: Path) -> tuple[str, ...]:
+    parts = list(
+        path.relative_to(_SRC_ROOT / "ai_ecommerce_agent").with_suffix("").parts
+    )
+    parts.pop()
+    return ("ai_ecommerce_agent", *parts)
+
+
+def _resolved_import_target(path: Path, node: ast.ImportFrom) -> str:
+    if node.level == 0:
+        return node.module or ""
+    package = _package_for(path)
+    base = package[: len(package) - (node.level - 1)]
+    if node.module:
+        base = (*base, *node.module.split("."))
+    return ".".join(base)
+
+
+def _runtime_diagnostic_imports(path: Path, tree: ast.Module) -> list[str]:
+    violations: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name == _RUNTIME_MODULE or alias.name.startswith(
+                    f"{_RUNTIME_MODULE}."
+                ):
+                    violations.append(f"{path}:{node.lineno}:{alias.name}")
+        elif isinstance(node, ast.ImportFrom):
+            target = _resolved_import_target(path, node)
+            for alias in node.names:
+                if target == _RUNTIME_MODULE or target.startswith(
+                    f"{_RUNTIME_MODULE}."
+                ):
+                    violations.append(f"{path}:{node.lineno}:{target}")
+                elif target == "ai_ecommerce_agent.application" and (
+                    alias.name in {*_EXPECTED_EXPORTS, "runtime_diagnostics", "*"}
+                ):
+                    violations.append(f"{path}:{node.lineno}:{target}.{alias.name}")
+    return violations
 
 
 def _import_time_issues(tree: ast.Module) -> list[str]:
@@ -173,6 +217,57 @@ def test_runtime_diagnostic_has_exact_one_production_module_and_facade() -> None
         export_values.append(element.value)
     assert export_values == _EXPECTED_EXPORTS
     assert all(not hasattr(application_package, name) for name in _EXPECTED_EXPORTS)
+
+
+def test_application_init_and_repository_have_no_runtime_diagnostic_consumer() -> None:
+    init_tree = ast.parse(_APPLICATION_INIT.read_text(encoding="utf-8"))
+    assert _runtime_diagnostic_imports(_APPLICATION_INIT, init_tree) == []
+    export_assignment = next(
+        node.value
+        for node in init_tree.body
+        if isinstance(node, ast.Assign)
+        and any(
+            isinstance(target, ast.Name) and target.id == "__all__"
+            for target in node.targets
+        )
+    )
+    assert isinstance(export_assignment, (ast.List, ast.Tuple))
+    exported_names = {
+        element.value
+        for element in export_assignment.elts
+        if isinstance(element, ast.Constant) and isinstance(element.value, str)
+    }
+    assert exported_names.isdisjoint({*_EXPECTED_EXPORTS, "runtime_diagnostics"})
+
+    violations = [
+        violation
+        for path in sorted((_SRC_ROOT / "ai_ecommerce_agent").rglob("*.py"))
+        if path != _MODULE
+        for violation in _runtime_diagnostic_imports(
+            path, ast.parse(path.read_text(encoding="utf-8"))
+        )
+    ]
+    assert violations == []
+
+
+def test_repository_guard_rejects_single_runtime_diagnostic_consumer_mutations() -> (
+    None
+):
+    synthetic_path = _APPLICATION_ROOT / "synthetic_consumer.py"
+    baseline = """
+from ai_ecommerce_agent.application.errors import UnitOfWorkError
+__all__ = ["UnitOfWorkError"]
+"""
+    assert _runtime_diagnostic_imports(synthetic_path, ast.parse(baseline)) == []
+    for mutation in (
+        "from . import runtime_diagnostics\n__all__ = ['runtime_diagnostics']",
+        "from . import RuntimeDiagnosticEvent as Event",
+        "from ai_ecommerce_agent.application.runtime_diagnostics import "
+        "CorrelationId as RootCorrelation",
+        "import ai_ecommerce_agent.application.runtime_diagnostics as "
+        "diagnostic_module",
+    ):
+        assert _runtime_diagnostic_imports(synthetic_path, ast.parse(mutation))
 
 
 def test_runtime_diagnostic_imports_only_allowlisted_stdlib_modules() -> None:

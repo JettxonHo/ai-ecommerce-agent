@@ -72,13 +72,20 @@ def test_required_event_text_rejects_wrong_exact_types_and_blank_values(
         _event(**{field: value})
 
 
-@pytest.mark.parametrize("field", ["occurred_at", "level", "correlation_id"])
-def test_required_event_values_reject_raw_values(field: str) -> None:
-    value: object = {
-        "occurred_at": datetime(2026, 1, 2),
-        "level": "info",
-        "correlation_id": "corr",
-    }[field]
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("occurred_at", None),
+        ("occurred_at", datetime(2026, 1, 2)),
+        ("level", None),
+        ("level", "info"),
+        ("correlation_id", None),
+        ("correlation_id", "corr"),
+    ],
+)
+def test_required_event_values_reject_null_and_raw_values(
+    field: str, value: object
+) -> None:
     with pytest.raises((TypeError, ValueError)):
         _event(**{field: value})
 
