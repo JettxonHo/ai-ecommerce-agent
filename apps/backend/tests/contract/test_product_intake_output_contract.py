@@ -116,10 +116,25 @@ def test_schema_has_exact_top_level_and_nested_ordered_fields() -> None:
         "workflow_stage_decision",
     ]
     assert schema["additionalProperties"] is False
+    assert list(cast(dict[str, object], schema["properties"])) == [
+        "claims_requiring_verification",
+        "conflicts_and_limitations",
+        "fact_candidates",
+        "intake_assessment",
+        "workflow_stage_decision",
+    ]
     intake = cast(
         dict[str, object],
         cast(dict[str, object], schema["properties"])["intake_assessment"],
     )
+    assert list(cast(dict[str, object], intake["properties"])) == [
+        "available_source_types",
+        "completeness_level",
+        "excluded_sources",
+        "missing_information",
+        "runnable",
+        "warnings",
+    ]
     assert intake["required"] == [
         "completeness_level",
         "runnable",
@@ -128,11 +143,23 @@ def test_schema_has_exact_top_level_and_nested_ordered_fields() -> None:
         "missing_information",
         "warnings",
     ]
-    fact = cast(
+    fact_schema = cast(
         dict[str, object],
         cast(dict[str, object], schema["properties"])["fact_candidates"],
-    )["items"]
-    assert cast(dict[str, object], fact)["required"] == [
+    )
+    fact = cast(dict[str, object], fact_schema["items"])
+    assert list(cast(dict[str, object], fact["properties"])) == [
+        "assertion_type",
+        "attribute_key",
+        "category",
+        "contradicting_fragment_ids",
+        "normalized_value",
+        "notes",
+        "raw_value",
+        "supporting_fragment_ids",
+        "unit",
+    ]
+    assert fact["required"] == [
         "category",
         "attribute_key",
         "raw_value",
@@ -143,11 +170,18 @@ def test_schema_has_exact_top_level_and_nested_ordered_fields() -> None:
         "contradicting_fragment_ids",
         "notes",
     ]
-    claim = cast(
+    claim_schema = cast(
         dict[str, object],
         cast(dict[str, object], schema["properties"])["claims_requiring_verification"],
-    )["items"]
-    assert cast(dict[str, object], claim)["required"] == [
+    )
+    claim = cast(dict[str, object], claim_schema["items"])
+    assert list(cast(dict[str, object], claim["properties"])) == [
+        "claim_text",
+        "notes",
+        "supporting_fragment_ids",
+        "verification_need",
+    ]
+    assert claim["required"] == [
         "claim_text",
         "supporting_fragment_ids",
         "verification_need",
@@ -157,17 +191,31 @@ def test_schema_has_exact_top_level_and_nested_ordered_fields() -> None:
         dict[str, object],
         cast(dict[str, object], schema["properties"])["conflicts_and_limitations"],
     )
+    assert list(cast(dict[str, object], conflicts["properties"])) == [
+        "evidence_limitations",
+        "hypotheses_to_validate",
+        "insufficient_information",
+        "source_conflicts",
+    ]
     assert conflicts["required"] == [
         "source_conflicts",
         "evidence_limitations",
         "insufficient_information",
         "hypotheses_to_validate",
     ]
-    source_conflict = cast(
+    source_conflict_schema = cast(
         dict[str, object],
         cast(dict[str, object], conflicts["properties"])["source_conflicts"],
-    )["items"]
-    assert cast(dict[str, object], source_conflict)["required"] == [
+    )
+    source_conflict = cast(dict[str, object], source_conflict_schema["items"])
+    assert list(cast(dict[str, object], source_conflict["properties"])) == [
+        "attribute_key",
+        "blocking",
+        "conflict_kind",
+        "impact",
+        "observed_values",
+    ]
+    assert source_conflict["required"] == [
         "conflict_kind",
         "attribute_key",
         "observed_values",
@@ -176,12 +224,16 @@ def test_schema_has_exact_top_level_and_nested_ordered_fields() -> None:
     ]
     observed_value = cast(
         dict[str, object],
-        cast(dict[str, object], source_conflict)["properties"],
+        source_conflict["properties"],
     )["observed_values"]
     assert cast(dict[str, object], observed_value)["minItems"] == 2
     observed_item = cast(
         dict[str, object], cast(dict[str, object], observed_value)["items"]
     )
+    assert list(cast(dict[str, object], observed_item["properties"])) == [
+        "fragment_ids",
+        "raw_value",
+    ]
     assert observed_item["required"] == [
         "raw_value",
         "fragment_ids",

@@ -327,6 +327,82 @@ def test_every_frozen_required_field_is_required(path: tuple[object, ...]) -> No
 
 
 @pytest.mark.parametrize(
+    "path",
+    [
+        ("intake_assessment",),
+        ("fact_candidates",),
+        ("claims_requiring_verification",),
+        ("conflicts_and_limitations",),
+        ("workflow_stage_decision",),
+        ("intake_assessment", "completeness_level"),
+        ("intake_assessment", "runnable"),
+        ("intake_assessment", "available_source_types"),
+        ("intake_assessment", "excluded_sources"),
+        ("intake_assessment", "missing_information"),
+        ("intake_assessment", "warnings"),
+        ("fact_candidates", 0, "category"),
+        ("fact_candidates", 0, "attribute_key"),
+        ("fact_candidates", 0, "raw_value"),
+        ("fact_candidates", 0, "assertion_type"),
+        ("fact_candidates", 0, "supporting_fragment_ids"),
+        ("fact_candidates", 0, "contradicting_fragment_ids"),
+        ("fact_candidates", 0, "notes"),
+        ("claims_requiring_verification", 0, "claim_text"),
+        ("claims_requiring_verification", 0, "supporting_fragment_ids"),
+        ("claims_requiring_verification", 0, "verification_need"),
+        ("claims_requiring_verification", 0, "notes"),
+        ("conflicts_and_limitations", "source_conflicts"),
+        ("conflicts_and_limitations", "evidence_limitations"),
+        ("conflicts_and_limitations", "insufficient_information"),
+        ("conflicts_and_limitations", "hypotheses_to_validate"),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "conflict_kind",
+        ),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "attribute_key",
+        ),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "observed_values",
+        ),
+        ("conflicts_and_limitations", "source_conflicts", 0, "blocking"),
+        ("conflicts_and_limitations", "source_conflicts", 0, "impact"),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "observed_values",
+            0,
+            "raw_value",
+        ),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "observed_values",
+            0,
+            "fragment_ids",
+        ),
+    ],
+)
+def test_every_non_nullable_field_rejects_null(path: tuple[object, ...]) -> None:
+    payload = _payload_for_path(path)
+    _set_path(payload, path, None)
+    with pytest.raises(ModelRuntimeError):
+        parse_and_validate_structured_output(
+            result=_result(payload), spec=product_intake_candidate_output_spec()
+        )
+
+
+@pytest.mark.parametrize(
     ("path", "values"),
     [
         (
@@ -366,9 +442,24 @@ def test_all_frozen_enum_values_are_accepted(
     [
         (("intake_assessment", "available_source_types", 0), 1),
         (("intake_assessment", "excluded_sources"), [1]),
+        (("intake_assessment", "missing_information"), [1]),
+        (("intake_assessment", "warnings"), [1]),
+        (("fact_candidates", 0, "category"), 1),
+        (("fact_candidates", 0, "attribute_key"), 1),
+        (("fact_candidates", 0, "raw_value"), 1),
+        (("fact_candidates", 0, "normalized_value"), 3),
+        (("fact_candidates", 0, "unit"), 3),
+        (("fact_candidates", 0, "assertion_type"), 1),
         (("fact_candidates", 0, "supporting_fragment_ids", 0), 1),
         (("fact_candidates", 0, "contradicting_fragment_ids"), [False]),
+        (("fact_candidates", 0, "notes"), [1]),
+        (("claims_requiring_verification", 0, "claim_text"), 1),
         (("claims_requiring_verification", 0, "supporting_fragment_ids"), [None]),
+        (("claims_requiring_verification", 0, "verification_need"), 1),
+        (("claims_requiring_verification", 0, "notes"), [1]),
+        (("conflicts_and_limitations", "evidence_limitations"), [1]),
+        (("conflicts_and_limitations", "insufficient_information"), [1]),
+        (("conflicts_and_limitations", "hypotheses_to_validate"), [1]),
         (("conflicts_and_limitations", "source_conflicts"), {}),
         (
             ("conflicts_and_limitations", "source_conflicts", 0, "conflict_kind"),
@@ -447,6 +538,10 @@ def test_nullable_boundaries_accept_null_but_reject_blank_text(
 ) -> None:
     payload = _candidate_payload("sufficient")
     _set_path(payload, path, None)
+    parse_and_validate_structured_output(
+        result=_result(payload), spec=product_intake_candidate_output_spec()
+    )
+    _set_path(payload, path, "revalidated")
     parse_and_validate_structured_output(
         result=_result(payload), spec=product_intake_candidate_output_spec()
     )
