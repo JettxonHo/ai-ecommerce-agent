@@ -14,6 +14,7 @@ _SRC = _BACKEND / "src/ai_ecommerce_agent"
 _PACKAGE = _SRC / "modules/marketing_brief"
 _GENERATION = _PACKAGE / "application/skills/marketing_brief_generation"
 _OUTPUT = _GENERATION / "output_contract.py"
+_PUBLIC = _PACKAGE / "public.py"
 _FILES = [
     _PACKAGE / "application/__init__.py",
     _PACKAGE / "application/skills/__init__.py",
@@ -82,6 +83,11 @@ def _consumer_violations(path: Path, tree: ast.Module) -> list[str]:
     violations: list[str] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
+            if all(
+                alias.name == "ai_ecommerce_agent.modules.marketing_brief.public"
+                for alias in node.names
+            ):
+                continue
             if any("marketing_brief" in alias.name for alias in node.names):
                 violations.append(f"{path}:import")
             continue
@@ -89,6 +95,19 @@ def _consumer_violations(path: Path, tree: ast.Module) -> list[str]:
             continue
         imported = "." * node.level + (node.module or "")
         aliases = {alias.name for alias in node.names}
+        allowed_public_import = (
+            node.level == 0
+            and (
+                imported == "ai_ecommerce_agent.modules.marketing_brief.public"
+                or (
+                    imported == "ai_ecommerce_agent.modules.marketing_brief"
+                    and aliases == {"public"}
+                )
+            )
+            and _PUBLIC.is_file()
+        )
+        if allowed_public_import:
+            continue
         targets = _relative_targets(path, node) if node.level else []
         targets_output = _OUTPUT in targets
         allowed_facade_import = (
@@ -279,6 +298,12 @@ def test_consumer_guard_rejects_unauthorized_sibling_and_allows_facade() -> None
     assert not _consumer_violations(
         facade, ast.parse("from . import output_contract\n")
     )
+    public_consumer = _PACKAGE / "public_consumer.py"
+    for source in (
+        "from ai_ecommerce_agent.modules.marketing_brief import public\n",
+        "import ai_ecommerce_agent.modules.marketing_brief.public as public\n",
+    ):
+        assert not _consumer_violations(public_consumer, ast.parse(source))
     sibling = _GENERATION / "sibling.py"
     for source in (
         "from .output_contract import marketing_brief_candidate_output_spec\n",

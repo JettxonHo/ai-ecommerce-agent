@@ -301,8 +301,127 @@ _OBJECT_FIELDS: dict[tuple[object, ...], list[str]] = {
     ],
 }
 
+_ARRAY_PATHS: tuple[tuple[object, ...], ...] = (
+    (
+        "brief_candidate",
+        "objective_and_audience",
+        "communication_objective",
+        "secondary_objectives",
+    ),
+    ("brief_candidate", "objective_and_audience", "audience_context"),
+    (
+        "brief_candidate",
+        "message_architecture",
+        "message_hierarchy",
+        "secondary_benefits",
+    ),
+    (
+        "brief_candidate",
+        "message_architecture",
+        "message_hierarchy",
+        "supporting_proof_points",
+    ),
+    (
+        "brief_candidate",
+        "message_architecture",
+        "benefit_hierarchy",
+        "secondary_benefits",
+    ),
+    (
+        "brief_candidate",
+        "message_architecture",
+        "benefit_hierarchy",
+        "supporting_features",
+    ),
+    ("brief_candidate", "reasons_to_believe_and_evidence", "reasons_to_believe"),
+    (
+        "brief_candidate",
+        "reasons_to_believe_and_evidence",
+        "reasons_to_believe",
+        0,
+        "based_on_fact_ids",
+    ),
+    (
+        "brief_candidate",
+        "reasons_to_believe_and_evidence",
+        "reasons_to_believe",
+        0,
+        "based_on_insight_ids",
+    ),
+    ("brief_candidate", "reasons_to_believe_and_evidence", "proof_points"),
+    (
+        "brief_candidate",
+        "reasons_to_believe_and_evidence",
+        "proof_points",
+        0,
+        "supporting_fragment_ids",
+    ),
+    ("brief_candidate", "execution_direction", "objections"),
+    ("brief_candidate", "execution_direction", "objection_responses"),
+    (
+        "brief_candidate",
+        "execution_direction",
+        "objection_responses",
+        0,
+        "based_on_fact_ids",
+    ),
+    (
+        "brief_candidate",
+        "execution_direction",
+        "objection_responses",
+        0,
+        "based_on_insight_ids",
+    ),
+    ("brief_candidate", "execution_direction", "content_angles"),
+    (
+        "brief_candidate",
+        "execution_direction",
+        "content_angles",
+        0,
+        "supporting_benefits",
+    ),
+    (
+        "brief_candidate",
+        "execution_direction",
+        "content_angles",
+        0,
+        "proof_points",
+    ),
+    (
+        "brief_candidate",
+        "execution_direction",
+        "content_angles",
+        0,
+        "risk_notes",
+    ),
+    ("brief_candidate", "constraints_and_honesty", "mandatory_messages"),
+    ("brief_candidate", "constraints_and_honesty", "prohibited_claims"),
+    ("brief_candidate", "constraints_and_honesty", "accepted_hypotheses"),
+    ("brief_candidate", "constraints_and_honesty", "hypotheses_to_test"),
+    ("brief_candidate", "constraints_and_honesty", "evidence_limitations"),
+    ("brief_candidate", "constraints_and_honesty", "risk_notes"),
+    (
+        "brief_candidate",
+        "constraints_and_honesty",
+        "platform_adaptation_rules",
+    ),
+    ("version_and_workflow_context", "input_limitations"),
+)
+
 
 def _object_schema_at(path: tuple[object, ...]) -> dict[str, object]:
+    current = _schema()
+    for key in path:
+        if isinstance(key, int):
+            current = cast(dict[str, object], current["items"])
+        else:
+            assert isinstance(key, str)
+            properties = cast(dict[str, object], current["properties"])
+            current = cast(dict[str, object], properties[key])
+    return current
+
+
+def _schema_node_at(path: tuple[object, ...]) -> dict[str, object]:
     current = _schema()
     for key in path:
         if isinstance(key, int):
@@ -554,6 +673,19 @@ def test_non_success_decisions_preserve_context_with_null_candidate(kind: str) -
     assert parsed.to_mapping() == payload
 
 
+@pytest.mark.parametrize(
+    "kind",
+    ["strategy_change_required", "waiting_input", "paused", "failed"],
+)
+def test_non_success_decisions_can_carry_a_complete_candidate(kind: str) -> None:
+    payload = _payload(kind)
+    payload["brief_candidate"] = _candidate("valid")
+    parsed = parse_and_validate_structured_output(
+        result=_result(payload), spec=_brief.marketing_brief_candidate_output_spec()
+    )
+    assert parsed.to_mapping() == payload
+
+
 def test_nullable_candidate_does_not_encode_stage_relationship() -> None:
     payload = _payload("valid")
     payload["brief_candidate"] = None
@@ -622,7 +754,26 @@ def test_specs_are_equal_and_deeply_detached_and_preflightable() -> None:
     first_mapping = cast(dict[str, object], first.schema.to_mapping())
     second_mapping = cast(dict[str, object], second.schema.to_mapping())
     cast(dict[str, object], first_mapping["properties"])["extra"] = {}
+    first_candidate = cast(
+        dict[str, object],
+        cast(dict[str, object], first_mapping["properties"])["brief_candidate"],
+    )
+    first_candidate_properties = cast(dict[str, object], first_candidate["properties"])
+    cast(dict[str, object], first_candidate_properties["objective_and_audience"])[
+        "nested_extra"
+    ] = {}
     assert "extra" not in cast(dict[str, object], second_mapping["properties"])
+    second_candidate = cast(
+        dict[str, object],
+        cast(dict[str, object], second_mapping["properties"])["brief_candidate"],
+    )
+    second_candidate_properties = cast(
+        dict[str, object], second_candidate["properties"]
+    )
+    second_objective = cast(
+        dict[str, object], second_candidate_properties["objective_and_audience"]
+    )
+    assert "nested_extra" not in second_objective
 
 
 @pytest.mark.parametrize("path", _candidate_paths())
@@ -870,61 +1021,7 @@ def test_nonblank_strings_reject_whitespace(path: tuple[object, ...]) -> None:
 
 @pytest.mark.parametrize(
     "path",
-    [
-        (
-            "brief_candidate",
-            "objective_and_audience",
-            "communication_objective",
-            "secondary_objectives",
-        ),
-        ("brief_candidate", "objective_and_audience", "audience_context"),
-        (
-            "brief_candidate",
-            "message_architecture",
-            "message_hierarchy",
-            "secondary_benefits",
-        ),
-        (
-            "brief_candidate",
-            "message_architecture",
-            "message_hierarchy",
-            "supporting_proof_points",
-        ),
-        (
-            "brief_candidate",
-            "message_architecture",
-            "benefit_hierarchy",
-            "secondary_benefits",
-        ),
-        (
-            "brief_candidate",
-            "message_architecture",
-            "benefit_hierarchy",
-            "supporting_features",
-        ),
-        ("brief_candidate", "reasons_to_believe_and_evidence", "reasons_to_believe"),
-        ("brief_candidate", "reasons_to_believe_and_evidence", "proof_points"),
-        ("brief_candidate", "execution_direction", "objections"),
-        ("brief_candidate", "execution_direction", "objection_responses"),
-        ("brief_candidate", "execution_direction", "content_angles"),
-        (
-            "brief_candidate",
-            "execution_direction",
-            "content_angles",
-            0,
-            "supporting_benefits",
-        ),
-        ("brief_candidate", "execution_direction", "content_angles", 0, "proof_points"),
-        ("brief_candidate", "execution_direction", "content_angles", 0, "risk_notes"),
-        ("brief_candidate", "constraints_and_honesty", "mandatory_messages"),
-        ("brief_candidate", "constraints_and_honesty", "prohibited_claims"),
-        ("brief_candidate", "constraints_and_honesty", "accepted_hypotheses"),
-        ("brief_candidate", "constraints_and_honesty", "hypotheses_to_test"),
-        ("brief_candidate", "constraints_and_honesty", "evidence_limitations"),
-        ("brief_candidate", "constraints_and_honesty", "risk_notes"),
-        ("brief_candidate", "constraints_and_honesty", "platform_adaptation_rules"),
-        ("version_and_workflow_context", "input_limitations"),
-    ],
+    _ARRAY_PATHS,
 )
 def test_array_fields_reject_wrong_container_and_scalar_items(
     path: tuple[object, ...],
@@ -982,6 +1079,38 @@ def test_supporting_fragment_ids_require_one_item() -> None:
         parse_and_validate_structured_output(
             result=_result(payload), spec=_brief.marketing_brief_candidate_output_spec()
         )
+
+
+def test_only_supporting_fragment_ids_has_min_items_and_other_arrays_allow_empty() -> (
+    None
+):
+    supporting_path = (
+        "brief_candidate",
+        "reasons_to_believe_and_evidence",
+        "proof_points",
+        0,
+        "supporting_fragment_ids",
+    )
+    for path in _ARRAY_PATHS:
+        node = _schema_node_at(path)
+        if path == supporting_path:
+            assert node["minItems"] == 1
+        else:
+            assert "minItems" not in node
+        payload = _payload("valid")
+        _set_path(payload, path, [])
+        if path == supporting_path:
+            with pytest.raises(ModelRuntimeError):
+                parse_and_validate_structured_output(
+                    result=_result(payload),
+                    spec=_brief.marketing_brief_candidate_output_spec(),
+                )
+        else:
+            parsed = parse_and_validate_structured_output(
+                result=_result(payload),
+                spec=_brief.marketing_brief_candidate_output_spec(),
+            )
+            assert parsed.to_mapping() == payload
 
 
 @pytest.mark.parametrize(

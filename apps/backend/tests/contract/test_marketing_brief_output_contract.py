@@ -41,4 +41,5 @@ def test_stage_decision_and_spec_function_are_exact() -> None:
     ]
     function = marketing_brief_generation.marketing_brief_candidate_output_spec
     assert list(inspect.signature(function).parameters) == []
+    assert not inspect.iscoroutinefunction(function)
     assert get_type_hints(function)["return"] is StructuredOutputSpec
