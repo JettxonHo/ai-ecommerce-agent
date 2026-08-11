@@ -158,6 +158,12 @@ def _delete_path(payload: dict[str, object], path: tuple[object, ...]) -> None:
     del current[path[-1]]
 
 
+def _payload_for_path(path: tuple[object, ...]) -> dict[str, object]:
+    if path[:2] == ("conflicts_and_limitations", "source_conflicts"):
+        return _candidate_payload("blocking")
+    return _candidate_payload("sufficient")
+
+
 @pytest.mark.parametrize("kind", ["sufficient", "limited", "blocking"])
 def test_production_shaped_payloads_pass_existing_validator(kind: str) -> None:
     parsed = parse_and_validate_structured_output(
@@ -177,10 +183,31 @@ def test_production_shaped_payloads_pass_existing_validator(kind: str) -> None:
         (("fact_candidates", 0, "normalized_value"), 3),
         (("fact_candidates", 0, "supporting_fragment_ids"), []),
         (("fact_candidates", 0, "supporting_fragment_ids", 0), ""),
+        (("claims_requiring_verification", 0, "supporting_fragment_ids"), []),
+        (
+            (
+                "conflicts_and_limitations",
+                "source_conflicts",
+                0,
+                "observed_values",
+            ),
+            [],
+        ),
+        (
+            (
+                "conflicts_and_limitations",
+                "source_conflicts",
+                0,
+                "observed_values",
+                0,
+                "fragment_ids",
+            ),
+            [],
+        ),
     ],
 )
 def test_single_mutations_are_rejected(path: tuple[object, ...], value: object) -> None:
-    payload = _candidate_payload("sufficient")
+    payload = _payload_for_path(path)
     _set_path(payload, path, value)
     with pytest.raises(ModelRuntimeError):
         parse_and_validate_structured_output(
@@ -188,11 +215,28 @@ def test_single_mutations_are_rejected(path: tuple[object, ...], value: object) 
         )
 
 
-def test_extra_keys_are_rejected_without_validating_fragment_existence() -> None:
-    payload = _candidate_payload("sufficient")
-    cast(dict[str, object], cast(list[object], payload["fact_candidates"])[0])[
-        "extra"
-    ] = True
+@pytest.mark.parametrize(
+    "path",
+    [
+        ("extra",),
+        ("intake_assessment", "extra"),
+        ("fact_candidates", 0, "extra"),
+        ("claims_requiring_verification", 0, "extra"),
+        ("conflicts_and_limitations", "extra"),
+        ("conflicts_and_limitations", "source_conflicts", 0, "extra"),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "observed_values",
+            0,
+            "extra",
+        ),
+    ],
+)
+def test_every_object_is_closed_against_extra_keys(path: tuple[object, ...]) -> None:
+    payload = _payload_for_path(path)
+    _set_path(payload, path, True)
     with pytest.raises(ModelRuntimeError):
         parse_and_validate_structured_output(
             result=_result(payload), spec=product_intake_candidate_output_spec()
@@ -230,10 +274,51 @@ def test_extra_keys_are_rejected_without_validating_fragment_existence() -> None
         ("conflicts_and_limitations", "evidence_limitations"),
         ("conflicts_and_limitations", "insufficient_information"),
         ("conflicts_and_limitations", "hypotheses_to_validate"),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "conflict_kind",
+        ),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "attribute_key",
+        ),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "observed_values",
+        ),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "blocking",
+        ),
+        ("conflicts_and_limitations", "source_conflicts", 0, "impact"),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "observed_values",
+            0,
+            "raw_value",
+        ),
+        (
+            "conflicts_and_limitations",
+            "source_conflicts",
+            0,
+            "observed_values",
+            0,
+            "fragment_ids",
+        ),
     ],
 )
 def test_every_frozen_required_field_is_required(path: tuple[object, ...]) -> None:
-    payload = _candidate_payload("sufficient")
+    payload = _payload_for_path(path)
     _delete_path(payload, path)
     with pytest.raises(ModelRuntimeError):
         parse_and_validate_structured_output(
@@ -285,12 +370,68 @@ def test_all_frozen_enum_values_are_accepted(
         (("fact_candidates", 0, "contradicting_fragment_ids"), [False]),
         (("claims_requiring_verification", 0, "supporting_fragment_ids"), [None]),
         (("conflicts_and_limitations", "source_conflicts"), {}),
+        (
+            ("conflicts_and_limitations", "source_conflicts", 0, "conflict_kind"),
+            1,
+        ),
+        (
+            ("conflicts_and_limitations", "source_conflicts", 0, "attribute_key"),
+            None,
+        ),
+        (
+            (
+                "conflicts_and_limitations",
+                "source_conflicts",
+                0,
+                "observed_values",
+            ),
+            {},
+        ),
+        (
+            ("conflicts_and_limitations", "source_conflicts", 0, "blocking"),
+            "yes",
+        ),
+        (
+            ("conflicts_and_limitations", "source_conflicts", 0, "impact"),
+            1,
+        ),
+        (
+            (
+                "conflicts_and_limitations",
+                "source_conflicts",
+                0,
+                "observed_values",
+                0,
+                "raw_value",
+            ),
+            1,
+        ),
+        (
+            (
+                "conflicts_and_limitations",
+                "source_conflicts",
+                0,
+                "observed_values",
+                0,
+                "fragment_ids",
+            ),
+            [1],
+        ),
+        (
+            (
+                "conflicts_and_limitations",
+                "source_conflicts",
+                0,
+                "observed_values",
+            ),
+            [{"raw_value": "500 ml", "fragment_ids": ["fragment-3"]}],
+        ),
     ],
 )
 def test_nested_types_and_fragment_tokens_are_strict(
     path: tuple[object, ...], value: object
 ) -> None:
-    payload = _candidate_payload("sufficient")
+    payload = _payload_for_path(path)
     _set_path(payload, path, value)
     with pytest.raises(ModelRuntimeError):
         parse_and_validate_structured_output(

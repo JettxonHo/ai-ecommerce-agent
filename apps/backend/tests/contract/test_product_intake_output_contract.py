@@ -143,3 +143,46 @@ def test_schema_has_exact_top_level_and_nested_ordered_fields() -> None:
         "contradicting_fragment_ids",
         "notes",
     ]
+    claim = cast(
+        dict[str, object],
+        cast(dict[str, object], schema["properties"])["claims_requiring_verification"],
+    )["items"]
+    assert cast(dict[str, object], claim)["required"] == [
+        "claim_text",
+        "supporting_fragment_ids",
+        "verification_need",
+        "notes",
+    ]
+    conflicts = cast(
+        dict[str, object],
+        cast(dict[str, object], schema["properties"])["conflicts_and_limitations"],
+    )
+    assert conflicts["required"] == [
+        "source_conflicts",
+        "evidence_limitations",
+        "insufficient_information",
+        "hypotheses_to_validate",
+    ]
+    source_conflict = cast(
+        dict[str, object],
+        cast(dict[str, object], conflicts["properties"])["source_conflicts"],
+    )["items"]
+    assert cast(dict[str, object], source_conflict)["required"] == [
+        "conflict_kind",
+        "attribute_key",
+        "observed_values",
+        "blocking",
+        "impact",
+    ]
+    observed_value = cast(
+        dict[str, object],
+        cast(dict[str, object], source_conflict)["properties"],
+    )["observed_values"]
+    assert cast(dict[str, object], observed_value)["minItems"] == 2
+    observed_item = cast(
+        dict[str, object], cast(dict[str, object], observed_value)["items"]
+    )
+    assert observed_item["required"] == [
+        "raw_value",
+        "fragment_ids",
+    ]
