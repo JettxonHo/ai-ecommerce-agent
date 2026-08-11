@@ -392,6 +392,46 @@ def test_each_frozen_type_and_item_boundary_rejects_wrong_values(
 @pytest.mark.parametrize(
     "path",
     [
+        ("evidence_assessment", "source_types"),
+        ("evidence_assessment", "limitations"),
+        ("themes",),
+        ("themes", 0, "source_scopes"),
+        ("themes", 0, "supporting_fragment_ids"),
+        ("themes", 0, "contradicting_fragment_ids"),
+        ("themes", 0, "limitations"),
+        ("customer_insights",),
+        ("customer_insights", 0, "source_scopes"),
+        ("customer_insights", 0, "supporting_fragment_ids"),
+        ("customer_insights", 0, "contradicting_fragment_ids"),
+        ("customer_insights", 0, "dataset_statistic_ids"),
+        ("customer_insights", 0, "customer_language_fragment_ids"),
+        ("customer_insights", 0, "based_on_fact_ids"),
+        ("customer_insights", 0, "limitations"),
+        ("customer_insights", 0, "notes"),
+        ("hypotheses_to_validate",),
+        ("hypotheses_to_validate", 0, "source_scopes"),
+        ("hypotheses_to_validate", 0, "supporting_fragment_ids"),
+        ("hypotheses_to_validate", 0, "contradicting_fragment_ids"),
+        ("hypotheses_to_validate", 0, "based_on_fact_ids"),
+        ("hypotheses_to_validate", 0, "validation_needed"),
+        ("hypotheses_to_validate", 0, "limitations"),
+        ("hypotheses_to_validate", 0, "notes"),
+    ],
+)
+def test_each_frozen_array_container_rejects_scalar(
+    path: tuple[object, ...],
+) -> None:
+    payload = _payload_for_path(path)
+    _set_path(payload, path, 1)
+    with pytest.raises(ModelRuntimeError):
+        parse_and_validate_structured_output(
+            result=_result(payload), spec=customer_insight_candidate_output_spec()
+        )
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
         ("evidence_assessment",),
         ("themes",),
         ("customer_insights",),
