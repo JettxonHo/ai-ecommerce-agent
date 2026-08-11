@@ -126,6 +126,33 @@ def _matrix(index: int = 1) -> dict[str, object]:
 def _payload(kind: str = "sufficient") -> dict[str, object]:
     candidates = [_candidate(index) for index in (1, 2, 3)]
     matrix = [_matrix(index) for index in (1, 2, 3)]
+    distinct_segments = ["daily commuters", "campus travelers", "weekend cyclists"]
+    distinct_needs = [
+        "keep work items dry",
+        "carry hydration between classes",
+        "pack water for outdoor rides",
+    ]
+    distinct_categories = [
+        "commuter hydration companion",
+        "campus hydration companion",
+        "outdoor hydration companion",
+    ]
+    distinct_values = [
+        "a practical way to carry water with less worry",
+        "a simple way to keep hydration close between classes",
+        "a dependable way to carry water on short rides",
+    ]
+    distinct_differentiation = [
+        "focuses on the commute carrying moment",
+        "focuses on the between-class carrying moment",
+        "focuses on the short-ride carrying moment",
+    ]
+    for index, candidate in enumerate(candidates):
+        candidate["target_segment"] = distinct_segments[index]
+        candidate["job_or_core_need"] = distinct_needs[index]
+        candidate["category_frame"] = distinct_categories[index]
+        candidate["value_proposition"] = distinct_values[index]
+        candidate["differentiation"] = distinct_differentiation[index]
     context: dict[str, object] = {
         "facts_version_id": "facts-v1",
         "insights_version_id": "insights-v1",
@@ -152,6 +179,7 @@ def _payload(kind: str = "sufficient") -> dict[str, object]:
         candidates = [_candidate(1)]
         matrix = [_matrix(1)]
         context["competitor_source_set_version_id"] = None
+        context["input_limitations"] = ["no competitor evidence was provided"]
         for candidate in candidates:
             candidate["competitor_evidence_ids"] = []
         decision = "ready_for_review_with_limitations"
@@ -200,19 +228,46 @@ def test_representative_production_shaped_candidates_pass(kind: str) -> None:
     assert parsed.to_mapping() == payload
 
 
+def test_sufficient_candidates_are_materially_distinct() -> None:
+    candidates = cast(list[object], _payload()["positioning_candidates"])
+    material_fields = (
+        "target_segment",
+        "job_or_core_need",
+        "category_frame",
+        "value_proposition",
+        "differentiation",
+    )
+    signatures = {
+        tuple(cast(dict[str, object], candidate)[field] for field in material_fields)
+        for candidate in candidates
+    }
+    assert len(signatures) == 3
+
+
 def test_candidate_and_competitor_boundaries_remain_structural() -> None:
     competitor = _payload("competitor_only")
     candidate = cast(list[object], competitor["positioning_candidates"])[0]
     candidate_mapping = cast(dict[str, object], candidate)
     assert candidate_mapping["target_segment_is_hypothesis"] is True
+    assert candidate_mapping["differentiation_is_opportunity_hypothesis"] is True
     assert candidate_mapping["competitor_evidence_ids"] == [
         "competitor:anchor-fragment"
     ]
+    assert candidate_mapping["based_on_fact_ids"] == ["fact-1"]
+    assert "competitor" not in str(candidate_mapping["differentiation"]).lower()
     assert (
         cast(dict[str, object], competitor["positioning_context"])[
             "competitor_source_set_version_id"
         ]
         == "competitor-set-v1"
+    )
+    assert all(
+        str(token).startswith("competitor:")
+        for token in cast(list[object], candidate_mapping["competitor_evidence_ids"])
+    )
+    assert all(
+        str(token).startswith("fact-")
+        for token in cast(list[object], candidate_mapping["based_on_fact_ids"])
     )
     parsed = parse_and_validate_structured_output(
         result=_result(competitor), spec=product_positioning_candidate_output_spec()
@@ -230,6 +285,7 @@ def test_candidate_and_competitor_boundaries_remain_structural() -> None:
         ("workflow_stage_decision",),
         ("positioning_context", "facts_version_id"),
         ("positioning_context", "insights_version_id"),
+        ("positioning_context", "competitor_source_set_version_id"),
         ("positioning_context", "business_constraints"),
         ("positioning_context", "input_limitations"),
         ("positioning_candidates", 0, "candidate_id"),
@@ -257,6 +313,8 @@ def test_candidate_and_competitor_boundaries_remain_structural() -> None:
         ("positioning_candidates", 0, "assumptions"),
         ("positioning_candidates", 0, "evidence_limitations"),
         ("positioning_candidates", 0, "strategic_risks"),
+        ("positioning_candidates", 0, "evidence_profile"),
+        ("positioning_candidates", 0, "ranking_rationale"),
         ("positioning_candidates", 0, "reasons_to_believe", 0, "statement"),
         (
             "positioning_candidates",
@@ -296,6 +354,87 @@ def test_candidate_and_competitor_boundaries_remain_structural() -> None:
 def test_required_and_array_fields_reject_missing(path: tuple[object, ...]) -> None:
     payload = _payload()
     _delete_path(payload, path)
+    with pytest.raises(ModelRuntimeError):
+        parse_and_validate_structured_output(
+            result=_result(payload), spec=product_positioning_candidate_output_spec()
+        )
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        ("positioning_context",),
+        ("positioning_candidates",),
+        ("comparison_matrix",),
+        ("recommendation",),
+        ("workflow_stage_decision",),
+        ("positioning_context", "facts_version_id"),
+        ("positioning_context", "insights_version_id"),
+        ("positioning_context", "business_constraints"),
+        ("positioning_context", "input_limitations"),
+        ("positioning_candidates", 0, "candidate_id"),
+        ("positioning_candidates", 0, "candidate_title"),
+        ("positioning_candidates", 0, "strategy_type"),
+        ("positioning_candidates", 0, "target_segment"),
+        ("positioning_candidates", 0, "target_segment_is_hypothesis"),
+        ("positioning_candidates", 0, "usage_context"),
+        ("positioning_candidates", 0, "job_or_core_need"),
+        ("positioning_candidates", 0, "job_or_core_need_is_hypothesis"),
+        ("positioning_candidates", 0, "category_frame"),
+        ("positioning_candidates", 0, "value_proposition"),
+        ("positioning_candidates", 0, "key_benefits"),
+        ("positioning_candidates", 0, "differentiation"),
+        (
+            "positioning_candidates",
+            0,
+            "differentiation_is_opportunity_hypothesis",
+        ),
+        ("positioning_candidates", 0, "reasons_to_believe"),
+        ("positioning_candidates", 0, "proof_points"),
+        ("positioning_candidates", 0, "based_on_fact_ids"),
+        ("positioning_candidates", 0, "based_on_insight_ids"),
+        ("positioning_candidates", 0, "competitor_evidence_ids"),
+        ("positioning_candidates", 0, "assumptions"),
+        ("positioning_candidates", 0, "evidence_limitations"),
+        ("positioning_candidates", 0, "strategic_risks"),
+        ("positioning_candidates", 0, "evidence_profile"),
+        ("positioning_candidates", 0, "ranking_rationale"),
+        ("positioning_candidates", 0, "reasons_to_believe", 0, "statement"),
+        (
+            "positioning_candidates",
+            0,
+            "reasons_to_believe",
+            0,
+            "based_on_fact_ids",
+        ),
+        (
+            "positioning_candidates",
+            0,
+            "reasons_to_believe",
+            0,
+            "based_on_insight_ids",
+        ),
+        ("positioning_candidates", 0, "proof_points", 0, "statement"),
+        (
+            "positioning_candidates",
+            0,
+            "proof_points",
+            0,
+            "based_on_fact_ids",
+        ),
+        ("comparison_matrix", 0, "candidate_id"),
+        ("comparison_matrix", 0, "target_segment"),
+        ("comparison_matrix", 0, "core_need"),
+        ("comparison_matrix", 0, "primary_value"),
+        ("comparison_matrix", 0, "key_differentiation"),
+        ("comparison_matrix", 0, "evidence_profile"),
+        ("recommendation", "conditions_for_success"),
+        ("recommendation", "validation_needed"),
+    ],
+)
+def test_all_nonnullable_paths_reject_null(path: tuple[object, ...]) -> None:
+    payload = _payload()
+    _set_path(payload, path, None)
     with pytest.raises(ModelRuntimeError):
         parse_and_validate_structured_output(
             result=_result(payload), spec=product_positioning_candidate_output_spec()
@@ -420,6 +559,22 @@ def test_array_fields_reject_wrong_container_and_item_types(
 @pytest.mark.parametrize(
     "path",
     [
+        ("positioning_candidates", 0, "reasons_to_believe"),
+        ("positioning_candidates", 0, "proof_points"),
+    ],
+)
+def test_object_arrays_reject_scalar_items(path: tuple[object, ...]) -> None:
+    payload = _payload()
+    _set_path(payload, path, [1])
+    with pytest.raises(ModelRuntimeError):
+        parse_and_validate_structured_output(
+            result=_result(payload), spec=product_positioning_candidate_output_spec()
+        )
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
         ("positioning_candidates", 0, "based_on_fact_ids"),
         ("positioning_candidates", 0, "proof_points", 0, "based_on_fact_ids"),
     ],
@@ -446,6 +601,85 @@ def test_minimum_fact_references_reject_empty_arrays(path: tuple[object, ...]) -
 )
 def test_nonblank_string_boundaries_reject_whitespace(path: tuple[object, ...]) -> None:
     payload = _payload()
+    _set_path(payload, path, "   ")
+    with pytest.raises(ModelRuntimeError):
+        parse_and_validate_structured_output(
+            result=_result(payload), spec=product_positioning_candidate_output_spec()
+        )
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        ("positioning_context", "facts_version_id"),
+        ("positioning_context", "insights_version_id"),
+        ("positioning_context", "competitor_source_set_version_id"),
+        ("positioning_context", "business_constraints", 0),
+        ("positioning_context", "input_limitations", 0),
+        ("positioning_candidates", 0, "candidate_id"),
+        ("positioning_candidates", 0, "candidate_title"),
+        ("positioning_candidates", 0, "strategy_type"),
+        ("positioning_candidates", 0, "target_segment"),
+        ("positioning_candidates", 0, "usage_context"),
+        ("positioning_candidates", 0, "job_or_core_need"),
+        ("positioning_candidates", 0, "category_frame"),
+        ("positioning_candidates", 0, "value_proposition"),
+        ("positioning_candidates", 0, "key_benefits", 0),
+        ("positioning_candidates", 0, "differentiation"),
+        ("positioning_candidates", 0, "based_on_fact_ids", 0),
+        ("positioning_candidates", 0, "based_on_insight_ids", 0),
+        ("positioning_candidates", 0, "competitor_evidence_ids", 0),
+        ("positioning_candidates", 0, "assumptions", 0),
+        ("positioning_candidates", 0, "evidence_limitations", 0),
+        ("positioning_candidates", 0, "strategic_risks", 0),
+        ("positioning_candidates", 0, "evidence_profile"),
+        ("positioning_candidates", 0, "ranking_rationale"),
+        ("positioning_candidates", 0, "reasons_to_believe", 0, "statement"),
+        (
+            "positioning_candidates",
+            0,
+            "reasons_to_believe",
+            0,
+            "based_on_fact_ids",
+            0,
+        ),
+        (
+            "positioning_candidates",
+            0,
+            "reasons_to_believe",
+            0,
+            "based_on_insight_ids",
+            0,
+        ),
+        ("positioning_candidates", 0, "proof_points", 0, "statement"),
+        (
+            "positioning_candidates",
+            0,
+            "proof_points",
+            0,
+            "based_on_fact_ids",
+            0,
+        ),
+        ("comparison_matrix", 0, "candidate_id"),
+        ("comparison_matrix", 0, "target_segment"),
+        ("comparison_matrix", 0, "core_need"),
+        ("comparison_matrix", 0, "primary_value"),
+        ("comparison_matrix", 0, "key_differentiation"),
+        ("comparison_matrix", 0, "evidence_profile"),
+        ("comparison_matrix", 0, "main_risk"),
+        ("recommendation", "recommended_candidate_id"),
+        ("recommendation", "recommendation_rationale"),
+        ("recommendation", "conditions_for_success", 0),
+        ("recommendation", "validation_needed", 0),
+        ("workflow_stage_decision",),
+    ],
+)
+def test_every_nonblank_string_path_rejects_whitespace(
+    path: tuple[object, ...],
+) -> None:
+    payload = _payload(
+        "competitor_only" if "competitor_evidence_ids" in path else "sufficient"
+    )
     _set_path(payload, path, "   ")
     with pytest.raises(ModelRuntimeError):
         parse_and_validate_structured_output(

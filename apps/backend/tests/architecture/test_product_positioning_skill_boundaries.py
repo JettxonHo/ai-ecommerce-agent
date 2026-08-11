@@ -19,6 +19,7 @@ _FILES = [
     _PACKAGE / "application/skills/product_positioning/__init__.py",
     _PACKAGE / "application/skills/product_positioning/output_contract.py",
 ]
+_FACADE = _PACKAGE / "application/skills/product_positioning/__init__.py"
 _ALLOWED_IMPORTS = {
     "__future__",
     "collections.abc",
@@ -61,6 +62,22 @@ def _import_names(tree: ast.Module) -> list[str]:
         elif isinstance(node, ast.ImportFrom):
             names.append("." * node.level + (node.module or ""))
     return names
+
+
+def _positioning_consumer_violations(path: Path, tree: ast.Module) -> list[str]:
+    violations: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if "product_positioning" in alias.name:
+                    violations.append(f"{path}:{alias.name}")
+        elif isinstance(node, ast.ImportFrom):
+            imported = "." * node.level + (node.module or "")
+            if path == _FACADE and imported == ".output_contract":
+                continue
+            if "product_positioning" in imported:
+                violations.append(f"{path}:{imported}")
+    return violations
 
 
 def _import_time_effects(tree: ast.Module) -> tuple[list[ast.Call], list[ast.expr]]:
@@ -221,6 +238,25 @@ def test_exact_allowlisted_files_and_imports() -> None:
                 )
             else:
                 assert not any(part in _FORBIDDEN for part in imported.split("."))
+
+
+def test_repository_has_only_the_private_facade_seam_owner_and_consumer() -> None:
+    violations: list[str] = []
+    for path in _SRC.rglob("*.py"):
+        violations.extend(_positioning_consumer_violations(path, _tree(path)))
+    assert violations == []
+
+
+def test_repository_consumer_guard_rejects_an_unauthorized_production_import() -> None:
+    baseline = ast.parse(
+        "from enum import StrEnum\nclass OtherContract(StrEnum):\n    VALUE = 'value'\n"
+    )
+    assert _positioning_consumer_violations(_SRC / "modules/other.py", baseline) == []
+    mutation = ast.parse(
+        "from ai_ecommerce_agent.modules.product_positioning.application.skills "
+        "import product_positioning\n"
+    )
+    assert _positioning_consumer_violations(_SRC / "modules/other.py", mutation)
 
 
 def test_no_import_time_calls_or_mutable_module_globals() -> None:
