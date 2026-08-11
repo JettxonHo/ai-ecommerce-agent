@@ -170,6 +170,7 @@ def _candidate_payload(kind: str) -> dict[str, object]:
                 "customer_language_fragment_ids": [],
             }
         )
+        base["workflow_stage_decision"] = "valid_with_limitations"
     return base
 
 
@@ -200,6 +201,39 @@ def _payload_for_path(path: tuple[object, ...]) -> dict[str, object]:
 @pytest.mark.parametrize("kind", ["sufficient", "degraded", "competitor"])
 def test_three_production_shaped_candidates_pass_existing_validator(kind: str) -> None:
     payload = _candidate_payload(kind)
+    parsed = parse_and_validate_structured_output(
+        result=_result(payload), spec=customer_insight_candidate_output_spec()
+    )
+    assert parsed.to_mapping() == payload
+
+
+def test_competitor_only_candidate_is_explicitly_scoped_and_limited() -> None:
+    payload = _candidate_payload("competitor")
+    parsed = parse_and_validate_structured_output(
+        result=_result(payload), spec=customer_insight_candidate_output_spec()
+    )
+    assert payload["workflow_stage_decision"] == "valid_with_limitations"
+    assert parsed.to_mapping() == payload
+    serialized = json.dumps(payload, separators=(",", ":"))
+    assert "current_product" not in serialized
+    for group in ("themes", "customer_insights"):
+        for item in cast(list[object], payload[group]):
+            scopes = cast(list[object], cast(dict[str, object], item)["source_scopes"])
+            assert all(str(scope).startswith("competitor:") for scope in scopes)
+
+
+def test_none_coverage_does_not_semantically_forbid_a_structural_theme() -> None:
+    payload = _candidate_payload("degraded")
+    payload["themes"] = [
+        {
+            "label": "possible leak concern",
+            "evidence_coverage": "none",
+            "source_scopes": ["context"],
+            "supporting_fragment_ids": ["context-fragment"],
+            "contradicting_fragment_ids": [],
+            "limitations": ["requires direct customer validation"],
+        }
+    ]
     parsed = parse_and_validate_structured_output(
         result=_result(payload), spec=customer_insight_candidate_output_spec()
     )
@@ -284,6 +318,67 @@ def test_every_frozen_required_field_is_required(path: tuple[object, ...]) -> No
     ],
 )
 def test_minimums_and_item_types_are_strict(
+    path: tuple[object, ...], value: object
+) -> None:
+    payload = _payload_for_path(path)
+    _set_path(payload, path, value)
+    with pytest.raises(ModelRuntimeError):
+        parse_and_validate_structured_output(
+            result=_result(payload), spec=customer_insight_candidate_output_spec()
+        )
+
+
+@pytest.mark.parametrize(
+    ("path", "value"),
+    [
+        (("evidence_assessment", "mode"), 1),
+        (("evidence_assessment", "evidence_coverage"), 1),
+        (("evidence_assessment", "source_types"), [1]),
+        (("evidence_assessment", "source_set_version_id"), 1),
+        (("evidence_assessment", "sample_summary"), 1),
+        (("evidence_assessment", "limitations"), [1]),
+        (("themes",), [1]),
+        (("themes", 0, "label"), 1),
+        (("themes", 0, "evidence_coverage"), 1),
+        (("themes", 0, "source_scopes"), [1]),
+        (("themes", 0, "supporting_fragment_ids"), [1]),
+        (("themes", 0, "contradicting_fragment_ids"), [1]),
+        (("themes", 0, "limitations"), [1]),
+        (("customer_insights",), [1]),
+        (("customer_insights", 0, "insight_type"), 1),
+        (("customer_insights", 0, "statement"), 1),
+        (("customer_insights", 0, "audience_segment"), 1),
+        (("customer_insights", 0, "usage_context"), 1),
+        (("customer_insights", 0, "user_problem_or_need"), 1),
+        (("customer_insights", 0, "underlying_reason"), 1),
+        (("customer_insights", 0, "behavioral_or_purchase_impact"), 1),
+        (("customer_insights", 0, "evidence_coverage"), 1),
+        (("customer_insights", 0, "source_scopes"), [1]),
+        (("customer_insights", 0, "supporting_fragment_ids"), [1]),
+        (("customer_insights", 0, "contradicting_fragment_ids"), [1]),
+        (("customer_insights", 0, "dataset_statistic_ids"), [1]),
+        (("customer_insights", 0, "customer_language_fragment_ids"), [1]),
+        (("customer_insights", 0, "based_on_fact_ids"), [1]),
+        (("customer_insights", 0, "limitations"), [1]),
+        (("customer_insights", 0, "notes"), [1]),
+        (("hypotheses_to_validate",), [1]),
+        (("hypotheses_to_validate", 0, "statement"), 1),
+        (("hypotheses_to_validate", 0, "audience_segment"), 1),
+        (("hypotheses_to_validate", 0, "usage_context"), 1),
+        (("hypotheses_to_validate", 0, "user_problem_or_need"), 1),
+        (("hypotheses_to_validate", 0, "underlying_reason"), 1),
+        (("hypotheses_to_validate", 0, "behavioral_or_purchase_impact"), 1),
+        (("hypotheses_to_validate", 0, "source_scopes"), [1]),
+        (("hypotheses_to_validate", 0, "supporting_fragment_ids"), [1]),
+        (("hypotheses_to_validate", 0, "contradicting_fragment_ids"), [1]),
+        (("hypotheses_to_validate", 0, "based_on_fact_ids"), [1]),
+        (("hypotheses_to_validate", 0, "validation_needed"), [1]),
+        (("hypotheses_to_validate", 0, "limitations"), [1]),
+        (("hypotheses_to_validate", 0, "notes"), [1]),
+        (("workflow_stage_decision",), 1),
+    ],
+)
+def test_each_frozen_type_and_item_boundary_rejects_wrong_values(
     path: tuple[object, ...], value: object
 ) -> None:
     payload = _payload_for_path(path)
