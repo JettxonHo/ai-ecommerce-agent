@@ -118,7 +118,7 @@ def _candidate(kind: str = "valid") -> dict[str, object]:
                     "content_mode": "problem_solution",
                     "narrative_structure": ["opening tension"],
                     "proof_points": ["fact-1"],
-                    "customer_language": [],
+                    "customer_language": ["documented customer phrasing"],
                     "hypotheses": ["access matters"],
                     "limitations": ["not a usage review"],
                     "risk_notes": ["keep comparison contextual"],
@@ -240,21 +240,184 @@ def _schema() -> dict[str, object]:
     )
 
 
+def _schema_node_at(path: tuple[object, ...]) -> dict[str, object]:
+    current = _schema()
+    for key in path:
+        if isinstance(key, int):
+            current = cast(dict[str, object], current["items"])
+        else:
+            assert isinstance(key, str)
+            properties = cast(dict[str, object], current["properties"])
+            current = cast(dict[str, object], properties[key])
+    return current
+
+
 def _walk_schema(
     node: dict[str, object], path: tuple[object, ...] = ()
 ) -> list[tuple[tuple[object, ...], dict[str, object]]]:
-    found: list[tuple[tuple[object, ...], dict[str, object]]] = []
+    found: list[tuple[tuple[object, ...], dict[str, object]]] = [(path, node)]
     node_type = node.get("type")
     if node_type == "object" or node_type == ["object", "null"]:
-        found.append((path, node))
         properties = cast(dict[str, object], node["properties"])
         for key, child in properties.items():
             found.extend(_walk_schema(cast(dict[str, object], child), path + (key,)))
     elif node_type == "array":
-        found.append((path, node))
         item = cast(dict[str, object], node["items"])
         found.extend(_walk_schema(item, path + (0,)))
     return found
+
+
+_EXPECTED_OBJECT_FIELDS: dict[tuple[object, ...], tuple[str, ...]] = {
+    (): ("xiaohongshu_brief_candidate", "workflow_and_version_context"),
+    ("xiaohongshu_brief_candidate",): (
+        "platform_and_campaign_context",
+        "note_format_and_content_mode",
+        "creative_structure_directions",
+        "discovery_and_action_directions",
+        "evidence_and_platform_constraints",
+    ),
+    ("workflow_and_version_context",): (
+        "marketing_brief_version_id",
+        "approved_strategy_version_id",
+        "facts_version_id",
+        "platform_policy_snapshot_id",
+        "platform_policy_version",
+        "input_limitations",
+        "stage_decision",
+    ),
+    ("xiaohongshu_brief_candidate", "platform_and_campaign_context"): (
+        "platform",
+        "account_type",
+        "content_relationship",
+        "commercial_context",
+        "campaign_objective",
+        "available_asset_types",
+    ),
+    ("xiaohongshu_brief_candidate", "note_format_and_content_mode"): (
+        "recommended_note_format",
+        "primary_content_mode",
+        "secondary_content_mode",
+        "platform_objective",
+        "source_content_angle_ids",
+    ),
+    ("xiaohongshu_brief_candidate", "creative_structure_directions"): (
+        "title_directions",
+        "cover_direction",
+        "narrative_structure",
+        "content_angle_mappings",
+        "message_priority",
+        "proof_placement",
+        "fit_boundary",
+    ),
+    (
+        "xiaohongshu_brief_candidate",
+        "creative_structure_directions",
+        "title_directions",
+        0,
+    ): (
+        "title_direction",
+        "user_question_or_tension",
+        "primary_keyword",
+        "message_focus",
+        "proof_required",
+        "risk_notes",
+    ),
+    (
+        "xiaohongshu_brief_candidate",
+        "creative_structure_directions",
+        "cover_direction",
+    ): (
+        "cover_message_direction",
+        "cover_visual_focus",
+        "cover_information_priority",
+        "cover_risk_notes",
+    ),
+    (
+        "xiaohongshu_brief_candidate",
+        "creative_structure_directions",
+        "narrative_structure",
+        0,
+    ): (
+        "module_name",
+        "content_direction",
+        "proof_points",
+        "limitations",
+        "risk_notes",
+    ),
+    (
+        "xiaohongshu_brief_candidate",
+        "creative_structure_directions",
+        "content_angle_mappings",
+        0,
+    ): (
+        "source_content_angle_id",
+        "xiaohongshu_angle",
+        "note_format",
+        "content_mode",
+        "narrative_structure",
+        "proof_points",
+        "customer_language",
+        "hypotheses",
+        "limitations",
+        "risk_notes",
+    ),
+    (
+        "xiaohongshu_brief_candidate",
+        "creative_structure_directions",
+        "proof_placement",
+        0,
+    ): ("proof_point", "narrative_module", "placement_direction"),
+    ("xiaohongshu_brief_candidate", "discovery_and_action_directions"): (
+        "search_intent",
+        "keyword_directions",
+        "topic_directions",
+        "hashtag_directions",
+        "cta_mapping",
+        "interaction_prompt_direction",
+    ),
+    (
+        "xiaohongshu_brief_candidate",
+        "discovery_and_action_directions",
+        "cta_mapping",
+    ): ("source_cta_objective", "cta_direction", "risk_notes"),
+    (
+        "xiaohongshu_brief_candidate",
+        "evidence_and_platform_constraints",
+    ): (
+        "proof_points",
+        "customer_language",
+        "mandatory_messages",
+        "prohibited_claims",
+        "hypotheses",
+        "evidence_limitations",
+        "platform_risk_notes",
+        "review_route_notes",
+        "required_qualification_notes",
+        "commercial_disclosure_notes",
+    ),
+    (
+        "xiaohongshu_brief_candidate",
+        "evidence_and_platform_constraints",
+        "customer_language",
+        0,
+    ): ("fragment_id", "source_scope", "quote_type", "locator", "usage_direction"),
+}
+
+
+def test_object_field_inventory_and_semantic_required_order_are_independent() -> None:
+    schema = _schema()
+    for path, expected_fields in _EXPECTED_OBJECT_FIELDS.items():
+        node = schema if not path else _schema_node_at(path)
+        properties = cast(dict[str, object], node["properties"])
+        assert list(properties) == sorted(expected_fields)
+        assert tuple(cast(list[str], node["required"])) == expected_fields
+        assert node["additionalProperties"] is False
+    actual_paths = {
+        path
+        for path, node in _walk_schema(schema)
+        if node.get("type") in ("object", ["object", "null"])
+    }
+    assert actual_paths == set(_EXPECTED_OBJECT_FIELDS)
 
 
 def _required_paths() -> list[tuple[object, ...]]:
@@ -518,9 +681,21 @@ def test_nonnullable_required_paths_reject_null() -> None:
 
 
 def test_all_nonblank_string_paths_reject_whitespace() -> None:
-    for path, node in _walk_schema(_schema()):
-        if node.get("type") not in ("string", ["string", "null"]):
-            continue
+    string_paths = {
+        path
+        for path, node in _walk_schema(_schema())
+        if node.get("type") in ("string", ["string", "null"])
+    }
+    assert len(string_paths) == 69
+    assert (
+        "xiaohongshu_brief_candidate",
+        "creative_structure_directions",
+        "title_directions",
+        0,
+        "risk_notes",
+        0,
+    ) in string_paths
+    for path in string_paths:
         payload = _payload("valid")
         _set_path(payload, path, "   ")
         with pytest.raises(ModelRuntimeError):
@@ -531,9 +706,19 @@ def test_all_nonblank_string_paths_reject_whitespace() -> None:
 
 
 def test_boolean_paths_are_exact_booleans() -> None:
-    for path, node in _walk_schema(_schema()):
-        if node.get("type") != "boolean":
-            continue
+    boolean_paths = {
+        path for path, node in _walk_schema(_schema()) if node.get("type") == "boolean"
+    }
+    assert boolean_paths == {
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "title_directions",
+            0,
+            "proof_required",
+        )
+    }
+    for path in boolean_paths:
         for value in (1, "true", None):
             payload = _payload("valid")
             _set_path(payload, path, value)
@@ -576,20 +761,21 @@ def test_both_note_formats_and_all_stage_decisions_are_known() -> None:
 
 
 def test_unknown_enum_values_reject() -> None:
-    payload = _payload("valid")
-    context = cast(dict[str, object], payload["workflow_and_version_context"])
+    stage_payload = _payload("valid")
+    context = cast(dict[str, object], stage_payload["workflow_and_version_context"])
     context["stage_decision"] = "unknown"
     with pytest.raises(ModelRuntimeError):
         parse_and_validate_structured_output(
-            result=_result(payload),
+            result=_result(stage_payload),
             spec=_mapping.xiaohongshu_brief_candidate_output_spec(),
         )
-    candidate = cast(dict[str, object], payload["xiaohongshu_brief_candidate"])
+    note_payload = _payload("valid")
+    candidate = cast(dict[str, object], note_payload["xiaohongshu_brief_candidate"])
     note = cast(dict[str, object], candidate["note_format_and_content_mode"])
     note["recommended_note_format"] = "unknown"
     with pytest.raises(ModelRuntimeError):
         parse_and_validate_structured_output(
-            result=_result(payload),
+            result=_result(note_payload),
             spec=_mapping.xiaohongshu_brief_candidate_output_spec(),
         )
 
@@ -682,11 +868,76 @@ def test_specs_are_equal_detached_and_preflightable() -> None:
     first_props = cast(dict[str, object], first_mapping["properties"])
     first_context = cast(dict[str, object], first_props["workflow_and_version_context"])
     cast(dict[str, object], first_context["properties"])["nested_extra"] = {}
+    first_candidate = cast(
+        dict[str, object], first_props["xiaohongshu_brief_candidate"]
+    )
+    first_candidate_properties = cast(dict[str, object], first_candidate["properties"])
+    first_note = cast(
+        dict[str, object], first_candidate_properties["note_format_and_content_mode"]
+    )
+    first_note_properties = cast(dict[str, object], first_note["properties"])
+    cast(
+        list[object],
+        cast(dict[str, object], first_note_properties["recommended_note_format"])[
+            "enum"
+        ],
+    ).append("unexpected")
+    first_platform = cast(
+        dict[str, object], first_candidate_properties["platform_and_campaign_context"]
+    )
+    cast(list[object], first_platform["required"]).append("unexpected")
+    first_creative = cast(
+        dict[str, object], first_candidate_properties["creative_structure_directions"]
+    )
+    first_title_array = cast(
+        dict[str, object],
+        cast(dict[str, object], first_creative["properties"])["title_directions"],
+    )
+    cast(
+        list[object], cast(dict[str, object], first_title_array["items"])["required"]
+    ).append("unexpected")
     second_props = cast(dict[str, object], second_mapping["properties"])
     second_context = cast(
         dict[str, object], second_props["workflow_and_version_context"]
     )
     assert "nested_extra" not in cast(dict[str, object], second_context["properties"])
+    second_candidate = cast(
+        dict[str, object], second_props["xiaohongshu_brief_candidate"]
+    )
+    second_candidate_properties = cast(
+        dict[str, object], second_candidate["properties"]
+    )
+    second_note = cast(
+        dict[str, object], second_candidate_properties["note_format_and_content_mode"]
+    )
+    second_note_properties = cast(dict[str, object], second_note["properties"])
+    assert cast(
+        list[object],
+        cast(dict[str, object], second_note_properties["recommended_note_format"])[
+            "enum"
+        ],
+    ) == ["image_text_note_brief", "video_note_brief"]
+    second_platform = cast(
+        dict[str, object], second_candidate_properties["platform_and_campaign_context"]
+    )
+    assert cast(list[object], second_platform["required"]) == [
+        "platform",
+        "account_type",
+        "content_relationship",
+        "commercial_context",
+        "campaign_objective",
+        "available_asset_types",
+    ]
+    second_creative = cast(
+        dict[str, object], second_candidate_properties["creative_structure_directions"]
+    )
+    second_title_array = cast(
+        dict[str, object],
+        cast(dict[str, object], second_creative["properties"])["title_directions"],
+    )
+    assert "unexpected" not in cast(
+        list[object], cast(dict[str, object], second_title_array["items"])["required"]
+    )
 
 
 def test_no_final_content_inventory() -> None:
