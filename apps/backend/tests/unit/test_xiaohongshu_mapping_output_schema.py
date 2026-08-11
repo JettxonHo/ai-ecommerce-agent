@@ -118,7 +118,9 @@ def _candidate(kind: str = "valid") -> dict[str, object]:
                     "content_mode": "problem_solution",
                     "narrative_structure": ["opening tension"],
                     "proof_points": ["fact-1"],
-                    "customer_language": ["documented customer phrasing"],
+                    "customer_language": (
+                        [] if limited else ["documented customer phrasing"]
+                    ),
                     "hypotheses": ["access matters"],
                     "limitations": ["not a usage review"],
                     "risk_notes": ["keep comparison contextual"],
@@ -760,7 +762,7 @@ def test_both_note_formats_and_all_stage_decisions_are_known() -> None:
         )
 
 
-def test_unknown_enum_values_reject() -> None:
+def test_unknown_stage_value_rejects_on_fresh_valid_payload() -> None:
     stage_payload = _payload("valid")
     context = cast(dict[str, object], stage_payload["workflow_and_version_context"])
     context["stage_decision"] = "unknown"
@@ -769,13 +771,31 @@ def test_unknown_enum_values_reject() -> None:
             result=_result(stage_payload),
             spec=_mapping.xiaohongshu_brief_candidate_output_spec(),
         )
-    note_payload = _payload("valid")
-    candidate = cast(dict[str, object], note_payload["xiaohongshu_brief_candidate"])
-    note = cast(dict[str, object], candidate["note_format_and_content_mode"])
-    note["recommended_note_format"] = "unknown"
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        (
+            "xiaohongshu_brief_candidate",
+            "note_format_and_content_mode",
+            "recommended_note_format",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "content_angle_mappings",
+            0,
+            "note_format",
+        ),
+    ],
+)
+def test_each_note_format_path_rejects_unknown(path: tuple[object, ...]) -> None:
+    payload = _payload("valid")
+    _set_path(payload, path, "unknown-note-format")
     with pytest.raises(ModelRuntimeError):
         parse_and_validate_structured_output(
-            result=_result(note_payload),
+            result=_result(payload),
             spec=_mapping.xiaohongshu_brief_candidate_output_spec(),
         )
 
@@ -805,6 +825,12 @@ def test_open_taxonomies_accept_distinct_nonblank_strings() -> None:
         ),
         (
             "xiaohongshu_brief_candidate",
+            "platform_and_campaign_context",
+            "available_asset_types",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
             "note_format_and_content_mode",
             "primary_content_mode",
         ),
@@ -820,6 +846,73 @@ def test_open_taxonomies_accept_distinct_nonblank_strings() -> None:
         ),
         (
             "xiaohongshu_brief_candidate",
+            "note_format_and_content_mode",
+            "source_content_angle_ids",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "title_directions",
+            0,
+            "title_direction",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "title_directions",
+            0,
+            "user_question_or_tension",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "title_directions",
+            0,
+            "primary_keyword",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "title_directions",
+            0,
+            "message_focus",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "title_directions",
+            0,
+            "risk_notes",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "cover_direction",
+            "cover_message_direction",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "cover_direction",
+            "cover_visual_focus",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "cover_direction",
+            "cover_information_priority",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "cover_direction",
+            "cover_risk_notes",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
             "creative_structure_directions",
             "narrative_structure",
             0,
@@ -828,9 +921,194 @@ def test_open_taxonomies_accept_distinct_nonblank_strings() -> None:
         (
             "xiaohongshu_brief_candidate",
             "creative_structure_directions",
+            "narrative_structure",
+            0,
+            "content_direction",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "narrative_structure",
+            0,
+            "proof_points",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "narrative_structure",
+            0,
+            "limitations",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "narrative_structure",
+            0,
+            "risk_notes",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "content_angle_mappings",
+            0,
+            "source_content_angle_id",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "content_angle_mappings",
+            0,
+            "xiaohongshu_angle",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
             "content_angle_mappings",
             0,
             "content_mode",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "content_angle_mappings",
+            0,
+            "narrative_structure",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "content_angle_mappings",
+            0,
+            "proof_points",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "content_angle_mappings",
+            0,
+            "customer_language",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "content_angle_mappings",
+            0,
+            "hypotheses",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "content_angle_mappings",
+            0,
+            "limitations",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "content_angle_mappings",
+            0,
+            "risk_notes",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "message_priority",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "proof_placement",
+            0,
+            "proof_point",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "proof_placement",
+            0,
+            "narrative_module",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "proof_placement",
+            0,
+            "placement_direction",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "creative_structure_directions",
+            "fit_boundary",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "discovery_and_action_directions",
+            "search_intent",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "discovery_and_action_directions",
+            "keyword_directions",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "discovery_and_action_directions",
+            "topic_directions",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "discovery_and_action_directions",
+            "hashtag_directions",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "discovery_and_action_directions",
+            "cta_mapping",
+            "source_cta_objective",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "discovery_and_action_directions",
+            "cta_mapping",
+            "cta_direction",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "discovery_and_action_directions",
+            "cta_mapping",
+            "risk_notes",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "discovery_and_action_directions",
+            "interaction_prompt_direction",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "proof_points",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "customer_language",
+            0,
+            "fragment_id",
         ),
         (
             "xiaohongshu_brief_candidate",
@@ -846,14 +1124,93 @@ def test_open_taxonomies_accept_distinct_nonblank_strings() -> None:
             0,
             "quote_type",
         ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "customer_language",
+            0,
+            "locator",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "customer_language",
+            0,
+            "usage_direction",
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "mandatory_messages",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "prohibited_claims",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "hypotheses",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "evidence_limitations",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "platform_risk_notes",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "review_route_notes",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "required_qualification_notes",
+            0,
+        ),
+        (
+            "xiaohongshu_brief_candidate",
+            "evidence_and_platform_constraints",
+            "commercial_disclosure_notes",
+            0,
+        ),
     ]
-    for path in paths:
+    values = [f"open-taxonomy-{index}" for index in range(len(paths))]
+    assert len(set(values)) == len(paths)
+    for path, value in zip(paths, values, strict=True):
         payload = _payload("valid")
-        _set_path(payload, path, "arbitrary-open-taxonomy")
+        _set_path(payload, path, value)
         parse_and_validate_structured_output(
             result=_result(payload),
             spec=_mapping.xiaohongshu_brief_candidate_output_spec(),
         )
+    keyword_path = (
+        "xiaohongshu_brief_candidate",
+        "discovery_and_action_directions",
+        "keyword_directions",
+        0,
+    )
+    keyword_payload = _payload("valid")
+    _set_path(keyword_payload, keyword_path, "keyword-not-in-a-frozen-enum")
+    assert (
+        parse_and_validate_structured_output(
+            result=_result(keyword_payload),
+            spec=_mapping.xiaohongshu_brief_candidate_output_spec(),
+        ).to_mapping()
+        == keyword_payload
+    )
 
 
 def test_specs_are_equal_detached_and_preflightable() -> None:
