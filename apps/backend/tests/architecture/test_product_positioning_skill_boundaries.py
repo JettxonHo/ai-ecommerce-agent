@@ -12,6 +12,9 @@ pytestmark = pytest.mark.architecture
 _BACKEND = Path(__file__).resolve().parents[2]
 _SRC = _BACKEND / "src/ai_ecommerce_agent"
 _PACKAGE = _SRC / "modules/product_positioning"
+_OUTPUT_CONTRACT = (
+    _PACKAGE / "application/skills/product_positioning/output_contract.py"
+)
 _FILES = [
     _PACKAGE / "__init__.py",
     _PACKAGE / "application/__init__.py",
@@ -64,6 +67,21 @@ def _import_names(tree: ast.Module) -> list[str]:
     return names
 
 
+def _relative_import_targets(path: Path, node: ast.ImportFrom) -> list[Path]:
+    base = path.parent
+    for _ in range(max(0, node.level - 1)):
+        base = base.parent
+    if node.module:
+        target = base.joinpath(*node.module.split("."))
+        return [target.with_suffix(".py"), target / "__init__.py"]
+    return [
+        target.with_suffix(".py")
+        for target in (base / alias.name for alias in node.names)
+    ] + [
+        target / "__init__.py" for target in (base / alias.name for alias in node.names)
+    ]
+
+
 def _positioning_consumer_violations(path: Path, tree: ast.Module) -> list[str]:
     violations: list[str] = []
     for node in ast.walk(tree):
@@ -73,9 +91,30 @@ def _positioning_consumer_violations(path: Path, tree: ast.Module) -> list[str]:
                     violations.append(f"{path}:{alias.name}")
         elif isinstance(node, ast.ImportFrom):
             imported = "." * node.level + (node.module or "")
-            if path == _FACADE and imported == ".output_contract":
+            aliases = {alias.name for alias in node.names}
+            relative_targets = (
+                _relative_import_targets(path, node) if node.level else []
+            )
+            targets_positioning = any(
+                target == _PACKAGE or _PACKAGE in target.parents
+                for target in relative_targets
+            )
+            facade_import = (
+                path == _FACADE
+                and node.level == 1
+                and (
+                    node.module == "output_contract"
+                    or (node.module is None and aliases == {"output_contract"})
+                )
+                and _OUTPUT_CONTRACT in relative_targets
+            )
+            if facade_import:
                 continue
-            if "product_positioning" in imported:
+            if (
+                "product_positioning" in imported
+                or "product_positioning" in aliases
+                or targets_positioning
+            ):
                 violations.append(f"{path}:{imported}")
     return violations
 
@@ -257,6 +296,25 @@ def test_repository_consumer_guard_rejects_an_unauthorized_production_import() -
         "import product_positioning\n"
     )
     assert _positioning_consumer_violations(_SRC / "modules/other.py", mutation)
+
+    facade = _FACADE
+    assert not _positioning_consumer_violations(
+        facade,
+        ast.parse(
+            "from .output_contract import product_positioning_candidate_output_spec\n"
+        ),
+    )
+    assert not _positioning_consumer_violations(
+        facade, ast.parse("from . import output_contract\n")
+    )
+    for source in (
+        "from .output_contract import product_positioning_candidate_output_spec\n",
+        "from . import output_contract\n",
+    ):
+        assert _positioning_consumer_violations(
+            _PACKAGE / "application/skills/product_positioning/sibling.py",
+            ast.parse(source),
+        )
 
 
 def test_no_import_time_calls_or_mutable_module_globals() -> None:
