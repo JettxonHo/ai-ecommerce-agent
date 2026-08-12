@@ -73,6 +73,8 @@ def _qualified_name(node: ast.AST) -> str | None:
         parent = _qualified_name(node.value)
         if parent is not None:
             return f"{parent}.{node.attr}"
+    if isinstance(node, ast.Call):
+        return _qualified_name(node.func)
     return None
 
 
@@ -445,6 +447,35 @@ def test_import_time_environment_scanner_has_valid_baseline_and_alias_probe() ->
     assert _import_time_effects(baseline) == frozenset()
     mutation = "from os import getenv as read_env\nVALUE = read_env('SECRET')\n"
     assert _import_time_effects(mutation) == frozenset({"environment"})
+
+
+def test_import_time_effect_scanner_has_baseline_and_single_io_probes() -> None:
+    """Import-time I/O is rejected while request-time bodies remain valid."""
+
+    baseline = (
+        "from typing import Final\n"
+        "IMMUTABLE: Final = frozenset({'ok'})\n"
+        "def request_time():\n"
+        "    import pathlib\n"
+        "    import socket\n"
+        "    import uvicorn\n"
+        "    pathlib.Path('x').write_text('y')\n"
+        "    socket.socket()\n"
+        "    uvicorn.run('app')\n"
+    )
+    assert _import_time_effects(baseline) == frozenset()
+
+    filesystem_probe = "import pathlib\npathlib.Path('x').write_text('y')\n"
+    assert _import_time_effects(filesystem_probe) == frozenset({"filesystem"})
+
+    aliased_filesystem_probe = "from pathlib import Path as P\nP('x').write_text('y')\n"
+    assert _import_time_effects(aliased_filesystem_probe) == frozenset({"filesystem"})
+
+    network_probe = "import socket\nsocket.create_connection(('127.0.0.1', 1))\n"
+    assert _import_time_effects(network_probe) == frozenset({"network"})
+
+    server_probe = "import uvicorn\nuvicorn.run('app')\n"
+    assert _import_time_effects(server_probe) == frozenset({"server"})
 
 
 def test_dependency_pins_are_exact() -> None:
