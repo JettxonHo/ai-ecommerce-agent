@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import App from "../../src/App";
+import { createDeterministicTaskGateway } from "../../src/tasks/deterministicGateway";
 
 describe("foundation startup contract", () => {
   afterEach(() => {
@@ -18,12 +19,12 @@ describe("foundation startup contract", () => {
     render(
       <BrowserRouter>
         <QueryClientProvider client={new QueryClient()}>
-          <App />
+          <App taskGateway={createDeterministicTaskGateway()} />
         </QueryClientProvider>
       </BrowserRouter>,
     );
 
-    expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Recent tasks" })).toBeTruthy();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
