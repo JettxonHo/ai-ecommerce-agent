@@ -1,9 +1,10 @@
 """One explicit FL-2 Task-to-export smoke through FastAPI and PostgreSQL.
 
 The module is skipped unless both the existing local PostgreSQL opt-in and
-``RUN_LIVE_MODEL_SMOKE=1`` are set.  A live flag without a nonblank key fails
-at collection with a fixed safe message; the key value is never printed or
-included in evidence.
+``RUN_LIVE_MODEL_SMOKE=1`` are set.  Once both flags are set, the private
+adapter factory owns Secret resolution and fails fast on a missing or blank
+key before the PostgreSQL fixture is opened; the key value is never printed
+or included in evidence.
 """
 
 # FastAPI/Starlette's TestClient is an untyped framework boundary in the
@@ -87,10 +88,6 @@ pytestmark = [pytest.mark.integration, pytest.mark.live]
 
 _RUN_LIVE = os.environ.get("RUN_LIVE_MODEL_SMOKE") == "1"
 _RUN_POSTGRES = os.environ.get("MVP0_RUN_TASK_HTTP_POSTGRES") == "1"
-if _RUN_LIVE and not os.environ.get("OPENAI_API_KEY", "").strip():
-    pytest.fail(
-        "RUN_LIVE_MODEL_SMOKE=1 requires OPENAI_API_KEY; value is not displayed"
-    )
 if _RUN_LIVE and not os.environ.get("GIT_COMMIT", "").strip():
     pytest.fail(
         "RUN_LIVE_MODEL_SMOKE=1 requires GIT_COMMIT for evidence; "
@@ -144,9 +141,21 @@ def _alembic_config(database_url: str) -> Config:
 
 
 @pytest.fixture(scope="module")
-def postgres_engine() -> Iterator[Engine]:
+def live_runtime_preflight() -> Iterator[None]:
+    """Let the adapter own Secret validation before PostgreSQL setup."""
+
+    runtime = create_openai_responses_runtime()
+    try:
+        yield
+    finally:
+        runtime.close()
+
+
+@pytest.fixture(scope="module")
+def postgres_engine(live_runtime_preflight: None) -> Iterator[Engine]:
     """Own one schema, migrate to the current head, and clean it afterwards."""
 
+    del live_runtime_preflight
     database_url = _database_url()
     engine = create_postgres_engine(
         PostgresEngineConfig(

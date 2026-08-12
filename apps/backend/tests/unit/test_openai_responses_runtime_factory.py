@@ -130,6 +130,27 @@ def test_missing_or_wrong_credential_fails_without_fallback(
         create_openai_responses_runtime(credential_ref="other")
 
 
+@pytest.mark.parametrize("secret", [None, "", " ", "\t\n"])
+def test_factory_rejects_missing_or_whitespace_secret_before_sdk_constructor(
+    monkeypatch: pytest.MonkeyPatch, secret: str | None
+) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    if secret is not None:
+        monkeypatch.setenv("OPENAI_API_KEY", secret)
+    constructor_called = False
+
+    def forbidden_constructor(*_args: object, **_kwargs: object) -> None:
+        nonlocal constructor_called
+        constructor_called = True
+        raise AssertionError("SDK constructor must not run for a blank Secret")
+
+    monkeypatch.setattr(openai, "OpenAI", forbidden_constructor)
+    with pytest.raises(OpenAIResponsesConfigurationError) as caught:
+        create_openai_responses_runtime()
+    assert str(caught.value) == "OpenAI Responses configuration/access failure"
+    assert not constructor_called
+
+
 def test_factory_constructs_exact_sdk_client_with_sdk_retry_disabled(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -15,6 +15,13 @@ from ai_ecommerce_agent.platform.model_runtime.openai_responses._live_evidence i
 pytestmark = pytest.mark.unit
 
 
+def test_live_smoke_never_reads_provider_secret_directly() -> None:
+    source = (
+        Path(__file__).parents[1] / "integration" / "test_fl2_openai_live_smoke.py"
+    ).read_text(encoding="utf-8")
+    assert "OPENAI_API_KEY" not in source
+
+
 def test_live_evidence_has_only_the_operator_allowlist() -> None:
     evidence = serialize_live_smoke_evidence(
         commit="fa02d1f4e8172948ad1a909ac4ebf7fb9bdfb5a5",
