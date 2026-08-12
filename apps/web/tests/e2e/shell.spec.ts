@@ -231,6 +231,145 @@ test("renders representative intake, active-run, and recovery modes without extr
   expect(consoleErrors).toEqual([]);
 });
 
+test("renders long reference identities as literal text without overflow or execution", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  const pageErrors: string[] = [];
+  const consoleErrors: string[] = [];
+  const requestPaths: string[] = [];
+  const marker = '<img src=x onerror="window.__shellInjected=1">';
+  const reference = (label: string) => `${marker}${label}${"x".repeat(260)}`;
+  const references = {
+    activeRunId: reference("active-run"),
+    latestRunId: reference("latest-run"),
+    needsInputResourceId: reference("needs-input"),
+    reviewPackageId: reference("review-package"),
+    strategyVersionId: reference("strategy"),
+    marketingVersionId: reference("marketing"),
+    xiaohongshuVersionId: reference("xiaohongshu"),
+  };
+  const longReferenceTask = {
+    ...task,
+    taskId: "task-long-references",
+    taskName: "Long references",
+    taskStatus: "waiting_for_input",
+    activeRun: { runId: references.activeRunId },
+    latestRun: { runId: references.latestRunId },
+    needsInputRequest: {
+      resourceId: references.needsInputResourceId,
+      revision: 5,
+    },
+    reviewPackage: {
+      reviewPackageId: references.reviewPackageId,
+      packageVersion: 2,
+    },
+    approvedStrategy: {
+      resourceKind: "strategy",
+      resourceVersionId: references.strategyVersionId,
+      versionNumber: 3,
+    },
+    marketingBrief: {
+      resourceKind: "marketing_brief",
+      resourceVersionId: references.marketingVersionId,
+      versionNumber: 4,
+    },
+    xiaohongshuBrief: {
+      resourceKind: "xiaohongshu_brief",
+      resourceVersionId: references.xiaohongshuVersionId,
+      versionNumber: 5,
+    },
+  };
+
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      consoleErrors.push(message.text());
+    }
+  });
+  await page.addInitScript(() => {
+    (window as unknown as { __shellInjected?: boolean }).__shellInjected =
+      false;
+  });
+  await page.route("**/api/v1/tasks**", async (route) => {
+    const url = new URL(route.request().url());
+    requestPaths.push(`${route.request().method()} ${url.pathname}`);
+    if (url.pathname === "/api/v1/tasks/task-long-references") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(longReferenceTask),
+      });
+      return;
+    }
+    await route.abort();
+  });
+
+  await page.goto(
+    "/tasks/task-long-references?panel=evidence&stage=product_positioning",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Long references" }),
+  ).toBeVisible();
+
+  const expectedReferenceText = [
+    references.activeRunId,
+    references.latestRunId,
+    `${references.needsInputResourceId} · revision 5`,
+    `${references.reviewPackageId} · version 2`,
+    `strategy: ${references.strategyVersionId} · version 3`,
+    `marketing_brief: ${references.marketingVersionId} · version 4`,
+    `xiaohongshu_brief: ${references.xiaohongshuVersionId} · version 5`,
+  ];
+  for (const value of expectedReferenceText) {
+    await expect(page.getByText(value, { exact: true })).toBeVisible();
+  }
+
+  await page.waitForTimeout(50);
+  const dimensions = await page.evaluate(() => ({
+    documentClientWidth: document.documentElement.clientWidth,
+    documentScrollWidth: document.documentElement.scrollWidth,
+    bodyClientWidth: document.body.clientWidth,
+    bodyScrollWidth: document.body.scrollWidth,
+  }));
+  expect(dimensions.documentScrollWidth).toBe(dimensions.documentClientWidth);
+  expect(dimensions.bodyScrollWidth).toBe(dimensions.bodyClientWidth);
+
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { __shellInjected?: boolean }).__shellInjected,
+    ),
+  ).toBe(false);
+  expect(
+    await page.evaluate((payloadMarker) => {
+      const executableNodes = Array.from(
+        document.querySelectorAll("img, [onerror], [onclick]"),
+      );
+      const scriptsWithPayload = Array.from(document.scripts).some((script) =>
+        script.textContent?.includes(payloadMarker),
+      );
+      return executableNodes.length === 0 && !scriptsWithPayload;
+    }, marker),
+  ).toBe(true);
+
+  const evidenceLink = page.getByRole("link", {
+    name: "Evidence",
+    exact: true,
+  });
+  await evidenceLink.focus();
+  await expect(evidenceLink).toBeFocused();
+  expect(
+    await evidenceLink.evaluate(
+      (element) => getComputedStyle(element).outlineStyle,
+    ),
+  ).not.toBe("none");
+
+  expect(requestPaths).toEqual(["GET /api/v1/tasks/task-long-references"]);
+  expect(pageErrors).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
 test("reflows long Task values without page-level horizontal overflow", async ({
   page,
 }) => {

@@ -1,7 +1,16 @@
-import { render, screen, within } from "@testing-library/react";
-import { MemoryRouter, useLocation } from "react-router";
-import { describe, expect, it } from "vitest";
-import type { TaskOverview } from "../gateway";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useContext, useMemo, type ReactNode } from "react";
+import {
+  MemoryRouter,
+  Route,
+  Routes,
+  UNSAFE_NavigationContext,
+  useLocation,
+} from "react-router";
+import { describe, expect, it, vi } from "vitest";
+import { TaskRoutes } from "../TaskRoutes";
+import type { TaskGateway, TaskOverview } from "../gateway";
 import { WORKBENCH_PANELS, WORKBENCH_STAGES } from "./projection";
 import { TaskWorkbench } from "./TaskWorkbench";
 
@@ -44,6 +53,28 @@ const task = (overrides: Partial<TaskOverview> = {}): TaskOverview => ({
   ...overrides,
 });
 
+const replaceSpy = vi.fn();
+
+const NavigationSpy = ({ children }: Readonly<{ children: ReactNode }>) => {
+  const navigation = useContext(UNSAFE_NavigationContext);
+  const navigator = useMemo(
+    () => ({
+      ...navigation.navigator,
+      replace: (...args: Parameters<typeof navigation.navigator.replace>) => {
+        replaceSpy(...args);
+        return navigation.navigator.replace(...args);
+      },
+    }),
+    [navigation.navigator],
+  );
+
+  return (
+    <UNSAFE_NavigationContext.Provider value={{ ...navigation, navigator }}>
+      {children}
+    </UNSAFE_NavigationContext.Provider>
+  );
+};
+
 const LocationProbe = () => {
   const location = useLocation();
   return (
@@ -57,8 +88,8 @@ const LocationProbe = () => {
 const renderWorkbench = (
   value: TaskOverview = task(),
   search = "?keep=one&panel=review&stage=product_positioning",
-) =>
-  render(
+) => {
+  const result = render(
     <MemoryRouter
       initialEntries={[`/tasks/${encodeURIComponent(value.taskId)}${search}`]}
     >
@@ -66,6 +97,8 @@ const renderWorkbench = (
       <LocationProbe />
     </MemoryRouter>,
   );
+  return result;
+};
 
 describe("TaskWorkbench", () => {
   it("renders authoritative task metadata, mode, selection, and stage order", () => {
@@ -241,4 +274,90 @@ describe("TaskWorkbench", () => {
       "/tasks/task%2F7?filter=mine",
     );
   });
+
+  it.each([
+    {
+      label: "a blank panel",
+      search: "?panel=",
+      expectedSearch: "?panel=intake&stage=product_positioning",
+      replaceCount: 1,
+    },
+    {
+      label: "a blank stage",
+      search: "?stage=",
+      expectedSearch: "?panel=intake&stage=product_positioning",
+      replaceCount: 1,
+    },
+    {
+      label: "repeated panel values",
+      search: "?panel=review&panel=results&stage=product_positioning",
+      expectedSearch: "?panel=intake&stage=product_positioning",
+      replaceCount: 1,
+    },
+    {
+      label: "an inapplicable stage",
+      search: "?panel=review&stage=human_review",
+      expectedSearch: "?panel=review&stage=product_positioning",
+      replaceCount: 1,
+    },
+    {
+      label: "a valid selection",
+      search: "?panel=review&stage=product_positioning",
+      expectedSearch: null,
+      replaceCount: 0,
+    },
+    {
+      label: "absent parameters",
+      search: "",
+      expectedSearch: null,
+      replaceCount: 0,
+    },
+  ])(
+    "integrated TaskRoutes performs exactly one canonical replace for $label",
+    async ({ search, expectedSearch, replaceCount }) => {
+      replaceSpy.mockClear();
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+      });
+      const getTaskOverview = vi.fn().mockResolvedValue(task());
+      const gateway: TaskGateway = {
+        listTasks: () => Promise.resolve([]),
+        createTask: () => Promise.resolve(task()),
+        getTaskOverview,
+      };
+
+      render(
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter initialEntries={[`/tasks/task-7${search}`]}>
+            <NavigationSpy>
+              <Routes>
+                <Route
+                  path="/tasks/:taskId"
+                  element={<TaskRoutes taskGateway={gateway} />}
+                />
+              </Routes>
+            </NavigationSpy>
+          </MemoryRouter>
+        </QueryClientProvider>,
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole("heading", { name: "City launch" }),
+        ).toBeTruthy(),
+      );
+      if (replaceCount === 1) {
+        await waitFor(() => expect(replaceSpy).toHaveBeenCalledTimes(1));
+        expect(replaceSpy.mock.calls[0]?.[0]).toEqual({
+          hash: "",
+          pathname: "/tasks/task-7",
+          search: expectedSearch,
+        });
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      expect(replaceSpy).toHaveBeenCalledTimes(replaceCount);
+      expect(getTaskOverview).toHaveBeenCalledTimes(1);
+    },
+  );
 });
