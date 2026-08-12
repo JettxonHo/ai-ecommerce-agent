@@ -83,6 +83,22 @@ def test_sufficient_anchor_runs_five_ordered_validated_stages_and_carries_contex
     ]
     assert recorder is not None
     assert len(recorder.requests) == 5
+    assert [request.identity.model_call_id.value for request in recorder.requests] == [
+        "deterministic-stage-1",
+        "deterministic-stage-2",
+        "deterministic-stage-3",
+        "deterministic-stage-4",
+        "deterministic-stage-5",
+    ]
+    assert [
+        request.execution_profile.execution_profile_id for request in recorder.requests
+    ] == [
+        "product_intake_v1",
+        "customer_insight_v1",
+        "product_positioning_v1",
+        "marketing_brief_v1",
+        "xiaohongshu_mapping_v1",
+    ]
     assert [
         request.structured_output.output_schema_id for request in recorder.requests
     ] == [

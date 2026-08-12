@@ -348,7 +348,9 @@ def test_exact_inventory_imports_and_private_facade() -> None:
     assert sorted(path.name for path in _PACKAGE.glob("*.py")) == [
         "__init__.py",
         "_execution.py",
+        "_live_evidence.py",
         "_response_mapping.py",
+        "_runtime.py",
         "_schema_compatibility.py",
         "request_preparation.py",
     ]

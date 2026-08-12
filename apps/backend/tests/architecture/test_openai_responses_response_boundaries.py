@@ -357,7 +357,9 @@ def test_private_mapper_has_exact_path_specific_imports_and_no_public_reexport()
     assert sorted(path.name for path in _PACKAGE.glob("*.py")) == [
         "__init__.py",
         "_execution.py",
+        "_live_evidence.py",
         "_response_mapping.py",
+        "_runtime.py",
         "_schema_compatibility.py",
         "request_preparation.py",
     ]
@@ -384,7 +386,11 @@ def test_only_private_mapper_imports_openai_and_no_unauthorized_consumers_exist(
                 module == "openai" or module.startswith("openai.")
             ):
                 consumers.add(path)
-    assert consumers == {_PACKAGE / "_response_mapping.py", _PACKAGE / "_execution.py"}
+    assert consumers == {
+        _PACKAGE / "_response_mapping.py",
+        _PACKAGE / "_execution.py",
+        _PACKAGE / "_runtime.py",
+    }
     mapper_text = (_PACKAGE / "_response_mapping.py").read_text(encoding="utf-8")
     assert "Client" not in mapper_text
     assert "AsyncOpenAI" not in mapper_text

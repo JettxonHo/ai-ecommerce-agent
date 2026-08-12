@@ -418,7 +418,9 @@ def test_inventory_and_path_specific_imports() -> None:
     assert sorted(path.name for path in _PACKAGE.glob("*.py")) == [
         "__init__.py",
         "_execution.py",
+        "_live_evidence.py",
         "_response_mapping.py",
+        "_runtime.py",
         "_schema_compatibility.py",
         "request_preparation.py",
     ]
