@@ -91,8 +91,10 @@ def upgrade() -> None:
     op.create_check_constraint(
         "ck_task_management_results_confirmation_size",
         result_table,
-        "((confirmed_marketing_core_message IS NULL OR octet_length(confirmed_marketing_core_message) <= 4096) "
-        "AND (confirmed_xiaohongshu_title_direction IS NULL OR octet_length(confirmed_xiaohongshu_title_direction) <= 4096))",
+        "((confirmed_marketing_core_message IS NULL OR "
+        "octet_length(confirmed_marketing_core_message) <= 4096) "
+        "AND (confirmed_xiaohongshu_title_direction IS NULL OR "
+        "octet_length(confirmed_xiaohongshu_title_direction) <= 4096))",
         schema=schema,
     )
 
