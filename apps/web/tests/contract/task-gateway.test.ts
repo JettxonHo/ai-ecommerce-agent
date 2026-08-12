@@ -106,6 +106,60 @@ describe("TaskGateway HTTP contract", () => {
     });
   });
 
+  it("keeps file metadata basename-safe and accepts case-insensitive extensions", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        response(
+          generatedPrimaryInput({
+            inputKind: "text_file",
+            fileName: "NOTES.TXT",
+            updatedAt: "2026-08-12T01:02:03+08:00",
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
+        response(
+          generatedPrimaryInput({
+            inputKind: "text_file",
+            fileName: "../notes.txt",
+          }),
+        ),
+      );
+    const gateway = createHttpTaskGateway(
+      createApiClient({ baseUrl: "https://example.test", fetch }),
+    );
+
+    await expect(gateway.getPrimaryInput("task-1")).resolves.toMatchObject({
+      inputKind: "text_file",
+      fileName: "NOTES.TXT",
+    });
+    await expect(gateway.getPrimaryInput("task-1")).rejects.toMatchObject({
+      kind: "invalid",
+    });
+  });
+
+  it("rejects date-only and impossible primary-input timestamps", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        response(generatedPrimaryInput({ updatedAt: "2026-08-12" })),
+      )
+      .mockResolvedValueOnce(
+        response(generatedPrimaryInput({ updatedAt: "2026-02-30T00:00:00Z" })),
+      );
+    const gateway = createHttpTaskGateway(
+      createApiClient({ baseUrl: "https://example.test", fetch }),
+    );
+
+    await expect(gateway.getPrimaryInput("task-1")).rejects.toMatchObject({
+      kind: "invalid",
+    });
+    await expect(gateway.getPrimaryInput("task-1")).rejects.toMatchObject({
+      kind: "invalid",
+    });
+  });
+
   it("maps every TaskOverview related reference to detached identity-only values", () => {
     const dto = generatedOverview({
       activeRun: { runId: "run-active" },

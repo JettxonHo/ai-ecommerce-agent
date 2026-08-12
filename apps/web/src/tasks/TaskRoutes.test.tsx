@@ -358,14 +358,17 @@ describe("TaskRoutes", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("blocks primary-input editing while the saved input read is unavailable", async () => {
+  it("blocks malformed primary-input reads until retry returns valid data", async () => {
     const task = overview({ taskId: "task-1" });
     const gateway = gatewayFor([task]);
     let attempts = 0;
     gateway.getPrimaryInput = vi.fn(async () => {
       attempts += 1;
       if (attempts === 1) {
-        throw new TaskGatewayError("temporary", "private failure");
+        throw new TaskGatewayError(
+          "invalid",
+          "The primary input response is invalid.",
+        );
       }
       return savedPrimaryInput;
     });
