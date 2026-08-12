@@ -194,3 +194,61 @@ def test_event_is_immutable_and_encoder_accepts_only_exact_event_type() -> None:
                 ),
             )
         )
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("error_category", "unknown"),
+        ("error_category", _TextSubclass("timeout_error")),
+        ("retryability", "retry"),
+        ("retryability", _TextSubclass("retryable")),
+        ("disposition", "resume"),
+        ("disposition", _TextSubclass("retry")),
+        ("component", "   "),
+        ("component", _TextSubclass("worker")),
+    ],
+)
+def test_error_detail_rejects_partial_unknown_blank_and_subclass_values(
+    field: str, value: object
+) -> None:
+    with pytest.raises((TypeError, ValueError)):
+        _event(**{field: value})
+
+
+@pytest.mark.parametrize(
+    "field", ["error_category", "retryability", "disposition", "component"]
+)
+def test_error_detail_rejects_partial_null_values(field: str) -> None:
+    with pytest.raises(ValueError):
+        values: dict[str, object] = {
+            "error_category": "timeout_error",
+            "retryability": "retryable",
+            "disposition": "retry",
+            "component": "worker",
+        }
+        values[field] = None
+        _event(**values)
+
+
+def test_error_detail_quartet_accepts_exact_strings_and_preserves_encoding() -> None:
+    event = _event(
+        source_version_id="source-1",
+        error_category="timeout_error",
+        retryability="retryable",
+        disposition="retry",
+        component="worker",
+    )
+    assert json.loads(encode_runtime_diagnostic_event(event)) == {
+        "occurred_at": "2026-01-02T00:00:00Z",
+        "level": "info",
+        "event_name": "task.started",
+        "service": "worker",
+        "environment": "test",
+        "correlation_id": "corr",
+        "source_version_id": "source-1",
+        "error_category": "timeout_error",
+        "retryability": "retryable",
+        "disposition": "retry",
+        "component": "worker",
+    }

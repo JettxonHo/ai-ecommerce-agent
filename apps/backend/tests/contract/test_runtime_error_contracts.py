@@ -9,11 +9,12 @@ from typing import Any, get_type_hints
 
 import pytest
 
-from ai_ecommerce_agent.application import runtime_errors
+from ai_ecommerce_agent.application import runtime_diagnostics, runtime_errors
 from ai_ecommerce_agent.application.runtime_diagnostics import (
     CorrelationId,
     RuntimeDiagnosticEvent,
     RuntimeDiagnosticLevel,
+    encode_runtime_diagnostic_event,
 )
 from ai_ecommerce_agent.shared_kernel import ResourceReference, RunId, TaskId
 
@@ -69,6 +70,15 @@ def test_facade_and_catalogs_are_exact() -> None:
         "cancel",
         "manual_recovery",
     ]
+    assert tuple(vars(runtime_diagnostics)["_RUNTIME_ERROR_CATEGORIES"]) == tuple(
+        member.value for member in runtime_errors.RuntimeErrorCategory
+    )
+    assert tuple(vars(runtime_diagnostics)["_RUNTIME_ERROR_RETRYABILITIES"]) == tuple(
+        member.value for member in runtime_errors.RuntimeErrorRetryability
+    )
+    assert tuple(vars(runtime_diagnostics)["_RUNTIME_ERROR_DISPOSITIONS"]) == tuple(
+        member.value for member in runtime_errors.RuntimeErrorDisposition
+    )
 
 
 @pytest.mark.parametrize(
@@ -194,3 +204,15 @@ def test_identity_creation_is_application_owned_and_projection_is_directly_typed
         record, service="svc", environment="prod"
     )
     assert type(event) is RuntimeDiagnosticEvent
+    assert event.error_category == "timeout_error"
+    assert event.retryability == "retryable"
+    assert event.disposition == "retry"
+    assert event.component == "worker"
+    assert list(__import__("json").loads(encode_runtime_diagnostic_event(event)))[
+        -4:
+    ] == [
+        "error_category",
+        "retryability",
+        "disposition",
+        "component",
+    ]

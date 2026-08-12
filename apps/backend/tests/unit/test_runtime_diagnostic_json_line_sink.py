@@ -84,6 +84,28 @@ def test_successful_emit_writes_exactly_once_with_one_newline() -> None:
     assert stream.write_calls == len(events)
 
 
+def test_runtime_error_event_sink_preserves_the_appended_detail_quartet() -> None:
+    stream = CountingStringIO()
+    sink = RuntimeDiagnosticJsonLineSink(stream=stream)
+    base = _event("runtime.error.recorded", level=RuntimeDiagnosticLevel.ERROR)
+    event = RuntimeDiagnosticEvent(
+        base.occurred_at,
+        base.level,
+        base.event_name,
+        base.service,
+        base.environment,
+        base.correlation_id,
+        base.task_id,
+        error_category="timeout_error",
+        retryability="retryable",
+        disposition="retry",
+        component="worker",
+    )
+    sink.emit(event)
+    assert stream.write_calls == 1
+    assert stream.writes == [f"{encode_runtime_diagnostic_event(event)}\n"]
+
+
 @pytest.mark.parametrize("invalid", [None, {}, {"event_name": "raw"}, "message"])
 def test_invalid_event_writes_nothing(invalid: object) -> None:
     stream = CountingStringIO()

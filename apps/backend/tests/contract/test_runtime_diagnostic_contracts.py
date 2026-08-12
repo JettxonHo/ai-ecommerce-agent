@@ -34,6 +34,12 @@ _IDENTITY_FIELDS = [
     "review_id",
     "source_version_id",
 ]
+_ERROR_DETAIL_FIELDS = [
+    "error_category",
+    "retryability",
+    "disposition",
+    "component",
+]
 
 
 def _minimal_event() -> runtime_diagnostics.RuntimeDiagnosticEvent:
@@ -102,6 +108,7 @@ def test_event_is_frozen_slotted_and_has_exact_annotations_and_order() -> None:
         "environment",
         "correlation_id",
         *_IDENTITY_FIELDS,
+        *_ERROR_DETAIL_FIELDS,
     )
     assert [field.name for field in fields(event_type)] == list(event_type.__slots__)
     assert not hasattr(_minimal_event(), "__dict__")
@@ -113,6 +120,7 @@ def test_event_is_frozen_slotted_and_has_exact_annotations_and_order() -> None:
         "environment": str,
         "correlation_id": runtime_diagnostics.CorrelationId,
         **dict.fromkeys(_IDENTITY_FIELDS, str | None),
+        **dict.fromkeys(_ERROR_DETAIL_FIELDS, str | None),
     }
     assert list(
         signature(runtime_diagnostics.encode_runtime_diagnostic_event).parameters
@@ -139,6 +147,30 @@ def test_minimal_event_encoding_is_compact_ordered_and_omits_absent_ids() -> Non
         "environment",
         "correlation_id",
     ]
+
+
+def test_present_error_detail_quartet_has_exact_order_and_encoding() -> None:
+    event = runtime_diagnostics.RuntimeDiagnosticEvent(
+        datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC),
+        runtime_diagnostics.RuntimeDiagnosticLevel.ERROR,
+        "runtime.error.recorded",
+        "worker",
+        "test",
+        runtime_diagnostics.CorrelationId("corr-1"),
+        source_version_id="source-1",
+        error_category="timeout_error",
+        retryability="retryable",
+        disposition="retry",
+        component="dispatch-worker",
+    )
+    assert runtime_diagnostics.encode_runtime_diagnostic_event(event) == (
+        '{"occurred_at":"2026-01-02T03:04:05Z",'
+        '"level":"error","event_name":"runtime.error.recorded",'
+        '"service":"worker","environment":"test",'
+        '"correlation_id":"corr-1","source_version_id":"source-1",'
+        '"error_category":"timeout_error","retryability":"retryable",'
+        '"disposition":"retry","component":"dispatch-worker"}'
+    )
 
 
 def test_full_identity_event_normalizes_timezone_and_preserves_opaque_values() -> None:

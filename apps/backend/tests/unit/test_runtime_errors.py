@@ -136,7 +136,32 @@ def test_record_accepts_four_representative_categories() -> None:
             disposition=runtime_errors.RuntimeErrorDisposition.CANCEL,
         ),
     )
+    events = [
+        runtime_errors.runtime_error_to_diagnostic_event(
+            record, service="worker", environment="test"
+        )
+        for record in records
+    ]
     assert all(record.identity.task_id.value == "task-1" for record in records)
+    assert [event.error_category for event in events] == [
+        "transient_infrastructure_error",
+        "data_integrity_error",
+        "provider_content_rejection",
+        "cancellation",
+    ]
+    assert [event.retryability for event in events] == [
+        "retryable",
+        "non_retryable",
+        "unknown",
+        "conditionally_retryable",
+    ]
+    assert [event.disposition for event in events] == [
+        "retry",
+        "manual_recovery",
+        "pause",
+        "cancel",
+    ]
+    assert {event.component for event in events} == {"worker"}
 
 
 @pytest.mark.parametrize(
@@ -197,6 +222,10 @@ def test_projection_is_fixed_payload_free_and_detached() -> None:
         "node_execution_id": "node-1",
         "attempt_id": "attempt-1",
         "error_id": "error-1",
+        "error_category": "timeout_error",
+        "retryability": "retryable",
+        "disposition": "retry",
+        "component": "worker",
     }
     for marker in (
         "SECRET-REQ",
@@ -204,8 +233,6 @@ def test_projection_is_fixed_payload_free_and_detached() -> None:
         "retry SECRET",
         "The operation timed out.",
         "Provider timeout while running the worker.",
-        "timeout_error",
-        "retryable",
         "critical",
     ):
         assert marker not in encoded or marker == "critical"

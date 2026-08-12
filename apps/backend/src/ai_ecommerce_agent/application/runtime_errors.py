@@ -198,4 +198,8 @@ def runtime_error_to_diagnostic_event(
         node_execution_id=identity.node_execution_id,
         attempt_id=identity.attempt_id,
         error_id=identity.error_id.value,
+        error_category=record.error_category.value,
+        retryability=record.retryability.value,
+        disposition=record.disposition.value,
+        component=record.component,
     )

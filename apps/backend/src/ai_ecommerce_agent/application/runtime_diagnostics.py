@@ -20,6 +20,34 @@ __all__ = [
     "encode_runtime_diagnostic_event",
 ]
 
+_RUNTIME_ERROR_CATEGORIES = (
+    "transient_infrastructure_error",
+    "rate_limit_error",
+    "timeout_error",
+    "structured_output_error",
+    "validation_error",
+    "permission_or_authentication_error",
+    "data_integrity_error",
+    "dependency_configuration_error",
+    "provider_content_rejection",
+    "cancellation",
+)
+_RUNTIME_ERROR_RETRYABILITIES = (
+    "retryable",
+    "conditionally_retryable",
+    "non_retryable",
+    "unknown",
+)
+_RUNTIME_ERROR_DISPOSITIONS = (
+    "retry",
+    "fallback",
+    "wait",
+    "pause",
+    "fail",
+    "cancel",
+    "manual_recovery",
+)
+
 
 def _require_text(value: object, field_name: str) -> None:
     if type(value) is not str:
@@ -80,6 +108,10 @@ class RuntimeDiagnosticEvent:
     retrieval_run_id: str | None = None
     review_id: str | None = None
     source_version_id: str | None = None
+    error_category: str | None = None
+    retryability: str | None = None
+    disposition: str | None = None
+    component: str | None = None
 
     def __post_init__(self) -> None:
         if type(self.occurred_at) is not datetime:
@@ -107,6 +139,30 @@ class RuntimeDiagnosticEvent:
             ("source_version_id", self.source_version_id),
         ):
             _require_identity(value, field_name)
+        details = (
+            self.error_category,
+            self.retryability,
+            self.disposition,
+            self.component,
+        )
+        if any(value is None for value in details):
+            if any(value is not None for value in details):
+                raise ValueError("runtime error details must be all present or absent")
+        else:
+            category, retryability, disposition, component = details
+            if type(category) is not str or category not in _RUNTIME_ERROR_CATEGORIES:
+                raise ValueError("error_category must be an accepted runtime value")
+            if (
+                type(retryability) is not str
+                or retryability not in _RUNTIME_ERROR_RETRYABILITIES
+            ):
+                raise ValueError("retryability must be an accepted runtime value")
+            if (
+                type(disposition) is not str
+                or disposition not in _RUNTIME_ERROR_DISPOSITIONS
+            ):
+                raise ValueError("disposition must be an accepted runtime value")
+            _require_text(component, "component")
 
 
 def encode_runtime_diagnostic_event(event: RuntimeDiagnosticEvent) -> str:
@@ -136,6 +192,14 @@ def encode_runtime_diagnostic_event(event: RuntimeDiagnosticEvent) -> str:
         ("retrieval_run_id", event.retrieval_run_id),
         ("review_id", event.review_id),
         ("source_version_id", event.source_version_id),
+    ):
+        if value is not None:
+            payload[field_name] = value
+    for field_name, value in (
+        ("error_category", event.error_category),
+        ("retryability", event.retryability),
+        ("disposition", event.disposition),
+        ("component", event.component),
     ):
         if value is not None:
             payload[field_name] = value
