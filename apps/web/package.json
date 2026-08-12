@@ -17,10 +17,13 @@
     "test:unit": "vitest run src",
     "test:contract": "vitest run tests/contract",
     "test:e2e": "playwright test",
+    "api:generate": "openapi-typescript ../../contracts/openapi/openapi.yaml -o src/api/generated/schema.d.ts",
+    "api:check": "temporary_schema=$(mktemp) && trap 'rm -f \"$temporary_schema\"' EXIT && openapi-typescript ../../contracts/openapi/openapi.yaml -o \"$temporary_schema\" && cmp -s src/api/generated/schema.d.ts \"$temporary_schema\"",
     "build": "tsc --noEmit && vite build"
   },
   "dependencies": {
     "@tanstack/react-query": "5.101.4",
+    "openapi-fetch": "0.17.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-router": "8.3.0"
@@ -37,6 +40,7 @@
     "eslint-config-prettier": "10.1.8",
     "globals": "17.9.0",
     "jsdom": "30.0.1",
+    "openapi-typescript": "7.13.0",
     "prettier": "3.9.6",
     "typescript": "5.9.3",
     "typescript-eslint": "8.66.0",

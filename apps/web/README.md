@@ -10,6 +10,8 @@ client, or API calls.
 - Node.js `24.18.0` and npm `11.16.0` (`.nvmrc` and `packageManager` are
   committed).
 - React / React DOM `19.2.8`, Vite `8.2.1`, and React Router `8.3.0`.
+- `openapi-typescript` `7.13.0` generates the committed API types, and
+  `openapi-fetch` `0.17.0` is consumed only by the private client adapter.
 - TypeScript `5.9.3`, Vitest `4.1.10`, jsdom `30.0.1`, Testing Library React
   `16.3.2`, user-event `14.6.3`, and Playwright `1.62.1`.
 
@@ -31,7 +33,12 @@ npm run test:unit
 npm run test:contract
 npm run test:e2e
 npm run build
+npm run api:generate
+npm run api:check
 ```
+
+`src/api/generated/schema.d.ts` is generated from the repository OpenAPI
+authority and must remain byte-identical after `npm run api:check`.
 
 The development server proxies `/api` to `http://127.0.0.1:8000` for later
 typed-client work. The foundation shell does not call that proxy. The
