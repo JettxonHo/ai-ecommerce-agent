@@ -46,6 +46,31 @@ _REQUIRED_MARKERS: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
     ("weather cover", ("防泼水", "water-resistant")),
     ("source evidence", ("product.json", "direct_source", "source-sufficient")),
 )
+_STAGE_PROFILE_IDS: Final[tuple[str, ...]] = (
+    "product_intake_v1",
+    "customer_insight_v1",
+    "product_positioning_v1",
+    "marketing_brief_v1",
+    "xiaohongshu_mapping_v1",
+)
+_STAGE_INSTRUCTIONS: Final[tuple[str, ...]] = (
+    "Extract only provider-neutral Product Intake fact candidates from the "
+    "supplied input. "
+    "Mark evidence limitations and return JSON matching the project schema.",
+    "Summarize bounded Customer Insight themes from the validated upstream "
+    "Product Intake candidate. "
+    "Do not invent research, scale, or competitor evidence. Return "
+    "project-schema JSON only.",
+    "Produce bounded Product Positioning candidates from the validated "
+    "upstream facts and insight. "
+    "Keep hypotheses and limitations explicit and return project-schema JSON only.",
+    "Draft a platform-neutral Marketing Brief from the validated upstream "
+    "positioning candidate. "
+    "Preserve evidence wording, qualification notes, and prohibited-claim boundaries.",
+    "Map the validated Marketing Brief to a Xiaohongshu direction without "
+    "creating final publish copy. "
+    "Preserve evidence limitations and return project-schema JSON only.",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -502,10 +527,10 @@ def _request(
     upstream: StructuredContent | None,
 ) -> ModelCallRequest:
     call_id = ModelCallId(f"deterministic-stage-{index}")
-    profile = ModelExecutionProfile("mvp0-fast-lane-deterministic", "v1")
+    profile = ModelExecutionProfile(_STAGE_PROFILE_IDS[index - 1], "v1")
     return ModelCallRequest(
         identity=ModelCallIdentity(call_id),
-        instructions=f"Produce the validated {spec.output_schema_id} candidate.",
+        instructions=_STAGE_INSTRUCTIONS[index - 1],
         context=StructuredContent.from_mapping(
             {
                 "primary_input": input_text,
