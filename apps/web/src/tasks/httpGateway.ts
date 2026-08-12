@@ -21,6 +21,12 @@ const failure = (
       "The task request could not be completed.",
     );
   }
+  if (status !== undefined && status < 500) {
+    return new TaskGatewayError(
+      "invalid",
+      "The task request could not be completed.",
+    );
+  }
   return new TaskGatewayError(
     "temporary",
     `${operation} is temporarily unavailable. Try again.`,
@@ -45,6 +51,9 @@ const request = async <T, R>(
     }
   } catch (error) {
     if (error instanceof TaskGatewayError) throw error;
+    if (error instanceof SyntaxError) {
+      throw new TaskGatewayError("invalid", "The task response is invalid.");
+    }
     if (received)
       throw new TaskGatewayError("invalid", "The task response is invalid.");
     throw failure(undefined, operation);

@@ -52,6 +52,13 @@ export interface TaskGateway {
 }
 
 const invalid = (message: string) => new TaskGatewayError("invalid", message);
+const navigationTargets = "intake needs_input review results recovery".split(
+  " ",
+);
+const commandCapabilities =
+  "start cancel resume rerun retry_current_stage restart_from_safe_boundary resolve_needs_input preview_remove_source remove_source preview_replace_source replace_source save_review_draft submit_review request_more_information reject_all_and_request_regeneration withdraw_approved_strategy compare_brief revise_marketing_brief revise_xiaohongshu_brief preview_export confirm_export".split(
+    " ",
+  );
 const objectInput = (value: unknown): Record<string, unknown> => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw invalid("Task input is invalid.");
@@ -62,6 +69,8 @@ const nonblank = (value: unknown, message: string): string => {
   if (typeof value !== "string" || value.trim() === "") throw invalid(message);
   return value;
 };
+const known = (value: unknown, catalog: readonly string[]): value is string =>
+  typeof value === "string" && catalog.includes(value);
 
 export const normalizeTaskInput = (value: unknown): TaskInput => {
   const input = objectInput(value);
@@ -91,13 +100,13 @@ const action = (value: unknown): TaskPrimaryAction => {
   }
   if (
     (item.type === "navigate" || item.type === "NavigatePrimaryAction") &&
-    typeof item.target === "string"
+    known(item.target, navigationTargets)
   ) {
     return Object.freeze({ kind: "navigate", target: item.target });
   }
   if (
     (item.type === "command" || item.type === "CommandPrimaryAction") &&
-    typeof item.command === "string"
+    known(item.command, commandCapabilities)
   ) {
     return Object.freeze({ kind: "command", command: item.command });
   }

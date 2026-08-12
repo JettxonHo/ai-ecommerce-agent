@@ -129,6 +129,70 @@ describe("TaskGateway HTTP contract", () => {
     },
   );
 
+  it.each([
+    ["null JSON", () => response(null, 200)],
+    ["empty body", () => new Response("", { status: 200 })],
+    [
+      "invalid JSON",
+      () =>
+        new Response("{invalid", {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+    ],
+    ["payload too large", () => response({ detail: "private" }, 413)],
+    ["unsupported media type", () => response({ detail: "private" }, 415)],
+  ] as const)(
+    "maps %s to invalid without leaking response details",
+    async (_label, body) => {
+      const fetch = vi.fn(async () => body());
+      const gateway = createHttpTaskGateway(
+        createApiClient({ baseUrl: "https://example.test", fetch }),
+      );
+
+      await expect(gateway.getTaskOverview("task-1")).rejects.toMatchObject({
+        kind: "invalid",
+      });
+      await expect(gateway.getTaskOverview("task-1")).rejects.not.toThrow(
+        "private",
+      );
+    },
+  );
+
+  it("projects only authored primary-action targets and capabilities", async () => {
+    const actions = [
+      { type: "navigate", target: "intake" },
+      { type: "NavigatePrimaryAction", target: "review" },
+      { type: "navigate", target: "" },
+      { type: "command", command: "start" },
+      { type: "CommandPrimaryAction", command: "submit_review" },
+      { type: "command", command: "future_command" },
+      { type: "command", command: "" },
+    ];
+    const fetch = vi.fn(async () =>
+      response({
+        items: actions.map((primaryAction, index) =>
+          overview({ taskId: `task-${index}`, primaryAction }),
+        ),
+        limit: 20,
+      }),
+    );
+    const gateway = createHttpTaskGateway(
+      createApiClient({ baseUrl: "https://example.test", fetch }),
+    );
+
+    const result = await gateway.listTasks();
+    expect(result.map((task) => task.primaryAction)).toEqual([
+      { kind: "navigate", target: "intake" },
+      { kind: "navigate", target: "review" },
+      { kind: "unavailable" },
+      { kind: "command", command: "start" },
+      { kind: "command", command: "submit_review" },
+      { kind: "unavailable" },
+      { kind: "unavailable" },
+    ]);
+  });
+
   it("maps a network failure to temporary without exposing the cause", async () => {
     const fetch = vi.fn(async () => {
       throw new Error("private socket details");
