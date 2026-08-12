@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import cast
+from typing import Any, cast
 
 from ai_ecommerce_agent.modules.export_delivery.public import (
     ExportBriefKind,
@@ -45,6 +45,15 @@ def _text(value: object, field_name: str) -> str:
     return cast(str, value)
 
 
+def _identity_text(value: object, expected: type[object], field_name: str) -> str:
+    _exact(value, expected, field_name)
+    return _text(cast(Any, value).value, f"{field_name}.value")
+
+
+def _json_value(value: object) -> str:
+    return json.dumps(value, ensure_ascii=False, allow_nan=False)
+
+
 def _timestamp(value: object, field_name: str) -> str:
     _exact(value, datetime, field_name)
     moment = cast(datetime, value)
@@ -56,12 +65,13 @@ def _timestamp(value: object, field_name: str) -> str:
 def _reference(value: object, field_name: str) -> str:
     _exact(value, DomainVersionReference, field_name)
     reference = cast(DomainVersionReference, value)
-    _exact(reference.version_id, DomainVersionId, f"{field_name}.version_id")
+    _identity_text(reference.version_id, DomainVersionId, f"{field_name}.version_id")
     _exact(reference.version_number, VersionNumber, f"{field_name}.version_number")
-    _text(reference.version_id.value, f"{field_name}.version_id.value")
     if type(reference.version_number.value) is not int:
         raise TypeError(f"{field_name}.version_number.value must be an exact int")
-    return f"{reference.version_id.value} (v{reference.version_number.value})"
+    return _json_value(
+        f"{reference.version_id.value} (v{reference.version_number.value})"
+    )
 
 
 def _list_lines(values: tuple[str, ...]) -> list[str]:
@@ -69,17 +79,17 @@ def _list_lines(values: tuple[str, ...]) -> list[str]:
         raise TypeError("collection must be an exact tuple")
     lines: list[str] = []
     for value in values:
-        lines.append(
-            f"- {value}" if type(value) is str and value.strip() else "- 无 / 不适用"
-        )
         if type(value) is not str:
             raise TypeError("collection items must be exact strings")
+        lines.append(f"- {_json_value(value)}" if value.strip() else "- 无 / 不适用")
     return lines or ["- 无 / 不适用"]
 
 
 def _content_block(content: StructuredContent) -> list[str]:
     _exact(content, StructuredContent, "group.content")
     data = content.to_mapping()
+    if not data:
+        return ["- 无 / 不适用"]
     encoded = json.dumps(
         data, ensure_ascii=False, allow_nan=False, sort_keys=True, indent=4
     )
@@ -109,26 +119,19 @@ def _validate_snapshot(
     _exact(export_snapshot.brief_kind, ExportBriefKind, "export_snapshot.brief_kind")
     if export_snapshot.brief_kind is not expected_kind:
         raise ValueError("export snapshot and brief family do not match")
-    _exact(
+    _identity_text(
         export_snapshot.export_snapshot_id,
         ExportSnapshotId,
         "export_snapshot.export_snapshot_id",
     )
-    _text(
-        export_snapshot.export_snapshot_id.value,
-        "export_snapshot.export_snapshot_id.value",
-    )
-    _exact(export_snapshot.task_id, TaskId, "export_snapshot.task_id")
-    _exact(brief_snapshot.task_id, TaskId, "brief_snapshot.task_id")
+    _identity_text(export_snapshot.task_id, TaskId, "export_snapshot.task_id")
+    _identity_text(brief_snapshot.task_id, TaskId, "brief_snapshot.task_id")
     if export_snapshot.task_id != brief_snapshot.task_id:
         raise ValueError("export snapshot and brief task identities do not match")
-    _exact(
+    _identity_text(
         brief_snapshot.brief_version_id,
         DomainVersionId,
         "brief_snapshot.brief_version_id",
-    )
-    _text(
-        brief_snapshot.brief_version_id.value, "brief_snapshot.brief_version_id.value"
     )
     _exact(
         brief_snapshot.version_number, VersionNumber, "brief_snapshot.version_number"
@@ -162,9 +165,15 @@ def _validate_snapshot(
     _timestamp(export_snapshot.exported_at, "export_snapshot.exported_at")
     _text(export_snapshot.file_name, "export_snapshot.file_name")
     _text(export_snapshot.content_location, "export_snapshot.content_location")
-    if export_snapshot.template_version != "mvp0-markdown-v1":
+    if (
+        _text(export_snapshot.template_version, "export_snapshot.template_version")
+        != "mvp0-markdown-v1"
+    ):
         raise ValueError("unsupported template version")
-    if export_snapshot.media_type != "text/markdown; charset=utf-8":
+    if (
+        _text(export_snapshot.media_type, "export_snapshot.media_type")
+        != "text/markdown; charset=utf-8"
+    ):
         raise ValueError("unsupported media type")
     _exact(brief_snapshot.semantic_groups, tuple, "brief_snapshot.semantic_groups")
     if brief_type is MarketingBriefVersionSnapshot:
@@ -217,12 +226,12 @@ def render_export_markdown(
         f"**Brief type:** {brief_kind.value}",
         "",
         "## Task and version",
-        f"- Task: {brief_snapshot.task_id.value}",
+        f"- Task: {_json_value(brief_snapshot.task_id.value)}",
         "- Brief version: "
-        f"{brief_snapshot.brief_version_id.value} "
-        f"(v{brief_snapshot.version_number.value})",
+        f"{_json_value(brief_snapshot.brief_version_id.value)} "
+        f"(v{_json_value(brief_snapshot.version_number.value)})",
         f"- Valid: {str(brief_snapshot.valid).lower()}",
-        f"- Created at: {created_at}",
+        f"- Created at: {_json_value(created_at)}",
         "### Upstream versions",
         *(tuple(f"- {value}" for value in upstream) or ("- 无 / 不适用",)),
     ]
@@ -231,7 +240,7 @@ def render_export_markdown(
             MarketingBriefSemanticGroup | XiaohongshuBriefSemanticGroup, group
         )
         origin = (
-            typed_group.origin.value
+            _json_value(typed_group.origin.value)
             if typed_group.origin is not None
             else "无 / 不适用"
         )
@@ -254,7 +263,8 @@ def render_export_markdown(
     lines.extend(["", "## Evidence references"])
     if brief_snapshot.evidence_references:
         lines.extend(
-            f"- {reference.resource_kind}: {reference.resource_id}"
+            f"- {_json_value(reference.resource_kind)}: "
+            f"{_json_value(reference.resource_id)}"
             for reference in brief_snapshot.evidence_references
         )
     else:
@@ -263,11 +273,13 @@ def render_export_markdown(
         [
             "",
             "## Export metadata",
-            f"- Export snapshot: {export_snapshot.export_snapshot_id.value}",
-            f"- Exported at: {exported_at}",
-            f"- File name: {export_snapshot.file_name}",
-            f"- Media type: {export_snapshot.media_type}",
-            f"- Template version: {export_snapshot.template_version}",
+            "- Export snapshot: "
+            f"{_json_value(export_snapshot.export_snapshot_id.value)}",
+            f"- Exported at: {_json_value(exported_at)}",
+            f"- File name: {_json_value(export_snapshot.file_name)}",
+            f"- Content location: {_json_value(export_snapshot.content_location)}",
+            f"- Media type: {_json_value(export_snapshot.media_type)}",
+            f"- Template version: {_json_value(export_snapshot.template_version)}",
             "",
         ]
     )

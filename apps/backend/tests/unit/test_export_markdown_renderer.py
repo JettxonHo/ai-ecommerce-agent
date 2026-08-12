@@ -46,6 +46,10 @@ class _ExportSubclass(ExportSnapshot):
     pass
 
 
+class _StringSubclass(str):
+    pass
+
+
 def _groups(
     kind: str, *, reversed_order: bool = True, empty: bool = False
 ) -> tuple[Any, ...]:
@@ -140,6 +144,64 @@ def test_group_order_is_canonical_and_content_is_detached_json() -> None:
     assert "<h1>" in rendered
 
 
+def _outside_data_fence(rendered: str) -> list[str]:
+    inside = False
+    outside: list[str] = []
+    for line in rendered.splitlines():
+        if line == "````json":
+            inside = True
+            continue
+        if line == "````":
+            inside = False
+            continue
+        if not inside:
+            outside.append(line)
+    return outside
+
+
+def test_all_non_content_data_markers_stay_inside_data_fences() -> None:
+    marker = "\n# injected heading\n<h1>raw html</h1>\n```"
+    brief = _brief(
+        task_id=TaskId(marker),
+        upstream_versions=(
+            DomainVersionReference(DomainVersionId(marker), VersionNumber(1)),
+        ),
+        hypotheses=(marker,),
+        evidence_limitations=(marker,),
+        risks=(marker,),
+        evidence_references=(ResourceReference(marker, marker),),
+    )
+    rendered = render_export_markdown(
+        export_snapshot=_export(
+            brief,
+            export_snapshot_id=ExportSnapshotId(marker),
+            file_name=marker,
+            content_location=marker,
+        ),
+        brief_snapshot=brief,
+    )
+    outside = _outside_data_fence(rendered)
+    assert marker not in "\n".join(outside)
+    assert "<h1>" not in outside
+    assert "```" not in outside
+    assert [line for line in outside if line.startswith("#")] == [
+        "# Marketing Brief",
+        "## Task and version",
+        "### Upstream versions",
+        "## Objective And Audience",
+        "## Message Architecture",
+        "## Reasons To Believe And Evidence",
+        "## Execution Direction",
+        "## Constraints And Honesty",
+        "## Version And Workflow Context",
+        "## Hypotheses",
+        "## Evidence limitations",
+        "## Risks",
+        "## Evidence references",
+        "## Export metadata",
+    ]
+
+
 @pytest.mark.parametrize("kind", ["marketing", "xiaohongshu"])
 def test_empty_collections_and_empty_group_are_honest(kind: str) -> None:
     brief = _brief(
@@ -154,6 +216,15 @@ def test_empty_collections_and_empty_group_are_honest(kind: str) -> None:
     rendered = render_export_markdown(
         export_snapshot=_export(brief), brief_snapshot=brief
     )
+    assert rendered.count("无 / 不适用") >= 6
+
+
+def test_empty_structured_content_is_not_rendered_as_an_empty_json_object() -> None:
+    brief = _brief(semantic_groups=_groups("marketing", empty=True))
+    rendered = render_export_markdown(
+        export_snapshot=_export(brief), brief_snapshot=brief
+    )
+    assert "{}" not in rendered
     assert rendered.count("无 / 不适用") >= 6
 
 
@@ -177,6 +248,90 @@ def test_basis_family_and_value_rules_are_rejected(
         brief_changes = {}
     brief = _brief(**brief_changes)
     with pytest.raises((TypeError, ValueError)):
+        render_export_markdown(
+            export_snapshot=_export(brief, **export_changes), brief_snapshot=brief
+        )
+
+
+@pytest.mark.parametrize(
+    "export_changes",
+    [
+        {"brief_kind": ExportBriefKind.XIAOHONGSHU},
+        {
+            "brief_version": DomainVersionReference(
+                DomainVersionId("other-brief"), VersionNumber(2)
+            )
+        },
+        {
+            "brief_version": DomainVersionReference(
+                DomainVersionId("brief-1"), VersionNumber(3)
+            )
+        },
+        {
+            "upstream_versions": (
+                DomainVersionReference(
+                    DomainVersionId("other-upstream"), VersionNumber(1)
+                ),
+                DomainVersionReference(DomainVersionId("upstream-1"), VersionNumber(1)),
+            )
+        },
+        {
+            "upstream_versions": (
+                DomainVersionReference(DomainVersionId("upstream-1"), VersionNumber(1)),
+                DomainVersionReference(DomainVersionId("upstream-2"), VersionNumber(2)),
+            )
+        },
+        {"exported_at": datetime(2026, 8, 9, 2, 3, 4)},
+    ],
+)
+def test_basis_identity_and_timestamp_mutations_are_rejected(
+    export_changes: dict[str, Any],
+) -> None:
+    brief = _brief()
+    with pytest.raises((TypeError, ValueError)):
+        render_export_markdown(
+            export_snapshot=_export(brief, **export_changes),
+            brief_snapshot=brief,
+        )
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "task_id",
+        "brief_version_id",
+        "upstream_versions",
+        "hypotheses",
+        "evidence_limitations",
+        "risks",
+        "export_snapshot_id",
+        "file_name",
+        "content_location",
+        "media_type",
+        "template_version",
+    ],
+)
+def test_all_rendered_string_scalars_reject_subclasses(field: str) -> None:
+    marker = _StringSubclass("subclass-value")
+    brief_changes: dict[str, Any] = {}
+    export_changes: dict[str, Any] = {}
+    if field == "task_id":
+        brief_changes[field] = TaskId(marker)
+    elif field == "brief_version_id":
+        brief_changes[field] = DomainVersionId(marker)
+    elif field == "upstream_versions":
+        refs = (DomainVersionReference(DomainVersionId(marker), VersionNumber(1)),)
+        brief_changes[field] = refs
+    elif field in {"hypotheses", "evidence_limitations", "risks"}:
+        brief_changes[field] = (marker,)
+    elif field == "export_snapshot_id":
+        export_changes[field] = ExportSnapshotId(marker)
+    elif field == "media_type":
+        export_changes[field] = _StringSubclass("text/markdown; charset=utf-8")
+    else:
+        export_changes[field] = marker
+    brief = _brief(**brief_changes)
+    with pytest.raises(TypeError):
         render_export_markdown(
             export_snapshot=_export(brief, **export_changes), brief_snapshot=brief
         )
@@ -252,4 +407,4 @@ def test_renderer_does_not_mutate_or_retain_structured_content() -> None:
     )
     after = brief.semantic_groups[0].content.to_mapping()
     assert before == after
-    assert "memory://" not in rendered
+    assert rendered.count('"memory://export"') == 1
