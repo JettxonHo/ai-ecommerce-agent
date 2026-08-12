@@ -1,0 +1,138 @@
+.page {
+  width: min(100% - 2rem, 56rem);
+  margin: 0 auto;
+  padding: 3rem 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page h1 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+}
+
+.intro,
+.state {
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.backLink {
+  margin: 0.75rem 0 1.5rem;
+}
+
+.identity {
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.details div {
+  min-width: 0;
+  padding: 0.85rem;
+  border-left: 3px solid var(--color-accent);
+  background: #e2e8f0;
+}
+
+.details dt {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.details dd {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.stages {
+  display: grid;
+  gap: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.stages li {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.stages span,
+.stages time {
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+
+.taskList {
+  display: grid;
+  gap: 1rem;
+}
+
+.taskCard {
+  padding: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.taskCard h2 {
+  margin: 0;
+}
+
+.taskCard p {
+  margin: 0.5rem 0 0;
+}
+
+.taskCard time {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+button,
+a {
+  color: var(--color-accent);
+}
+
+button {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 0.4rem;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+@media (max-width: 40rem) {
+  .page {
+    padding: 2rem 0;
+  }
+
+  .details {
+    grid-template-columns: 1fr;
+  }
+}

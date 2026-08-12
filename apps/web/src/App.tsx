@@ -1,13 +1,25 @@
 import styles from "./App.module.css";
+import { Navigate, Route, Routes } from "react-router";
+import { TaskRoutes } from "./tasks/TaskRoutes";
+import type { TaskGateway } from "./tasks/gateway";
 
-export function App() {
+type AppProps = Readonly<{ taskGateway: TaskGateway }>;
+
+export function App({ taskGateway }: AppProps) {
   return (
     <main className={styles.shell}>
-      <p className={styles.eyebrow}>Web foundation</p>
-      <h1>AI Ecommerce Agent</h1>
-      <p className={styles.description}>
-        The browser foundation is ready for the workbench.
-      </p>
+      <Routes>
+        <Route path="/" element={<Navigate replace to="/tasks" />} />
+        <Route
+          path="/tasks"
+          element={<TaskRoutes taskGateway={taskGateway} />}
+        />
+        <Route
+          path="/tasks/:taskId"
+          element={<TaskRoutes taskGateway={taskGateway} />}
+        />
+        <Route path="*" element={<Navigate replace to="/tasks" />} />
+      </Routes>
     </main>
   );
 }
