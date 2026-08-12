@@ -214,9 +214,7 @@ def test_deterministic_result_metadata_is_task_scoped_and_atomic() -> None:
         "marketing_brief",
         "xiaohongshu_brief",
     ]
-    constraints = {
-        constraint.name for constraint in TASK_RESULTS_TABLE.constraints
-    }
+    constraints = {constraint.name for constraint in TASK_RESULTS_TABLE.constraints}
     assert {
         "pk_task_management_deterministic_results",
         "uq_task_management_results_task_input",

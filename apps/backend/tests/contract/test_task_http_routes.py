@@ -316,7 +316,7 @@ def test_primary_input_route_accepts_an_opaque_task_id_with_a_slash() -> None:
     assert tasks.seen_task_ids == [TaskId("task/7")]
 
 
-def test_result_routes_require_injected_coordinator_and_preserve_idempotent_replay(
+def test_result_routes_require_injected_coordinator_and_preserve_idempotent_replay(  # noqa: E501
 ) -> None:
     tasks = _Tasks()
     results = _Results()
