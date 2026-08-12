@@ -12,28 +12,30 @@ import {
   type TaskOverview,
 } from "./gateway";
 
-const overview = (overrides: Partial<TaskOverview> = {}): TaskOverview =>
-  ({
-    taskId: "task-1",
-    taskName: "Launch",
-    productCategory: "Backpack",
-    taskStatus: "draft",
-    currentStage: null,
-    waitingReason: null,
-    updatedAt: "2026-08-12T00:00:00Z",
-    revision: 0,
-    primaryAction: { kind: "none" },
-    capabilities: [],
-    stages: [],
-    activeRun: null,
-    latestRun: null,
-    needsInputRequest: null,
-    reviewPackage: null,
-    approvedStrategy: null,
-    marketingBrief: null,
-    xiaohongshuBrief: null,
-    ...overrides,
-  }) as TaskOverview;
+const overviewBaseline: TaskOverview = {
+  taskId: "task-1",
+  taskName: "Launch",
+  productCategory: "Backpack",
+  taskStatus: "draft",
+  currentStage: null,
+  waitingReason: null,
+  updatedAt: "2026-08-12T00:00:00Z",
+  revision: 0,
+  primaryAction: { kind: "none" },
+  capabilities: [],
+  stages: [],
+  activeRunId: null,
+  latestRunId: null,
+  needsInputRequest: null,
+  reviewPackage: null,
+  approvedStrategy: null,
+  marketingBrief: null,
+  xiaohongshuBrief: null,
+};
+const overview = (overrides: Partial<TaskOverview> = {}): TaskOverview => ({
+  ...overviewBaseline,
+  ...overrides,
+});
 
 const renderCreate = (
   gateway: TaskGateway,

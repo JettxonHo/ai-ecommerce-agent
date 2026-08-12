@@ -32,8 +32,30 @@ export type TaskStageSummary = Readonly<{
   waitingReason: string | null;
   updatedAt: string;
 }>;
+export type NeedsInputRequestReference = Readonly<{
+  resourceId: string;
+  revision: number;
+}>;
+export type ReviewPackageReference = Readonly<{
+  reviewPackageId: string;
+  packageVersion: number;
+}>;
+export type DomainVersionReference = Readonly<{
+  resourceKind: string;
+  resourceVersionId: string;
+  versionNumber: number;
+}>;
 export type TaskOverview = TaskSummary &
-  Readonly<{ stages: readonly TaskStageSummary[] }>;
+  Readonly<{
+    stages: readonly TaskStageSummary[];
+    activeRunId: string | null;
+    latestRunId: string | null;
+    needsInputRequest: NeedsInputRequestReference | null;
+    reviewPackage: ReviewPackageReference | null;
+    approvedStrategy: DomainVersionReference | null;
+    marketingBrief: DomainVersionReference | null;
+    xiaohongshuBrief: DomainVersionReference | null;
+  }>;
 export type TaskGatewayErrorKind = "temporary" | "missing" | "invalid";
 
 export class TaskGatewayError extends Error {
@@ -133,10 +155,45 @@ const mapStage = (stage: OverviewDto["stages"][number]): TaskStageSummary =>
     waitingReason: stage.waitingReason,
     updatedAt: stage.updatedAt,
   });
+const mapNeedsInputRequest = (
+  reference: OverviewDto["needsInputRequest"],
+): NeedsInputRequestReference | null =>
+  reference == null
+    ? null
+    : Object.freeze({
+        resourceId: reference.resourceId,
+        revision: reference.revision,
+      });
+const mapReviewPackage = (
+  reference: OverviewDto["reviewPackage"],
+): ReviewPackageReference | null =>
+  reference == null
+    ? null
+    : Object.freeze({
+        reviewPackageId: reference.reviewPackageId,
+        packageVersion: reference.packageVersion,
+      });
+const mapDomainVersion = (
+  reference: OverviewDto["approvedStrategy"],
+): DomainVersionReference | null =>
+  reference == null
+    ? null
+    : Object.freeze({
+        resourceKind: reference.resourceKind,
+        resourceVersionId: reference.resourceVersionId,
+        versionNumber: reference.versionNumber,
+      });
 export const mapTaskOverview = (dto: OverviewDto): TaskOverview =>
   Object.freeze({
     ...mapTaskSummary(dto),
     stages: Object.freeze(dto.stages.map(mapStage)),
+    activeRunId: dto.activeRun?.runId ?? null,
+    latestRunId: dto.latestRun?.runId ?? null,
+    needsInputRequest: mapNeedsInputRequest(dto.needsInputRequest),
+    reviewPackage: mapReviewPackage(dto.reviewPackage),
+    approvedStrategy: mapDomainVersion(dto.approvedStrategy),
+    marketingBrief: mapDomainVersion(dto.marketingBrief),
+    xiaohongshuBrief: mapDomainVersion(dto.xiaohongshuBrief),
   });
 
 const cloneAction = (value: TaskPrimaryAction): TaskPrimaryAction => {
@@ -153,6 +210,18 @@ const cloneAction = (value: TaskPrimaryAction): TaskPrimaryAction => {
     ? Object.freeze({ kind: "none" })
     : Object.freeze({ kind: "unavailable" });
 };
+const cloneNeedsInputRequest = (
+  reference: NeedsInputRequestReference | null,
+): NeedsInputRequestReference | null =>
+  reference == null ? null : Object.freeze({ ...reference });
+const cloneReviewPackage = (
+  reference: ReviewPackageReference | null,
+): ReviewPackageReference | null =>
+  reference == null ? null : Object.freeze({ ...reference });
+const cloneDomainVersion = (
+  reference: DomainVersionReference | null,
+): DomainVersionReference | null =>
+  reference == null ? null : Object.freeze({ ...reference });
 export const cloneTaskOverview = (task: TaskOverview): TaskOverview =>
   Object.freeze({
     taskId: task.taskId,
@@ -168,4 +237,11 @@ export const cloneTaskOverview = (task: TaskOverview): TaskOverview =>
     stages: Object.freeze(
       task.stages.map((stage) => Object.freeze({ ...stage })),
     ),
+    activeRunId: task.activeRunId ?? null,
+    latestRunId: task.latestRunId ?? null,
+    needsInputRequest: cloneNeedsInputRequest(task.needsInputRequest),
+    reviewPackage: cloneReviewPackage(task.reviewPackage),
+    approvedStrategy: cloneDomainVersion(task.approvedStrategy),
+    marketingBrief: cloneDomainVersion(task.marketingBrief),
+    xiaohongshuBrief: cloneDomainVersion(task.xiaohongshuBrief),
   });

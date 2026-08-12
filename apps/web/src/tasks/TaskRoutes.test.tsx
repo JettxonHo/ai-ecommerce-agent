@@ -11,41 +11,43 @@ import {
   type TaskOverview,
 } from "./gateway";
 
-const overview = (overrides: Partial<TaskOverview> = {}): TaskOverview =>
-  ({
-    taskId: "task-1",
-    taskName: "Launch",
-    productCategory: "Backpack",
-    taskStatus: "running",
-    currentStage: "product_positioning",
-    waitingReason: null,
-    updatedAt: "2026-08-12T00:00:00Z",
-    revision: 2,
-    primaryAction: { kind: "none" },
-    capabilities: [],
-    stages: [
-      {
-        stage: "product_intake_and_fact_extraction",
-        status: "valid",
-        waitingReason: "Source accepted",
-        updatedAt: "2026-08-11T00:00:00Z",
-      },
-      {
-        stage: "product_positioning",
-        status: "running",
-        waitingReason: null,
-        updatedAt: "2026-08-12T00:00:00Z",
-      },
-    ],
-    activeRun: null,
-    latestRun: null,
-    needsInputRequest: null,
-    reviewPackage: null,
-    approvedStrategy: null,
-    marketingBrief: null,
-    xiaohongshuBrief: null,
-    ...overrides,
-  }) as TaskOverview;
+const overviewBaseline: TaskOverview = {
+  taskId: "task-1",
+  taskName: "Launch",
+  productCategory: "Backpack",
+  taskStatus: "running",
+  currentStage: "product_positioning",
+  waitingReason: null,
+  updatedAt: "2026-08-12T00:00:00Z",
+  revision: 2,
+  primaryAction: { kind: "none" },
+  capabilities: [],
+  stages: [
+    {
+      stage: "product_intake_and_fact_extraction",
+      status: "valid",
+      waitingReason: "Source accepted",
+      updatedAt: "2026-08-11T00:00:00Z",
+    },
+    {
+      stage: "product_positioning",
+      status: "running",
+      waitingReason: null,
+      updatedAt: "2026-08-12T00:00:00Z",
+    },
+  ],
+  activeRunId: null,
+  latestRunId: null,
+  needsInputRequest: null,
+  reviewPackage: null,
+  approvedStrategy: null,
+  marketingBrief: null,
+  xiaohongshuBrief: null,
+};
+const overview = (overrides: Partial<TaskOverview> = {}): TaskOverview => ({
+  ...overviewBaseline,
+  ...overrides,
+});
 
 const renderRoutes = (
   path = "/tasks",

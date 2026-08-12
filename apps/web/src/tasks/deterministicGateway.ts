@@ -63,6 +63,13 @@ export const createDeterministicTaskGateway = (
         primaryAction: Object.freeze({ kind: "none" as const }),
         capabilities: Object.freeze([]),
         stages: Object.freeze([]),
+        activeRunId: null,
+        latestRunId: null,
+        needsInputRequest: null,
+        reviewPackage: null,
+        approvedStrategy: null,
+        marketingBrief: null,
+        xiaohongshuBrief: null,
       });
       tasks.unshift(task);
       byId.set(task.taskId, task);

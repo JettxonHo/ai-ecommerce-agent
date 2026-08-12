@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createApiClient } from "../../src/api/client";
+import type { components } from "../../src/api/generated/schema";
 import {
+  cloneTaskOverview,
+  mapTaskOverview,
   TaskGatewayError,
   type TaskGateway,
   type TaskInput,
@@ -9,28 +12,54 @@ import {
 import { createDeterministicTaskGateway } from "../../src/tasks/deterministicGateway";
 import { createHttpTaskGateway } from "../../src/tasks/httpGateway";
 
-const overview = (overrides: Record<string, unknown> = {}): TaskOverview =>
-  ({
-    taskId: "task-1",
-    taskName: "Launch",
-    productCategory: "Backpack",
-    taskStatus: "draft",
-    currentStage: null,
-    waitingReason: null,
-    updatedAt: "2026-08-12T00:00:00Z",
-    revision: 0,
-    primaryAction: { kind: "none" },
-    capabilities: [],
-    stages: [],
-    activeRun: null,
-    latestRun: null,
-    needsInputRequest: null,
-    reviewPackage: null,
-    approvedStrategy: null,
-    marketingBrief: null,
-    xiaohongshuBrief: null,
-    ...overrides,
-  }) as TaskOverview;
+const overviewBaseline: TaskOverview = {
+  taskId: "task-1",
+  taskName: "Launch",
+  productCategory: "Backpack",
+  taskStatus: "draft",
+  currentStage: null,
+  waitingReason: null,
+  updatedAt: "2026-08-12T00:00:00Z",
+  revision: 0,
+  primaryAction: { kind: "none" },
+  capabilities: [],
+  stages: [],
+  activeRunId: null,
+  latestRunId: null,
+  needsInputRequest: null,
+  reviewPackage: null,
+  approvedStrategy: null,
+  marketingBrief: null,
+  xiaohongshuBrief: null,
+};
+const overview = (overrides: Partial<TaskOverview> = {}): TaskOverview => ({
+  ...overviewBaseline,
+  ...overrides,
+});
+
+const generatedOverview = (
+  overrides: Partial<components["schemas"]["TaskOverview"]> = {},
+): components["schemas"]["TaskOverview"] => ({
+  taskId: "task-1",
+  taskName: "Launch",
+  productCategory: "Backpack",
+  taskStatus: "draft",
+  currentStage: null,
+  waitingReason: null,
+  updatedAt: "2026-08-12T00:00:00Z",
+  revision: 0,
+  primaryAction: { type: "NoPrimaryAction" },
+  capabilities: [],
+  stages: [],
+  activeRun: null,
+  latestRun: null,
+  needsInputRequest: null,
+  reviewPackage: null,
+  approvedStrategy: null,
+  marketingBrief: null,
+  xiaohongshuBrief: null,
+  ...overrides,
+});
 
 const input: TaskInput = {
   taskName: "Launch",
@@ -45,19 +74,130 @@ const response = (body: unknown, status = 200): Response =>
   });
 
 describe("TaskGateway HTTP contract", () => {
+  it("maps every TaskOverview related reference to detached identity-only values", () => {
+    const dto = generatedOverview({
+      activeRun: { runId: "run-active" },
+      latestRun: { runId: "run-latest" },
+      needsInputRequest: {
+        resourceKind: "needs_input",
+        resourceId: "input-1",
+        revision: 4,
+      },
+      reviewPackage: { reviewPackageId: "review-1", packageVersion: 7 },
+      approvedStrategy: {
+        resourceKind: "strategy",
+        resourceVersionId: "strategy-1",
+        versionNumber: 2,
+      },
+      marketingBrief: {
+        resourceKind: "marketing_brief",
+        resourceVersionId: "brief-1",
+        versionNumber: 3,
+      },
+      xiaohongshuBrief: {
+        resourceKind: "xiaohongshu_brief",
+        resourceVersionId: "xhs-1",
+        versionNumber: 4,
+      },
+    });
+
+    const mapped = mapTaskOverview(dto);
+    expect(mapped).toEqual({
+      taskId: "task-1",
+      taskName: "Launch",
+      productCategory: "Backpack",
+      taskStatus: "draft",
+      currentStage: null,
+      waitingReason: null,
+      updatedAt: "2026-08-12T00:00:00Z",
+      revision: 0,
+      primaryAction: { kind: "none" },
+      capabilities: [],
+      stages: [],
+      activeRunId: "run-active",
+      latestRunId: "run-latest",
+      needsInputRequest: { resourceId: "input-1", revision: 4 },
+      reviewPackage: { reviewPackageId: "review-1", packageVersion: 7 },
+      approvedStrategy: {
+        resourceKind: "strategy",
+        resourceVersionId: "strategy-1",
+        versionNumber: 2,
+      },
+      marketingBrief: {
+        resourceKind: "marketing_brief",
+        resourceVersionId: "brief-1",
+        versionNumber: 3,
+      },
+      xiaohongshuBrief: {
+        resourceKind: "xiaohongshu_brief",
+        resourceVersionId: "xhs-1",
+        versionNumber: 4,
+      },
+    });
+    expect(Object.keys(mapped.needsInputRequest ?? {}).sort()).toEqual([
+      "resourceId",
+      "revision",
+    ]);
+    expect(Object.keys(mapped.reviewPackage ?? {}).sort()).toEqual([
+      "packageVersion",
+      "reviewPackageId",
+    ]);
+    for (const reference of [
+      mapped.approvedStrategy,
+      mapped.marketingBrief,
+      mapped.xiaohongshuBrief,
+    ]) {
+      expect(Object.keys(reference ?? {}).sort()).toEqual([
+        "resourceKind",
+        "resourceVersionId",
+        "versionNumber",
+      ]);
+    }
+    for (const reference of [
+      mapped.needsInputRequest,
+      mapped.reviewPackage,
+      mapped.approvedStrategy,
+      mapped.marketingBrief,
+      mapped.xiaohongshuBrief,
+    ]) {
+      expect(reference).not.toBeNull();
+      expect(Object.isFrozen(reference)).toBe(true);
+    }
+    expect(Object.isFrozen(mapped)).toBe(true);
+    for (const [mappedReference, dtoReference] of [
+      [mapped.needsInputRequest, dto.needsInputRequest],
+      [mapped.reviewPackage, dto.reviewPackage],
+      [mapped.approvedStrategy, dto.approvedStrategy],
+      [mapped.marketingBrief, dto.marketingBrief],
+      [mapped.xiaohongshuBrief, dto.xiaohongshuBrief],
+    ]) {
+      expect(mappedReference).not.toBe(dtoReference);
+    }
+
+    const clone = cloneTaskOverview(mapped);
+    expect(clone).toEqual(mapped);
+    expect(clone).not.toBe(mapped);
+    for (const [cloned, original] of [
+      [clone.needsInputRequest, mapped.needsInputRequest],
+      [clone.reviewPackage, mapped.reviewPackage],
+      [clone.approvedStrategy, mapped.approvedStrategy],
+      [clone.marketingBrief, mapped.marketingBrief],
+      [clone.xiaohongshuBrief, mapped.xiaohongshuBrief],
+    ]) {
+      expect(cloned).toEqual(original);
+      expect(cloned).not.toBe(original);
+      expect(Object.isFrozen(cloned)).toBe(true);
+    }
+  });
+
   it("uses the generated Task operations and preserves server order/action data", async () => {
     const first = {
-      ...overview({
-        taskId: "first",
-        primaryAction: { type: "navigate", target: "intake" },
-      }),
+      ...generatedOverview({ taskId: "first" }),
+      primaryAction: { type: "navigate", target: "intake" },
     };
     const second = {
-      ...overview({
-        taskId: "second",
-        primaryAction: { type: "future_action", command: "start" },
-        capabilities: ["start"],
-      }),
+      ...generatedOverview({ taskId: "second", capabilities: ["start"] }),
+      primaryAction: { type: "future_action", command: "start" },
     };
     const fetch = vi.fn(
       async (request: RequestInfo | URL, init?: RequestInit) => {
@@ -69,8 +209,9 @@ describe("TaskGateway HTTP contract", () => {
         ) {
           return response({ items: [first, second], limit: 20 });
         }
-        if (requestObject.method === "POST") return response(overview(), 201);
-        return response(overview());
+        if (requestObject.method === "POST")
+          return response(generatedOverview(), 201);
+        return response(generatedOverview());
       },
     );
     const gateway = createHttpTaskGateway(
@@ -171,9 +312,10 @@ describe("TaskGateway HTTP contract", () => {
     ];
     const fetch = vi.fn(async () =>
       response({
-        items: actions.map((primaryAction, index) =>
-          overview({ taskId: `task-${index}`, primaryAction }),
-        ),
+        items: actions.map((primaryAction, index) => ({
+          ...generatedOverview({ taskId: `task-${index}` }),
+          primaryAction,
+        })),
         limit: 20,
       }),
     );
@@ -258,6 +400,70 @@ describe("TaskGateway deterministic contract", () => {
     await expect(gateway.getTaskOverview("missing")).rejects.toMatchObject({
       kind: "missing",
     });
+  });
+
+  it("detaches and freezes every seeded/read/replayed reference and keeps create defaults exact", async () => {
+    const seeded = overview({
+      activeRunId: "run-active",
+      latestRunId: "run-latest",
+      needsInputRequest: { resourceId: "input-1", revision: 2 },
+      reviewPackage: { reviewPackageId: "review-1", packageVersion: 3 },
+      approvedStrategy: {
+        resourceKind: "strategy",
+        resourceVersionId: "strategy-1",
+        versionNumber: 1,
+      },
+      marketingBrief: {
+        resourceKind: "marketing_brief",
+        resourceVersionId: "brief-1",
+        versionNumber: 1,
+      },
+      xiaohongshuBrief: {
+        resourceKind: "xiaohongshu_brief",
+        resourceVersionId: "xhs-1",
+        versionNumber: 1,
+      },
+    });
+    const gateway = createDeterministicTaskGateway({ tasks: [seeded] });
+    const read = await gateway.getTaskOverview("task-1");
+
+    expect(read).toEqual(seeded);
+    for (const [received, original] of [
+      [read.needsInputRequest, seeded.needsInputRequest],
+      [read.reviewPackage, seeded.reviewPackage],
+      [read.approvedStrategy, seeded.approvedStrategy],
+      [read.marketingBrief, seeded.marketingBrief],
+      [read.xiaohongshuBrief, seeded.xiaohongshuBrief],
+    ]) {
+      expect(received).not.toBe(original);
+      expect(Object.isFrozen(received)).toBe(true);
+    }
+
+    const created = await gateway.createTask(input, "key-created");
+    expect({
+      activeRunId: created.activeRunId,
+      latestRunId: created.latestRunId,
+      needsInputRequest: created.needsInputRequest,
+      reviewPackage: created.reviewPackage,
+      approvedStrategy: created.approvedStrategy,
+      marketingBrief: created.marketingBrief,
+      xiaohongshuBrief: created.xiaohongshuBrief,
+    }).toEqual({
+      activeRunId: null,
+      latestRunId: null,
+      needsInputRequest: null,
+      reviewPackage: null,
+      approvedStrategy: null,
+      marketingBrief: null,
+      xiaohongshuBrief: null,
+    });
+
+    const createdRead = await gateway.getTaskOverview(created.taskId);
+    const replay = await gateway.createTask(input, "key-created");
+    expect(createdRead).toEqual(created);
+    expect(replay).toEqual(created);
+    expect(replay).not.toBe(created);
+    expect(createdRead).not.toBe(created);
   });
 
   it("creates, replays idempotently, and rejects same-key different-input without mutation", async () => {
