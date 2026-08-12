@@ -79,10 +79,154 @@ test("renders recent tasks and restores a stable deep link without errors", asyn
   await expect(
     page.getByRole("heading", { name: "City launch" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Current workspace: intake" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Intake", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await page.getByRole("link", { name: "Progress" }).click();
+  await expect(page).toHaveURL(
+    /\/tasks\/task%2F7\?panel=progress&stage=product_positioning$/,
+  );
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "City launch" }),
   ).toBeVisible();
+  await expect(page).toHaveURL(
+    /\/tasks\/task%2F7\?panel=progress&stage=product_positioning$/,
+  );
+  await expect(
+    page.getByRole("link", { name: "Progress", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  expect(pageErrors).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test("canonicalizes an invalid panel and stage selection on the same Task URL", async ({
+  page,
+}) => {
+  const requestPaths: string[] = [];
+  await page.route("**/api/v1/tasks**", async (route) => {
+    const url = new URL(route.request().url());
+    requestPaths.push(`${route.request().method()} ${url.pathname}`);
+    if (decodeURIComponent(url.pathname) === "/api/v1/tasks/task/7") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(task),
+      });
+      return;
+    }
+    await route.abort();
+  });
+
+  await page.goto(
+    "/tasks/task%2F7?filter=mine&panel=unknown&panel=review&stage=not-a-stage",
+  );
+
+  await expect(page).toHaveURL(
+    /\/tasks\/task%2F7\?filter=mine&panel=intake&stage=product_positioning$/,
+  );
+  await expect(
+    page.getByRole("heading", { name: "City launch" }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page).toHaveURL(
+    /\/tasks\/task%2F7\?filter=mine&panel=intake&stage=product_positioning$/,
+  );
+  expect(requestPaths).toEqual([
+    "GET /api/v1/tasks/task%2F7",
+    "GET /api/v1/tasks/task%2F7",
+  ]);
+});
+
+test("renders representative intake, active-run, and recovery modes without extra requests", async ({
+  page,
+}) => {
+  const activeRunTask = {
+    ...task,
+    taskId: "task-active",
+    taskName: "Active run",
+    activeRun: { runId: "run-active" },
+    latestRun: null,
+    needsInputRequest: null,
+    reviewPackage: null,
+    approvedStrategy: null,
+    marketingBrief: null,
+    xiaohongshuBrief: null,
+  };
+  const recoveryTask = {
+    ...task,
+    taskId: "task-recovery",
+    taskName: "Recovery task",
+    taskStatus: "failed",
+    activeRun: null,
+    latestRun: { runId: "run-latest" },
+    needsInputRequest: null,
+    reviewPackage: null,
+    approvedStrategy: null,
+    marketingBrief: null,
+    xiaohongshuBrief: null,
+  };
+  const tasks = new Map([
+    [task.taskId, task],
+    [activeRunTask.taskId, activeRunTask],
+    [recoveryTask.taskId, recoveryTask],
+  ]);
+  const requestPaths: string[] = [];
+  const pageErrors: string[] = [];
+  const consoleErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+  await page.route("**/api/v1/tasks**", async (route) => {
+    const url = new URL(route.request().url());
+    requestPaths.push(`${route.request().method()} ${url.pathname}`);
+    const taskId = url.pathname.split("/").pop() ?? "";
+    const selected = tasks.get(decodeURIComponent(taskId));
+    if (selected) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(selected),
+      });
+      return;
+    }
+    await route.abort();
+  });
+
+  await page.goto("/tasks/task%2F7?panel=intake&stage=product_positioning");
+  await expect(
+    page.getByRole("heading", { name: "Current workspace: intake" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Intake resources and actions are not implemented/),
+  ).toBeVisible();
+
+  await page.goto(
+    "/tasks/task-active?panel=progress&stage=product_positioning",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Current workspace: running" }),
+  ).toBeVisible();
+  await expect(page.getByText("run-active")).toBeVisible();
+
+  await page.goto(
+    "/tasks/task-recovery?panel=progress&stage=product_positioning",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Current workspace: recovery" }),
+  ).toBeVisible();
+  await expect(page.getByText("run-latest")).toBeVisible();
+
+  expect(requestPaths).toEqual([
+    "GET /api/v1/tasks/task%2F7",
+    "GET /api/v1/tasks/task-active",
+    "GET /api/v1/tasks/task-recovery",
+  ]);
+  expect(requestPaths.some((path) => path.includes("/commands/"))).toBe(false);
   expect(pageErrors).toEqual([]);
   expect(consoleErrors).toEqual([]);
 });
