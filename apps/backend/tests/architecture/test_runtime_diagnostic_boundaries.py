@@ -19,6 +19,7 @@ _MODULE = _APPLICATION_ROOT / "runtime_diagnostics.py"
 _AUTHORIZED_SINK_CONSUMER = (
     _SRC_ROOT / "ai_ecommerce_agent" / "platform" / "runtime_diagnostics.py"
 )
+_AUTHORIZED_ERROR_CONSUMER = _APPLICATION_ROOT / "runtime_errors.py"
 _RUNTIME_MODULE = "ai_ecommerce_agent.application.runtime_diagnostics"
 _EXPECTED_EXPORTS = [
     "CorrelationId",
@@ -245,7 +246,12 @@ def test_application_init_and_repository_have_no_unexpected_consumer() -> None:
     violations = [
         violation
         for path in sorted((_SRC_ROOT / "ai_ecommerce_agent").rglob("*.py"))
-        if path not in {_MODULE, _AUTHORIZED_SINK_CONSUMER}
+        if path
+        not in {
+            _MODULE,
+            _AUTHORIZED_SINK_CONSUMER,
+            _AUTHORIZED_ERROR_CONSUMER,
+        }
         for violation in _runtime_diagnostic_imports(
             path, ast.parse(path.read_text(encoding="utf-8"))
         )

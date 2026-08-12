@@ -245,6 +245,7 @@ def test_production_inventory_and_imports_are_narrow() -> None:
         "model_runtime.py",
         "ports.py",
         "runtime_diagnostics.py",
+        "runtime_errors.py",
     ]
     imports = _import_names(_tree())
     for module, imported, alias in imports:
