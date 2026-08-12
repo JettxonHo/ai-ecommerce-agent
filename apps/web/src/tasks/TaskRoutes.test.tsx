@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
@@ -27,7 +27,7 @@ const overview = (overrides: Partial<TaskOverview> = {}): TaskOverview =>
       {
         stage: "product_intake_and_fact_extraction",
         status: "valid",
-        waitingReason: null,
+        waitingReason: "Source accepted",
         updatedAt: "2026-08-11T00:00:00Z",
       },
       {
@@ -95,11 +95,28 @@ describe("TaskRoutes", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Launch" })).toBeTruthy();
+    const overviewRegion = screen.getByRole("region");
+    expect(within(overviewRegion).getByText("Task ID: task/7")).toBeTruthy();
+    expect(within(overviewRegion).getByText("Backpack")).toBeTruthy();
+    const definitions = within(overviewRegion).getAllByRole("definition");
+    expect(within(definitions[1]!).getByText("running")).toBeTruthy();
+    expect(
+      within(definitions[2]!).getByText("product_positioning"),
+    ).toBeTruthy();
+    expect(
+      within(definitions[3]!).getByText("2026-08-12T00:00:00Z"),
+    ).toBeTruthy();
     const stages = screen.getAllByRole("listitem");
-    expect(stages.map((stage) => stage.textContent)).toEqual([
-      expect.stringContaining("product_intake_and_fact_extraction"),
-      expect.stringContaining("product_positioning"),
-    ]);
+    expect(stages).toHaveLength(2);
+    expect(
+      within(stages[0]!).getByText("product_intake_and_fact_extraction"),
+    ).toBeTruthy();
+    expect(within(stages[0]!).getByText("valid")).toBeTruthy();
+    expect(within(stages[0]!).getByText("Source accepted")).toBeTruthy();
+    expect(within(stages[0]!).getByText("2026-08-11T00:00:00Z")).toBeTruthy();
+    expect(within(stages[1]!).getByText("product_positioning")).toBeTruthy();
+    expect(within(stages[1]!).getByText("running")).toBeTruthy();
+    expect(within(stages[1]!).getByText("2026-08-12T00:00:00Z")).toBeTruthy();
     expect(
       screen
         .getByRole("link", { name: "Back to recent tasks" })
@@ -113,6 +130,18 @@ describe("TaskRoutes", () => {
 
     expect(screen.getByRole("status").textContent).toContain(
       "Loading recent tasks",
+    );
+  });
+
+  it("exposes an accessible loading state while reading a Task overview", () => {
+    const getTaskOverview = () => new Promise<TaskOverview>(() => {});
+    renderRoutes(
+      "/tasks/task-1",
+      gatewayFor([], async () => [], getTaskOverview),
+    );
+
+    expect(screen.getByRole("status").textContent).toContain(
+      "Loading task overview",
     );
   });
 
@@ -142,23 +171,36 @@ describe("TaskRoutes", () => {
     const first = overview({
       taskId: "task/first id",
       taskName: "First <script>alert(1)</script>",
+      productCategory: "Outdoor packs",
+      taskStatus: "waiting_for_input",
       currentStage: null,
       waitingReason: "Needs a source",
+      updatedAt: "2026-08-10T00:00:00Z",
       primaryAction: { kind: "navigate", target: "needs_input" },
     });
     const second = overview({
       taskId: "second",
       taskName: "Second",
+      productCategory: "Travel bags",
       currentStage: "customer_insight_analysis",
       taskStatus: "waiting_for_review",
+      updatedAt: "2026-08-11T00:00:00Z",
       primaryAction: { kind: "command", command: "start" },
     });
     const third = overview({
       taskId: "third",
       taskName: "Third",
+      productCategory: "Accessories",
+      currentStage: null,
+      waitingReason: null,
+      taskStatus: "completed",
+      updatedAt: "2026-08-12T00:00:00Z",
       primaryAction: { kind: "unavailable" },
     });
-    renderRoutes("/tasks", gatewayFor([first, second, third]));
+    const createTask = vi.fn();
+    const gateway = gatewayFor([first, second, third]);
+    gateway.createTask = createTask;
+    renderRoutes("/tasks", gateway);
 
     const links = await screen.findAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual([
@@ -167,12 +209,26 @@ describe("TaskRoutes", () => {
       third.taskName,
     ]);
     expect(links[0]?.getAttribute("href")).toBe("/tasks/task%2Ffirst%20id");
-    expect(screen.getByText("Needs a source")).toBeTruthy();
-    expect(screen.getByText("Continue in needs_input")).toBeTruthy();
-    expect(screen.getByText("Next action: start")).toBeTruthy();
-    expect(screen.getByText("Next action unavailable")).toBeTruthy();
+    const cards = screen.getAllByRole("article");
+    expect(cards).toHaveLength(3);
+    expect(within(cards[0]!).getByText("Outdoor packs")).toBeTruthy();
+    expect(within(cards[0]!).getByText("Needs a source")).toBeTruthy();
+    expect(within(cards[0]!).getByText("2026-08-10T00:00:00Z")).toBeTruthy();
+    expect(within(cards[0]!).getByText("Continue in needs_input")).toBeTruthy();
+    expect(within(cards[1]!).getByText("Travel bags")).toBeTruthy();
+    expect(
+      within(cards[1]!).getByText("customer_insight_analysis"),
+    ).toBeTruthy();
+    expect(within(cards[1]!).getByText("2026-08-11T00:00:00Z")).toBeTruthy();
+    expect(within(cards[1]!).getByText("Next action: start")).toBeTruthy();
+    expect(within(cards[2]!).getByText("Accessories")).toBeTruthy();
+    expect(within(cards[2]!).getByText("completed")).toBeTruthy();
+    expect(within(cards[2]!).getByText("2026-08-12T00:00:00Z")).toBeTruthy();
+    expect(within(cards[2]!).getByText("Next action unavailable")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "start" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /next action/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /create/i })).toBeNull();
+    expect(createTask).not.toHaveBeenCalled();
     expect(screen.queryByText(first.taskName)).toBeTruthy();
     expect(document.querySelector("script")).toBeNull();
   });
@@ -192,7 +248,27 @@ describe("TaskRoutes", () => {
     expect(
       screen.getByRole("link", { name: "Back to recent tasks" }),
     ).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toContain(
+      "This task is not available in the fixed workspace.",
+    );
     expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+  });
+
+  it("shows a waiting reason when an overview has no current stage", async () => {
+    const task = overview({
+      currentStage: null,
+      waitingReason: "Needs a source",
+      taskStatus: "waiting_for_input",
+    });
+    renderRoutes(
+      "/tasks/task-1",
+      createDeterministicTaskGateway({ tasks: [task] }),
+    );
+
+    const region = await screen.findByRole("region");
+    expect(within(region).getByText("Needs a source")).toBeTruthy();
+    expect(within(region).queryByText("Not started")).toBeNull();
+    expect(within(region).getByText("waiting_for_input")).toBeTruthy();
   });
 
   it("offers overview retry and then renders the URL-selected task", async () => {
@@ -213,6 +289,14 @@ describe("TaskRoutes", () => {
     expect(
       await screen.findByRole("heading", { name: "Task overview unavailable" }),
     ).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toContain(
+      "The task overview is temporarily unavailable.",
+    );
+    expect(
+      screen
+        .getByRole("link", { name: "Back to recent tasks" })
+        .getAttribute("href"),
+    ).toBe("/tasks");
     await userEvent
       .setup()
       .click(screen.getByRole("button", { name: "Retry" }));

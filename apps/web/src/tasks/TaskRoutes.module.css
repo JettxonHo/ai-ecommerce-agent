@@ -1,4 +1,5 @@
 .page {
+  min-width: 0;
   width: min(100% - 2rem, 56rem);
   margin: 0 auto;
   padding: 3rem 0;
@@ -17,6 +18,7 @@
   margin: 0;
   color: var(--color-ink);
   font-size: clamp(2rem, 5vw, 3.5rem);
+  overflow-wrap: anywhere;
 }
 
 .intro,
@@ -80,12 +82,18 @@
   overflow-wrap: anywhere;
 }
 
+.stages strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .taskList {
   display: grid;
   gap: 1rem;
 }
 
 .taskCard {
+  min-width: 0;
   padding: 1rem;
   border: 1px solid #cbd5e1;
   border-radius: 0.75rem;
@@ -93,11 +101,16 @@
 }
 
 .taskCard h2 {
+  min-width: 0;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
-.taskCard p {
+.taskCard p,
+.taskCard time {
+  min-width: 0;
   margin: 0.5rem 0 0;
+  overflow-wrap: anywhere;
 }
 
 .taskCard time {
