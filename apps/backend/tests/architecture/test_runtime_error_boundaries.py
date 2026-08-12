@@ -14,6 +14,15 @@ _SRC_ROOT = _BACKEND_ROOT / "src"
 _APPLICATION_ROOT = _SRC_ROOT / "ai_ecommerce_agent" / "application"
 _MODULE = _APPLICATION_ROOT / "runtime_errors.py"
 _MODULE_NAME = "ai_ecommerce_agent.application.runtime_errors"
+_MODULE_SYMBOLS = {
+    "ErrorId",
+    "RuntimeErrorCategory",
+    "RuntimeErrorRetryability",
+    "RuntimeErrorDisposition",
+    "RuntimeErrorIdentity",
+    "RuntimeErrorRecord",
+    "runtime_error_to_diagnostic_event",
+}
 _EXPECTED_IMPORTS = [
     ("__future__", "annotations", None),
     ("dataclasses", "dataclass", None),
@@ -97,6 +106,51 @@ def _imports(tree: ast.Module) -> list[tuple[str, str | None, str | None]]:
     return imports
 
 
+def _package_for(path: Path) -> tuple[str, ...]:
+    parts = list(
+        path.relative_to(_SRC_ROOT / "ai_ecommerce_agent").with_suffix("").parts
+    )
+    parts.pop()
+    return ("ai_ecommerce_agent", *parts)
+
+
+def _resolved_import_target(path: Path, node: ast.ImportFrom) -> str:
+    if node.level == 0:
+        return node.module or ""
+    package = _package_for(path)
+    base = package[: len(package) - (node.level - 1)]
+    if node.module:
+        base = (*base, *node.module.split("."))
+    return ".".join(base)
+
+
+def _runtime_error_import_violations(path: Path, tree: ast.Module) -> list[str]:
+    violations: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name == _MODULE_NAME or alias.name.startswith(
+                    f"{_MODULE_NAME}."
+                ):
+                    violations.append(f"{path}:{node.lineno}:{alias.name}")
+        elif isinstance(node, ast.ImportFrom):
+            target = _resolved_import_target(path, node)
+            if target == _MODULE_NAME or target.startswith(f"{_MODULE_NAME}."):
+                violations.extend(
+                    f"{path}:{node.lineno}:{target}.{alias.name}"
+                    for alias in node.names
+                )
+            elif target == "ai_ecommerce_agent.application" and any(
+                alias.name in {*_MODULE_SYMBOLS, "runtime_errors", "*"}
+                for alias in node.names
+            ):
+                violations.extend(
+                    f"{path}:{node.lineno}:{target}.{alias.name}"
+                    for alias in node.names
+                )
+    return violations
+
+
 def _import_time_calls(tree: ast.Module) -> list[str]:
     calls: list[str] = []
 
@@ -131,10 +185,20 @@ def _import_time_calls(tree: ast.Module) -> list[str]:
                 scan_function(statement)
             elif isinstance(statement, ast.ClassDef):
                 for decorator in statement.decorator_list:
-                    if not (
+                    if (
                         isinstance(decorator, ast.Call)
                         and _dotted_name(decorator.func) == "dataclass"
                     ):
+                        for argument in (
+                            *decorator.args,
+                            *(keyword.value for keyword in decorator.keywords),
+                        ):
+                            scan_expression(argument, "dataclass decorator")
+                    elif (
+                        isinstance(decorator, ast.Name) and decorator.id == "dataclass"
+                    ):
+                        continue
+                    else:
                         scan_expression(decorator, "class-decorator")
                 for base in statement.bases:
                     scan_expression(base, "class-base")
@@ -150,21 +214,54 @@ def _import_time_calls(tree: ast.Module) -> list[str]:
 
 def _mutable_module_assignments(tree: ast.Module) -> list[str]:
     issues: list[str] = []
-    for statement in tree.body:
-        if isinstance(statement, ast.Assign):
-            names = {
-                target.id
-                for target in statement.targets
-                if isinstance(target, ast.Name)
-            }
-            if names != {"__all__"} and isinstance(
-                statement.value, (ast.Call, ast.Dict, ast.List, ast.Set)
+
+    def is_mutable_literal(node: ast.AST | None) -> bool:
+        return isinstance(node, (ast.Call, ast.Dict, ast.List, ast.Set))
+
+    def scan_expression(node: ast.AST) -> None:
+        for child in ast.walk(node):
+            if isinstance(child, ast.NamedExpr) and is_mutable_literal(child.value):
+                issues.append("mutable named assignment")
+
+    def scan(body: list[ast.stmt]) -> None:
+        for statement in body:
+            if isinstance(
+                statement, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+            ):
+                continue
+            if isinstance(statement, ast.Assign):
+                names = {
+                    target.id
+                    for target in statement.targets
+                    if isinstance(target, ast.Name)
+                }
+                if names != {"__all__"} and is_mutable_literal(statement.value):
+                    issues.append("mutable assignment")
+                scan_expression(statement.value)
+            elif isinstance(statement, ast.AnnAssign) and is_mutable_literal(
+                statement.value
             ):
                 issues.append("mutable assignment")
-        elif isinstance(statement, ast.AnnAssign) and isinstance(
-            statement.value, (ast.Call, ast.Dict, ast.List, ast.Set)
-        ):
-            issues.append("mutable assignment")
+            elif isinstance(statement, ast.AnnAssign):
+                scan_expression(statement.value) if statement.value else None
+            elif isinstance(statement, ast.Expr):
+                scan_expression(statement.value)
+            elif isinstance(statement, (ast.If, ast.While)):
+                scan_expression(statement.test)
+                scan([*statement.body, *statement.orelse])
+            elif isinstance(statement, (ast.For, ast.AsyncFor)):
+                scan_expression(statement.iter)
+                scan([*statement.body, *statement.orelse])
+            elif isinstance(statement, (ast.With, ast.AsyncWith)):
+                for item in statement.items:
+                    scan_expression(item.context_expr)
+                scan(statement.body)
+            elif isinstance(statement, ast.Try):
+                scan([*statement.body, *statement.orelse, *statement.finalbody])
+                for handler in statement.handlers:
+                    scan(handler.body)
+
+    scan(tree.body)
     return issues
 
 
@@ -218,24 +315,33 @@ def test_runtime_error_imports_and_effects_are_exact() -> None:
 
 
 def test_runtime_error_has_no_unauthorized_consumer_or_reexport() -> None:
+    init_path = _APPLICATION_ROOT / "__init__.py"
+    init_tree = ast.parse(init_path.read_text(encoding="utf-8"))
+    assert _runtime_error_import_violations(init_path, init_tree) == []
+    assert not any(
+        isinstance(node, ast.Name) and node.id in {*_MODULE_SYMBOLS, "runtime_errors"}
+        for node in ast.walk(init_tree)
+    )
+    for node in ast.walk(init_tree):
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Name) and target.id == "__all__"
+            for target in node.targets
+        ):
+            assert isinstance(node.value, (ast.List, ast.Tuple))
+            assert {
+                element.value
+                for element in node.value.elts
+                if isinstance(element, ast.Constant)
+            }.isdisjoint({*_MODULE_SYMBOLS, "runtime_errors"})
     violations: list[str] = []
     for path in sorted((_SRC_ROOT / "ai_ecommerce_agent").rglob("*.py")):
         if path == _MODULE:
             continue
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    if alias.name == _MODULE_NAME or alias.name.startswith(
-                        f"{_MODULE_NAME}."
-                    ):
-                        violations.append(f"{path}:{alias.name}")
-            elif isinstance(node, ast.ImportFrom):
-                target = node.module or ""
-                if node.level:
-                    continue
-                if target == _MODULE_NAME or target.startswith(f"{_MODULE_NAME}."):
-                    violations.append(f"{path}:{target}")
+        violations.extend(
+            _runtime_error_import_violations(
+                path, ast.parse(path.read_text(encoding="utf-8"))
+            )
+        )
     assert violations == []
 
 
@@ -249,12 +355,34 @@ class ErrorId:
 """
     assert _import_time_calls(ast.parse(baseline)) == []
     assert _mutable_module_assignments(ast.parse(baseline)) == []
+    synthetic_path = _APPLICATION_ROOT / "synthetic_runtime_error_consumer.py"
+    assert (
+        _runtime_error_import_violations(
+            synthetic_path, ast.parse("from .errors import UnitOfWorkError")
+        )
+        == []
+    )
+    for mutation in (
+        "from .runtime_errors import ErrorId as Alias",
+        "from . import runtime_errors",
+        "from .runtime_errors import *",
+        "from ai_ecommerce_agent.application.runtime_errors import ErrorId as Alias",
+        "import ai_ecommerce_agent.application.runtime_errors as errors",
+        "from ai_ecommerce_agent.application import runtime_errors as errors",
+    ):
+        assert _runtime_error_import_violations(synthetic_path, ast.parse(mutation)), (
+            mutation
+        )
     for mutation in (
         "import logging\nlogging.basicConfig()",
         "_CACHE = []",
         "from pathlib import Path\nPath('x')",
         "class ErrorId:\n    payload: dict[str, str]",
         "class ErrorId:\n    traceback: str",
+        "from dataclasses import dataclass\n"
+        "@dataclass(frozen=print())\nclass ErrorId:\n    value: str",
+        "if True:\n    _CACHE: list[str] = []",
+        "if (_CACHE := []):\n    pass",
     ):
         tree = ast.parse(baseline + "\n" + mutation)
         assert (
