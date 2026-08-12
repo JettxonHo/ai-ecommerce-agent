@@ -42,10 +42,10 @@ export function NewTaskRoute({ taskGateway }: NewTaskRouteProps) {
     mutationFn: ({ input, key }: MutationVariables) =>
       taskGateway.createTask(input, key),
     retry: false,
-    onError: (error) => {
-      retryableRef.current =
-        error instanceof TaskGatewayError && error.kind === "temporary";
-      if (!retryableRef.current) attemptRef.current = null;
+    onError: () => {
+      // Every emitted error is explicit-retryable only; no automatic retry occurs.
+      // Keep the normalized attempt and UUID for possible same-input replay.
+      retryableRef.current = true;
     },
     onSuccess: async (task) => {
       retryableRef.current = false;

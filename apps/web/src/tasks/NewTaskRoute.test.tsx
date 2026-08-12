@@ -283,6 +283,48 @@ describe("NewTaskRoute", () => {
     ).toBe("Launch");
   });
 
+  it("reuses the key after a malformed-success invalid failure and rotates only for changed normalized input", async () => {
+    const task = overview({ taskId: "task/malformed" });
+    const createTask = vi
+      .fn<(input: TaskInput, key: string) => Promise<TaskOverview>>()
+      .mockRejectedValueOnce(
+        new TaskGatewayError("invalid", "The task response is invalid."),
+      )
+      .mockRejectedValueOnce(
+        new TaskGatewayError("invalid", "The task response is invalid."),
+      )
+      .mockResolvedValueOnce(task);
+    stubUuid("uuid-malformed", "uuid-changed");
+    const user = userEvent.setup();
+    renderCreate({
+      ...gateway(),
+      createTask,
+      getTaskOverview: vi.fn(async () => task),
+    });
+    await fill(user);
+
+    await user.click(screen.getByRole("button", { name: "Create task" }));
+    await screen.findByRole("alert");
+    await user.click(screen.getByRole("button", { name: "Retry create" }));
+    await screen.findByRole("alert");
+    expect(createTask.mock.calls[0]?.[1]).toBe("uuid-malformed");
+    expect(createTask.mock.calls[1]?.[1]).toBe("uuid-malformed");
+
+    await user.clear(screen.getByRole("textbox", { name: "Product category" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Product category" }),
+      "Tote",
+    );
+    await user.click(screen.getByRole("button", { name: "Retry create" }));
+    expect(await screen.findByText("Task ID: task/malformed")).toBeTruthy();
+    expect(createTask.mock.calls[2]?.[1]).toBe("uuid-changed");
+    expect(createTask.mock.calls[2]?.[0]).toEqual({
+      taskName: "Launch",
+      productCategory: "Tote",
+      promotionGoal: "Awareness",
+    });
+  });
+
   it("invalidates the Task query family before navigating to the created overview", async () => {
     const task = overview({ taskId: "task/with slash" });
     const createTask = vi.fn(async () => task);
