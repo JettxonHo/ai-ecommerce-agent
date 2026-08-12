@@ -42,6 +42,7 @@
 | [Session-001](session-001-project-positioning-and-mvp.md) | 项目定位、目标用户与 MVP 核心场景 | Completed（阶段性正式固化） | 2026-07-27 |
 | [Session-002](session-002-agent-workflow-reliability-and-technical-capabilities.md) | Agent 工作流、可靠性架构与技术能力需求 | In Discussion | 2026-07-27 |
 | [Session-003](session-003-pre-development-planning-and-goal-governance.md) | 正式开发前策划、演示 MVP 与长期 Goal 治理 | In Discussion | 2026-08-06 |
+| [Session-004](session-004-mvp0-fast-lane-rebaseline.md) | 过度设计审阅、最小 MVP 裁剪与 Fast Lane Goal 重基线 | Concluded | 2026-08-12 |
 
 > **Historical snapshot notice：** 下列 Session-001 / Session-002 状态说明只记录当时的讨论进度，不是当前执行指令。当前状态以 [AGENTS.md](../../AGENTS.md) 和 [Implementation Readiness](../handoffs/implementation-readiness.md) 为准。
 > Session-001 已完成阶段性正式固化（DEC-001 ~ DEC-010 已接受；产品定位与 MVP 原则层议题收尾）。当时项目尚未进入开发，Development Status 为 `NOT READY`。
