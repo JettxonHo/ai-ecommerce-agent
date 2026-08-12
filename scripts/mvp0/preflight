@@ -17,8 +17,7 @@ Usage: scripts/mvp0/preflight [--host-processes]
 
 Checks Docker/Compose and the pinned PostgreSQL Compose configuration.
 --host-processes additionally checks the Python/uv/Node/npm tools required by
-future host API, Worker and Web entrypoints; this MVP-0 task does not start
-those processes yet.
+the deterministic local-demo API and Web host processes.
 USAGE
       exit 0
       ;;
@@ -89,7 +88,7 @@ printf 'MVP-0 local PostgreSQL preflight: PASS\n'
 printf '  Docker Compose: %s\n' "$compose_version"
 printf '  PostgreSQL image: postgres:16.14-bookworm\n'
 printf '  Compose project: %s\n' "$MVP0_COMPOSE_PROJECT"
-printf '  Service topology: postgres only (API/Worker/Web remain host processes)\n'
+printf '  Service topology: postgres only (deterministic API/Web remain host processes)\n'
 
 if (( host_processes == 1 )); then
   require_command uv 'Install uv 0.12.x or newer (the repository uses uv sync --locked).'
@@ -111,10 +110,10 @@ if (( host_processes == 1 )); then
     printf 'ERROR: Python 3.13.x is required by apps/backend; found %s. Run uv sync --locked or install Python 3.13.x.\n' "$python_version" >&2
     exit 1
   fi
-  require_command node 'Install Node.js for the future Web host process.'
-  require_command npm 'Install npm for the future Web host process.'
+  require_command node 'Install Node.js for the local demo Web host process.'
+  require_command npm 'Install npm for the local demo Web host process.'
   printf '  Host tools: uv %s, Python %s, Node %s, npm %s\n' \
     "$uv_version" "$python_version" "$(node --version)" "$(npm --version)"
 else
-  printf '  Host process tools: not checked (use --host-processes before starting future API/Worker/Web processes)\n'
+  printf '  Host process tools: not checked (use --host-processes before scripts/mvp0/demo)\n'
 fi

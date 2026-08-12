@@ -7,7 +7,9 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 printf 'Starting MVP-0 PostgreSQL service (non-destructive; volume is preserved).\n'
-mvp0_compose up --detach --wait postgres
+# Recreate the scoped container so a fresh clone's bind-mounted init script is
+# authoritative, while the named postgres-data volume remains untouched.
+mvp0_compose up --detach --wait --force-recreate postgres
 mvp0_run_init_script ensure
 mvp0_run_init_script verify
-printf 'MVP-0 PostgreSQL is ready. API/Worker/Web are host-process boundaries and are not started by this task.\n'
+printf 'MVP-0 PostgreSQL is ready. Use scripts/mvp0/demo to start the deterministic API/Web demo.\n'

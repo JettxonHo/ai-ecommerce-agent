@@ -7,11 +7,11 @@
 ## 1. 当前阶段
 
 - **项目名称：** AI Ecommerce Agent
-- **当前阶段：** MVP-0 Fast Lane Rebaseline and Vertical Delivery
-- **开发状态：** ACTIVE ON DEC-078 DOCUMENTATION MERGE — 用户已接受 [DEC-078](docs/decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) 与 [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md)。旧 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) 的已完成工作保留，剩余横向 Backlog 不再自动执行。
+- **当前阶段：** MVP-0 Fast Lane Vertical Delivery and Release Reconciliation
+- **开发状态：** ACTIVE — FL-1 deterministic browser-to-backend loop is implemented in merged PRs #250/#252/#254; FL-2 runtime/smoke seam is merged but real OpenAI proof remains pending in Issue #255; FL-3 one-command local demo and current-status reconciliation are the active Issue #257 scope. 旧 [MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) 的已完成工作保留，剩余横向 Backlog 不再自动执行。
 - **最小目标：** 固定本地工作区中完成 Task 创建 → 一份粘贴文本/TXT/Markdown 输入（最大 1 MiB）→ Facts → Insight → Positioning → Marketing Brief → Xiaohongshu Brief → 一次 Review → Markdown 导出；确定性闭环通过后只执行一次真实 OpenAI happy-path smoke。
-- **当前事实：** 仓库已有 Task/Source 持久化、Durable Dispatch 与 Model Runtime seams、五类 output contracts、安全 Markdown renderer、FastAPI foundation、authored OpenAPI、generated client、Task gateway、`/tasks` list/create/read routes、Workbench projection 与 TaskWorkbench progress shell；但 FastAPI 尚未注册业务 routes，Skills 尚未组成可运行 Workflow，因此不存在真实 browser-to-backend E2E。
-- **当前 Gate：** 先合并 DEC-078 文档重基线；随后只创建第一个 FL-1 纵向 Issue。JSON/CSV/PDF/图片、完整 Retrieval/Evidence、分布式 Worker/Checkpoint Recovery、高级 Review/Diff、完整 API catalog、Auth/Multi-tenant/Public Deployment 均后移。现有复杂代码冻结而非重写。
+- **当前事实：** 仓库已有 Task/Source 持久化、Durable Dispatch 与 Model Runtime seams、五类 output contracts、安全 Markdown renderer、FastAPI fixed-workspace business routes、authored OpenAPI、generated client、Task gateway、`/tasks` list/create/read routes、Task-scoped input/result/review/export、Workbench projection、deterministic scripted pipeline 与 real-backend Chromium coverage；`scripts/mvp0/demo` 提供固定 PostgreSQL + API + Vite 的前台本地启动路径。真实 OpenAI acceptance 尚未运行或声明。
+- **当前 Gate：** Issue #257 只完成 FL-3 本地 demo、stale Compose repair、rehearsal evidence 与 current-status docs；真实 OpenAI happy-path 仍是 Issue #255 的独立人工/Secret Gate。JSON/CSV/PDF/图片、完整 Retrieval/Evidence、分布式 Worker/Checkpoint Recovery、高级 Review/Diff、完整 API catalog、Auth/Multi-tenant/Public Deployment 均后移。现有复杂代码冻结而非重写。
 - **质量方向：** 严格执行 DEC-039。保留外部输入、scope、SQL、原子提交、XSS/Markdown、same-origin、幂等与 Secret 边界；停止新增没有已复现风险的 AST scanner、精确私有目录、sole-consumer、类型子类或 every-field 穷举测试。
 
 ---
