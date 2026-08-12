@@ -11,6 +11,10 @@ import {
   type TaskPrimaryInputDraft,
   type TaskCurrentResult,
   type TaskOverview,
+  type ExportBriefKind,
+  type ExportBasis,
+  type ExportPreview,
+  type ExportSnapshot,
 } from "./gateway";
 
 export type DeterministicTaskGatewayOptions = Readonly<{
@@ -28,6 +32,61 @@ const sameInput = (left: TaskInput, right: TaskInput): boolean =>
 const clonePrimaryInput = (value: TaskPrimaryInput): TaskPrimaryInput =>
   Object.freeze({ ...value });
 
+const cloneJson = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+
+const replaceCandidateLeaf = (
+  candidate: Record<string, unknown> | null,
+  path: readonly string[],
+  replacement: string,
+): Record<string, unknown> => {
+  if (candidate === null) {
+    throw new TaskGatewayError("invalid", "The review candidate is missing.");
+  }
+  const copy = cloneJson(candidate);
+  let current: unknown = copy;
+  for (const segment of path.slice(0, -1)) {
+    if (typeof current !== "object" || current === null) {
+      throw new TaskGatewayError(
+        "invalid",
+        "The review candidate is malformed.",
+      );
+    }
+    if (Array.isArray(current)) {
+      const index = Number(segment);
+      current = Number.isInteger(index) ? current[index] : undefined;
+    } else {
+      current = (current as Record<string, unknown>)[segment];
+    }
+  }
+  const leaf = path[path.length - 1];
+  if (typeof current !== "object" || current === null || leaf === undefined) {
+    throw new TaskGatewayError("invalid", "The review candidate is malformed.");
+  }
+  if (Array.isArray(current)) {
+    const index = Number(leaf);
+    if (!Number.isInteger(index) || typeof current[index] !== "string") {
+      throw new TaskGatewayError(
+        "invalid",
+        "The review candidate is malformed.",
+      );
+    }
+    current[index] = replacement;
+  } else {
+    const mapping = current as Record<string, unknown>;
+    if (typeof mapping[leaf] !== "string") {
+      throw new TaskGatewayError(
+        "invalid",
+        "The review candidate is malformed.",
+      );
+    }
+    mapping[leaf] = replacement;
+  }
+  return copy;
+};
+
+const sameExportBasis = (left: ExportBasis, right: ExportBasis): boolean =>
+  JSON.stringify(left) === JSON.stringify(right);
+
 export const createDeterministicTaskGateway = (
   options: DeterministicTaskGatewayOptions = {},
 ): TaskGateway => {
@@ -38,6 +97,24 @@ export const createDeterministicTaskGateway = (
   const currentResults = new Map(
     (options.results ?? []).map((result) => [result.taskId, result]),
   );
+  const exportSnapshots = new Map<
+    string,
+    { snapshot: ExportSnapshot; content: string }
+  >();
+  const confirmationReplays = new Map<
+    string,
+    {
+      resultRevision: number;
+      inputRevision: number;
+      marketingCoreMessage: string;
+      xiaohongshuTitleDirection: string;
+      result: TaskCurrentResult;
+    }
+  >();
+  const exportReplays = new Map<
+    string,
+    { basis: ExportBasis; snapshot: ExportSnapshot; content: string }
+  >();
   let nextId = 1;
 
   const allocateId = (): string => {
@@ -165,14 +242,30 @@ export const createDeterministicTaskGateway = (
           ? Object.freeze({ stage: "Customer Insight" })
           : null,
         productPositioning: sufficient
-          ? Object.freeze({ stage: "Product Positioning" })
+          ? Object.freeze({
+              stage: "Product Positioning",
+              positioning_candidates: [],
+            })
           : null,
         marketingBrief: sufficient
-          ? Object.freeze({ stage: "Marketing Brief" })
+          ? Object.freeze({
+              brief_candidate: {
+                message_architecture: {
+                  core_message: "为工作日通勤提供清晰的电脑与日常物品收纳",
+                },
+              },
+            })
           : null,
         xiaohongshuBrief: sufficient
-          ? Object.freeze({ stage: "Xiaohongshu Brief" })
+          ? Object.freeze({
+              xiaohongshu_brief_candidate: {
+                creative_structure_directions: {
+                  title_directions: [{ title_direction: "通勤收纳路径" }],
+                },
+              },
+            })
           : null,
+        confirmation: null,
       });
       currentResults.set(taskId, result);
       return Object.freeze({ ...result });
@@ -183,6 +276,220 @@ export const createDeterministicTaskGateway = (
         throw new TaskGatewayError("missing", "Task not found.");
       const result = currentResults.get(taskId);
       return result ? Object.freeze({ ...result }) : null;
+    },
+    confirmCurrentResult: async (value, key, expectedResultRevision, input) => {
+      const taskId = normalizeTaskIdentity(value);
+      const replayKey = `${taskId}:${normalizeIdempotencyKey(key)}`;
+      const currentInput = primaryInputs.get(taskId);
+      const replay = confirmationReplays.get(replayKey);
+      if (replay) {
+        if (
+          replay.resultRevision !== expectedResultRevision ||
+          replay.marketingCoreMessage !== input.marketingCoreMessage ||
+          replay.xiaohongshuTitleDirection !== input.xiaohongshuTitleDirection
+        ) {
+          throw new TaskGatewayError(
+            "invalid",
+            "The retry key belongs to another confirmation.",
+          );
+        }
+        const current = currentResults.get(taskId);
+        if (
+          (currentInput !== undefined &&
+            currentInput.inputRevision !== replay.inputRevision) ||
+          current?.inputRevision !== replay.inputRevision ||
+          current?.resultRevision !== replay.resultRevision
+        ) {
+          throw new TaskGatewayError(
+            "invalid",
+            "The current result changed; refresh before confirming.",
+          );
+        }
+        return cloneJson(replay.result);
+      }
+      const result = currentResults.get(taskId);
+      if (!result || result.resultRevision !== expectedResultRevision) {
+        throw new TaskGatewayError(
+          "invalid",
+          "The current result changed; refresh before confirming.",
+        );
+      }
+      if (result.status === "insufficient_input") {
+        throw new TaskGatewayError(
+          "invalid",
+          "Insufficient input cannot be confirmed.",
+        );
+      }
+      if (result.status === "confirmed") {
+        throw new TaskGatewayError(
+          "invalid",
+          "The current result is already confirmed.",
+        );
+      }
+      if (currentInput && currentInput.inputRevision !== result.inputRevision) {
+        throw new TaskGatewayError(
+          "invalid",
+          "The current result changed; refresh before confirming.",
+        );
+      }
+      const marketingBrief = replaceCandidateLeaf(
+        result.marketingBrief,
+        ["brief_candidate", "message_architecture", "core_message"],
+        input.marketingCoreMessage,
+      );
+      const xiaohongshuBrief = replaceCandidateLeaf(
+        result.xiaohongshuBrief,
+        [
+          "xiaohongshu_brief_candidate",
+          "creative_structure_directions",
+          "title_directions",
+          "0",
+          "title_direction",
+        ],
+        input.xiaohongshuTitleDirection,
+      );
+      const confirmed: TaskCurrentResult = Object.freeze({
+        ...result,
+        status: "confirmed",
+        marketingBrief,
+        xiaohongshuBrief,
+        confirmation: Object.freeze({
+          marketingBriefVersion: Object.freeze({
+            resourceKind: "marketing_brief",
+            resourceVersionId: `brief-${taskId}-marketing`,
+            versionNumber: 1,
+          }),
+          xiaohongshuBriefVersion: Object.freeze({
+            resourceKind: "xiaohongshu_brief",
+            resourceVersionId: `brief-${taskId}-xiaohongshu`,
+            versionNumber: 1,
+          }),
+          confirmedAt: createdAt,
+        }),
+      });
+      currentResults.set(taskId, confirmed);
+      confirmationReplays.set(replayKey, {
+        resultRevision: expectedResultRevision,
+        inputRevision: result.inputRevision,
+        marketingCoreMessage: input.marketingCoreMessage,
+        xiaohongshuTitleDirection: input.xiaohongshuTitleDirection,
+        result: confirmed,
+      });
+      return Object.freeze({ ...confirmed });
+    },
+    previewExport: async (
+      value,
+      briefKind: ExportBriefKind,
+    ): Promise<ExportPreview> => {
+      const taskId = normalizeTaskIdentity(value);
+      const result = currentResults.get(taskId);
+      if (
+        !result ||
+        result.status !== "confirmed" ||
+        result.confirmation === null
+      ) {
+        throw new TaskGatewayError(
+          "invalid",
+          "Only a confirmed result can be exported.",
+        );
+      }
+      const input = primaryInputs.get(taskId);
+      if (input && input.inputRevision !== result.inputRevision) {
+        throw new TaskGatewayError(
+          "invalid",
+          "The current result changed; refresh the export preview.",
+        );
+      }
+      const basis: ExportBasis = Object.freeze({
+        taskId,
+        taskRevision: 0,
+        briefKind,
+        briefVersion:
+          briefKind === "marketing"
+            ? result.confirmation.marketingBriefVersion
+            : result.confirmation.xiaohongshuBriefVersion,
+        upstreamVersions: [],
+        hypotheses: [],
+        evidenceLimitations: [],
+        risks: [],
+      });
+      return Object.freeze({
+        basis,
+        templateVersion: "mvp0-markdown-v1",
+        fileName: `task-${taskId}-${briefKind}-v1-20260812T000000Z.md`,
+        mediaType: "text/markdown; charset=utf-8",
+      });
+    },
+    createExportSnapshot: async (
+      key,
+      basis: ExportBasis,
+    ): Promise<ExportSnapshot> => {
+      const replayKey = `${basis.taskId}:${normalizeIdempotencyKey(key)}`;
+      const replay = exportReplays.get(replayKey);
+      if (replay) {
+        if (!sameExportBasis(replay.basis, basis)) {
+          throw new TaskGatewayError(
+            "invalid",
+            "The retry key belongs to another export basis.",
+          );
+        }
+        const currentInput = primaryInputs.get(basis.taskId);
+        const currentResult = currentResults.get(basis.taskId);
+        if (
+          currentInput &&
+          currentResult &&
+          currentInput.inputRevision !== currentResult.inputRevision
+        ) {
+          throw new TaskGatewayError(
+            "invalid",
+            "The current result changed; refresh the export preview.",
+          );
+        }
+        return replay.snapshot;
+      }
+      const currentResult = currentResults.get(basis.taskId);
+      const currentInput = primaryInputs.get(basis.taskId);
+      if (
+        !currentResult ||
+        currentResult.status !== "confirmed" ||
+        (currentInput &&
+          currentInput.inputRevision !== currentResult.inputRevision)
+      ) {
+        throw new TaskGatewayError(
+          "invalid",
+          "The current result changed; refresh the export preview.",
+        );
+      }
+      const exportSnapshotId = `export-${basis.taskId}-${basis.briefKind}-${
+        exportReplays.size + 1
+      }`;
+      const snapshot: ExportSnapshot = Object.freeze({
+        exportSnapshotId,
+        taskId: basis.taskId,
+        briefKind: basis.briefKind,
+        briefVersion: basis.briefVersion,
+        upstreamVersions: basis.upstreamVersions,
+        exportedAt: createdAt,
+        fileName: `task-${basis.taskId}-${basis.briefKind}-v1-20260812T000000Z.md`,
+        mediaType: "text/markdown; charset=utf-8",
+        contentLocation: `/api/v1/export-snapshots/${exportSnapshotId}/content`,
+        templateVersion: "mvp0-markdown-v1",
+      });
+      const item = {
+        snapshot,
+        content: `# ${basis.briefKind === "marketing" ? "Marketing" : "Xiaohongshu"} Brief\n\nExported from deterministic preview.\n`,
+      };
+      exportSnapshots.set(exportSnapshotId, item);
+      exportReplays.set(replayKey, { basis, ...item });
+      return snapshot;
+    },
+    downloadExportContent: async (snapshot) => {
+      const item = exportSnapshots.get(
+        normalizeTaskIdentity(snapshot.exportSnapshotId),
+      );
+      if (!item)
+        throw new TaskGatewayError("missing", "Export snapshot not found.");
+      return item;
     },
   };
 };

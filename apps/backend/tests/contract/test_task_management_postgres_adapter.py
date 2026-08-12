@@ -213,6 +213,14 @@ def test_deterministic_result_metadata_is_task_scoped_and_atomic() -> None:
         "product_positioning",
         "marketing_brief",
         "xiaohongshu_brief",
+        "confirmed_at",
+        "confirmation_idempotency_key",
+        "confirmed_marketing_core_message",
+        "confirmed_xiaohongshu_title_direction",
+        "marketing_brief_version_id",
+        "marketing_brief_version_number",
+        "xiaohongshu_brief_version_id",
+        "xiaohongshu_brief_version_number",
     ]
     constraints = {constraint.name for constraint in TASK_RESULTS_TABLE.constraints}
     assert {

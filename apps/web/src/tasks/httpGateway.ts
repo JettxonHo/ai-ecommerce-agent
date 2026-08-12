@@ -3,6 +3,8 @@ import {
   mapTaskOverview,
   mapTaskPrimaryInput,
   mapTaskCurrentResult,
+  mapTaskExportPreview,
+  mapTaskExportSnapshot,
   mapTaskSummary,
   normalizeIdempotencyKey,
   normalizeTaskIdentity,
@@ -10,9 +12,12 @@ import {
   normalizePrimaryInput,
   TaskGatewayError,
   type TaskGateway,
+  type ExportBriefKind,
+  type ExportBasis,
+  type ExportSnapshot,
 } from "./gateway";
 
-type ClientResult<T> = { data?: T; response?: { status?: number } };
+type ClientResult<T> = { data?: T; response?: Response };
 const failure = (
   status: number | undefined,
   operation: string,
@@ -165,5 +170,94 @@ export const createHttpTaskGateway = (client: ApiClient): TaskGateway => ({
       }
       throw error;
     }
+  },
+  confirmCurrentResult: async (
+    taskId,
+    idempotencyKey,
+    expectedResultRevision,
+    input,
+  ) => {
+    const identity = normalizeTaskIdentity(taskId);
+    const key = normalizeIdempotencyKey(idempotencyKey);
+    if (
+      !Number.isInteger(expectedResultRevision) ||
+      expectedResultRevision < 0
+    ) {
+      throw new TaskGatewayError(
+        "invalid",
+        "The expected result revision is invalid.",
+      );
+    }
+    return request(
+      "Result confirmation",
+      () =>
+        client.POST("/api/v1/tasks/{taskId}/commands/confirm-current-result", {
+          params: {
+            path: { taskId: identity },
+            header: { "Idempotency-Key": key },
+          },
+          body: { expectedResultRevision, ...input },
+        }),
+      mapTaskCurrentResult,
+    );
+  },
+  previewExport: async (taskId, briefKind: ExportBriefKind) => {
+    const identity = normalizeTaskIdentity(taskId);
+    if (briefKind !== "marketing" && briefKind !== "xiaohongshu") {
+      throw new TaskGatewayError("invalid", "The export family is invalid.");
+    }
+    return request(
+      "Export preview",
+      () =>
+        client.POST("/api/v1/tasks/{taskId}/export-previews", {
+          params: { path: { taskId: identity } },
+          body: { briefKind },
+        }),
+      mapTaskExportPreview,
+    );
+  },
+  createExportSnapshot: async (idempotencyKey, basis: ExportBasis) => {
+    const key = normalizeIdempotencyKey(idempotencyKey);
+    return request(
+      "Export snapshot",
+      () =>
+        client.POST("/api/v1/export-snapshots", {
+          params: { header: { "Idempotency-Key": key } },
+          body: {
+            basis: {
+              ...basis,
+              upstreamVersions: [...basis.upstreamVersions],
+              hypotheses: [...basis.hypotheses],
+              evidenceLimitations: [...basis.evidenceLimitations],
+              risks: [...basis.risks],
+            },
+          },
+        }),
+      mapTaskExportSnapshot,
+    );
+  },
+  downloadExportContent: async (snapshot: ExportSnapshot) => {
+    const identity = normalizeTaskIdentity(snapshot.exportSnapshotId);
+    let result: ClientResult<string>;
+    try {
+      result = await client.GET(
+        "/api/v1/export-snapshots/{exportSnapshotId}/content",
+        { params: { path: { exportSnapshotId: identity } }, parseAs: "text" },
+      );
+    } catch {
+      throw new TaskGatewayError(
+        "temporary",
+        "Export download is temporarily unavailable.",
+      );
+    }
+    if (result.data === undefined || result.data === null) {
+      throw failure(result.response?.status, "Export download");
+    }
+    const header = result.response?.headers.get("content-disposition") ?? "";
+    const filenameMatch = /filename="([^"]+)"/u.exec(header);
+    if (filenameMatch === null || filenameMatch[1] !== snapshot.fileName) {
+      throw new TaskGatewayError("invalid", "The export response is invalid.");
+    }
+    return { snapshot, content: result.data };
   },
 });

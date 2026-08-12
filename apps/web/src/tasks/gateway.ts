@@ -24,7 +24,13 @@ export type TaskPrimaryInput = TaskPrimaryInputDraft &
     byteCount: number;
     updatedAt: string;
   }>;
-export type TaskResultStatus = "awaiting_review" | "insufficient_input";
+export type TaskResultStatus =
+  "awaiting_review" | "insufficient_input" | "confirmed";
+export type TaskResultConfirmation = Readonly<{
+  marketingBriefVersion: DomainVersionReference;
+  xiaohongshuBriefVersion: DomainVersionReference;
+  confirmedAt: string;
+}>;
 export type TaskCurrentResult = Readonly<{
   taskId: string;
   resultRevision: number;
@@ -37,6 +43,40 @@ export type TaskCurrentResult = Readonly<{
   productPositioning: Record<string, unknown> | null;
   marketingBrief: Record<string, unknown> | null;
   xiaohongshuBrief: Record<string, unknown> | null;
+  confirmation: TaskResultConfirmation | null;
+}>;
+export type ExportBriefKind = "marketing" | "xiaohongshu";
+export type ExportBasis = Readonly<{
+  taskId: string;
+  taskRevision: number;
+  briefKind: ExportBriefKind;
+  briefVersion: DomainVersionReference;
+  upstreamVersions: readonly DomainVersionReference[];
+  hypotheses: readonly string[];
+  evidenceLimitations: readonly string[];
+  risks: readonly string[];
+}>;
+export type ExportPreview = Readonly<{
+  basis: ExportBasis;
+  templateVersion: string;
+  fileName: string;
+  mediaType: string;
+}>;
+export type ExportSnapshot = Readonly<{
+  exportSnapshotId: string;
+  taskId: string;
+  briefKind: ExportBriefKind;
+  briefVersion: DomainVersionReference;
+  upstreamVersions: readonly DomainVersionReference[];
+  exportedAt: string;
+  fileName: string;
+  mediaType: string;
+  contentLocation: string;
+  templateVersion: string;
+}>;
+export type ExportDownload = Readonly<{
+  snapshot: ExportSnapshot;
+  content: string;
 }>;
 export type TaskPrimaryAction = Readonly<
   | { kind: "none" }
@@ -112,6 +152,26 @@ export interface TaskGateway {
     expectedInputRevision: number,
   ): Promise<TaskCurrentResult>;
   getCurrentResult(taskId: string): Promise<TaskCurrentResult | null>;
+  confirmCurrentResult?: (
+    taskId: string,
+    idempotencyKey: string,
+    expectedResultRevision: number,
+    input: Readonly<{
+      marketingCoreMessage: string;
+      xiaohongshuTitleDirection: string;
+    }>,
+  ) => Promise<TaskCurrentResult>;
+  previewExport?: (
+    taskId: string,
+    briefKind: ExportBriefKind,
+  ) => Promise<ExportPreview>;
+  createExportSnapshot?: (
+    idempotencyKey: string,
+    basis: ExportBasis,
+  ) => Promise<ExportSnapshot>;
+  downloadExportContent?: (
+    snapshot: ExportSnapshot,
+  ) => Promise<Readonly<{ snapshot: ExportSnapshot; content: string }>>;
 }
 
 const invalid = (message: string) => new TaskGatewayError("invalid", message);
@@ -430,7 +490,9 @@ export const mapTaskCurrentResult = (
     (resultRevision as number) < 0 ||
     !Number.isInteger(inputRevision) ||
     (inputRevision as number) < 0 ||
-    (status !== "awaiting_review" && status !== "insufficient_input") ||
+    (status !== "awaiting_review" &&
+      status !== "insufficient_input" &&
+      status !== "confirmed") ||
     !validPrimaryInputTimestamp(generatedAt) ||
     !Array.isArray(missingInformation) ||
     missingInformation.some(
@@ -444,6 +506,34 @@ export const mapTaskCurrentResult = (
     if (typeof value !== "object" || Array.isArray(value))
       throw invalidResult();
     return value as Record<string, unknown>;
+  };
+  const versionReference = (value: unknown): DomainVersionReference => {
+    const reference = objectInput(value);
+    if (
+      typeof reference.resourceKind !== "string" ||
+      reference.resourceKind.trim() === "" ||
+      typeof reference.resourceVersionId !== "string" ||
+      reference.resourceVersionId.trim() === "" ||
+      !Number.isInteger(reference.versionNumber) ||
+      (reference.versionNumber as number) < 1
+    ) {
+      throw invalidResult();
+    }
+    return Object.freeze({
+      resourceKind: reference.resourceKind,
+      resourceVersionId: reference.resourceVersionId,
+      versionNumber: reference.versionNumber as number,
+    });
+  };
+  const confirmation = (value: unknown): TaskResultConfirmation | null => {
+    if (value === null) return null;
+    const item = objectInput(value);
+    if (!validPrimaryInputTimestamp(item.confirmedAt)) throw invalidResult();
+    return Object.freeze({
+      marketingBriefVersion: versionReference(item.marketingBriefVersion),
+      xiaohongshuBriefVersion: versionReference(item.xiaohongshuBriefVersion),
+      confirmedAt: item.confirmedAt,
+    });
   };
   const result: TaskCurrentResult = {
     taskId,
@@ -459,6 +549,7 @@ export const mapTaskCurrentResult = (
     productPositioning: candidate(input.productPositioning),
     marketingBrief: candidate(input.marketingBrief),
     xiaohongshuBrief: candidate(input.xiaohongshuBrief),
+    confirmation: confirmation(input.confirmation),
   };
   if (status === "awaiting_review") {
     if (
@@ -471,17 +562,148 @@ export const mapTaskCurrentResult = (
     ) {
       throw invalidResult();
     }
+    if (result.confirmation !== null) {
+      throw invalidResult();
+    }
+  } else if (status === "confirmed") {
+    if (
+      result.productIntake === null ||
+      result.customerInsight === null ||
+      result.productPositioning === null ||
+      result.marketingBrief === null ||
+      result.xiaohongshuBrief === null ||
+      result.missingInformation.length !== 0 ||
+      result.confirmation === null
+    ) {
+      throw invalidResult();
+    }
   } else if (
     result.productIntake !== null ||
     result.customerInsight !== null ||
     result.productPositioning !== null ||
     result.marketingBrief !== null ||
     result.xiaohongshuBrief !== null ||
-    result.missingInformation.length === 0
+    result.missingInformation.length === 0 ||
+    result.confirmation !== null
   ) {
     throw invalidResult();
   }
   return Object.freeze(result);
+};
+
+const exportBriefKinds: readonly ExportBriefKind[] = [
+  "marketing",
+  "xiaohongshu",
+];
+const exportFileName =
+  /^task-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*-(marketing|xiaohongshu)-v[0-9]+-[0-9]{8}T[0-9]{6}Z\.md$/u;
+const mapExportVersion = (value: unknown): DomainVersionReference => {
+  const item = objectInput(value);
+  if (
+    typeof item.resourceKind !== "string" ||
+    item.resourceKind.trim() === "" ||
+    typeof item.resourceVersionId !== "string" ||
+    item.resourceVersionId.trim() === "" ||
+    !Number.isInteger(item.versionNumber) ||
+    (item.versionNumber as number) < 1
+  ) {
+    throw invalid("The export response is invalid.");
+  }
+  return Object.freeze({
+    resourceKind: item.resourceKind,
+    resourceVersionId: item.resourceVersionId,
+    versionNumber: item.versionNumber as number,
+  });
+};
+const mapExportStringList = (value: unknown): readonly string[] => {
+  if (
+    !Array.isArray(value) ||
+    value.some((item) => typeof item !== "string" || item.trim() === "")
+  ) {
+    throw invalid("The export response is invalid.");
+  }
+  return Object.freeze(value.map((item) => item as string));
+};
+const mapExportBasis = (value: unknown): ExportBasis => {
+  const item = objectInput(value);
+  const briefKind = item.briefKind;
+  if (
+    typeof item.taskId !== "string" ||
+    item.taskId.trim() === "" ||
+    !Number.isInteger(item.taskRevision) ||
+    (item.taskRevision as number) < 0 ||
+    typeof briefKind !== "string" ||
+    !exportBriefKinds.includes(briefKind as ExportBriefKind)
+  ) {
+    throw invalid("The export response is invalid.");
+  }
+  const upstream = item.upstreamVersions;
+  if (!Array.isArray(upstream))
+    throw invalid("The export response is invalid.");
+  return Object.freeze({
+    taskId: item.taskId,
+    taskRevision: item.taskRevision as number,
+    briefKind: briefKind as ExportBriefKind,
+    briefVersion: mapExportVersion(item.briefVersion),
+    upstreamVersions: Object.freeze(upstream.map(mapExportVersion)),
+    hypotheses: mapExportStringList(item.hypotheses),
+    evidenceLimitations: mapExportStringList(item.evidenceLimitations),
+    risks: mapExportStringList(item.risks),
+  });
+};
+export const mapTaskExportPreview = (value: unknown): ExportPreview => {
+  const item = objectInput(value);
+  if (
+    typeof item.templateVersion !== "string" ||
+    item.templateVersion !== "mvp0-markdown-v1" ||
+    typeof item.fileName !== "string" ||
+    !exportFileName.test(item.fileName) ||
+    item.mediaType !== "text/markdown; charset=utf-8"
+  ) {
+    throw invalid("The export response is invalid.");
+  }
+  return Object.freeze({
+    basis: mapExportBasis(item.basis),
+    templateVersion: item.templateVersion,
+    fileName: item.fileName,
+    mediaType: item.mediaType,
+  });
+};
+export const mapTaskExportSnapshot = (value: unknown): ExportSnapshot => {
+  const item = objectInput(value);
+  if (
+    typeof item.exportSnapshotId !== "string" ||
+    item.exportSnapshotId.trim() === "" ||
+    typeof item.taskId !== "string" ||
+    item.taskId.trim() === "" ||
+    typeof item.briefKind !== "string" ||
+    !exportBriefKinds.includes(item.briefKind as ExportBriefKind) ||
+    !validPrimaryInputTimestamp(item.exportedAt) ||
+    typeof item.fileName !== "string" ||
+    !exportFileName.test(item.fileName) ||
+    item.mediaType !== "text/markdown; charset=utf-8" ||
+    typeof item.contentLocation !== "string" ||
+    item.contentLocation.trim() === "" ||
+    item.templateVersion !== "mvp0-markdown-v1"
+  ) {
+    throw invalid("The export response is invalid.");
+  }
+  return Object.freeze({
+    exportSnapshotId: item.exportSnapshotId,
+    taskId: item.taskId,
+    briefKind: item.briefKind as ExportBriefKind,
+    briefVersion: mapExportVersion(item.briefVersion),
+    upstreamVersions: Object.freeze(
+      (Array.isArray(item.upstreamVersions) ? item.upstreamVersions : []).map(
+        mapExportVersion,
+      ),
+    ),
+    exportedAt: item.exportedAt,
+    fileName: item.fileName,
+    mediaType: item.mediaType,
+    contentLocation: item.contentLocation,
+    templateVersion: item.templateVersion,
+  });
 };
 
 const cloneAction = (value: TaskPrimaryAction): TaskPrimaryAction => {

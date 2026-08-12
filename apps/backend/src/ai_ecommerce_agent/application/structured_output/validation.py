@@ -272,4 +272,36 @@ def parse_and_validate_structured_output(
     return StructuredContent.from_mapping(candidate_mapping)
 
 
-__all__ = ["parse_and_validate_structured_output"]
+def validate_structured_content(
+    *, candidate: Mapping[str, object], spec: StructuredOutputSpec
+) -> StructuredContent:
+    """Validate persisted JSON against the exact Structured Output schema.
+
+    Runtime model responses use :func:`parse_and_validate_structured_output`.
+    This sibling seam applies the same preflight and Draft 2020-12 validator to
+    a JSON mapping reloaded from persistence, so confirmation never treats a
+    leaf path as a substitute for the complete accepted candidate contract.
+    """
+
+    if type(spec) is not StructuredOutputSpec:
+        raise TypeError("spec must be a StructuredOutputSpec")
+    if not isinstance(cast(object, candidate), Mapping):
+        raise ValueError(_CANDIDATE_OBJECT_MESSAGE)
+    try:
+        schema = _preflight_schema(spec.schema.to_mapping())
+        validator = Draft202012Validator(
+            schema,
+            format_checker=Draft202012Validator.FORMAT_CHECKER,
+            registry=Registry(),
+        )
+        errors = list(cast(Any, validator).iter_errors(candidate))
+    except Exception as error:
+        if isinstance(error, ValueError) and str(error) == _CANDIDATE_OBJECT_MESSAGE:
+            raise
+        raise ValueError(_CANDIDATE_SCHEMA_MESSAGE) from error
+    if errors:
+        raise ValueError(_CANDIDATE_SCHEMA_MESSAGE)
+    return StructuredContent.from_mapping(candidate)
+
+
+__all__ = ["parse_and_validate_structured_output", "validate_structured_content"]

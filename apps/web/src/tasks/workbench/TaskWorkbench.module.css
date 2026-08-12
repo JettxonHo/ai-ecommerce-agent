@@ -84,6 +84,51 @@
   background: #fff;
 }
 
+.reviewPanel,
+.resultPanel {
+  min-width: 0;
+  margin: 2rem 0;
+  padding: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.reviewPanel pre,
+.resultPanel pre {
+  max-width: 100%;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+}
+
+.reviewCandidates,
+.resultCandidates {
+  display: grid;
+  gap: 1rem;
+}
+
+.reviewCandidates article,
+.resultCandidates article {
+  min-width: 0;
+  padding: 0.85rem;
+  border-left: 3px solid var(--color-accent);
+  background: #f8fafc;
+}
+
+.reviewCandidates h3,
+.resultCandidates h3 {
+  margin-top: 0;
+}
+
+.downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
 .primaryInput h2,
 .primaryInput h3 {
   margin-top: 0;

@@ -88,6 +88,7 @@ const generatedCurrentResult = (
   productPositioning: { candidate: "positioning" },
   marketingBrief: { candidate: "marketing" },
   xiaohongshuBrief: { candidate: "xiaohongshu" },
+  confirmation: null,
   ...overrides,
 });
 
@@ -665,13 +666,138 @@ describe("TaskGateway deterministic contract", () => {
   it("keeps every gateway operation on the private interface", () => {
     const gateway: TaskGateway = createDeterministicTaskGateway();
     expect(Object.keys(gateway).sort()).toEqual([
+      "confirmCurrentResult",
+      "createExportSnapshot",
       "createTask",
+      "downloadExportContent",
       "generateResult",
       "getCurrentResult",
       "getPrimaryInput",
       "getTaskOverview",
       "listTasks",
+      "previewExport",
       "savePrimaryInput",
     ]);
+  });
+
+  it("preserves candidates while applying only the two bounded corrections", async () => {
+    const seededTask = overview({ taskId: "task-1" });
+    const seededResult = generatedCurrentResult({
+      marketingBrief: {
+        brief_candidate: {
+          message_architecture: {
+            core_message: "generated marketing",
+            message_hierarchy: { primary_message: "keep this" },
+          },
+          execution_direction: { call_to_action_objective: "keep this too" },
+        },
+      },
+      xiaohongshuBrief: {
+        xiaohongshu_brief_candidate: {
+          creative_structure_directions: {
+            title_directions: [
+              { title_direction: "generated title", proof_required: true },
+            ],
+            narrative_structure: [{ module_name: "keep this" }],
+          },
+        },
+      },
+    });
+    const gateway = createDeterministicTaskGateway({
+      tasks: [seededTask],
+      results: [seededResult],
+    });
+    const confirmCurrentResult = gateway.confirmCurrentResult;
+    if (confirmCurrentResult === undefined)
+      throw new Error("missing confirmation");
+
+    const confirmed = await confirmCurrentResult("task-1", "confirm-1", 0, {
+      marketingCoreMessage: "corrected marketing",
+      xiaohongshuTitleDirection: "corrected title",
+    });
+
+    expect(confirmed.status).toBe("confirmed");
+    expect(confirmed.marketingBrief).toMatchObject({
+      brief_candidate: {
+        message_architecture: {
+          core_message: "corrected marketing",
+          message_hierarchy: { primary_message: "keep this" },
+        },
+        execution_direction: { call_to_action_objective: "keep this too" },
+      },
+    });
+    expect(confirmed.xiaohongshuBrief).toMatchObject({
+      xiaohongshu_brief_candidate: {
+        creative_structure_directions: {
+          title_directions: [
+            { title_direction: "corrected title", proof_required: true },
+          ],
+          narrative_structure: [{ module_name: "keep this" }],
+        },
+      },
+    });
+
+    await expect(
+      confirmCurrentResult("task-1", "confirm-1", 0, {
+        marketingCoreMessage: "different",
+        xiaohongshuTitleDirection: "corrected title",
+      }),
+    ).rejects.toMatchObject({ kind: "invalid" });
+    await expect(
+      confirmCurrentResult("task-1", "confirm-1", 0, {
+        marketingCoreMessage: "corrected marketing",
+        xiaohongshuTitleDirection: "corrected title",
+      }),
+    ).resolves.toEqual(confirmed);
+  });
+
+  it("fences confirmation and export retries to their original input and basis", async () => {
+    const gateway = createDeterministicTaskGateway();
+    const task = await gateway.createTask(input, "task-key");
+    await gateway.savePrimaryInput(task.taskId, {
+      inputKind: "pasted_text",
+      fileName: null,
+      content: "anchor-city-commuter-backpack CBP-SYN-001 18 升",
+    });
+    await gateway.generateResult(task.taskId, "result-key", 0);
+    const confirmCurrentResult = gateway.confirmCurrentResult;
+    const previewExport = gateway.previewExport;
+    const createExportSnapshot = gateway.createExportSnapshot;
+    const downloadExportContent = gateway.downloadExportContent;
+    if (
+      confirmCurrentResult === undefined ||
+      previewExport === undefined ||
+      createExportSnapshot === undefined ||
+      downloadExportContent === undefined
+    ) {
+      throw new Error("missing review/export operation");
+    }
+    await confirmCurrentResult(task.taskId, "confirm-key", 0, {
+      marketingCoreMessage: "corrected marketing",
+      xiaohongshuTitleDirection: "corrected title",
+    });
+    const preview = await previewExport(task.taskId, "marketing");
+    const snapshot = await createExportSnapshot("export-key", preview.basis);
+    await expect(
+      createExportSnapshot("export-key", {
+        ...preview.basis,
+        taskRevision: preview.basis.taskRevision + 1,
+      }),
+    ).rejects.toMatchObject({ kind: "invalid" });
+
+    await gateway.savePrimaryInput(task.taskId, {
+      inputKind: "pasted_text",
+      fileName: null,
+      content: "new primary input",
+    });
+    await expect(
+      confirmCurrentResult(task.taskId, "confirm-key", 0, {
+        marketingCoreMessage: "corrected marketing",
+        xiaohongshuTitleDirection: "corrected title",
+      }),
+    ).rejects.toMatchObject({ kind: "invalid" });
+    await expect(downloadExportContent(snapshot)).resolves.toMatchObject({
+      snapshot,
+    });
   });
 });

@@ -45,9 +45,10 @@ BASELINE_REVISION = "0001_business_baseline"
 TASK_HEAD_REVISION = "0002_task_management"
 SOURCE_HEAD_REVISION = "0003_source_evidence"
 DISPATCH_HEAD_REVISION = "0004_durable_dispatch"
-PREVIOUS_HEAD_REVISION = "0006_task_primary_input"
+PREVIOUS_HEAD_REVISION = "0007_deterministic_result"
+RESULT_PREVIOUS_REVISION = "0006_task_primary_input"
 SUPERSESSION_REVISION = "0005_dispatch_supersession"
-HEAD_REVISION = "0007_deterministic_result"
+HEAD_REVISION = "0008_review_export"
 DATABASE_URL_ENV = "MVP0_MIGRATION_DATABASE_URL"
 DOMAIN_TABLES = (
     "durable_dispatch_work_intents",
@@ -58,6 +59,7 @@ DOMAIN_TABLES = (
     "source_evidence_task_source_associations",
     "task_management_create_idempotency",
     "task_management_deterministic_results",
+    "task_management_export_snapshots",
     "task_management_runs",
     "task_management_stages",
     "task_management_tasks",
@@ -81,6 +83,14 @@ RESULT_COLUMNS = (
     "product_positioning",
     "marketing_brief",
     "xiaohongshu_brief",
+    "confirmed_at",
+    "confirmation_idempotency_key",
+    "confirmed_marketing_core_message",
+    "confirmed_xiaohongshu_title_direction",
+    "marketing_brief_version_id",
+    "marketing_brief_version_number",
+    "xiaohongshu_brief_version_id",
+    "xiaohongshu_brief_version_number",
 )
 DURABLE_COLUMNS = (
     "dispatch_id",
@@ -580,7 +590,10 @@ def test_revision_graph_has_one_business_head() -> None:
     assert head.down_revision == PREVIOUS_HEAD_REVISION
     previous_head = script.get_revision(PREVIOUS_HEAD_REVISION)
     assert previous_head is not None
-    assert previous_head.down_revision == SUPERSESSION_REVISION
+    assert previous_head.down_revision == RESULT_PREVIOUS_REVISION
+    result_previous = script.get_revision(RESULT_PREVIOUS_REVISION)
+    assert result_previous is not None
+    assert result_previous.down_revision == SUPERSESSION_REVISION
     supersession = script.get_revision(SUPERSESSION_REVISION)
     assert supersession is not None
     assert supersession.down_revision == DISPATCH_HEAD_REVISION
@@ -835,6 +848,23 @@ def test_named_tables_and_constraints_are_present(
         "ck_task_management_results_input_revision_nonnegative",
         "ck_task_management_results_status",
         "ck_task_management_results_missing_information_nonempty",
+        "ck_task_management_results_confirmation_projection",
+        "ck_task_management_results_confirmation_size",
+        "uq_task_management_results_task_confirmation_key",
+        "pk_task_management_export_snapshots",
+        "uq_task_management_export_snapshots_task_key",
+        "fk_task_management_export_snapshots_task_owner",
+        "ck_task_management_export_snapshots_id_nonempty",
+        "ck_task_management_export_snapshots_task_id_nonempty",
+        "ck_task_management_export_snapshots_key_nonempty",
+        "ck_task_management_export_snapshots_brief_kind",
+        "ck_task_management_export_snapshots_revisions_nonnegative",
+        "ck_task_management_export_snapshots_version_positive",
+        "ck_task_management_export_snapshots_version_id_nonempty",
+        "ck_task_management_export_snapshots_media_type",
+        "ck_task_management_export_snapshots_template_version",
+        "ck_task_management_export_snapshots_content_nonempty",
+        "ck_task_management_export_snapshots_content_utf8_nonempty",
         *DURABLE_CONSTRAINT_NAMES,
     }
     assert expected_constraints <= _constraint_names(migration_engine)
@@ -894,6 +924,14 @@ def test_deterministic_result_has_exact_atomic_columns_and_constraints(
         ("product_positioning", "text", "text", "YES"),
         ("marketing_brief", "text", "text", "YES"),
         ("xiaohongshu_brief", "text", "text", "YES"),
+        ("confirmed_at", "timestamp with time zone", "timestamptz", "YES"),
+        ("confirmation_idempotency_key", "text", "text", "YES"),
+        ("confirmed_marketing_core_message", "text", "text", "YES"),
+        ("confirmed_xiaohongshu_title_direction", "text", "text", "YES"),
+        ("marketing_brief_version_id", "text", "text", "YES"),
+        ("marketing_brief_version_number", "bigint", "int8", "YES"),
+        ("xiaohongshu_brief_version_id", "text", "text", "YES"),
+        ("xiaohongshu_brief_version_number", "bigint", "int8", "YES"),
     ]
     assert {
         "pk_task_management_deterministic_results",

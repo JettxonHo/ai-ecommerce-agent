@@ -22,6 +22,9 @@ from ai_ecommerce_agent.application.model_runtime import (
 from ai_ecommerce_agent.application.structured_output import (
     parse_and_validate_structured_output,
 )
+from ai_ecommerce_agent.application.structured_output.validation import (
+    validate_structured_content,
+)
 from ai_ecommerce_agent.shared_kernel import StructuredContent
 
 pytestmark = pytest.mark.unit
@@ -144,6 +147,24 @@ def test_valid_nested_object_and_array_roundtrip_is_immutable_and_deterministic(
     assert first == second
     assert result.output_envelope.payload_text.startswith("{")
     assert spec.schema.to_mapping()["additionalProperties"] is False
+
+
+def test_persisted_structured_content_reuses_the_declared_schema() -> None:
+    spec = _spec()
+    candidate = {
+        "title": "Bag",
+        "items": [{"sku": "a", "quantity": 2}],
+        "email": "a@example.com",
+        "status": "ready",
+    }
+
+    validated = validate_structured_content(candidate=candidate, spec=spec)
+
+    assert validated.to_mapping() == candidate
+    with pytest.raises(ValueError, match="not valid"):
+        validate_structured_content(
+            candidate={**candidate, "items": [{"sku": "a"}]}, spec=spec
+        )
 
 
 @pytest.mark.parametrize(
