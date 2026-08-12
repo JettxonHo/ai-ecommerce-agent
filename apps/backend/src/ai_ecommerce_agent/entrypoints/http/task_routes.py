@@ -78,8 +78,7 @@ class GenerateResultBody(BaseModel):
 class ResultPipelineCoordinator(Protocol):
     """Narrow request-time seam injected by the composition root."""
 
-    def generate(self, *, input_text: str) -> Any:
-        ...
+    def generate(self, *, input_text: str) -> Any: ...
 
 
 def _timestamp(value: datetime) -> str:
@@ -479,9 +478,7 @@ def register_task_routes(
                 _result_projection(value),
                 status_code=200 if replayed else 201,
                 headers=(
-                    {
-                        "Location": f"/api/v1/tasks/{task_id_value}/current-result"
-                    }
+                    {"Location": f"/api/v1/tasks/{task_id_value}/current-result"}
                     if not replayed
                     else None
                 ),
