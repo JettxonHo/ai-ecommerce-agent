@@ -247,10 +247,21 @@ function TaskOverviewRoute({
       `export:${taskId}:${preview.basis.taskRevision}:${briefKind}:${preview.basis.briefVersion.resourceVersionId}`;
     exportRetryKeys.current.set(makeExportKey(preview.basis), key);
     const snapshot = await taskGateway.createExportSnapshot(key, preview.basis);
-    if (taskGateway.downloadExportContent !== undefined) {
-      return taskGateway.downloadExportContent(snapshot);
+    const download =
+      taskGateway.downloadExportContent === undefined
+        ? { snapshot, content: "" }
+        : await taskGateway.downloadExportContent(snapshot);
+    if (download.content !== "" && typeof document !== "undefined") {
+      const url = URL.createObjectURL(
+        new Blob([download.content], { type: download.snapshot.mediaType }),
+      );
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = download.snapshot.fileName;
+      anchor.click();
+      URL.revokeObjectURL(url);
     }
-    return { snapshot, content: "" };
+    return download;
   };
 
   if (query.isPending) {

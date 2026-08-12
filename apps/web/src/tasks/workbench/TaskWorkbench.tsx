@@ -448,16 +448,6 @@ function ResultPanel({
     setExportMessage(null);
     try {
       const download = await exportBrief(briefKind);
-      if (download.content !== "" && typeof document !== "undefined") {
-        const url = URL.createObjectURL(
-          new Blob([download.content], { type: download.snapshot.mediaType }),
-        );
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = download.snapshot.fileName;
-        anchor.click();
-        URL.revokeObjectURL(url);
-      }
       setExportMessage(
         `Export snapshot ${download.snapshot.exportSnapshotId} is ready.`,
       );

@@ -666,12 +666,16 @@ describe("TaskGateway deterministic contract", () => {
   it("keeps every gateway operation on the private interface", () => {
     const gateway: TaskGateway = createDeterministicTaskGateway();
     expect(Object.keys(gateway).sort()).toEqual([
+      "confirmCurrentResult",
+      "createExportSnapshot",
       "createTask",
+      "downloadExportContent",
       "generateResult",
       "getCurrentResult",
       "getPrimaryInput",
       "getTaskOverview",
       "listTasks",
+      "previewExport",
       "savePrimaryInput",
     ]);
   });
