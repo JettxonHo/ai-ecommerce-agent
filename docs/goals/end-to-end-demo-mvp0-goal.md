@@ -1,12 +1,14 @@
 # 端到端演示 MVP-0 Goal
 
-> **Status: ACTIVE**
+> **Status: SUPERSEDED FOR REMAINING MVP-0 EXECUTION BY DEC-078**
 >
 > **Owner:** Sol `ORCHESTRATOR_REVIEWER`
 >
 > **Implementer:** exact custom Agent `luna-worker` (`gpt-5.6-luna` / `max`, model status recorded per task)
 >
-> **Activation:** ACTIVE since PR #59 merged at `bb8c658`; user explicitly confirmed “进入 Goal 执行阶段”. Long-running execution follows DEC-072 / 075.
+> **Historical activation:** ACTIVE since PR #59 merged at `bb8c658`; user explicitly confirmed “进入 Goal 执行阶段”. Completed work remains valid.
+>
+> **Current execution:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) and the [MVP-0 Fast Lane Goal](mvp0-fast-lane-goal.md) supersede this document's remaining horizontal backlog when their documentation PR merges. The sections below remain as historical planning and traceability; they must not create new MVP-0 Issues by default.
 
 ## 1. 最终目标
 
@@ -17,7 +19,7 @@
 - Product Specification、Frontend Architecture、RFC-001～007 已 Accepted；Foundation FND-001～003 与 disposable Spike-001 已完成。
 - Production Package 当前包含 Foundation、Task Management Task / Run / Stage vertical slice，以及截至 PR #155 Source implementation baseline（merge `cd6bd02fc09a6698d4991dda671131ce03217bcf`）的 Source persistence slices；`main@544fe9865a318737636f4cd59e4705261d833494`（PR #218 merge）之后又合并了 Durable Dispatch 的 bounded claim/lease/heartbeat、cancellation/supersession controls 与 public completion contracts，Workflow provider-neutral checkpoint header seam（PR #192），Model Runtime provider-neutral Port/contracts、scripted substitute、structured-output/schema compatibility、request preparation、response mapping、one-attempt execution 与 bounded retry（PR #194/#196/#198/#201/#202/#204/#206/#208），以及 MVP0-025～029 五个 module-private provider-neutral output-only candidate contracts（PR #210/#212/#214/#216/#218）。这些 seams/contracts 不是完整 M4/M5 verticals：Source registration/intake 与 submitted-input metadata、最终 RFC-005 Source HTTP/wire/API/parser/retrieval/evidence、Issue #190 completion migration/participant、完整 Workflow graph/resume orchestration、五个 calibrated profiles、Skill context/prompt/Domain Validator/Current Truth commit、Provider live evidence、Review lifecycle/schema、API 与 Web 业务页面仍未实现；`0003_source_evidence` 不是 final intake schema。#81 与 #82 仍 OPEN，P-82A～P-86A 与 P-87A/P-88A/P-89A 保持 Proposed/pending。
 - MVP-0 按 DEC-070 使用 JSON / text / TXT / Markdown / CSV + Direct / Exact / PostgreSQL Lexical；PDF 与 Embedding / Semantic / Hybrid 后移 MVP-1。
-- P-71A～P-73A 与完整策划包已接受；规划 PR #59 已合并，Goal 当前为 ACTIVE。
+- P-71A～P-73A 与完整策划包已接受；规划 PR #59 合并后，本 Goal 在该历史快照中为 ACTIVE。
 
 ## 3. 权威文档与阅读顺序
 
@@ -284,7 +286,7 @@ Sol Review 必须检查实际 Diff 和证据，不根据 PR 描述直接批准�
 
 最终状态只允许 `GOAL_APPROVED`、`GOAL_APPROVED_WITH_FOLLOW_UPS`、`GOAL_BLOCKED` 或 `GOAL_REJECTED`。
 
-## 13. 当前进度与下一步
+## 13. Historical progress snapshot（not current execution authority）
 
 ```text
 M0 Planning: COMPLETE (PR #59, merge bb8c658; Issue #58 closed)

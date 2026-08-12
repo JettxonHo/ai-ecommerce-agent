@@ -1,8 +1,8 @@
 # 快速 MVP-0 Development Plan
 
-> **Status: ACCEPTED — ACTIVATES WITH MVP-0 GOAL ON PR #59 MERGE**
+> **Status: SUPERSEDED FOR REMAINING MVP-0 EXECUTION BY DEC-078**
 >
-> Product Specification、Frontend Architecture、RFC-001～007、P-71A～P-73A、本计划、Testing Strategy、Goal 与 Readiness Review 已接受。PR #59 合并后按 DEC-072 / DEC-075 激活 MVP-0 Goal；实现仅限 Goal、Issue 和任务合同边界。
+> Product Specification、Frontend Architecture、RFC-001～007、P-71A～P-73A 与本计划支撑的已完成工作继续有效。[DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) 和 [MVP-0 Fast Lane Goal](../goals/mvp0-fast-lane-goal.md) 取代本文件的剩余横向里程碑、范围和执行顺序。下文保留为历史计划，不得据此自动创建新 MVP-0 Issue。
 
 ## 1. 交付目标
 

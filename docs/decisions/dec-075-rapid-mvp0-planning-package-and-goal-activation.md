@@ -6,7 +6,9 @@ Governance / Development Plan / Testing / Goal Activation
 
 ## Status
 
-Accepted
+Amended by [DEC-078](dec-078-mvp0-fast-lane-execution-rebaseline.md)
+
+DEC-075 remains the authority for completed work, long-running authorization, Agent routing and high-risk human gates. DEC-078 replaces the remaining horizontal MVP-0 Goal, Testing and Readiness execution plan with the vertical Fast Lane.
 
 ## Decision
 
@@ -33,6 +35,7 @@ Accepted
 
 ## Related
 
+- [DEC-078](dec-078-mvp0-fast-lane-execution-rebaseline.md)
 - [DEC-072](dec-072-long-running-autonomy-and-agent-identity-governance.md)
 - [Implementation Readiness](../handoffs/implementation-readiness.md)
 - [Session-003](../sessions/session-003-pre-development-planning-and-goal-governance.md)
