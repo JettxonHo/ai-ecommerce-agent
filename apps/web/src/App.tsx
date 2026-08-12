@@ -1,5 +1,6 @@
 import styles from "./App.module.css";
 import { Navigate, Route, Routes } from "react-router";
+import { NewTaskRoute } from "./tasks/NewTaskRoute";
 import { TaskRoutes } from "./tasks/TaskRoutes";
 import type { TaskGateway } from "./tasks/gateway";
 
@@ -13,6 +14,10 @@ export function App({ taskGateway }: AppProps) {
         <Route
           path="/tasks"
           element={<TaskRoutes taskGateway={taskGateway} />}
+        />
+        <Route
+          path="/tasks/new"
+          element={<NewTaskRoute taskGateway={taskGateway} />}
         />
         <Route
           path="/tasks/:taskId"

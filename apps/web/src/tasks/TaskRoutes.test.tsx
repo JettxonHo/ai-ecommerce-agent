@@ -202,13 +202,18 @@ describe("TaskRoutes", () => {
     gateway.createTask = createTask;
     renderRoutes("/tasks", gateway);
 
-    const links = await screen.findAllByRole("link");
-    expect(links.map((link) => link.textContent)).toEqual([
+    expect(screen.getByRole("link", { name: "Create a task" })).toBeTruthy();
+    await screen.findByRole("link", { name: first.taskName });
+    const links = screen.getAllByRole("link");
+    const taskLinks = links.filter(
+      (link) => link.textContent !== "Create a task",
+    );
+    expect(taskLinks.map((link) => link.textContent)).toEqual([
       first.taskName,
       second.taskName,
       third.taskName,
     ]);
-    expect(links[0]?.getAttribute("href")).toBe("/tasks/task%2Ffirst%20id");
+    expect(taskLinks[0]?.getAttribute("href")).toBe("/tasks/task%2Ffirst%20id");
     const cards = screen.getAllByRole("article");
     expect(cards).toHaveLength(3);
     expect(within(cards[0]!).getByText("Outdoor packs")).toBeTruthy();

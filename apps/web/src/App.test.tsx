@@ -26,14 +26,22 @@ describe("application routes", () => {
     ).toBeTruthy();
   });
 
-  it.each(["/", "/unknown", "/tasks/new"])(
+  it.each(["/", "/unknown"])(
     "redirects unsupported location %s to the recent-task entry",
     async (path) => {
       renderAt(path);
       expect(
         await screen.findByRole("heading", { name: "Recent tasks" }),
       ).toBeTruthy();
-      expect(screen.queryByText(/create/i)).toBeNull();
+      expect(screen.getByRole("link", { name: "Create a task" })).toBeTruthy();
     },
   );
+
+  it("renders the explicit Task creation route", async () => {
+    renderAt("/tasks/new");
+    expect(
+      await screen.findByRole("heading", { name: "Create a task" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Task name" })).toBeTruthy();
+  });
 });
