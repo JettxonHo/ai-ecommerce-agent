@@ -351,9 +351,7 @@ def test_generate_result_is_durable_atomic_and_revision_fenced(
                 json={
                     "expectedResultRevision": 0,
                     "marketingCoreMessage": "Confirmed commuter storage message",
-                    "xiaohongshuTitleDirection": (
-                        "Confirmed commuter title direction"
-                    ),
+                    "xiaohongshuTitleDirection": ("Confirmed commuter title direction"),
                 },
             )
             confirmed_replay = client.post(
@@ -568,9 +566,7 @@ def test_confirm_revalidates_both_candidates_and_rolls_back_on_malformed_json(
                 },
             )
             assert malformed_marketing.status_code == 422, malformed_marketing.text
-            after_marketing = client.get(
-                f"/api/v1/tasks/{task_id}/current-result"
-            )
+            after_marketing = client.get(f"/api/v1/tasks/{task_id}/current-result")
             assert after_marketing.status_code == 200, after_marketing.text
             assert after_marketing.json()["status"] == "awaiting_review"
             assert after_marketing.json()["confirmation"] is None
@@ -648,19 +644,25 @@ def test_confirmation_and_export_boundaries_use_utf8_and_exported_at(
                 json=task_body,
             )
             task_id = created.json()["taskId"]
-            assert client.put(
-                f"/api/v1/tasks/{task_id}/primary-input",
-                json={
-                    "inputKind": "pasted_text",
-                    "fileName": None,
-                    "content": anchor_input,
-                },
-            ).status_code == 200
-            assert client.post(
-                f"/api/v1/tasks/{task_id}/commands/generate-result",
-                headers={"Idempotency-Key": "utf8-result-key"},
-                json={"expectedInputRevision": 0},
-            ).status_code == 201
+            assert (
+                client.put(
+                    f"/api/v1/tasks/{task_id}/primary-input",
+                    json={
+                        "inputKind": "pasted_text",
+                        "fileName": None,
+                        "content": anchor_input,
+                    },
+                ).status_code
+                == 200
+            )
+            assert (
+                client.post(
+                    f"/api/v1/tasks/{task_id}/commands/generate-result",
+                    headers={"Idempotency-Key": "utf8-result-key"},
+                    json={"expectedInputRevision": 0},
+                ).status_code
+                == 201
+            )
             boundary = "界" * 1365
             confirmed = client.post(
                 f"/api/v1/tasks/{task_id}/commands/confirm-current-result",

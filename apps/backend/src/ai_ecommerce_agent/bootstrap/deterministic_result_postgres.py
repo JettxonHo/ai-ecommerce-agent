@@ -630,9 +630,9 @@ class DeterministicResultApplication:
                                 "The retry key belongs to another confirmation.",
                             )
                         latest_revision = session.scalar(
-                            select(func.max(TASK_RESULTS_TABLE.c.result_revision)).where(
-                                TASK_RESULTS_TABLE.c.task_id == str(task_id)
-                            )
+                            select(
+                                func.max(TASK_RESULTS_TABLE.c.result_revision)
+                            ).where(TASK_RESULTS_TABLE.c.task_id == str(task_id))
                         )
                         if (
                             replay.input_revision != input_revision
