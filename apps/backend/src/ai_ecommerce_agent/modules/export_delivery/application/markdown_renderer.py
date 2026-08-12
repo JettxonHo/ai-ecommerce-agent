@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, cast
+from typing import cast
 
 from ai_ecommerce_agent.modules.export_delivery.public import (
     ExportBriefKind,
@@ -47,11 +48,15 @@ def _text(value: object, field_name: str) -> str:
 
 def _identity_text(value: object, expected: type[object], field_name: str) -> str:
     _exact(value, expected, field_name)
-    return _text(cast(Any, value).value, f"{field_name}.value")
+    return _text(object.__getattribute__(value, "value"), f"{field_name}.value")
 
 
 def _json_value(value: object) -> str:
-    return json.dumps(value, ensure_ascii=False, allow_nan=False)
+    encoded = json.dumps(value, ensure_ascii=False, allow_nan=False)
+    delimiter = "`" * (
+        max((len(run) for run in re.findall(r"`+", encoded)), default=0) + 1
+    )
+    return f"{delimiter} {encoded} {delimiter}"
 
 
 def _timestamp(value: object, field_name: str) -> str:
@@ -77,12 +82,12 @@ def _reference(value: object, field_name: str) -> str:
 def _list_lines(values: tuple[str, ...]) -> list[str]:
     if type(values) is not tuple:
         raise TypeError("collection must be an exact tuple")
-    lines: list[str] = []
-    for value in values:
-        if type(value) is not str:
-            raise TypeError("collection items must be exact strings")
-        lines.append(f"- {_json_value(value)}" if value.strip() else "- 无 / 不适用")
-    return lines or ["- 无 / 不适用"]
+    if any(type(value) is not str for value in values):
+        raise TypeError("collection items must be exact strings")
+    return [
+        f"- {_json_value(value)}" if value.strip() else "- 无 / 不适用"
+        for value in values
+    ] or ["- 无 / 不适用"]
 
 
 def _content_block(content: StructuredContent) -> list[str]:
@@ -103,7 +108,7 @@ def _group_title(group: StrEnum) -> str:
 def _validate_snapshot(
     export_snapshot: ExportSnapshot,
     brief_snapshot: MarketingBriefVersionSnapshot | XiaohongshuBriefVersionSnapshot,
-) -> tuple[ExportBriefKind, tuple[object, ...], tuple[str, ...]]:
+) -> tuple[ExportBriefKind, tuple[object, ...], tuple[str, ...], str, str]:
     _exact(export_snapshot, ExportSnapshot, "export_snapshot")
     brief_type: (
         type[MarketingBriefVersionSnapshot] | type[XiaohongshuBriefVersionSnapshot]
@@ -161,8 +166,8 @@ def _validate_snapshot(
     _exact(brief_snapshot.valid, bool, "brief_snapshot.valid")
     if not brief_snapshot.valid:
         raise ValueError("brief snapshot must be valid")
-    _timestamp(brief_snapshot.created_at, "brief_snapshot.created_at")
-    _timestamp(export_snapshot.exported_at, "export_snapshot.exported_at")
+    created_at = _timestamp(brief_snapshot.created_at, "brief_snapshot.created_at")
+    exported_at = _timestamp(export_snapshot.exported_at, "export_snapshot.exported_at")
     _text(export_snapshot.file_name, "export_snapshot.file_name")
     _text(export_snapshot.content_location, "export_snapshot.content_location")
     if (
@@ -208,7 +213,7 @@ def _validate_snapshot(
         _exact(reference, ResourceReference, "evidence reference")
         _text(reference.resource_kind, "evidence reference kind")
         _text(reference.resource_id, "evidence reference id")
-    return expected_kind, tuple(groups), upstream
+    return expected_kind, tuple(groups), upstream, created_at, exported_at
 
 
 def render_export_markdown(
@@ -218,9 +223,9 @@ def render_export_markdown(
 ) -> str:
     """Render one immutable Brief export as deterministic UTF-8 Markdown."""
 
-    brief_kind, groups, upstream = _validate_snapshot(export_snapshot, brief_snapshot)
-    created_at = _timestamp(brief_snapshot.created_at, "brief_snapshot.created_at")
-    exported_at = _timestamp(export_snapshot.exported_at, "export_snapshot.exported_at")
+    brief_kind, groups, upstream, created_at, exported_at = _validate_snapshot(
+        export_snapshot, brief_snapshot
+    )
     lines = [
         f"# {brief_kind.value.title()} Brief",
         f"**Brief type:** {brief_kind.value}",

@@ -37,8 +37,10 @@ _PRODUCTION_FILES = (_APPLICATION / "__init__.py", _RENDERER)
 _RENDERER_ALLOWED_IMPORTS = {
     "__future__",
     "json",
+    "re",
     "datetime",
     "enum",
+    "itertools",
     "typing",
     "ai_ecommerce_agent.modules.export_delivery.public",
     "ai_ecommerce_agent.modules.marketing_brief.public",
@@ -108,6 +110,43 @@ def _import_time_effects(tree: ast.Module) -> tuple[list[ast.Call], list[ast.AST
         def visit_Expr(self, node: ast.Expr) -> None:
             scan_expression(node.value)
 
+        def visit_If(self, node: ast.If) -> None:
+            scan_expression(node.test)
+            for statement in (*node.body, *node.orelse):
+                self.visit(statement)
+
+        def visit_For(self, node: ast.For) -> None:
+            scan_expression(node.iter)
+            for statement in (*node.body, *node.orelse):
+                self.visit(statement)
+
+        def visit_While(self, node: ast.While) -> None:
+            scan_expression(node.test)
+            for statement in (*node.body, *node.orelse):
+                self.visit(statement)
+
+        def visit_With(self, node: ast.With) -> None:
+            for item in node.items:
+                scan_expression(item.context_expr)
+            for statement in node.body:
+                self.visit(statement)
+
+        def visit_Try(self, node: ast.Try) -> None:
+            for statement in (
+                *node.body,
+                *node.orelse,
+                *node.finalbody,
+                *(statement for handler in node.handlers for statement in handler.body),
+            ):
+                self.visit(statement)
+
+        def visit_Match(self, node: ast.Match) -> None:
+            scan_expression(node.subject)
+            for case in node.cases:
+                scan_expression(case.guard)
+                for statement in case.body:
+                    self.visit(statement)
+
     scanner = Scanner()
     for statement in tree.body:
         scanner.visit(statement)
@@ -176,6 +215,10 @@ def test_export_contract_uses_only_the_task_public_facade_for_versions() -> None
 
 
 def test_renderer_inventory_imports_and_private_ownership_are_exact() -> None:
+    assert {path.name for path in _APPLICATION.iterdir() if path.is_file()} == {
+        "__init__.py",
+        "markdown_renderer.py",
+    }
     assert all(path.is_file() for path in _PRODUCTION_FILES)
     tree = ast.parse(_RENDERER.read_text(encoding="utf-8"))
     imports: set[str] = set()
@@ -213,17 +256,24 @@ def test_renderer_architecture_probes_reject_effectful_mutations() -> None:
         "    return value\n"
     )
     assert not [node for node in ast.walk(baseline) if isinstance(node, ast.Call)]
+    baseline_source = (
+        "from __future__ import annotations\n"
+        "import json\n"
+        "def render(*, value: str = 'ok') -> str:\n"
+        "    return value\n"
+    )
+    assert _import_time_effects(ast.parse(baseline_source)) == ([], [])
     for source in (
-        "def render(*, value: str = open('x')) -> str:\n    return value\n",
-        "if True:\n    _cache = []\n",
-        "import socket\n",
+        baseline_source + "if print('x'):\n    pass\n",
+        baseline_source + "for _ in range(print('x')):\n    pass\n",
+        baseline_source + "while print('x'):\n    break\n",
+        baseline_source + "with print('x'):\n    pass\n",
+        baseline_source + "try:\n    print('x')\nexcept Exception:\n    pass\n",
+        baseline_source + "match 1:\n    case _ if print('x'):\n        pass\n",
+        baseline_source + "_cache = []\n",
     ):
-        mutated = ast.parse(source)
-        assert (
-            any(isinstance(node, ast.Call) for node in ast.walk(mutated))
-            or any(isinstance(node, ast.Import) for node in ast.walk(mutated))
-            or any(isinstance(node, ast.List) for node in ast.walk(mutated))
-        )
+        calls, mutable = _import_time_effects(ast.parse(source))
+        assert calls or mutable
 
 
 def test_renderer_import_time_guard_covers_class_bodies_and_annotations() -> None:

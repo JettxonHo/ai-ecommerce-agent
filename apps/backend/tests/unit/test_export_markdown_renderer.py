@@ -159,6 +159,25 @@ def _outside_data_fence(rendered: str) -> list[str]:
     return outside
 
 
+def _without_inline_code(line: str) -> str:
+    plain: list[str] = []
+    index = 0
+    while index < len(line):
+        if line[index] != "`":
+            plain.append(line[index])
+            index += 1
+            continue
+        end = index
+        while end < len(line) and line[end] == "`":
+            end += 1
+        delimiter = line[index:end]
+        close = line.find(delimiter, end)
+        if close < 0:
+            break
+        index = close + len(delimiter)
+    return "".join(plain)
+
+
 def test_all_non_content_data_markers_stay_inside_data_fences() -> None:
     marker = "\n# injected heading\n<h1>raw html</h1>\n```"
     brief = _brief(
@@ -181,10 +200,12 @@ def test_all_non_content_data_markers_stay_inside_data_fences() -> None:
         brief_snapshot=brief,
     )
     outside = _outside_data_fence(rendered)
-    assert marker not in "\n".join(outside)
-    assert "<h1>" not in outside
-    assert "```" not in outside
-    assert [line for line in outside if line.startswith("#")] == [
+    unprotected = "\n".join(_without_inline_code(line) for line in outside)
+    assert "<h1>" in rendered
+    assert marker not in unprotected
+    assert "<h1>" not in unprotected
+    assert "```" not in unprotected
+    assert [line for line in unprotected.splitlines() if line.startswith("#")] == [
         "# Marketing Brief",
         "## Task and version",
         "### Upstream versions",

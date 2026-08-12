@@ -45,15 +45,15 @@ _MARKETING_GOLDEN = (
     "**Brief type:** marketing\n"
     "\n"
     "## Task and version\n"
-    '- Task: "task-m"\n'
-    '- Brief version: "brief-m-1" (v2)\n'
+    '- Task: ` "task-m" `\n'
+    '- Brief version: ` "brief-m-1" ` (v` 2 `)\n'
     "- Valid: true\n"
-    '- Created at: "2026-08-09T01:02:03Z"\n'
+    '- Created at: ` "2026-08-09T01:02:03Z" `\n'
     "### Upstream versions\n"
-    '- "strategy-m (v1)"\n'
+    '- ` "strategy-m (v1)" `\n'
     "\n"
     "## Objective And Audience\n"
-    '- Origin: "model"\n'
+    '- Origin: ` "model" `\n'
     "````json\n"
     "    {\n"
     '        "nested": {\n'
@@ -65,7 +65,7 @@ _MARKETING_GOLDEN = (
     "````\n"
     "\n"
     "## Message Architecture\n"
-    '- Origin: "model"\n'
+    '- Origin: ` "model" `\n'
     "````json\n"
     "    {\n"
     '        "nested": {\n'
@@ -77,7 +77,7 @@ _MARKETING_GOLDEN = (
     "````\n"
     "\n"
     "## Reasons To Believe And Evidence\n"
-    '- Origin: "model"\n'
+    '- Origin: ` "model" `\n'
     "````json\n"
     "    {\n"
     '        "nested": {\n'
@@ -101,7 +101,7 @@ _MARKETING_GOLDEN = (
     "````\n"
     "\n"
     "## Constraints And Honesty\n"
-    '- Origin: "model"\n'
+    '- Origin: ` "model" `\n'
     "````json\n"
     "    {\n"
     '        "nested": {\n'
@@ -113,7 +113,7 @@ _MARKETING_GOLDEN = (
     "````\n"
     "\n"
     "## Version And Workflow Context\n"
-    '- Origin: "model"\n'
+    '- Origin: ` "model" `\n'
     "````json\n"
     "    {\n"
     '        "nested": {\n'
@@ -125,24 +125,24 @@ _MARKETING_GOLDEN = (
     "````\n"
     "\n"
     "## Hypotheses\n"
-    '- "test hypothesis"\n'
+    '- ` "test hypothesis" `\n'
     "\n"
     "## Evidence limitations\n"
-    '- "limited evidence"\n'
+    '- ` "limited evidence" `\n'
     "\n"
     "## Risks\n"
-    '- "test risk"\n'
+    '- ` "test risk" `\n'
     "\n"
     "## Evidence references\n"
-    '- "source_fragment": "fragment-m"\n'
+    '- ` "source_fragment" `: ` "fragment-m" `\n'
     "\n"
     "## Export metadata\n"
-    '- Export snapshot: "export-1"\n'
-    '- Exported at: "2026-08-09T02:03:04Z"\n'
-    '- File name: "task-export.md"\n'
-    '- Content location: "memory://export-1"\n'
-    '- Media type: "text/markdown; charset=utf-8"\n'
-    '- Template version: "mvp0-markdown-v1"\n'
+    '- Export snapshot: ` "export-1" `\n'
+    '- Exported at: ` "2026-08-09T02:03:04Z" `\n'
+    '- File name: ` "task-export.md" `\n'
+    '- Content location: ` "memory://export-1" `\n'
+    '- Media type: ` "text/markdown; charset=utf-8" `\n'
+    '- Template version: ` "mvp0-markdown-v1" `\n'
 )
 
 _XIAOHONGSHU_GOLDEN = (
@@ -150,16 +150,16 @@ _XIAOHONGSHU_GOLDEN = (
     "**Brief type:** xiaohongshu\n"
     "\n"
     "## Task and version\n"
-    '- Task: "task-x"\n'
-    '- Brief version: "brief-x-1" (v3)\n'
+    '- Task: ` "task-x" `\n'
+    '- Brief version: ` "brief-x-1" ` (v` 3 `)\n'
     "- Valid: true\n"
-    '- Created at: "2026-08-09T01:02:03Z"\n'
+    '- Created at: ` "2026-08-09T01:02:03Z" `\n'
     "### Upstream versions\n"
-    '- "marketing-x (v2)"\n'
-    '- "policy-x (v1)"\n'
+    '- ` "marketing-x (v2)" `\n'
+    '- ` "policy-x (v1)" `\n'
     "\n"
     "## Platform And Campaign Context\n"
-    '- Origin: "user"\n'
+    '- Origin: ` "user" `\n'
     "````json\n"
     "    {\n"
     '        "direction": "platform_and_campaign_context"\n'
@@ -167,7 +167,7 @@ _XIAOHONGSHU_GOLDEN = (
     "````\n"
     "\n"
     "## Note Format And Content Mode\n"
-    '- Origin: "user"\n'
+    '- Origin: ` "user" `\n'
     "````json\n"
     "    {\n"
     '        "direction": "note_format_and_content_mode"\n'
@@ -175,7 +175,7 @@ _XIAOHONGSHU_GOLDEN = (
     "````\n"
     "\n"
     "## Creative Structure Directions\n"
-    '- Origin: "user"\n'
+    '- Origin: ` "user" `\n'
     "````json\n"
     "    {\n"
     '        "direction": "creative_structure_directions"\n'
@@ -183,7 +183,7 @@ _XIAOHONGSHU_GOLDEN = (
     "````\n"
     "\n"
     "## Discovery And Action Directions\n"
-    '- Origin: "user"\n'
+    '- Origin: ` "user" `\n'
     "````json\n"
     "    {\n"
     '        "direction": "discovery_and_action_directions"\n'
@@ -191,7 +191,7 @@ _XIAOHONGSHU_GOLDEN = (
     "````\n"
     "\n"
     "## Evidence And Platform Constraints\n"
-    '- Origin: "user"\n'
+    '- Origin: ` "user" `\n'
     "````json\n"
     "    {\n"
     '        "direction": "evidence_and_platform_constraints"\n'
@@ -199,7 +199,7 @@ _XIAOHONGSHU_GOLDEN = (
     "````\n"
     "\n"
     "## Workflow And Version Context\n"
-    '- Origin: "user"\n'
+    '- Origin: ` "user" `\n'
     "````json\n"
     "    {\n"
     '        "direction": "workflow_and_version_context"\n'
@@ -219,12 +219,12 @@ _XIAOHONGSHU_GOLDEN = (
     "- 无 / 不适用\n"
     "\n"
     "## Export metadata\n"
-    '- Export snapshot: "export-1"\n'
-    '- Exported at: "2026-08-09T02:03:04Z"\n'
-    '- File name: "task-export.md"\n'
-    '- Content location: "memory://export-1"\n'
-    '- Media type: "text/markdown; charset=utf-8"\n'
-    '- Template version: "mvp0-markdown-v1"\n'
+    '- Export snapshot: ` "export-1" `\n'
+    '- Exported at: ` "2026-08-09T02:03:04Z" `\n'
+    '- File name: ` "task-export.md" `\n'
+    '- Content location: ` "memory://export-1" `\n'
+    '- Media type: ` "text/markdown; charset=utf-8" `\n'
+    '- Template version: ` "mvp0-markdown-v1" `\n'
 )
 
 
