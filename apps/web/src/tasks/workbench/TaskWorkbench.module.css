@@ -1,0 +1,147 @@
+.page {
+  min-width: 0;
+  width: min(100% - 2rem, 56rem);
+  margin: 0 auto;
+  padding: 3rem 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page h1 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  overflow-wrap: anywhere;
+}
+
+.backLink {
+  margin: 0.75rem 0 1.5rem;
+}
+
+.identity,
+.neutral,
+.workspace p,
+.stages span,
+.stages time {
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+
+.details,
+.referenceList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.details div,
+.referenceList div {
+  min-width: 0;
+  padding: 0.85rem;
+  border-left: 3px solid var(--color-accent);
+  background: #e2e8f0;
+}
+
+.details dt,
+.referenceList dt {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.details dd,
+.referenceList dd {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.workspace,
+.navigation,
+.references,
+.neutral {
+  min-width: 0;
+  margin: 2rem 0;
+  padding: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.workspace h2,
+.navigation h2,
+.references h2 {
+  margin-top: 0;
+}
+
+.linkRow,
+.linkColumn {
+  display: flex;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.linkRow {
+  flex-wrap: wrap;
+}
+
+.linkColumn {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.linkRow a,
+.linkColumn a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.linkRow a[aria-current="page"],
+.linkColumn a[aria-current="step"] {
+  font-weight: 700;
+  text-decoration-thickness: 0.15em;
+}
+
+.neutral {
+  border-left: 3px solid #64748b;
+  line-height: 1.5;
+}
+
+.stages {
+  display: grid;
+  gap: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.stages li {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.stages strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 40rem) {
+  .page {
+    padding: 2rem 0;
+  }
+
+  .details,
+  .referenceList {
+    grid-template-columns: 1fr;
+  }
+}

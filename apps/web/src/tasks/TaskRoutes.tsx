@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate, useParams } from "react-router";
 import styles from "./TaskRoutes.module.css";
+import { TaskWorkbench } from "./workbench/TaskWorkbench";
 import {
   TaskGatewayError,
   type TaskGateway,
-  type TaskOverview,
   type TaskPrimaryAction,
   type TaskSummary,
 } from "./gateway";
@@ -119,51 +119,7 @@ function TaskOverviewRoute({
     );
   }
 
-  return <OverviewContent task={query.data} />;
-}
-
-function OverviewContent({ task }: Readonly<{ task: TaskOverview }>) {
-  return (
-    <section className={styles.page} aria-labelledby="task-overview-heading">
-      <p className={styles.eyebrow}>Task overview</p>
-      <p className={styles.backLink}>
-        <Link to="/tasks">Back to recent tasks</Link>
-      </p>
-      <h1 id="task-overview-heading">{task.taskName}</h1>
-      <p className={styles.identity}>Task ID: {task.taskId}</p>
-      <dl className={styles.details}>
-        <div>
-          <dt>Category</dt>
-          <dd>{task.productCategory}</dd>
-        </div>
-        <div>
-          <dt>Status</dt>
-          <dd>{task.taskStatus}</dd>
-        </div>
-        <div>
-          <dt>Current stage</dt>
-          <dd>{task.currentStage ?? task.waitingReason ?? "Not started"}</dd>
-        </div>
-        <div>
-          <dt>Updated</dt>
-          <dd>
-            <time dateTime={task.updatedAt}>{task.updatedAt}</time>
-          </dd>
-        </div>
-      </dl>
-      <h2>Stage summaries</h2>
-      <ol className={styles.stages} aria-label="Stage summaries">
-        {task.stages.map((stage) => (
-          <li key={stage.stage}>
-            <strong>{stage.stage}</strong>
-            <span>{stage.status}</span>
-            {stage.waitingReason ? <span>{stage.waitingReason}</span> : null}
-            <time dateTime={stage.updatedAt}>{stage.updatedAt}</time>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
+  return <TaskWorkbench task={query.data} />;
 }
 
 export function TaskRoutes({ taskGateway }: TaskRoutesProps) {
