@@ -50,6 +50,7 @@ def create_task_http_application(
     primary_input_application: Any,
     result_application: Any | None = None,
     pipeline_coordinator: Any | None = None,
+    export_application: Any | None = None,
 ) -> FastAPI:
     """Build the foundation and register the consumed Task/input routes."""
 
@@ -60,6 +61,7 @@ def create_task_http_application(
         primary_input_application=primary_input_application,
         result_application=result_application,
         pipeline_coordinator=pipeline_coordinator,
+        export_application=export_application,
     )
     return application
 

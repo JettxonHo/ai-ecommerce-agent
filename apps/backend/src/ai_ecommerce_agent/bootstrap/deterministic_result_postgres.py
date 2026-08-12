@@ -5,10 +5,10 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime
-from typing import cast
+from datetime import UTC, datetime
+from typing import Any, cast
 
-from sqlalchemy import Engine, func, select
+from sqlalchemy import Engine, func, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -64,6 +64,7 @@ class DeterministicResultSnapshot:
     generated_at: datetime
     missing_information: tuple[str, ...]
     candidates: Mapping[str, Mapping[str, object] | None]
+    confirmation: Mapping[str, object] | None = None
 
 
 def _row(value: object) -> Mapping[str, object]:
@@ -94,6 +95,67 @@ def _json_mapping(value: object) -> Mapping[str, object] | None:
     return cast(Mapping[str, object], decoded)
 
 
+def _correct_candidate(
+    value: Mapping[str, object] | None,
+    *,
+    root_key: str,
+    path: tuple[str, ...],
+    replacement: str,
+) -> str:
+    """Copy one accepted candidate field without exposing mutable persistence state."""
+
+    def lookup(container: object, segment: str) -> object | None:
+        if isinstance(container, dict):
+            typed = cast(dict[str, object], container)
+            return typed.get(segment)
+        if isinstance(container, list) and segment.isdigit():
+            typed = cast(list[object], container)
+            index = int(segment)
+            return typed[index] if 0 <= index < len(typed) else None
+        return None
+
+    if value is None:
+        raise DeterministicResultError(
+            "validation_failed", "The current result is missing a review candidate."
+        )
+    try:
+        payload = cast(dict[str, object], json.loads(json.dumps(value)))
+    except (TypeError, ValueError) as error:
+        raise DeterministicResultError(
+            "persistence_error", "The current result is unavailable", retryability=True
+        ) from error
+    current: object = payload
+    for segment in (root_key, *path[:-1]):
+        current = lookup(current, segment)
+        if current is None:
+            raise DeterministicResultError(
+                "validation_failed", "The current result candidate is malformed."
+            )
+    leaf = path[-1]
+    if isinstance(current, dict):
+        current_mapping = cast(dict[str, object], current)
+        previous = current_mapping.get(leaf)
+        if not isinstance(previous, str) or not previous.strip():
+            raise DeterministicResultError(
+                "validation_failed", "The current result candidate is malformed."
+            )
+        # json.loads above yields mutable dicts; cast only at this narrow edge.
+        cast(dict[str, object], current)[leaf] = replacement
+    elif isinstance(current, list) and leaf.isdigit():
+        items = cast(list[object], current)
+        index = int(leaf)
+        if index < 0 or index >= len(items) or not isinstance(items[index], str):
+            raise DeterministicResultError(
+                "validation_failed", "The current result candidate is malformed."
+            )
+        items[index] = replacement
+    else:
+        raise DeterministicResultError(
+            "validation_failed", "The current result candidate is malformed."
+        )
+    return json.dumps(payload, ensure_ascii=False)
+
+
 def _snapshot(row: Mapping[str, object]) -> DeterministicResultSnapshot:
     try:
         missing_raw = json.loads(str(row["missing_information"]))
@@ -105,6 +167,24 @@ def _snapshot(row: Mapping[str, object]) -> DeterministicResultSnapshot:
             "marketingBrief": _json_mapping(row["marketing_brief"]),
             "xiaohongshuBrief": _json_mapping(row["xiaohongshu_brief"]),
         }
+        confirmation: Mapping[str, object] | None = None
+        if row.get("confirmed_at") is not None:
+            confirmation = {
+                "marketingBriefVersion": {
+                    "resourceKind": "marketing_brief",
+                    "resourceVersionId": str(row["marketing_brief_version_id"]),
+                    "versionNumber": _int(row["marketing_brief_version_number"]),
+                },
+                "xiaohongshuBriefVersion": {
+                    "resourceKind": "xiaohongshu_brief",
+                    "resourceVersionId": str(row["xiaohongshu_brief_version_id"]),
+                    "versionNumber": _int(row["xiaohongshu_brief_version_number"]),
+                },
+                "confirmedAt": cast(datetime, row["confirmed_at"])
+                .astimezone(UTC)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            }
         return DeterministicResultSnapshot(
             task_id=TaskId(str(row["task_id"])),
             result_revision=_int(row["result_revision"]),
@@ -113,6 +193,7 @@ def _snapshot(row: Mapping[str, object]) -> DeterministicResultSnapshot:
             generated_at=cast(datetime, row["generated_at"]),
             missing_information=missing,
             candidates=candidates,
+            confirmation=confirmation,
         )
     except DeterministicResultError:
         raise
@@ -120,6 +201,18 @@ def _snapshot(row: Mapping[str, object]) -> DeterministicResultSnapshot:
         raise DeterministicResultError(
             "persistence_error", "The current result is unavailable", retryability=True
         ) from error
+
+
+def row_mapping(value: object) -> Mapping[str, object]:
+    """Expose the narrow row coercion to the sibling export adapter."""
+
+    return _row(value)
+
+
+def snapshot_from_row(row: Mapping[str, object]) -> DeterministicResultSnapshot:
+    """Expose the current-result projection to the sibling export adapter."""
+
+    return _snapshot(row)
 
 
 class DeterministicResultApplication:
@@ -452,6 +545,192 @@ class DeterministicResultApplication:
                 retryability=True,
             ) from error
 
+    def confirm_current_result(
+        self,
+        *,
+        task_id: TaskId,
+        idempotency_key: str,
+        expected_result_revision: int,
+        marketing_core_message: str,
+        xiaohongshu_title_direction: str,
+    ) -> tuple[DeterministicResultSnapshot, bool]:
+        """Atomically confirm exactly the current awaiting-review result."""
+
+        key = idempotency_key.strip()
+        marketing_message = marketing_core_message.strip()
+        title_direction = xiaohongshu_title_direction.strip()
+        if not key or not marketing_message or not title_direction:
+            raise DeterministicResultError(
+                "validation_failed", "The bounded corrections must be nonblank."
+            )
+        try:
+            with self._sessions() as session:
+                with session.begin():
+                    task = (
+                        session.execute(
+                            select(TASKS_TABLE.c.task_id)
+                            .where(TASKS_TABLE.c.task_id == str(task_id))
+                            .with_for_update()
+                        )
+                        .mappings()
+                        .one_or_none()
+                    )
+                    if task is None:
+                        raise DeterministicResultError(
+                            "not_found", "The requested Task was not found."
+                        )
+                    current_input = (
+                        session.execute(
+                            select(TASK_PRIMARY_INPUTS_FOR_RESULT_TABLE.c.revision)
+                            .where(
+                                TASK_PRIMARY_INPUTS_FOR_RESULT_TABLE.c.task_id
+                                == str(task_id)
+                            )
+                            .with_for_update()
+                        )
+                        .mappings()
+                        .one_or_none()
+                    )
+                    if current_input is None:
+                        raise DeterministicResultError(
+                            "not_found", "The requested primary input was not found."
+                        )
+                    input_revision = _int(_row(current_input)["revision"])
+                    existing = (
+                        session.execute(
+                            select(TASK_RESULTS_TABLE)
+                            .where(
+                                TASK_RESULTS_TABLE.c.task_id == str(task_id),
+                                TASK_RESULTS_TABLE.c.confirmation_idempotency_key
+                                == key,
+                            )
+                            .with_for_update()
+                        )
+                        .mappings()
+                        .one_or_none()
+                    )
+                    if existing is not None:
+                        replay = _snapshot(_row(existing))
+                        stored_marketing = str(
+                            _row(existing)["confirmed_marketing_core_message"]
+                        )
+                        stored_title = str(
+                            _row(existing)["confirmed_xiaohongshu_title_direction"]
+                        )
+                        if (
+                            replay.result_revision != expected_result_revision
+                            or stored_marketing != marketing_message
+                            or stored_title != title_direction
+                        ):
+                            raise DeterministicResultError(
+                                "idempotency_conflict",
+                                "The retry key belongs to another confirmation.",
+                            )
+                        return replay, True
+                    row = (
+                        session.execute(
+                            select(TASK_RESULTS_TABLE)
+                            .where(
+                                TASK_RESULTS_TABLE.c.task_id == str(task_id),
+                                TASK_RESULTS_TABLE.c.result_revision
+                                == expected_result_revision,
+                            )
+                            .with_for_update()
+                        )
+                        .mappings()
+                        .one_or_none()
+                    )
+                    if row is None:
+                        raise DeterministicResultError(
+                            "revision_conflict",
+                            "The current result changed; refresh before confirming.",
+                        )
+                    current = _snapshot(_row(row))
+                    latest_revision = session.scalar(
+                        select(func.max(TASK_RESULTS_TABLE.c.result_revision)).where(
+                            TASK_RESULTS_TABLE.c.task_id == str(task_id)
+                        )
+                    )
+                    if (
+                        current.input_revision != input_revision
+                        or latest_revision != expected_result_revision
+                    ):
+                        raise DeterministicResultError(
+                            "revision_conflict",
+                            "The current result changed; refresh before confirming.",
+                        )
+                    if current.status == "insufficient_input":
+                        raise DeterministicResultError(
+                            "validation_failed",
+                            "Insufficient input cannot be confirmed.",
+                        )
+                    if current.status == "confirmed":
+                        raise DeterministicResultError(
+                            "capability_conflict",
+                            "The current result is already confirmed.",
+                        )
+                    version_id = f"brief-{task_id}-{expected_result_revision}"
+                    marketing_json = _correct_candidate(
+                        current.candidates.get("marketingBrief"),
+                        root_key="brief_candidate",
+                        path=("message_architecture", "core_message"),
+                        replacement=marketing_message,
+                    )
+                    xiaohongshu_json = _correct_candidate(
+                        current.candidates.get("xiaohongshuBrief"),
+                        root_key="xiaohongshu_brief_candidate",
+                        path=(
+                            "creative_structure_directions",
+                            "title_directions",
+                            "0",
+                            "title_direction",
+                        ),
+                        replacement=title_direction,
+                    )
+                    values = {
+                        "status": "confirmed",
+                        "confirmed_at": datetime.now(UTC),
+                        "confirmation_idempotency_key": key,
+                        "confirmed_marketing_core_message": marketing_message,
+                        "confirmed_xiaohongshu_title_direction": title_direction,
+                        "marketing_brief_version_id": f"{version_id}-marketing",
+                        "marketing_brief_version_number": 1,
+                        "xiaohongshu_brief_version_id": f"{version_id}-xiaohongshu",
+                        "xiaohongshu_brief_version_number": 1,
+                        "marketing_brief": marketing_json,
+                        "xiaohongshu_brief": xiaohongshu_json,
+                    }
+                    session.execute(
+                        update(TASK_RESULTS_TABLE)
+                        .where(
+                            TASK_RESULTS_TABLE.c.task_id == str(task_id),
+                            TASK_RESULTS_TABLE.c.result_revision
+                            == expected_result_revision,
+                            TASK_RESULTS_TABLE.c.status == "awaiting_review",
+                        )
+                        .values(values)
+                    )
+                    updated = (
+                        session.execute(
+                            select(TASK_RESULTS_TABLE).where(
+                                TASK_RESULTS_TABLE.c.task_id == str(task_id),
+                                TASK_RESULTS_TABLE.c.result_revision
+                                == expected_result_revision,
+                            )
+                        )
+                        .mappings()
+                        .one()
+                    )
+                    return _snapshot(_row(updated)), False
+        except DeterministicResultError:
+            raise
+        except SQLAlchemyError as error:
+            raise DeterministicResultError(
+                "persistence_error",
+                "The result service is temporarily unavailable",
+                retryability=True,
+            ) from error
+
 
 @dataclass(frozen=True, slots=True)
 class DeterministicResultPostgresComposition:
@@ -459,10 +738,12 @@ class DeterministicResultPostgresComposition:
 
     engine: Engine
     application: DeterministicResultApplication
+    export_application: Any
     coordinator: DeterministicPipelineCoordinator
 
     def close(self) -> None:
         self.application.close()
+        self.export_application.close()
 
 
 def compose_deterministic_result_postgres(
@@ -475,6 +756,9 @@ def compose_deterministic_result_postgres(
 
     engine = create_postgres_engine(config)
     application = DeterministicResultApplication(engine, schema=schema)
+    from .review_export_postgres import ReviewExportApplication
+
+    export_application = ReviewExportApplication(engine, schema=schema)
     bound_coordinator = coordinator or DeterministicPipelineCoordinator(
         spec_factories=(
             product_intake_fact_extraction.product_intake_candidate_output_spec,
@@ -485,7 +769,7 @@ def compose_deterministic_result_postgres(
         )
     )
     return DeterministicResultPostgresComposition(
-        engine, application, bound_coordinator
+        engine, application, export_application, bound_coordinator
     )
 
 

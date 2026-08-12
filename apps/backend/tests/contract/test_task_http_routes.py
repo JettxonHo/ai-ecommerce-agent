@@ -166,6 +166,7 @@ class _ResultSnapshot:
     generated_at: datetime = NOW
     missing_information: tuple[str, ...] = ()
     candidates: dict[str, dict[str, str] | None] | None = None
+    confirmation: dict[str, object] | None = None
 
     def __post_init__(self) -> None:
         if self.candidates is None:
@@ -203,6 +204,45 @@ class _Results:
     def get_current_result(self, *, task_id: TaskId) -> _ResultSnapshot:
         assert task_id == self.snapshot.task_id
         return self.snapshot
+
+    def confirm_current_result(
+        self,
+        *,
+        task_id: TaskId,
+        idempotency_key: str,
+        expected_result_revision: int,
+        marketing_core_message: str,
+        xiaohongshu_title_direction: str,
+    ) -> tuple[_ResultSnapshot, bool]:
+        assert task_id == self.snapshot.task_id
+        assert expected_result_revision == self.snapshot.result_revision
+        assert idempotency_key
+        assert marketing_core_message
+        assert xiaohongshu_title_direction
+        return (
+            _ResultSnapshot(
+                task_id=task_id,
+                result_revision=self.snapshot.result_revision,
+                input_revision=self.snapshot.input_revision,
+                status="confirmed",
+                generated_at=self.snapshot.generated_at,
+                candidates=self.snapshot.candidates,
+                confirmation={
+                    "marketingBriefVersion": {
+                        "resourceKind": "marketing_brief",
+                        "resourceVersionId": "marketing-brief-1",
+                        "versionNumber": 1,
+                    },
+                    "xiaohongshuBriefVersion": {
+                        "resourceKind": "xiaohongshu_brief",
+                        "resourceVersionId": "xiaohongshu-brief-1",
+                        "versionNumber": 1,
+                    },
+                    "confirmedAt": "2026-08-13T00:00:00Z",
+                },
+            ),
+            False,
+        )
 
 
 class _Coordinator:
@@ -389,3 +429,32 @@ def test_result_routes_fail_closed_without_injected_coordinator() -> None:
             primary_input_application=_PrimaryInputs(),
             result_application=_Results(),
         )
+
+
+def test_confirm_current_result_exposes_the_bounded_confirmation_projection() -> None:
+    application = create_task_http_application(
+        config=FixedWorkspaceHttpConfig(
+            workspace_id="workspace-demo",
+            workbench_origin="http://127.0.0.1:5173",
+        ),
+        task_application=_Tasks(),
+        primary_input_application=_PrimaryInputs(),
+        result_application=_Results(),
+        pipeline_coordinator=_Coordinator(),
+    )
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/v1/tasks/task-1/commands/confirm-current-result",
+            headers={"Idempotency-Key": "confirm-1"},
+            json={
+                "expectedResultRevision": 0,
+                "marketingCoreMessage": "Bounded message",
+                "xiaohongshuTitleDirection": "Bounded title",
+            },
+        )
+
+    assert response.status_code == 201
+    assert response.json()["status"] == "confirmed"
+    assert (
+        response.json()["confirmation"]["marketingBriefVersion"]["versionNumber"] == 1
+    )

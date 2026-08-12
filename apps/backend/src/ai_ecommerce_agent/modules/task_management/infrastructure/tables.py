@@ -166,6 +166,14 @@ TASK_RESULTS_TABLE = Table(
     Column("product_positioning", Text()),
     Column("marketing_brief", Text()),
     Column("xiaohongshu_brief", Text()),
+    Column("confirmed_at", DateTime(timezone=True)),
+    Column("confirmation_idempotency_key", Text()),
+    Column("confirmed_marketing_core_message", Text()),
+    Column("confirmed_xiaohongshu_title_direction", Text()),
+    Column("marketing_brief_version_id", Text()),
+    Column("marketing_brief_version_number", BigInteger()),
+    Column("xiaohongshu_brief_version_id", Text()),
+    Column("xiaohongshu_brief_version_number", BigInteger()),
     PrimaryKeyConstraint(
         "task_id", "result_revision", name="pk_task_management_deterministic_results"
     ),
@@ -197,12 +205,121 @@ TASK_RESULTS_TABLE = Table(
         name="ck_task_management_results_input_revision_nonnegative",
     ),
     CheckConstraint(
-        "status IN ('awaiting_review', 'insufficient_input')",
+        "status IN ('awaiting_review', 'insufficient_input', 'confirmed')",
         name="ck_task_management_results_status",
     ),
     CheckConstraint(
         "length(btrim(missing_information)) > 0",
         name="ck_task_management_results_missing_information_nonempty",
+    ),
+    CheckConstraint(
+        "((status = 'confirmed' AND confirmed_at IS NOT NULL "
+        "AND length(btrim(confirmation_idempotency_key)) > 0 "
+        "AND length(btrim(confirmed_marketing_core_message)) > 0 "
+        "AND length(btrim(confirmed_xiaohongshu_title_direction)) > 0 "
+        "AND length(btrim(marketing_brief_version_id)) > 0 "
+        "AND marketing_brief_version_number >= 1 "
+        "AND length(btrim(xiaohongshu_brief_version_id)) > 0 "
+        "AND xiaohongshu_brief_version_number >= 1) OR "
+        "(status <> 'confirmed' AND confirmed_at IS NULL "
+        "AND confirmation_idempotency_key IS NULL "
+        "AND confirmed_marketing_core_message IS NULL "
+        "AND confirmed_xiaohongshu_title_direction IS NULL "
+        "AND marketing_brief_version_id IS NULL "
+        "AND marketing_brief_version_number IS NULL "
+        "AND xiaohongshu_brief_version_id IS NULL "
+        "AND xiaohongshu_brief_version_number IS NULL))",
+        name="ck_task_management_results_confirmation_projection",
+    ),
+    CheckConstraint(
+        "((confirmed_marketing_core_message IS NULL OR "
+        "octet_length(confirmed_marketing_core_message) <= 4096) "
+        "AND (confirmed_xiaohongshu_title_direction IS NULL OR "
+        "octet_length(confirmed_xiaohongshu_title_direction) <= 4096))",
+        name="ck_task_management_results_confirmation_size",
+    ),
+    schema=TASK_MANAGEMENT_SCHEMA_TOKEN,
+)
+
+EXPORT_SNAPSHOTS_TABLE = Table(
+    "task_management_export_snapshots",
+    TASK_MANAGEMENT_METADATA,
+    Column("export_snapshot_id", Text(), nullable=False),
+    Column("task_id", Text(), nullable=False),
+    Column("task_revision", BigInteger(), nullable=False),
+    Column("result_revision", BigInteger(), nullable=False),
+    Column("input_revision", BigInteger(), nullable=False),
+    Column("idempotency_key", Text(), nullable=False),
+    Column("brief_kind", Text(), nullable=False),
+    Column("brief_version_id", Text(), nullable=False),
+    Column("brief_version_number", BigInteger(), nullable=False),
+    Column("upstream_versions", Text(), nullable=False),
+    Column("hypotheses", Text(), nullable=False),
+    Column("evidence_limitations", Text(), nullable=False),
+    Column("risks", Text(), nullable=False),
+    Column("basis", Text(), nullable=False),
+    Column("exported_at", DateTime(timezone=True), nullable=False),
+    Column("file_name", Text(), nullable=False),
+    Column("media_type", Text(), nullable=False),
+    Column("content_location", Text(), nullable=False),
+    Column("template_version", Text(), nullable=False),
+    Column("content", Text(), nullable=False),
+    PrimaryKeyConstraint(
+        "export_snapshot_id", name="pk_task_management_export_snapshots"
+    ),
+    UniqueConstraint(
+        "task_id",
+        "idempotency_key",
+        name="uq_task_management_export_snapshots_task_key",
+    ),
+    ForeignKeyConstraint(
+        ["task_id"],
+        [f"{TASK_MANAGEMENT_SCHEMA_TOKEN}.task_management_tasks.task_id"],
+        name="fk_task_management_export_snapshots_task_owner",
+    ),
+    CheckConstraint(
+        "length(btrim(export_snapshot_id)) > 0",
+        name="ck_task_management_export_snapshots_id_nonempty",
+    ),
+    CheckConstraint(
+        "length(btrim(task_id)) > 0",
+        name="ck_task_management_export_snapshots_task_id_nonempty",
+    ),
+    CheckConstraint(
+        "length(btrim(idempotency_key)) > 0",
+        name="ck_task_management_export_snapshots_key_nonempty",
+    ),
+    CheckConstraint(
+        "brief_kind IN ('marketing', 'xiaohongshu')",
+        name="ck_task_management_export_snapshots_brief_kind",
+    ),
+    CheckConstraint(
+        "task_revision >= 0 AND result_revision >= 0 AND input_revision >= 0",
+        name="ck_task_management_export_snapshots_revisions_nonnegative",
+    ),
+    CheckConstraint(
+        "brief_version_number >= 1",
+        name="ck_task_management_export_snapshots_version_positive",
+    ),
+    CheckConstraint(
+        "length(btrim(brief_version_id)) > 0",
+        name="ck_task_management_export_snapshots_version_id_nonempty",
+    ),
+    CheckConstraint(
+        "media_type = 'text/markdown; charset=utf-8'",
+        name="ck_task_management_export_snapshots_media_type",
+    ),
+    CheckConstraint(
+        "template_version = 'mvp0-markdown-v1'",
+        name="ck_task_management_export_snapshots_template_version",
+    ),
+    CheckConstraint(
+        "length(content) > 0",
+        name="ck_task_management_export_snapshots_content_nonempty",
+    ),
+    CheckConstraint(
+        "octet_length(content) > 0",
+        name="ck_task_management_export_snapshots_content_utf8_nonempty",
     ),
     schema=TASK_MANAGEMENT_SCHEMA_TOKEN,
 )
@@ -376,6 +493,7 @@ __all__ = [
     "TASK_CREATE_IDEMPOTENCY_TABLE",
     "TASK_PRIMARY_INPUTS_FOR_RESULT_TABLE",
     "TASK_RESULTS_TABLE",
+    "EXPORT_SNAPSHOTS_TABLE",
     "TASK_MANAGEMENT_METADATA",
     "TASK_MANAGEMENT_SCHEMA_TOKEN",
     "schema_translate_map",

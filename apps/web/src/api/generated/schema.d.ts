@@ -91,6 +91,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tasks/{taskId}/commands/confirm-current-result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm the current deterministic result with two bounded corrections */
+        post: operations["confirmCurrentResult"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tasks/{taskId}/commands/start": {
         parameters: {
             query?: never;
@@ -731,6 +748,17 @@ export interface components {
         GenerateResultRequest: {
             expectedInputRevision: components["schemas"]["ResourceRevision"];
         };
+        ConfirmCurrentResultRequest: {
+            expectedResultRevision: components["schemas"]["ResourceRevision"];
+            marketingCoreMessage: string;
+            xiaohongshuTitleDirection: string;
+        };
+        CurrentResultConfirmation: {
+            marketingBriefVersion: components["schemas"]["DomainVersionReference"];
+            xiaohongshuBriefVersion: components["schemas"]["DomainVersionReference"];
+            /** Format: date-time */
+            confirmedAt: string;
+        };
         /** @description Validated candidate using the existing private skill output contract. */
         DeterministicCandidate: {
             [key: string]: unknown;
@@ -740,7 +768,7 @@ export interface components {
             resultRevision: components["schemas"]["ResourceRevision"];
             inputRevision: components["schemas"]["ResourceRevision"];
             /** @enum {string} */
-            status: "awaiting_review" | "insufficient_input";
+            status: "awaiting_review" | "insufficient_input" | "confirmed";
             /** Format: date-time */
             generatedAt: string;
             missingInformation: string[];
@@ -749,6 +777,7 @@ export interface components {
             productPositioning: components["schemas"]["DeterministicCandidate"] | null;
             marketingBrief: components["schemas"]["DeterministicCandidate"] | null;
             xiaohongshuBrief: components["schemas"]["DeterministicCandidate"] | null;
+            confirmation: components["schemas"]["CurrentResultConfirmation"] | null;
         };
         TaskSummary: {
             taskId: string;
@@ -1652,6 +1681,51 @@ export interface operations {
                 };
             };
             404: components["responses"]["Problem404"];
+            500: components["responses"]["Problem500"];
+            503: components["responses"]["Problem503"];
+        };
+    };
+    confirmCurrentResult: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Project-defined retry identity scoped to the current fixed workspace and operation. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                taskId: components["parameters"]["TaskId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmCurrentResultRequest"];
+            };
+        };
+        responses: {
+            /** @description Durable same-input confirmation replay */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentTaskResult"];
+                };
+            };
+            /** @description Current result confirmed on the first submission */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentTaskResult"];
+                };
+            };
+            400: components["responses"]["Problem400"];
+            404: components["responses"]["Problem404"];
+            409: components["responses"]["Problem409"];
+            413: components["responses"]["Problem413"];
+            422: components["responses"]["Problem422"];
             500: components["responses"]["Problem500"];
             503: components["responses"]["Problem503"];
         };

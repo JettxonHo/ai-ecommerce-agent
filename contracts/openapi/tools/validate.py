@@ -25,6 +25,7 @@ EXPECTED_OPERATIONS: dict[str, frozenset[str]] = {
     "/api/v1/tasks/{taskId}/primary-input": frozenset({"get", "put"}),
     "/api/v1/tasks/{taskId}/commands/generate-result": frozenset({"post"}),
     "/api/v1/tasks/{taskId}/current-result": frozenset({"get"}),
+    "/api/v1/tasks/{taskId}/commands/confirm-current-result": frozenset({"post"}),
     "/api/v1/tasks/{taskId}/commands/start": frozenset({"post"}),
     "/api/v1/tasks/{taskId}/commands/rerun": frozenset({"post"}),
     "/api/v1/runs/{runId}": frozenset({"get"}),
@@ -63,6 +64,7 @@ IDEMPOTENT_OPERATIONS = frozenset(
     {
         "createTask",
         "generateTaskResult",
+        "confirmCurrentResult",
         "startTask",
         "rerunTask",
         "cancelRun",

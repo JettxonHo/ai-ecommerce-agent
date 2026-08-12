@@ -7,6 +7,8 @@ import {
   type TaskPrimaryInput,
   type TaskPrimaryInputDraft,
   type TaskPrimaryInputKind,
+  type ExportBriefKind,
+  type ExportDownload,
 } from "../gateway";
 import {
   deriveWorkbenchLocation,
@@ -32,6 +34,11 @@ type TaskWorkbenchProps = Readonly<{
   currentResultError?: string | null;
   retryCurrentResult?: () => void;
   generateResult?: () => Promise<TaskCurrentResult>;
+  confirmCurrentResult?: (
+    marketingCoreMessage: string,
+    xiaohongshuTitleDirection: string,
+  ) => Promise<TaskCurrentResult>;
+  exportBrief?: (briefKind: ExportBriefKind) => Promise<ExportDownload>;
 }>;
 
 const panelLabels: Readonly<Record<WorkbenchPanel, string>> = {
@@ -394,12 +401,16 @@ function ResultPanel({
   loading = false,
   error = null,
   retry,
+  exportBrief,
 }: Readonly<{
   result?: TaskCurrentResult | null;
   loading?: boolean;
   error?: string | null;
   retry?: () => void;
+  exportBrief?: (briefKind: ExportBriefKind) => Promise<ExportDownload>;
 }>) {
+  const [exporting, setExporting] = useState<ExportBriefKind | null>(null);
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
   if (loading || result === undefined) {
     return (
       <p className={styles.neutral} role="status" aria-live="polite">
@@ -431,6 +442,34 @@ function ResultPanel({
     );
   }
 
+  const download = async (briefKind: ExportBriefKind) => {
+    if (exportBrief === undefined) return;
+    setExporting(briefKind);
+    setExportMessage(null);
+    try {
+      const download = await exportBrief(briefKind);
+      if (download.content !== "" && typeof document !== "undefined") {
+        const url = URL.createObjectURL(
+          new Blob([download.content], { type: download.snapshot.mediaType }),
+        );
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = download.snapshot.fileName;
+        anchor.click();
+        URL.revokeObjectURL(url);
+      }
+      setExportMessage(
+        `Export snapshot ${download.snapshot.exportSnapshotId} is ready.`,
+      );
+    } catch (value) {
+      setExportMessage(
+        value instanceof Error ? value.message : "Export failed.",
+      );
+    } finally {
+      setExporting(null);
+    }
+  };
+
   return (
     <section className={styles.resultPanel} aria-labelledby="result-heading">
       <h2 id="result-heading">Current result</h2>
@@ -448,6 +487,50 @@ function ResultPanel({
             ))}
           </ul>
         </div>
+      ) : result.status === "confirmed" ? (
+        <>
+          <div className={styles.resultCandidates}>
+            {resultCandidates.map(({ key, label }) => (
+              <article key={key}>
+                <h3>{label}</h3>
+                <pre>{JSON.stringify(result[key], null, 2)}</pre>
+              </article>
+            ))}
+          </div>
+          {result.confirmation !== null ? (
+            <p>
+              Confirmed {result.confirmation.confirmedAt} · Marketing version{" "}
+              {result.confirmation.marketingBriefVersion.resourceVersionId} ·
+              Xiaohongshu version{" "}
+              {result.confirmation.xiaohongshuBriefVersion.resourceVersionId}
+            </p>
+          ) : null}
+          {exportBrief !== undefined ? (
+            <div className={styles.downloads}>
+              <button
+                type="button"
+                disabled={exporting !== null}
+                onClick={() => void download("marketing")}
+              >
+                {exporting === "marketing"
+                  ? "Preparing…"
+                  : "Download Marketing Markdown"}
+              </button>
+              <button
+                type="button"
+                disabled={exporting !== null}
+                onClick={() => void download("xiaohongshu")}
+              >
+                {exporting === "xiaohongshu"
+                  ? "Preparing…"
+                  : "Download Xiaohongshu Markdown"}
+              </button>
+              {exportMessage !== null ? (
+                <p role="status">{exportMessage}</p>
+              ) : null}
+            </div>
+          ) : null}
+        </>
       ) : (
         <div className={styles.resultCandidates}>
           {resultCandidates.map(({ key, label }) => {
@@ -465,6 +548,166 @@ function ResultPanel({
   );
 }
 
+function ReviewPanel({
+  result,
+  confirmCurrentResult,
+}: Readonly<{
+  result?: TaskCurrentResult | null;
+  confirmCurrentResult?: (
+    marketingCoreMessage: string,
+    xiaohongshuTitleDirection: string,
+  ) => Promise<TaskCurrentResult>;
+}>) {
+  const record = (value: unknown): Record<string, unknown> | null =>
+    typeof value === "object" && value !== null && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : null;
+  const marketing = record(result?.marketingBrief?.brief_candidate);
+  const xiaohongshu = record(
+    result?.xiaohongshuBrief?.xiaohongshu_brief_candidate,
+  );
+  const marketingMessageGroup = record(marketing?.message_architecture);
+  const xhsStructure = record(xiaohongshu?.creative_structure_directions);
+  const constraints = record(marketing?.constraints_and_honesty);
+  const platformConstraints = record(
+    xiaohongshu?.evidence_and_platform_constraints,
+  );
+  const strings = (value: unknown): string[] =>
+    Array.isArray(value)
+      ? value.filter(
+          (item): item is string =>
+            typeof item === "string" && item.trim() !== "",
+        )
+      : [];
+  const evidenceLimitations = [
+    ...strings(constraints?.evidence_limitations),
+    ...strings(platformConstraints?.evidence_limitations),
+  ];
+  const risks = [
+    ...strings(constraints?.risk_notes),
+    ...strings(platformConstraints?.platform_risk_notes),
+  ];
+  const titleDirections = Array.isArray(xhsStructure?.title_directions)
+    ? xhsStructure.title_directions
+    : [];
+  const firstTitleDirection = record(titleDirections[0]);
+  const marketingMessage =
+    typeof marketingMessageGroup?.core_message === "string"
+      ? marketingMessageGroup.core_message
+      : "";
+  const titleDirection =
+    typeof firstTitleDirection?.title_direction === "string"
+      ? firstTitleDirection.title_direction
+      : "";
+  const [message, setMessage] = useState(marketingMessage);
+  const [title, setTitle] = useState(titleDirection);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  useEffect(() => {
+    setMessage(marketingMessage);
+    setTitle(titleDirection);
+  }, [marketingMessage, titleDirection]);
+  if (
+    result === undefined ||
+    result === null ||
+    result.status !== "awaiting_review"
+  )
+    return null;
+  const confirm = async () => {
+    if (
+      confirmCurrentResult === undefined ||
+      message.trim() === "" ||
+      title.trim() === ""
+    ) {
+      setStatus("Enter both bounded corrections before confirming.");
+      return;
+    }
+    setSaving(true);
+    setStatus(null);
+    try {
+      await confirmCurrentResult(message.trim(), title.trim());
+      setStatus("Current result confirmed.");
+    } catch (value) {
+      setStatus(
+        value instanceof Error ? value.message : "Confirmation failed.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <section className={styles.reviewPanel} aria-labelledby="review-heading">
+      <h2 id="review-heading">Review current result</h2>
+      <p>
+        Review the bounded positioning, Marketing Brief, and Xiaohongshu Brief
+        candidates before confirming.
+      </p>
+      <div className={styles.reviewCandidates}>
+        <article>
+          <h3>Positioning candidate</h3>
+          <pre>{JSON.stringify(result.productPositioning, null, 2)}</pre>
+        </article>
+        <article>
+          <h3>Marketing Brief candidate</h3>
+          <pre>{JSON.stringify(result.marketingBrief, null, 2)}</pre>
+        </article>
+        <article>
+          <h3>Xiaohongshu Brief candidate</h3>
+          <pre>{JSON.stringify(result.xiaohongshuBrief, null, 2)}</pre>
+        </article>
+      </div>
+      {evidenceLimitations.length > 0 ? (
+        <section>
+          <h3>Evidence limitations</h3>
+          <ul>
+            {evidenceLimitations.map((item, index) => (
+              <li key={`${item}-${index}`}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {risks.length > 0 ? (
+        <section>
+          <h3>Risks</h3>
+          <ul>
+            {risks.map((item, index) => (
+              <li key={`${item}-${index}`}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      <label className={styles.inputField} htmlFor="review-marketing-message">
+        Marketing core message
+        <textarea
+          id="review-marketing-message"
+          maxLength={4096}
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          rows={3}
+        />
+      </label>
+      <label className={styles.inputField} htmlFor="review-xiaohongshu-title">
+        Xiaohongshu title direction
+        <textarea
+          id="review-xiaohongshu-title"
+          maxLength={4096}
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          rows={3}
+        />
+      </label>
+      <button
+        type="button"
+        disabled={saving || confirmCurrentResult === undefined}
+        onClick={() => void confirm()}
+      >
+        {saving ? "Confirming…" : "Confirm current result"}
+      </button>
+      {status !== null ? <p role="status">{status}</p> : null}
+    </section>
+  );
+}
+
 export function TaskWorkbench({
   task,
   primaryInput,
@@ -477,6 +720,8 @@ export function TaskWorkbench({
   currentResultError,
   retryCurrentResult,
   generateResult,
+  confirmCurrentResult,
+  exportBrief,
 }: TaskWorkbenchProps) {
   const routerLocation = useLocation();
   const navigate = useNavigate();
@@ -633,6 +878,14 @@ export function TaskWorkbench({
           loading={currentResultLoading}
           error={currentResultError}
           retry={retryCurrentResult}
+          exportBrief={exportBrief}
+        />
+      ) : null}
+
+      {selectedPanel === "review" ? (
+        <ReviewPanel
+          result={currentResult}
+          confirmCurrentResult={confirmCurrentResult}
         />
       ) : null}
 

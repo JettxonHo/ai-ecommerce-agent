@@ -175,6 +175,7 @@ def _result_client(
                 primary_input_application=PrimaryInputApplicationService(input_factory),
                 result_application=composition.application,
                 pipeline_coordinator=composition.coordinator,
+                export_application=composition.export_application,
             )
         ),
         composition,
@@ -338,8 +339,85 @@ def test_generate_result_is_durable_atomic_and_revision_fenced(
                 "xiaohongshuBrief",
             )
         )
-        assert current.status_code == 200, current.text
-        assert current.json() == generated.json()
+        with client:
+            assert current.status_code == 200, current.text
+            assert current.json() == generated.json()
+
+            confirmed = client.post(
+                f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
+                headers={"Idempotency-Key": "confirm-key-1"},
+                json={
+                    "expectedResultRevision": 0,
+                    "marketingCoreMessage": "Confirmed commuter storage message",
+                    "xiaohongshuTitleDirection": "Confirmed commuter title direction",
+                },
+            )
+            confirmed_replay = client.post(
+                f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
+                headers={"Idempotency-Key": "confirm-key-1"},
+                json={
+                    "expectedResultRevision": 0,
+                    "marketingCoreMessage": "Confirmed commuter storage message",
+                    "xiaohongshuTitleDirection": "Confirmed commuter title direction",
+                },
+            )
+            assert confirmed.status_code == 201, confirmed.text
+            assert confirmed.json()["status"] == "confirmed"
+            assert (
+                confirmed.json()["confirmation"]["marketingBriefVersion"][
+                    "versionNumber"
+                ]
+                == 1
+            )
+            assert (
+                confirmed.json()["marketingBrief"]["brief_candidate"][
+                    "message_architecture"
+                ]["core_message"]
+                == "Confirmed commuter storage message"
+            )
+            assert confirmed_replay.status_code == 200, confirmed_replay.text
+            assert confirmed_replay.json() == confirmed.json()
+
+            preview = client.post(
+                f"/api/v1/tasks/{task_id}/export-previews",
+                json={"briefKind": "marketing"},
+            )
+            assert preview.status_code == 200, preview.text
+            basis = preview.json()["basis"]
+            snapshot = client.post(
+                "/api/v1/export-snapshots",
+                headers={"Idempotency-Key": "export-key-1"},
+                json={"basis": basis},
+            )
+            snapshot_replay = client.post(
+                "/api/v1/export-snapshots",
+                headers={"Idempotency-Key": "export-key-1"},
+                json={"basis": basis},
+            )
+            assert snapshot.status_code == 201, snapshot.text
+            assert snapshot.json()["briefKind"] == "marketing"
+            assert snapshot_replay.status_code == 200, snapshot_replay.text
+            assert snapshot_replay.json() == snapshot.json()
+            downloaded = client.get(snapshot.json()["contentLocation"])
+            assert downloaded.status_code == 200, downloaded.text
+            assert downloaded.headers["content-type"] == "text/markdown; charset=utf-8"
+            assert "Confirmed commuter storage message" in downloaded.text
+            assert downloaded.text.endswith("\n")
+
+            xhs_preview = client.post(
+                f"/api/v1/tasks/{task_id}/export-previews",
+                json={"briefKind": "xiaohongshu"},
+            )
+            assert xhs_preview.status_code == 200, xhs_preview.text
+            xhs_snapshot = client.post(
+                "/api/v1/export-snapshots",
+                headers={"Idempotency-Key": "export-key-xhs"},
+                json={"basis": xhs_preview.json()["basis"]},
+            )
+            assert xhs_snapshot.status_code == 201, xhs_snapshot.text
+            xhs_download = client.get(xhs_snapshot.json()["contentLocation"])
+            assert xhs_download.status_code == 200, xhs_download.text
+            assert xhs_download.text.startswith("# Xiaohongshu Brief\n")
 
         replay_client, replay_composition = _result_client(postgres_engine)
         try:
@@ -350,7 +428,7 @@ def test_generate_result_is_durable_atomic_and_revision_fenced(
                     json={"expectedInputRevision": 0},
                 )
             assert replay.status_code == 200, replay.text
-            assert replay.json() == generated.json()
+            assert replay.json() == confirmed.json()
         finally:
             replay_composition.close()
 

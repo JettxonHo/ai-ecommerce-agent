@@ -88,6 +88,7 @@ const generatedCurrentResult = (
   productPositioning: { candidate: "positioning" },
   marketingBrief: { candidate: "marketing" },
   xiaohongshuBrief: { candidate: "xiaohongshu" },
+  confirmation: null,
   ...overrides,
 });
 

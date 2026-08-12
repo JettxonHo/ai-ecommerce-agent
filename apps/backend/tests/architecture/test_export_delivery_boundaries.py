@@ -33,6 +33,7 @@ _BACKEND = Path(__file__).resolve().parents[2]
 _SRC = _BACKEND / "src/ai_ecommerce_agent"
 _APPLICATION = _SRC / "modules/export_delivery/application"
 _RENDERER = _APPLICATION / "markdown_renderer.py"
+_BOUNDED_EXPORT_CONSUMER = _SRC / "bootstrap/review_export_postgres.py"
 _PRODUCTION_FILES = (_APPLICATION / "__init__.py", _RENDERER)
 _RENDERER_ALLOWED_IMPORTS = {
     "__future__",
@@ -239,7 +240,9 @@ def test_renderer_inventory_imports_and_private_ownership_are_exact() -> None:
         source = path.read_text(encoding="utf-8")
         if "markdown_renderer" in source or "render_export_markdown" in source:
             consumers.append(path)
-    assert consumers == []
+    # FL-1C owns one narrow PostgreSQL adapter that consumes the existing
+    # renderer; no other adapter may become a renderer consumer.
+    assert consumers == [_BOUNDED_EXPORT_CONSUMER]
 
 
 def test_renderer_has_no_import_time_effects_or_global_mutable_state() -> None:

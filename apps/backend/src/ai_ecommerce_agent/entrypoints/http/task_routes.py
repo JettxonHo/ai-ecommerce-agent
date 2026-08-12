@@ -6,13 +6,18 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Annotated, Any, Protocol
+from typing import Annotated, Any, Literal, Protocol
 from urllib.parse import quote
 
 from fastapi import APIRouter, FastAPI, Header, Path, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
 
+from ai_ecommerce_agent.modules.export_delivery.public import (
+    ConfirmExportRequest,
+    ExportBasis,
+    ExportBriefKind,
+)
 from ai_ecommerce_agent.modules.source_evidence.public import (
     PRIMARY_INPUT_MAX_BYTES,
     GetPrimaryInput,
@@ -27,13 +32,20 @@ from ai_ecommerce_agent.modules.source_evidence.public import (
 )
 from ai_ecommerce_agent.modules.task_management.public import (
     CreateDraftTask,
+    DomainVersionReference,
     GetTask,
     ListTasks,
     TaskManagementApplication,
     TaskManagementError,
     TaskSnapshot,
 )
-from ai_ecommerce_agent.shared_kernel import TaskId
+from ai_ecommerce_agent.shared_kernel import (
+    DomainVersionId,
+    ExportSnapshotId,
+    Revision,
+    TaskId,
+    VersionNumber,
+)
 
 from .problems import (
     idempotency_conflict_problem,
@@ -46,6 +58,7 @@ _VALIDATION_FAILED = "urn:ai-ecommerce-agent:problem:validation-failed"
 _REVISION_CONFLICT = "urn:ai-ecommerce-agent:problem:revision-conflict"
 _SERVICE_UNAVAILABLE = "urn:ai-ecommerce-agent:problem:service-unavailable"
 _IDEMPOTENCY_CONFLICT = "urn:ai-ecommerce-agent:problem:idempotency-conflict"
+_MARKDOWN_MEDIA_TYPE = "text/markdown; charset=utf-8"
 
 
 class CreateTaskBody(BaseModel):
@@ -74,6 +87,65 @@ class GenerateResultBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     expected_input_revision: Annotated[int, Field(alias="expectedInputRevision", ge=0)]
+
+
+class ConfirmCurrentResultBody(BaseModel):
+    """The two bounded corrections accepted by the Fast Lane review gate."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    expected_result_revision: Annotated[
+        int, Field(alias="expectedResultRevision", ge=0)
+    ]
+    marketing_core_message: Annotated[
+        str, Field(alias="marketingCoreMessage", min_length=1)
+    ]
+    xiaohongshu_title_direction: Annotated[
+        str, Field(alias="xiaohongshuTitleDirection", min_length=1)
+    ]
+
+
+class ExportPreviewBody(BaseModel):
+    """Brief family requested for a side-effect-free export preview."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    brief_kind: Literal["marketing", "xiaohongshu"] = Field(alias="briefKind")
+
+
+class DomainVersionReferenceBody(BaseModel):
+    """Wire representation of one immutable domain version reference."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    resource_kind: Annotated[str, Field(alias="resourceKind", min_length=1)]
+    resource_version_id: Annotated[str, Field(alias="resourceVersionId", min_length=1)]
+    version_number: Annotated[int, Field(alias="versionNumber", ge=1)]
+
+
+class ExportBasisBody(BaseModel):
+    """Exact immutable basis copied from the preview response."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    task_id: Annotated[str, Field(alias="taskId", min_length=1)]
+    task_revision: Annotated[int, Field(alias="taskRevision", ge=0)]
+    brief_kind: Literal["marketing", "xiaohongshu"] = Field(alias="briefKind")
+    brief_version: DomainVersionReferenceBody = Field(alias="briefVersion")
+    upstream_versions: list[DomainVersionReferenceBody] = Field(
+        alias="upstreamVersions"
+    )
+    hypotheses: list[str]
+    evidence_limitations: list[str] = Field(alias="evidenceLimitations")
+    risks: list[str]
+
+
+class ConfirmExportBody(BaseModel):
+    """Explicit confirmation of one previously previewed export basis."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    basis: ExportBasisBody
 
 
 class ResultPipelineCoordinator(Protocol):
@@ -260,7 +332,162 @@ def _result_projection(value: Any) -> dict[str, Any]:
         "productPositioning": value.candidates.get("productPositioning"),
         "marketingBrief": value.candidates.get("marketingBrief"),
         "xiaohongshuBrief": value.candidates.get("xiaohongshuBrief"),
+        "confirmation": getattr(value, "confirmation", None),
     }
+
+
+def _version_projection(value: Any) -> dict[str, Any]:
+    return {
+        "resourceKind": getattr(value, "resource_kind", "domain_version"),
+        "resourceVersionId": value.version_id.value,
+        "versionNumber": value.version_number.value,
+    }
+
+
+def _export_basis_projection(value: Any) -> dict[str, Any]:
+    return {
+        "taskId": str(value.task_id),
+        "taskRevision": value.task_revision.value,
+        "briefKind": value.brief_kind.value,
+        "briefVersion": {
+            "resourceKind": f"{value.brief_kind.value}_brief",
+            "resourceVersionId": value.brief_version.version_id.value,
+            "versionNumber": value.brief_version.version_number.value,
+        },
+        "upstreamVersions": [
+            _version_projection(item) for item in value.upstream_versions
+        ],
+        "hypotheses": list(value.hypotheses),
+        "evidenceLimitations": list(value.evidence_limitations),
+        "risks": list(value.risks),
+    }
+
+
+def _export_preview_projection(value: Any) -> dict[str, Any]:
+    return {
+        "basis": _export_basis_projection(value.basis),
+        "templateVersion": value.template_version,
+        "fileName": value.file_name,
+        "mediaType": value.media_type,
+    }
+
+
+def _export_snapshot_projection(value: Any) -> dict[str, Any]:
+    return {
+        "exportSnapshotId": str(value.export_snapshot_id),
+        "taskId": str(value.task_id),
+        "briefKind": value.brief_kind.value,
+        "briefVersion": {
+            "resourceKind": f"{value.brief_kind.value}_brief",
+            "resourceVersionId": value.brief_version.version_id.value,
+            "versionNumber": value.brief_version.version_number.value,
+        },
+        "upstreamVersions": [
+            _version_projection(item) for item in value.upstream_versions
+        ],
+        "exportedAt": _timestamp(value.exported_at),
+        "fileName": value.file_name,
+        "mediaType": value.media_type,
+        "contentLocation": value.content_location,
+        "templateVersion": value.template_version,
+    }
+
+
+def _export_basis(value: ExportBasisBody) -> ExportBasis:
+    def reference(item: DomainVersionReferenceBody) -> DomainVersionReference:
+        return DomainVersionReference(
+            DomainVersionId(item.resource_version_id),
+            VersionNumber(item.version_number),
+        )
+
+    try:
+        task_id = TaskId(value.task_id)
+        brief_kind = ExportBriefKind(value.brief_kind)
+        expected_kind = f"{brief_kind.value}_brief"
+        if value.brief_version.resource_kind != expected_kind:
+            raise ValueError("brief version resource kind is invalid")
+        if any(
+            item.resource_kind != "domain_version" for item in value.upstream_versions
+        ):
+            raise ValueError("upstream version resource kind is invalid")
+        return ExportBasis(
+            task_id=task_id,
+            task_revision=Revision(value.task_revision),
+            brief_kind=brief_kind,
+            brief_version=reference(value.brief_version),
+            upstream_versions=tuple(
+                reference(item) for item in value.upstream_versions
+            ),
+            hypotheses=tuple(value.hypotheses),
+            evidence_limitations=tuple(value.evidence_limitations),
+            risks=tuple(value.risks),
+        )
+    except (TypeError, ValueError) as error:
+        raise ValueError("The export basis is invalid") from error
+
+
+def _export_problem(request: Request, error: Exception) -> JSONResponse:
+    code = getattr(error, "error_code", None)
+    if code == "not_found":
+        return safe_problem_response(
+            request=request,
+            problem_type=_NOT_FOUND,
+            title="Not found",
+            status=404,
+            detail="The requested export resource was not found.",
+            action="none",
+        )
+    if code == "revision_conflict":
+        return safe_problem_response(
+            request=request,
+            problem_type=_REVISION_CONFLICT,
+            title="Revision conflict",
+            status=409,
+            detail="The current Brief changed; refresh the export preview.",
+            action="refresh",
+        )
+    if code == "idempotency_conflict":
+        return safe_problem_response(
+            request=request,
+            problem_type=_IDEMPOTENCY_CONFLICT,
+            title="Idempotency conflict",
+            status=409,
+            detail="The retry key belongs to another export basis.",
+            action="correct_input",
+        )
+    if code == "capability_conflict":
+        return safe_problem_response(
+            request=request,
+            problem_type="urn:ai-ecommerce-agent:problem:capability-conflict",
+            title="Capability conflict",
+            status=409,
+            detail="The current result cannot be exported in its current state.",
+            action="refresh",
+        )
+    retryable = bool(getattr(error, "retryability", False))
+    return safe_problem_response(
+        request=request,
+        problem_type=_SERVICE_UNAVAILABLE if retryable else _VALIDATION_FAILED,
+        title="Service unavailable" if retryable else "Validation failed",
+        status=503 if retryable else 422,
+        detail=(
+            "The export service is temporarily unavailable."
+            if retryable
+            else "The export request is invalid."
+        ),
+        action="retry_later" if retryable else "correct_input",
+    )
+
+
+def _bounded_review_text(value: str) -> str:
+    """Trim outer whitespace and enforce the 4 KiB encoded-text boundary."""
+
+    normalized = value.strip()
+    if not normalized:
+        raise ValueError("review correction must be nonblank")
+    if len(normalized.encode("utf-8")) > 4096:
+        raise OverflowError("review correction is too large")
+    return normalized
 
 
 def _result_location(task_id: TaskId) -> str:
@@ -316,6 +543,7 @@ def register_task_routes(
     primary_input_application: PrimaryInputApplication,
     result_application: Any | None = None,
     pipeline_coordinator: ResultPipelineCoordinator | None = None,
+    export_application: Any | None = None,
 ) -> None:
     """Register only the Task/input operations consumed by the Fast Lane Web UI."""
 
@@ -513,6 +741,132 @@ def register_task_routes(
                     action="none",
                 )
             return JSONResponse(_result_projection(value))
+
+        @router.post(
+            "/api/v1/tasks/{taskId:path}/commands/confirm-current-result",
+            status_code=201,
+        )
+        def confirm_current_result(
+            request: Request,
+            body: ConfirmCurrentResultBody,
+            task_id: Annotated[str, Path(alias="taskId", min_length=1)],
+            idempotency_key: Annotated[
+                str, Header(alias="Idempotency-Key", min_length=1, max_length=200)
+            ],
+        ) -> JSONResponse:
+            try:
+                task_id_value = TaskId(task_id)
+                key = idempotency_key.strip()
+                if not key:
+                    raise ValueError("idempotency key is blank")
+                marketing_message = _bounded_review_text(body.marketing_core_message)
+                title_direction = _bounded_review_text(body.xiaohongshu_title_direction)
+                value, replayed = result_application.confirm_current_result(
+                    task_id=task_id_value,
+                    idempotency_key=key,
+                    expected_result_revision=body.expected_result_revision,
+                    marketing_core_message=marketing_message,
+                    xiaohongshu_title_direction=title_direction,
+                )
+            except OverflowError:
+                return payload_too_large_problem(request)
+            except (TypeError, ValueError):
+                return safe_problem_response(
+                    request=request,
+                    problem_type=_VALIDATION_FAILED,
+                    title="Validation failed",
+                    status=422,
+                    detail="The review corrections are invalid.",
+                    action="correct_input",
+                )
+            except Exception as error:
+                return _result_problem(request, error)
+            return JSONResponse(
+                _result_projection(value), status_code=200 if replayed else 201
+            )
+
+    if export_application is not None:
+
+        @router.post("/api/v1/tasks/{taskId:path}/export-previews")
+        def preview_export(
+            request: Request,
+            body: ExportPreviewBody,
+            task_id: Annotated[str, Path(alias="taskId", min_length=1)],
+        ) -> JSONResponse:
+            try:
+                value = export_application.preview_export(
+                    task_id=TaskId(task_id), brief_kind=ExportBriefKind(body.brief_kind)
+                )
+            except (TypeError, ValueError):
+                return _invalid_task_id_problem(request)
+            except Exception as error:
+                return _export_problem(request, error)
+            return JSONResponse(_export_preview_projection(value))
+
+        @router.post("/api/v1/export-snapshots", status_code=201)
+        def create_export_snapshot(
+            request: Request,
+            body: ConfirmExportBody,
+            idempotency_key: Annotated[
+                str, Header(alias="Idempotency-Key", min_length=1, max_length=200)
+            ],
+        ) -> JSONResponse:
+            try:
+                key = idempotency_key.strip()
+                if not key:
+                    raise ValueError("idempotency key is blank")
+                basis = _export_basis(body.basis)
+                value, replayed = export_application.create_export_snapshot(
+                    idempotency_key=key, request=ConfirmExportRequest(basis=basis)
+                )
+            except (TypeError, ValueError):
+                return safe_problem_response(
+                    request=request,
+                    problem_type=_VALIDATION_FAILED,
+                    title="Validation failed",
+                    status=422,
+                    detail="The export basis is invalid.",
+                    action="correct_input",
+                )
+            except Exception as error:
+                return _export_problem(request, error)
+            return JSONResponse(
+                _export_snapshot_projection(value),
+                status_code=200 if replayed else 201,
+                headers=(
+                    {"Location": value.content_location} if not replayed else None
+                ),
+            )
+
+        @router.get("/api/v1/export-snapshots/{exportSnapshotId}/content")
+        def download_export_snapshot_content(
+            request: Request,
+            export_snapshot_id: Annotated[
+                str, Path(alias="exportSnapshotId", min_length=1)
+            ],
+        ) -> Response:
+            try:
+                value, content = export_application.get_export_content(
+                    export_snapshot_id=ExportSnapshotId(export_snapshot_id)
+                )
+            except (TypeError, ValueError):
+                return _invalid_task_id_problem(request)
+            except Exception as error:
+                problem = _export_problem(request, error)
+                return Response(
+                    content=problem.body,
+                    status_code=problem.status_code,
+                    headers=dict(problem.headers),
+                    media_type=problem.media_type,
+                )
+            return Response(
+                content=content.encode("utf-8"),
+                media_type="text/markdown",
+                headers={
+                    "Content-Type": _MARKDOWN_MEDIA_TYPE,
+                    "Content-Disposition": f'attachment; filename="{value.file_name}"',
+                },
+            )
 
     @router.get("/api/v1/tasks/{taskId:path}")
     def get_task(

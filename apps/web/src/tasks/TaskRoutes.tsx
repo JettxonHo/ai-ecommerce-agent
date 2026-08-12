@@ -10,6 +10,8 @@ import {
   type TaskPrimaryAction,
   type TaskCurrentResult,
   type TaskSummary,
+  type ExportBriefKind,
+  type ExportDownload,
 } from "./gateway";
 
 type TaskRoutesProps = Readonly<{ taskGateway: TaskGateway }>;
@@ -28,6 +30,20 @@ const makeRetryKey = (taskId: string, inputRevision: number): string => {
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return `result:${taskId}:${inputRevision}:${random}`;
 };
+const makeConfirmationKey = (taskId: string, revision: number) => {
+  const random =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `confirm:${taskId}:${revision}:${random}`;
+};
+const makeExportKey = (basis: {
+  taskId: string;
+  taskRevision: number;
+  briefKind: string;
+  briefVersion: { resourceVersionId: string };
+}) =>
+  `export:${basis.taskId}:${basis.taskRevision}:${basis.briefKind}:${basis.briefVersion.resourceVersionId}`;
 
 const taskStatus = (task: TaskSummary): string =>
   task.currentStage ?? task.waitingReason ?? task.taskStatus;
@@ -128,6 +144,13 @@ function TaskOverviewRoute({
   const resultRetryKey = useRef<{ inputRevision: number; key: string } | null>(
     null,
   );
+  const confirmationRetryKey = useRef<{
+    key: string;
+    resultRevision: number;
+    message: string;
+    title: string;
+  } | null>(null);
+  const exportRetryKeys = useRef(new Map<string, string>());
   const savePrimaryInput = async (input: TaskPrimaryInputDraft) => {
     const saved = await taskGateway.savePrimaryInput(taskId, input);
     await queryClient.invalidateQueries({ queryKey: primaryInputKey(taskId) });
@@ -168,6 +191,66 @@ function TaskOverviewRoute({
     } catch (error) {
       throw error;
     }
+  };
+  const confirmCurrentResult = async (
+    message: string,
+    title: string,
+  ): Promise<TaskCurrentResult> => {
+    const result = currentResultQuery.data;
+    if (
+      !result ||
+      result.status !== "awaiting_review" ||
+      taskGateway.confirmCurrentResult === undefined
+    ) {
+      throw new TaskGatewayError(
+        "invalid",
+        "Current result confirmation is unavailable.",
+      );
+    }
+    const previous = confirmationRetryKey.current;
+    const retryKey =
+      previous !== null &&
+      previous.resultRevision === result.resultRevision &&
+      previous.message === message &&
+      previous.title === title
+        ? previous.key
+        : makeConfirmationKey(taskId, result.resultRevision);
+    confirmationRetryKey.current = {
+      key: retryKey,
+      resultRevision: result.resultRevision,
+      message,
+      title,
+    };
+    const confirmed = await taskGateway.confirmCurrentResult(
+      taskId,
+      retryKey,
+      result.resultRevision,
+      { marketingCoreMessage: message, xiaohongshuTitleDirection: title },
+    );
+    confirmationRetryKey.current = null;
+    queryClient.setQueryData(currentResultKey(taskId), confirmed);
+    await queryClient.invalidateQueries({ queryKey: overviewKey(taskId) });
+    return confirmed;
+  };
+  const exportBrief = async (
+    briefKind: ExportBriefKind,
+  ): Promise<ExportDownload> => {
+    if (
+      taskGateway.previewExport === undefined ||
+      taskGateway.createExportSnapshot === undefined
+    ) {
+      throw new TaskGatewayError("invalid", "Export is unavailable.");
+    }
+    const preview = await taskGateway.previewExport(taskId, briefKind);
+    const key =
+      exportRetryKeys.current.get(makeExportKey(preview.basis)) ??
+      `export:${taskId}:${preview.basis.taskRevision}:${briefKind}:${preview.basis.briefVersion.resourceVersionId}`;
+    exportRetryKeys.current.set(makeExportKey(preview.basis), key);
+    const snapshot = await taskGateway.createExportSnapshot(key, preview.basis);
+    if (taskGateway.downloadExportContent !== undefined) {
+      return taskGateway.downloadExportContent(snapshot);
+    }
+    return { snapshot, content: "" };
   };
 
   if (query.isPending) {
@@ -232,6 +315,17 @@ function TaskOverviewRoute({
           : undefined
       }
       generateResult={generateResult}
+      confirmCurrentResult={
+        taskGateway.confirmCurrentResult === undefined
+          ? undefined
+          : confirmCurrentResult
+      }
+      exportBrief={
+        taskGateway.previewExport === undefined ||
+        taskGateway.createExportSnapshot === undefined
+          ? undefined
+          : exportBrief
+      }
     />
   );
 }

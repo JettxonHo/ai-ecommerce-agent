@@ -193,6 +193,40 @@ paths:
         '404': { $ref: '#/components/responses/Problem404' }
         '500': { $ref: '#/components/responses/Problem500' }
         '503': { $ref: '#/components/responses/Problem503' }
+  /api/v1/tasks/{taskId}/commands/confirm-current-result:
+    post:
+      tags: [Task]
+      operationId: confirmCurrentResult
+      summary: Confirm the current deterministic result with two bounded corrections
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmCurrentResultRequest'
+      responses:
+        '201':
+          description: Current result confirmed on the first submission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentTaskResult'
+        '200':
+          description: Durable same-input confirmation replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentTaskResult'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '413': { $ref: '#/components/responses/Problem413' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
 
   /api/v1/tasks/{taskId}/commands/start:
     post:
@@ -1490,6 +1524,33 @@ components:
       properties:
         expectedInputRevision:
           $ref: '#/components/schemas/ResourceRevision'
+    ConfirmCurrentResultRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedResultRevision, marketingCoreMessage, xiaohongshuTitleDirection]
+      properties:
+        expectedResultRevision:
+          $ref: '#/components/schemas/ResourceRevision'
+        marketingCoreMessage:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        xiaohongshuTitleDirection:
+          type: string
+          minLength: 1
+          maxLength: 4096
+    CurrentResultConfirmation:
+      type: object
+      additionalProperties: false
+      required: [marketingBriefVersion, xiaohongshuBriefVersion, confirmedAt]
+      properties:
+        marketingBriefVersion:
+          $ref: '#/components/schemas/DomainVersionReference'
+        xiaohongshuBriefVersion:
+          $ref: '#/components/schemas/DomainVersionReference'
+        confirmedAt:
+          type: string
+          format: date-time
     DeterministicCandidate:
       type: object
       description: Validated candidate using the existing private skill output contract.
@@ -1497,7 +1558,7 @@ components:
     CurrentTaskResult:
       type: object
       additionalProperties: false
-      required: [taskId, resultRevision, inputRevision, status, generatedAt, missingInformation, productIntake, customerInsight, productPositioning, marketingBrief, xiaohongshuBrief]
+      required: [taskId, resultRevision, inputRevision, status, generatedAt, missingInformation, productIntake, customerInsight, productPositioning, marketingBrief, xiaohongshuBrief, confirmation]
       properties:
         taskId:
           type: string
@@ -1508,7 +1569,7 @@ components:
           $ref: '#/components/schemas/ResourceRevision'
         status:
           type: string
-          enum: [awaiting_review, insufficient_input]
+          enum: [awaiting_review, insufficient_input, confirmed]
         generatedAt:
           type: string
           format: date-time
@@ -1536,6 +1597,10 @@ components:
         xiaohongshuBrief:
           oneOf:
             - $ref: '#/components/schemas/DeterministicCandidate'
+            - type: 'null'
+        confirmation:
+          oneOf:
+            - $ref: '#/components/schemas/CurrentResultConfirmation'
             - type: 'null'
     TaskSummary:
       type: object
