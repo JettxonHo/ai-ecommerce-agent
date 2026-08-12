@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createApiClient } from "../../src/api/client";
+import type { components } from "../../src/api/generated/schema";
 import {
+  cloneTaskOverview,
+  mapTaskOverview,
   TaskGatewayError,
   type TaskGateway,
   type TaskInput,
@@ -22,8 +25,8 @@ const overview = (overrides: Record<string, unknown> = {}): TaskOverview =>
     primaryAction: { kind: "none" },
     capabilities: [],
     stages: [],
-    activeRun: null,
-    latestRun: null,
+    activeRunId: null,
+    latestRunId: null,
     needsInputRequest: null,
     reviewPackage: null,
     approvedStrategy: null,
@@ -31,6 +34,30 @@ const overview = (overrides: Record<string, unknown> = {}): TaskOverview =>
     xiaohongshuBrief: null,
     ...overrides,
   }) as TaskOverview;
+
+const generatedOverview = (
+  overrides: Partial<components["schemas"]["TaskOverview"]> = {},
+): components["schemas"]["TaskOverview"] => ({
+  taskId: "task-1",
+  taskName: "Launch",
+  productCategory: "Backpack",
+  taskStatus: "draft",
+  currentStage: null,
+  waitingReason: null,
+  updatedAt: "2026-08-12T00:00:00Z",
+  revision: 0,
+  primaryAction: { type: "NoPrimaryAction" },
+  capabilities: [],
+  stages: [],
+  activeRun: null,
+  latestRun: null,
+  needsInputRequest: null,
+  reviewPackage: null,
+  approvedStrategy: null,
+  marketingBrief: null,
+  xiaohongshuBrief: null,
+  ...overrides,
+});
 
 const input: TaskInput = {
   taskName: "Launch",
@@ -45,6 +72,71 @@ const response = (body: unknown, status = 200): Response =>
   });
 
 describe("TaskGateway HTTP contract", () => {
+  it("maps every TaskOverview related reference to detached identity-only values", () => {
+    const dto = generatedOverview({
+      activeRun: { runId: "run-active" },
+      latestRun: { runId: "run-latest" },
+      needsInputRequest: {
+        resourceKind: "needs_input",
+        resourceId: "input-1",
+        revision: 4,
+      },
+      reviewPackage: { reviewPackageId: "review-1", packageVersion: 7 },
+      approvedStrategy: {
+        resourceKind: "strategy",
+        resourceVersionId: "strategy-1",
+        versionNumber: 2,
+      },
+      marketingBrief: {
+        resourceKind: "marketing_brief",
+        resourceVersionId: "brief-1",
+        versionNumber: 3,
+      },
+      xiaohongshuBrief: {
+        resourceKind: "xiaohongshu_brief",
+        resourceVersionId: "xhs-1",
+        versionNumber: 4,
+      },
+    });
+
+    const mapped = mapTaskOverview(dto);
+    expect(mapped).toMatchObject({
+      activeRunId: "run-active",
+      latestRunId: "run-latest",
+      needsInputRequest: { resourceId: "input-1", revision: 4 },
+      reviewPackage: { reviewPackageId: "review-1", packageVersion: 7 },
+      approvedStrategy: {
+        resourceKind: "strategy",
+        resourceVersionId: "strategy-1",
+        versionNumber: 2,
+      },
+      marketingBrief: {
+        resourceKind: "marketing_brief",
+        resourceVersionId: "brief-1",
+        versionNumber: 3,
+      },
+      xiaohongshuBrief: {
+        resourceKind: "xiaohongshu_brief",
+        resourceVersionId: "xhs-1",
+        versionNumber: 4,
+      },
+    });
+    expect(Object.isFrozen(mapped)).toBe(true);
+    expect(Object.isFrozen(mapped.needsInputRequest)).toBe(true);
+    expect(Object.isFrozen(mapped.reviewPackage)).toBe(true);
+    expect(Object.isFrozen(mapped.approvedStrategy)).toBe(true);
+    expect(Object.isFrozen(mapped.marketingBrief)).toBe(true);
+    expect(Object.isFrozen(mapped.xiaohongshuBrief)).toBe(true);
+    expect(mapped.needsInputRequest).not.toBe(dto.needsInputRequest);
+    expect(mapped.reviewPackage).not.toBe(dto.reviewPackage);
+
+    const clone = cloneTaskOverview(mapped);
+    expect(clone).toEqual(mapped);
+    expect(clone).not.toBe(mapped);
+    expect(clone.needsInputRequest).not.toBe(mapped.needsInputRequest);
+    expect(clone.marketingBrief).not.toBe(mapped.marketingBrief);
+  });
+
   it("uses the generated Task operations and preserves server order/action data", async () => {
     const first = {
       ...overview({
