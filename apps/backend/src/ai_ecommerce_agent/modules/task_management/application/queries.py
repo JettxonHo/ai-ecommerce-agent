@@ -30,8 +30,20 @@ class GetStage:
     stage: StageReference
 
 
+@dataclass(frozen=True, slots=True)
+class ListTasks:
+    """Read a bounded recent Task window."""
+
+    limit: int = 20
+
+    def __post_init__(self) -> None:
+        if isinstance(self.limit, bool) or not 1 <= self.limit <= 50:
+            raise ValueError("Task list limit must be between 1 and 50")
+
+
 __all__ = [
     "GetRun",
     "GetStage",
     "GetTask",
+    "ListTasks",
 ]

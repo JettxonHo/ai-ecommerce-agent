@@ -21,10 +21,21 @@ from .application.commands import (
     SupersedeSourceVersion,
 )
 from .application.errors import SourceEvidenceError
+from .application.primary_input_commands import SavePrimaryInput
+from .application.primary_input_errors import PrimaryInputError, PrimaryInputNotFound
+from .application.primary_input_protocols import PrimaryInputApplication
+from .application.primary_input_queries import GetPrimaryInput
 from .application.protocols import SourceEvidenceApplication
 from .application.queries import GetSourceAssociation, GetSourceVersion
 from .application.query_protocols import SourceEvidenceQueryApplication
+from .domain.primary_input import (
+    PRIMARY_INPUT_MAX_BYTES,
+    validate_primary_content,
+    validate_primary_file_name,
+)
 from .domain.snapshots import (
+    PrimaryInputKind,
+    PrimaryInputSnapshot,
     SourceAssociationMembershipState,
     SourceAssociationSnapshot,
     SourceProcessingStatus,
@@ -38,6 +49,16 @@ __all__ = [
     "SourceEvidenceError",
     "SourceProcessingStatus",
     "SourceVersionSnapshot",
+    "GetPrimaryInput",
+    "PrimaryInputApplication",
+    "PRIMARY_INPUT_MAX_BYTES",
+    "PrimaryInputError",
+    "PrimaryInputKind",
+    "PrimaryInputNotFound",
+    "validate_primary_content",
+    "validate_primary_file_name",
+    "PrimaryInputSnapshot",
+    "SavePrimaryInput",
     "MarkSourceProcessingFailed",
     "MarkSourceReady",
     "MarkSourceReadyWithRejections",

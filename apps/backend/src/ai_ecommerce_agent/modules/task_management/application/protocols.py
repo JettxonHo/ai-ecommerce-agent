@@ -11,7 +11,7 @@ from ai_ecommerce_agent.modules.task_management.domain import (
 )
 
 from .commands import CreateDraftTask, PrepareInitialRun
-from .queries import GetRun, GetStage, GetTask
+from .queries import GetRun, GetStage, GetTask, ListTasks
 from .results import PrepareInitialRunResult
 
 
@@ -24,8 +24,20 @@ class TaskManagementApplication(Protocol):
 
         ...
 
+    def create_draft_task_idempotent(
+        self, command: CreateDraftTask
+    ) -> tuple[TaskSnapshot, bool]:
+        """Create or replay a draft Task using durable retry identity."""
+
+        ...
+
     def get_task(self, query: GetTask) -> TaskSnapshot:
         """Read one immutable Task snapshot."""
+
+        ...
+
+    def list_tasks(self, query: ListTasks) -> tuple[TaskSnapshot, ...]:
+        """Read a bounded recent Task summary window."""
 
         ...
 

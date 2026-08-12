@@ -22,6 +22,7 @@ from openapi_spec_validator.validation.validators import OpenAPIV31SpecValidator
 EXPECTED_OPERATIONS: dict[str, frozenset[str]] = {
     "/api/v1/tasks": frozenset({"get", "post"}),
     "/api/v1/tasks/{taskId}": frozenset({"get"}),
+    "/api/v1/tasks/{taskId}/primary-input": frozenset({"get", "put"}),
     "/api/v1/tasks/{taskId}/commands/start": frozenset({"post"}),
     "/api/v1/tasks/{taskId}/commands/rerun": frozenset({"post"}),
     "/api/v1/runs/{runId}": frozenset({"get"}),
@@ -82,6 +83,9 @@ IDEMPOTENT_OPERATIONS = frozenset(
 REQUIRED_SCHEMAS = frozenset(
     {
         "CreateTaskRequest",
+        "PrimaryInputKind",
+        "SaveTaskPrimaryInputRequest",
+        "TaskPrimaryInput",
         "TaskSummaryList",
         "TaskSummary",
         "TaskOverview",

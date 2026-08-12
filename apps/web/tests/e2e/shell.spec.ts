@@ -48,6 +48,10 @@ test("renders recent tasks and restores a stable deep link without errors", asyn
 
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/primary-input")) {
+      await route.fulfill({ status: 200, contentType: "application/json" });
+      return;
+    }
     if (url.pathname === "/api/v1/tasks") {
       await route.fulfill({
         status: 200,
@@ -109,6 +113,10 @@ test("canonicalizes an invalid panel and stage selection on the same Task URL", 
   const requestPaths: string[] = [];
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/primary-input")) {
+      await route.fulfill({ status: 200, contentType: "application/json" });
+      return;
+    }
     requestPaths.push(`${route.request().method()} ${url.pathname}`);
     if (decodeURIComponent(url.pathname) === "/api/v1/tasks/task/7") {
       await route.fulfill({
@@ -183,6 +191,10 @@ test("renders representative intake, active-run, and recovery modes without extr
   });
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/primary-input")) {
+      await route.fulfill({ status: 200, contentType: "application/json" });
+      return;
+    }
     requestPaths.push(`${route.request().method()} ${url.pathname}`);
     const taskId = url.pathname.split("/").pop() ?? "";
     const selected = tasks.get(decodeURIComponent(taskId));
@@ -201,9 +213,7 @@ test("renders representative intake, active-run, and recovery modes without extr
   await expect(
     page.getByRole("heading", { name: "Current workspace: intake" }),
   ).toBeVisible();
-  await expect(
-    page.getByText(/Intake resources and actions are not implemented/),
-  ).toBeVisible();
+  await expect(page.getByText("Intake input is ready to save.")).toBeVisible();
 
   await page.goto(
     "/tasks/task-active?panel=progress&stage=product_positioning",
@@ -293,6 +303,10 @@ test("renders long reference identities as literal text without overflow or exec
   });
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/primary-input")) {
+      await route.fulfill({ status: 200, contentType: "application/json" });
+      return;
+    }
     requestPaths.push(`${route.request().method()} ${url.pathname}`);
     if (url.pathname === "/api/v1/tasks/task-long-references") {
       await route.fulfill({
@@ -384,6 +398,10 @@ test("reflows long Task values without page-level horizontal overflow", async ({
 
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/primary-input")) {
+      await route.fulfill({ status: 200, contentType: "application/json" });
+      return;
+    }
     if (url.pathname === "/api/v1/tasks") {
       await route.fulfill({
         status: 200,
@@ -452,6 +470,10 @@ test("creates a Task through the generated HTTP client and reuses its key on exp
   await page.route("**/api/v1/tasks**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
+    if (url.pathname.endsWith("/primary-input")) {
+      await route.fulfill({ status: 200, contentType: "application/json" });
+      return;
+    }
     requestPaths.push(url.pathname);
 
     if (request.method() === "POST" && url.pathname === "/api/v1/tasks") {
@@ -550,6 +572,10 @@ test("reuses the same key after a malformed-success response and rotates it only
   await page.route("**/api/v1/tasks**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
+    if (url.pathname.endsWith("/primary-input")) {
+      await route.fulfill({ status: 200, contentType: "application/json" });
+      return;
+    }
     if (request.method() === "POST" && url.pathname === "/api/v1/tasks") {
       createAttempts += 1;
       createRequests.push({

@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any, cast
 
-from sqlalchemy import CursorResult, Executable, insert, select, update
+from sqlalchemy import CursorResult, Executable, delete, insert, select, update
+from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -31,7 +32,12 @@ from .mappings import (
     task_domain_to_row,
     task_row_to_domain,
 )
-from .tables import RUNS_TABLE, STAGES_TABLE, TASKS_TABLE
+from .tables import (
+    RUNS_TABLE,
+    STAGES_TABLE,
+    TASK_CREATE_IDEMPOTENCY_TABLE,
+    TASKS_TABLE,
+)
 
 _OWNER_CONSTRAINTS = frozenset(
     {
@@ -43,6 +49,7 @@ _OWNER_CONSTRAINTS = frozenset(
         "fk_task_management_tasks_current_stage_owner",
         "fk_task_management_tasks_active_run_owner",
         "fk_task_management_tasks_latest_run_owner",
+        "fk_task_management_create_idempotency_task_owner",
     }
 )
 
@@ -107,8 +114,66 @@ class TaskManagementPostgresTaskRepository:
         )
         return task_row_to_domain(_mapping(row)) if row is not None else None
 
+    def get_by_idempotency_key(self, idempotency_key: str) -> Task | None:
+        row = (
+            _execute(
+                self._session,
+                select(TASKS_TABLE)
+                .join(
+                    TASK_CREATE_IDEMPOTENCY_TABLE,
+                    TASK_CREATE_IDEMPOTENCY_TABLE.c.task_id == TASKS_TABLE.c.task_id,
+                )
+                .where(
+                    TASK_CREATE_IDEMPOTENCY_TABLE.c.idempotency_key == idempotency_key
+                ),
+            )
+            .mappings()
+            .one_or_none()
+        )
+        return task_row_to_domain(_mapping(row)) if row is not None else None
+
+    def list(self, *, limit: int) -> tuple[Task, ...]:
+        rows = (
+            _execute(
+                self._session,
+                select(TASKS_TABLE)
+                .order_by(TASKS_TABLE.c.updated_at.desc(), TASKS_TABLE.c.task_id)
+                .limit(limit),
+            )
+            .mappings()
+            .all()
+        )
+        return tuple(task_row_to_domain(_mapping(row)) for row in rows)
+
     def add(self, task: Task) -> None:
         _write(self._session, insert(TASKS_TABLE).values(task_domain_to_row(task)))
+
+    def add_with_idempotency(
+        self, task: Task, *, idempotency_key: str
+    ) -> tuple[Task, bool]:
+        """Atomically stage a Task and durable retry identity in one UoW."""
+
+        _write(self._session, insert(TASKS_TABLE).values(task_domain_to_row(task)))
+        result = _write(
+            self._session,
+            postgres_insert(TASK_CREATE_IDEMPOTENCY_TABLE)
+            .values(idempotency_key=idempotency_key, task_id=str(task.task_id))
+            .on_conflict_do_nothing(index_elements=["idempotency_key"])
+            .returning(TASK_CREATE_IDEMPOTENCY_TABLE.c.idempotency_key),
+        )
+        if result.first() is not None:
+            return task, False
+
+        # A concurrent request won the unique key. Remove only this still-
+        # uncommitted candidate, then return the committed winner for replay.
+        _write(
+            self._session,
+            delete(TASKS_TABLE).where(TASKS_TABLE.c.task_id == str(task.task_id)),
+        )
+        existing = self.get_by_idempotency_key(idempotency_key)
+        if existing is None:
+            raise TaskManagementPersistenceError()
+        return existing, True
 
     def save(self, task: Task, *, expected_revision: Revision) -> None:
         values = task_domain_to_row(task)

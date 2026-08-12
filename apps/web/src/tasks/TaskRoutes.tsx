@@ -1,10 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate, useParams } from "react-router";
 import styles from "./TaskRoutes.module.css";
 import { TaskWorkbench } from "./workbench/TaskWorkbench";
 import {
   TaskGatewayError,
   type TaskGateway,
+  type TaskPrimaryInputDraft,
   type TaskPrimaryAction,
   type TaskSummary,
 } from "./gateway";
@@ -13,6 +14,8 @@ type TaskRoutesProps = Readonly<{ taskGateway: TaskGateway }>;
 
 const recentTasksKey = ["tasks", "recent"] as const;
 const overviewKey = (taskId: string) => ["tasks", "overview", taskId] as const;
+const primaryInputKey = (taskId: string) =>
+  ["tasks", "primary-input", taskId] as const;
 
 const taskStatus = (task: TaskSummary): string =>
   task.currentStage ?? task.waitingReason ?? task.taskStatus;
@@ -37,6 +40,7 @@ function RecentTasks({ taskGateway }: TaskRoutesProps) {
     retry: false,
   });
 
+  // The Workbench remains the sole projection consumer (formerly: return <TaskWorkbench task={query.data} />;).
   return (
     <section className={styles.page} aria-labelledby="recent-tasks-heading">
       <p className={styles.eyebrow}>Task index</p>
@@ -84,11 +88,28 @@ function TaskOverviewRoute({
   taskGateway,
   taskId,
 }: TaskRoutesProps & Readonly<{ taskId: string }>) {
+  const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: overviewKey(taskId),
     queryFn: () => taskGateway.getTaskOverview(taskId),
     retry: false,
   });
+  const primaryInputQuery = useQuery({
+    queryKey: primaryInputKey(taskId),
+    queryFn: () =>
+      taskGateway.getPrimaryInput === undefined
+        ? Promise.resolve(null)
+        : taskGateway.getPrimaryInput(taskId),
+    retry: false,
+  });
+  const savePrimaryInput = async (input: TaskPrimaryInputDraft) => {
+    if (taskGateway.savePrimaryInput === undefined) {
+      throw new TaskGatewayError("temporary", "Primary input is unavailable.");
+    }
+    const saved = await taskGateway.savePrimaryInput(taskId, input);
+    await queryClient.invalidateQueries({ queryKey: primaryInputKey(taskId) });
+    return saved;
+  };
 
   if (query.isPending) {
     return <ReadState>Loading task overview…</ReadState>;
@@ -119,7 +140,14 @@ function TaskOverviewRoute({
     );
   }
 
-  return <TaskWorkbench task={query.data} />;
+  return (
+    <TaskWorkbench
+      task={query.data}
+      primaryInput={primaryInputQuery.data}
+      primaryInputLoading={primaryInputQuery.isPending}
+      savePrimaryInput={savePrimaryInput}
+    />
+  );
 }
 
 export function TaskRoutes({ taskGateway }: TaskRoutesProps) {

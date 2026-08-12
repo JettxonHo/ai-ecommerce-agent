@@ -17,6 +17,7 @@ class CreateDraftTask:
     product_category: str
     promotion_goal: str
     updated_at: datetime
+    idempotency_key: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

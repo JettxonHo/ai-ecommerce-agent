@@ -39,6 +39,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tasks/{taskId}/primary-input": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the current Task-scoped primary input */
+        get: operations["getTaskPrimaryInput"];
+        /** Replace the current Task-scoped primary input */
+        put: operations["putTaskPrimaryInput"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tasks/{taskId}/commands/start": {
         parameters: {
             query?: never;
@@ -656,6 +674,25 @@ export interface components {
             taskName: string;
             productCategory: string;
             promotionGoal: string;
+        };
+        /** @enum {string} */
+        PrimaryInputKind: "pasted_text" | "text_file" | "markdown_file";
+        SaveTaskPrimaryInputRequest: {
+            inputKind: components["schemas"]["PrimaryInputKind"];
+            /** @description Display basename for a text/markdown file; null for pasted text. */
+            fileName: string | null;
+            /** @description Nonblank UTF-8 text, limited to 1 MiB after UTF-8 encoding. */
+            content: string;
+        };
+        TaskPrimaryInput: {
+            taskId: string;
+            inputRevision: components["schemas"]["ResourceRevision"];
+            inputKind: components["schemas"]["PrimaryInputKind"];
+            fileName: string | null;
+            content: string;
+            byteCount: number;
+            /** Format: date-time */
+            updatedAt: string;
         };
         TaskSummary: {
             taskId: string;
@@ -1432,6 +1469,63 @@ export interface operations {
                 };
             };
             404: components["responses"]["Problem404"];
+            500: components["responses"]["Problem500"];
+            503: components["responses"]["Problem503"];
+        };
+    };
+    getTaskPrimaryInput: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: components["parameters"]["TaskId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current primary input */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskPrimaryInput"];
+                };
+            };
+            404: components["responses"]["Problem404"];
+            500: components["responses"]["Problem500"];
+            503: components["responses"]["Problem503"];
+        };
+    };
+    putTaskPrimaryInput: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: components["parameters"]["TaskId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveTaskPrimaryInputRequest"];
+            };
+        };
+        responses: {
+            /** @description Persisted current primary input */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskPrimaryInput"];
+                };
+            };
+            404: components["responses"]["Problem404"];
+            409: components["responses"]["Problem409"];
+            413: components["responses"]["Problem413"];
+            422: components["responses"]["Problem422"];
             500: components["responses"]["Problem500"];
             503: components["responses"]["Problem503"];
         };

@@ -26,6 +26,8 @@ from sqlalchemy import (
 
 SOURCE_EVIDENCE_SCHEMA_TOKEN = "__source_evidence_schema__"
 SOURCE_EVIDENCE_METADATA = MetaData()
+PRIMARY_INPUT_SCHEMA_TOKEN = "__primary_input_schema__"
+PRIMARY_INPUT_METADATA = MetaData()
 _IDENTIFIER = re.compile(r"^[a-z_][a-z0-9_]*$")
 _PROCESSING_STATUSES = (
     "registered",
@@ -194,6 +196,46 @@ TASK_SOURCE_ASSOCIATIONS_TABLE = Table(
     schema=SOURCE_EVIDENCE_SCHEMA_TOKEN,
 )
 
+TASK_PRIMARY_INPUTS_TABLE = Table(
+    "source_evidence_task_primary_inputs",
+    PRIMARY_INPUT_METADATA,
+    Column("task_id", Text(), nullable=False),
+    Column("input_kind", Text(), nullable=False),
+    Column("file_name", Text(), nullable=True),
+    Column("content", Text(), nullable=False),
+    Column("byte_count", BigInteger(), nullable=False),
+    Column("revision", BigInteger(), nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+    PrimaryKeyConstraint("task_id", name="pk_source_evidence_task_primary_inputs"),
+    ForeignKeyConstraint(
+        ["task_id"],
+        [f"{PRIMARY_INPUT_SCHEMA_TOKEN}.task_management_tasks.task_id"],
+        name="fk_source_evidence_task_primary_inputs_task_owner",
+    ),
+    CheckConstraint(
+        _in("input_kind", ("pasted_text", "text_file", "markdown_file")),
+        name="ck_source_evidence_task_primary_inputs_kind",
+    ),
+    CheckConstraint(
+        "length(btrim(content)) > 0",
+        name="ck_source_evidence_task_primary_inputs_content_nonempty",
+    ),
+    CheckConstraint(
+        "byte_count >= 1 AND byte_count <= 1048576",
+        name="ck_source_evidence_task_primary_inputs_byte_count",
+    ),
+    CheckConstraint(
+        "revision >= 0",
+        name="ck_source_evidence_task_primary_inputs_revision_nonnegative",
+    ),
+    CheckConstraint(
+        "(input_kind = 'pasted_text' AND file_name IS NULL) OR "
+        "(input_kind <> 'pasted_text' AND file_name IS NOT NULL)",
+        name="ck_source_evidence_task_primary_inputs_filename_pair",
+    ),
+    schema=PRIMARY_INPUT_SCHEMA_TOKEN,
+)
+
 
 def schema_translate_map(schema: str) -> dict[str, str]:
     """Return the explicit map from the logical token to a real schema."""
@@ -201,12 +243,22 @@ def schema_translate_map(schema: str) -> dict[str, str]:
     return {SOURCE_EVIDENCE_SCHEMA_TOKEN: _schema(schema)}
 
 
+def primary_input_schema_translate_map(schema: str) -> dict[str, str]:
+    """Bind the isolated primary-input metadata token to a Business schema."""
+
+    return {PRIMARY_INPUT_SCHEMA_TOKEN: _schema(schema)}
+
+
 __all__ = [
     "SOURCE_EVIDENCE_METADATA",
     "SOURCE_EVIDENCE_SCHEMA_TOKEN",
+    "PRIMARY_INPUT_METADATA",
+    "PRIMARY_INPUT_SCHEMA_TOKEN",
     "SOURCE_VERSION_PROCESSING_TABLE",
     "SOURCE_VERSIONS_TABLE",
     "SOURCES_TABLE",
     "TASK_SOURCE_ASSOCIATIONS_TABLE",
+    "TASK_PRIMARY_INPUTS_TABLE",
+    "primary_input_schema_translate_map",
     "schema_translate_map",
 ]

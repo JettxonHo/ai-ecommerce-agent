@@ -11,6 +11,8 @@ _MALFORMED_REQUEST = "urn:ai-ecommerce-agent:problem:malformed-request"
 _NOT_FOUND = "urn:ai-ecommerce-agent:problem:not-found"
 _VALIDATION_FAILED = "urn:ai-ecommerce-agent:problem:validation-failed"
 _INTERNAL_ERROR = "urn:ai-ecommerce-agent:problem:internal-error"
+_IDEMPOTENCY_CONFLICT = "urn:ai-ecommerce-agent:problem:idempotency-conflict"
+_PAYLOAD_TOO_LARGE = "urn:ai-ecommerce-agent:problem:payload-too-large"
 _PROBLEM_MEDIA_TYPE = "application/problem+json"
 
 
@@ -35,6 +37,55 @@ def _problem_response(
     if field_issues is not None:
         payload["fieldIssues"] = [dict(issue) for issue in field_issues]
     return JSONResponse(payload, status_code=status, media_type=_PROBLEM_MEDIA_TYPE)
+
+
+def safe_problem_response(
+    *,
+    request: Request,
+    problem_type: str,
+    title: str,
+    status: int,
+    detail: str,
+    action: str,
+    field_issues: Sequence[Mapping[str, str]] | None = None,
+) -> JSONResponse:
+    """Project a route-owned safe problem without exposing implementation data."""
+
+    return _problem_response(
+        request=request,
+        problem_type=problem_type,
+        title=title,
+        status=status,
+        detail=detail,
+        action=action,
+        field_issues=field_issues,
+    )
+
+
+def idempotency_conflict_problem(request: Request) -> JSONResponse:
+    """Return the stable conflict for a retry key used with another input."""
+
+    return safe_problem_response(
+        request=request,
+        problem_type=_IDEMPOTENCY_CONFLICT,
+        title="Idempotency conflict",
+        status=409,
+        detail="The retry key belongs to another Task request.",
+        action="correct_input",
+    )
+
+
+def payload_too_large_problem(request: Request) -> JSONResponse:
+    """Return the stable input size boundary response."""
+
+    return safe_problem_response(
+        request=request,
+        problem_type=_PAYLOAD_TOO_LARGE,
+        title="Payload too large",
+        status=413,
+        detail="The primary input exceeds the maximum allowed size.",
+        action="correct_input",
+    )
 
 
 def malformed_origin_problem(request: Request) -> JSONResponse:
@@ -109,8 +160,11 @@ def unhandled_problem(request: Request, _exc: Exception) -> JSONResponse:
 
 
 __all__ = (
+    "idempotency_conflict_problem",
     "malformed_origin_problem",
     "not_found_problem",
+    "payload_too_large_problem",
     "request_validation_problem",
+    "safe_problem_response",
     "unhandled_problem",
 )

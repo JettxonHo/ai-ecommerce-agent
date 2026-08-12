@@ -13,10 +13,12 @@ from datetime import datetime
 from typing import cast
 
 from ai_ecommerce_agent.modules.source_evidence.domain import (
+    PrimaryInputKind,
     SourceAssociationMembershipState,
     SourceProcessingStatus,
     SourceVersion,
     SourceVersionProcessing,
+    TaskPrimaryInput,
     TaskSourceAssociation,
 )
 from ai_ecommerce_agent.shared_kernel import (
@@ -136,6 +138,33 @@ def task_source_association_domain_to_row(
     }
 
 
+def primary_input_row_to_domain(row: Mapping[str, object]) -> TaskPrimaryInput:
+    """Map one current primary-input row to its domain value."""
+
+    return TaskPrimaryInput(
+        task_id=TaskId(_text(row, "task_id")),
+        input_kind=PrimaryInputKind(_text(row, "input_kind")),
+        file_name=_nullable_text(row, "file_name"),
+        content=_text(row, "content"),
+        revision=Revision(_integer(row, "revision")),
+        updated_at=_timestamp(row, "updated_at"),
+    )
+
+
+def primary_input_domain_to_row(value: TaskPrimaryInput) -> dict[str, object]:
+    """Map primary-input Current Truth to SQLAlchemy Core primitives."""
+
+    return {
+        "task_id": str(value.task_id),
+        "input_kind": value.input_kind.value,
+        "file_name": value.file_name,
+        "content": value.content,
+        "byte_count": value.byte_count,
+        "revision": value.revision.value,
+        "updated_at": value.updated_at,
+    }
+
+
 __all__ = [
     "source_version_domain_to_row",
     "source_version_processing_domain_to_row",
@@ -143,4 +172,6 @@ __all__ = [
     "source_version_row_to_domain",
     "task_source_association_domain_to_row",
     "task_source_association_row_to_domain",
+    "primary_input_domain_to_row",
+    "primary_input_row_to_domain",
 ]

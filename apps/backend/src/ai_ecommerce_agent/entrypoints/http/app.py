@@ -1,5 +1,7 @@
 """FastAPI application factory for the transport-only HTTP foundation."""
 
+from typing import Any
+
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 
@@ -10,6 +12,7 @@ from ai_ecommerce_agent.entrypoints.http.problems import (
     request_validation_problem,
     unhandled_problem,
 )
+from ai_ecommerce_agent.entrypoints.http.task_routes import register_task_routes
 
 
 def create_http_application(*, config: FixedWorkspaceHttpConfig) -> FastAPI:
@@ -40,4 +43,21 @@ def create_http_application(*, config: FixedWorkspaceHttpConfig) -> FastAPI:
     return application
 
 
-__all__ = ("create_http_application",)
+def create_task_http_application(
+    *,
+    config: FixedWorkspaceHttpConfig,
+    task_application: Any,
+    primary_input_application: Any,
+) -> FastAPI:
+    """Build the foundation and register the consumed Task/input routes."""
+
+    application = create_http_application(config=config)
+    register_task_routes(
+        application,
+        task_application=task_application,
+        primary_input_application=primary_input_application,
+    )
+    return application
+
+
+__all__ = ("create_http_application", "create_task_http_application")

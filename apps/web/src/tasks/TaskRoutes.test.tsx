@@ -97,7 +97,9 @@ describe("TaskRoutes", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Launch" })).toBeTruthy();
-    const overviewRegion = screen.getByRole("region");
+    const overviewRegion = screen.getByRole("region", {
+      name: "Launch",
+    });
     expect(within(overviewRegion).getByText("Task ID: task/7")).toBeTruthy();
     expect(within(overviewRegion).getByText("Backpack")).toBeTruthy();
     const definitions = within(overviewRegion).getAllByRole("definition");
@@ -272,7 +274,9 @@ describe("TaskRoutes", () => {
       createDeterministicTaskGateway({ tasks: [task] }),
     );
 
-    const region = await screen.findByRole("region");
+    const region = await screen.findByRole("region", {
+      name: "Launch",
+    });
     expect(within(region).getByText("Needs a source")).toBeTruthy();
     expect(within(region).queryByText("Not started")).toBeNull();
     expect(within(region).getByText("waiting_for_input")).toBeTruthy();

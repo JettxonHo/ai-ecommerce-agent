@@ -1,10 +1,12 @@
 import type { ApiClient } from "../api/client";
 import {
   mapTaskOverview,
+  mapTaskPrimaryInput,
   mapTaskSummary,
   normalizeIdempotencyKey,
   normalizeTaskIdentity,
   normalizeTaskInput,
+  normalizePrimaryInput,
   TaskGatewayError,
   type TaskGateway,
 } from "./gateway";
@@ -19,6 +21,12 @@ const failure = (
     return new TaskGatewayError(
       "invalid",
       "The task request could not be completed.",
+    );
+  }
+  if (status === 413) {
+    return new TaskGatewayError(
+      "invalid",
+      "Primary input is too large (1 MiB maximum).",
     );
   }
   if (status !== undefined && status < 500) {
@@ -91,6 +99,30 @@ export const createHttpTaskGateway = (client: ApiClient): TaskGateway => ({
           params: { path: { taskId: identity } },
         }),
       mapTaskOverview,
+    );
+  },
+  getPrimaryInput: async (taskId) => {
+    const identity = normalizeTaskIdentity(taskId);
+    return request(
+      "Primary input",
+      () =>
+        client.GET("/api/v1/tasks/{taskId}/primary-input", {
+          params: { path: { taskId: identity } },
+        }),
+      mapTaskPrimaryInput,
+    );
+  },
+  savePrimaryInput: async (taskId, input) => {
+    const identity = normalizeTaskIdentity(taskId);
+    const body = normalizePrimaryInput(input);
+    return request(
+      "Primary input",
+      () =>
+        client.PUT("/api/v1/tasks/{taskId}/primary-input", {
+          params: { path: { taskId: identity } },
+          body,
+        }),
+      mapTaskPrimaryInput,
     );
   },
 });

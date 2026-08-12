@@ -2,12 +2,27 @@ import type { components } from "../api/generated/schema";
 
 type SummaryDto = components["schemas"]["TaskSummary"];
 type OverviewDto = components["schemas"]["TaskOverview"];
+type PrimaryInputDto = components["schemas"]["TaskPrimaryInput"];
 
 export type TaskInput = Readonly<{
   taskName: string;
   productCategory: string;
   promotionGoal: string;
 }>;
+export type TaskPrimaryInputKind =
+  "pasted_text" | "text_file" | "markdown_file";
+export type TaskPrimaryInputDraft = Readonly<{
+  inputKind: TaskPrimaryInputKind;
+  fileName: string | null;
+  content: string;
+}>;
+export type TaskPrimaryInput = TaskPrimaryInputDraft &
+  Readonly<{
+    taskId: string;
+    inputRevision: number;
+    byteCount: number;
+    updatedAt: string;
+  }>;
 export type TaskPrimaryAction = Readonly<
   | { kind: "none" }
   | { kind: "navigate"; target: string }
@@ -71,6 +86,12 @@ export interface TaskGateway {
   listTasks(): Promise<readonly TaskSummary[]>;
   createTask(input: TaskInput, idempotencyKey: string): Promise<TaskOverview>;
   getTaskOverview(taskId: string): Promise<TaskOverview>;
+  /** Primary-input methods are optional for deterministic shell fixtures. */
+  getPrimaryInput?(taskId: string): Promise<TaskPrimaryInput>;
+  savePrimaryInput?(
+    taskId: string,
+    input: TaskPrimaryInputDraft,
+  ): Promise<TaskPrimaryInput>;
 }
 
 const invalid = (message: string) => new TaskGatewayError("invalid", message);
@@ -111,6 +132,63 @@ export const normalizeIdempotencyKey = (value: unknown): string =>
   nonblank(value, "A retry key is required.");
 export const normalizeTaskIdentity = (value: unknown): string =>
   nonblank(value, "A task identity is required.");
+
+const primaryKinds: readonly TaskPrimaryInputKind[] = [
+  "pasted_text",
+  "text_file",
+  "markdown_file",
+];
+const encoder = (): TextEncoder => new TextEncoder();
+const primaryInputError = (message: string): TaskGatewayError =>
+  invalid(message);
+
+export const normalizePrimaryInput = (
+  value: unknown,
+): TaskPrimaryInputDraft => {
+  const input = objectInput(value);
+  const inputKind = input.inputKind;
+  if (
+    typeof inputKind !== "string" ||
+    !primaryKinds.includes(inputKind as TaskPrimaryInputKind)
+  ) {
+    throw primaryInputError("Choose pasted text, a .txt file, or a .md file.");
+  }
+  const contentValue = input.content;
+  if (typeof contentValue !== "string") {
+    throw primaryInputError("Primary input content is required.");
+  }
+  const content = contentValue.replace(/\r\n?/g, "\n");
+  if (content.trim() === "") {
+    throw primaryInputError("Primary input content is required.");
+  }
+  const byteCount = encoder().encode(content).byteLength;
+  if (byteCount > 1024 * 1024) {
+    throw primaryInputError("Primary input is too large (1 MiB maximum).");
+  }
+  const fileNameValue = input.fileName;
+  const fileName =
+    fileNameValue === null || fileNameValue === undefined
+      ? null
+      : nonblank(fileNameValue, "A file name is required.").trim();
+  if (inputKind === "pasted_text" && fileName !== null) {
+    throw primaryInputError("Pasted text does not have a file name.");
+  }
+  if (inputKind !== "pasted_text") {
+    if (fileName === null || /[\\/]/u.test(fileName)) {
+      throw primaryInputError("Choose one .txt or .md file.");
+    }
+    const suffix = fileName.slice(fileName.lastIndexOf(".")).toLowerCase();
+    const expected = inputKind === "text_file" ? ".txt" : ".md";
+    if (suffix !== expected) {
+      throw primaryInputError(`Choose a ${expected} file.`);
+    }
+  }
+  return Object.freeze({
+    inputKind: inputKind as TaskPrimaryInputKind,
+    fileName,
+    content,
+  });
+};
 
 const action = (value: unknown): TaskPrimaryAction => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -194,6 +272,17 @@ export const mapTaskOverview = (dto: OverviewDto): TaskOverview =>
     approvedStrategy: mapDomainVersion(dto.approvedStrategy),
     marketingBrief: mapDomainVersion(dto.marketingBrief),
     xiaohongshuBrief: mapDomainVersion(dto.xiaohongshuBrief),
+  });
+
+export const mapTaskPrimaryInput = (dto: PrimaryInputDto): TaskPrimaryInput =>
+  Object.freeze({
+    taskId: dto.taskId,
+    inputRevision: dto.inputRevision,
+    inputKind: dto.inputKind,
+    fileName: dto.fileName,
+    content: dto.content,
+    byteCount: dto.byteCount,
+    updatedAt: dto.updatedAt,
   });
 
 const cloneAction = (value: TaskPrimaryAction): TaskPrimaryAction => {

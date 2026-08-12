@@ -18,6 +18,7 @@ _PUBLIC_NAMES = {
     "GetRun",
     "GetStage",
     "GetTask",
+    "ListTasks",
     "PrepareInitialRun",
     "PrepareInitialRunResult",
     "RunSnapshot",
