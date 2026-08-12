@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from io import StringIO
 from typing import cast
 
 import pytest
 
+from ai_ecommerce_agent.application import runtime_errors
 from ai_ecommerce_agent.application.runtime_diagnostics import (
     CorrelationId,
     RuntimeDiagnosticEvent,
@@ -17,6 +19,7 @@ from ai_ecommerce_agent.application.runtime_diagnostics import (
 from ai_ecommerce_agent.platform.runtime_diagnostics import (
     RuntimeDiagnosticJsonLineSink,
 )
+from ai_ecommerce_agent.shared_kernel import ResourceReference, RunId, TaskId
 
 pytestmark = pytest.mark.unit
 
@@ -82,6 +85,92 @@ def test_successful_emit_writes_exactly_once_with_one_newline() -> None:
         assert stream.writes[-1].count("\n") == 1
 
     assert stream.write_calls == len(events)
+
+
+def test_runtime_error_event_sink_preserves_the_appended_detail_quartet() -> None:
+    stream = CountingStringIO()
+    sink = RuntimeDiagnosticJsonLineSink(stream=stream)
+    base = _event("runtime.error.recorded", level=RuntimeDiagnosticLevel.ERROR)
+    event = RuntimeDiagnosticEvent(
+        base.occurred_at,
+        base.level,
+        base.event_name,
+        base.service,
+        base.environment,
+        base.correlation_id,
+        base.task_id,
+        error_category="timeout_error",
+        retryability="retryable",
+        disposition="retry",
+        component="worker",
+    )
+    sink.emit(event)
+    assert stream.write_calls == 1
+    assert stream.writes == [f"{encode_runtime_diagnostic_event(event)}\n"]
+
+
+def test_runtime_error_record_reaches_real_sink_without_sensitive_fields() -> None:
+    stream = CountingStringIO()
+    sink = RuntimeDiagnosticJsonLineSink(stream=stream)
+    occurred_at = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+    record = runtime_errors.RuntimeErrorRecord(
+        identity=runtime_errors.RuntimeErrorIdentity(
+            error_id=runtime_errors.ErrorId("error-1"),
+            correlation_id=CorrelationId("corr"),
+            task_id=TaskId("task-1"),
+            run_id=RunId("run-1"),
+        ),
+        error_category=runtime_errors.RuntimeErrorCategory.TIMEOUT_ERROR,
+        severity=RuntimeDiagnosticLevel.ERROR,
+        retryability=runtime_errors.RuntimeErrorRetryability.RETRYABLE,
+        disposition=runtime_errors.RuntimeErrorDisposition.RETRY,
+        component="worker",
+        user_safe_message="safe-user-marker",
+        operator_summary="operator-summary-marker",
+        provider_request_reference=ResourceReference(
+            "provider_request", "provider-request-marker"
+        ),
+        provider_response_reference=ResourceReference(
+            "provider_response", "provider-response-marker"
+        ),
+        first_occurred_at=occurred_at,
+        last_occurred_at=occurred_at,
+        remediation_options=("remediation-marker",),
+    )
+
+    event = runtime_errors.runtime_error_to_diagnostic_event(
+        record, service="worker", environment="test"
+    )
+    sink.emit(event)
+
+    payload = json.loads(stream.getvalue())
+    assert set(payload) == {
+        "occurred_at",
+        "level",
+        "event_name",
+        "service",
+        "environment",
+        "correlation_id",
+        "task_id",
+        "run_id",
+        "error_id",
+        "error_category",
+        "retryability",
+        "disposition",
+        "component",
+    }
+    assert payload["error_category"] == "timeout_error"
+    assert payload["retryability"] == "retryable"
+    assert payload["disposition"] == "retry"
+    assert payload["component"] == "worker"
+    for marker in (
+        "safe-user-marker",
+        "operator-summary-marker",
+        "provider-request-marker",
+        "provider-response-marker",
+        "remediation-marker",
+    ):
+        assert marker not in stream.getvalue()
 
 
 @pytest.mark.parametrize("invalid", [None, {}, {"event_name": "raw"}, "message"])

@@ -40,6 +40,13 @@ _IDENTITY_FIELDS = (
     "source_version_id",
 )
 
+_ERROR_DETAIL_VALUES = {
+    "error_category": "timeout_error",
+    "retryability": "retryable",
+    "disposition": "retry",
+    "component": "dispatch-worker",
+}
+
 
 def _event(**changes: Any) -> RuntimeDiagnosticEvent:
     values: dict[str, Any] = {
@@ -194,3 +201,68 @@ def test_event_is_immutable_and_encoder_accepts_only_exact_event_type() -> None:
                 ),
             )
         )
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("error_category", None),
+        ("error_category", 1),
+        ("error_category", _TextSubclass("timeout_error")),
+        ("error_category", "not-a-category"),
+        ("retryability", None),
+        ("retryability", 1),
+        ("retryability", _TextSubclass("retryable")),
+        ("retryability", "not-retryability"),
+        ("disposition", None),
+        ("disposition", 1),
+        ("disposition", _TextSubclass("retry")),
+        ("disposition", "not-a-disposition"),
+        ("component", None),
+        ("component", 1),
+        ("component", _TextSubclass("dispatch-worker")),
+        ("component", "   "),
+    ],
+)
+def test_each_error_detail_mutation_is_rejected_from_complete_baseline(
+    field: str, value: object
+) -> None:
+    values: dict[str, object] = dict(_ERROR_DETAIL_VALUES)
+    values[field] = value
+    with pytest.raises((TypeError, ValueError)):
+        _event(**values)
+
+
+@pytest.mark.parametrize(
+    "field", ["error_category", "retryability", "disposition", "component"]
+)
+def test_error_detail_rejects_partial_null_values(field: str) -> None:
+    with pytest.raises(ValueError):
+        values: dict[str, object] = {
+            "error_category": "timeout_error",
+            "retryability": "retryable",
+            "disposition": "retry",
+            "component": "worker",
+        }
+        values[field] = None
+        _event(**values)
+
+
+def test_error_detail_quartet_accepts_exact_strings_and_preserves_encoding() -> None:
+    event = _event(
+        source_version_id="source-1",
+        **_ERROR_DETAIL_VALUES,
+    )
+    assert json.loads(encode_runtime_diagnostic_event(event)) == {
+        "occurred_at": "2026-01-02T00:00:00Z",
+        "level": "info",
+        "event_name": "task.started",
+        "service": "worker",
+        "environment": "test",
+        "correlation_id": "corr",
+        "source_version_id": "source-1",
+        "error_category": "timeout_error",
+        "retryability": "retryable",
+        "disposition": "retry",
+        "component": "dispatch-worker",
+    }
