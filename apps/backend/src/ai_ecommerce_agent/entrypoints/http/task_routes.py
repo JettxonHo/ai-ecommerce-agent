@@ -290,22 +290,7 @@ def register_task_routes(
             {"items": [_summary(task) for task in tasks], "limit": limit}
         )
 
-    @router.get("/api/v1/tasks/{taskId}")
-    def get_task(
-        request: Request,
-        task_id: Annotated[str, Path(alias="taskId", min_length=1)],
-    ) -> JSONResponse:
-        try:
-            task_id_value = TaskId(task_id)
-        except (TypeError, ValueError):
-            return _invalid_task_id_problem(request)
-        try:
-            task = task_application.get_task(GetTask(task_id_value))
-        except TaskManagementError as error:
-            return _task_problem(request, error)
-        return JSONResponse(_overview(task))
-
-    @router.get("/api/v1/tasks/{taskId}/primary-input")
+    @router.get("/api/v1/tasks/{taskId:path}/primary-input")
     def get_primary_input(
         request: Request,
         task_id: Annotated[str, Path(alias="taskId", min_length=1)],
@@ -324,7 +309,7 @@ def register_task_routes(
             return _input_problem(request, error)
         return JSONResponse(_input_projection(value))
 
-    @router.put("/api/v1/tasks/{taskId}/primary-input")
+    @router.put("/api/v1/tasks/{taskId:path}/primary-input")
     def put_primary_input(
         request: Request,
         body: PrimaryInputBody,
@@ -362,6 +347,21 @@ def register_task_routes(
         except PrimaryInputError as error:
             return _input_problem(request, error)
         return JSONResponse(_input_projection(value))
+
+    @router.get("/api/v1/tasks/{taskId:path}")
+    def get_task(
+        request: Request,
+        task_id: Annotated[str, Path(alias="taskId", min_length=1)],
+    ) -> JSONResponse:
+        try:
+            task_id_value = TaskId(task_id)
+        except (TypeError, ValueError):
+            return _invalid_task_id_problem(request)
+        try:
+            task = task_application.get_task(GetTask(task_id_value))
+        except TaskManagementError as error:
+            return _task_problem(request, error)
+        return JSONResponse(_overview(task))
 
 
 __all__ = ("register_task_routes",)

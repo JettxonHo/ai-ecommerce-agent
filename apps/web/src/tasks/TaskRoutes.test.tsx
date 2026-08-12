@@ -317,4 +317,27 @@ describe("TaskRoutes", () => {
     expect(screen.getByText("Task ID: retry/7")).toBeTruthy();
     expect(attempts).toBe(2);
   });
+
+  it("blocks primary-input editing while the saved input read is unavailable", async () => {
+    const task = overview({ taskId: "task-1" });
+    const gateway = gatewayFor([task]);
+    gateway.getPrimaryInput = vi.fn(async () => {
+      throw new TaskGatewayError("temporary", "private failure");
+    });
+    gateway.savePrimaryInput = vi.fn();
+
+    renderRoutes("/tasks/task-1", gateway);
+
+    expect(await screen.findByRole("heading", { name: "Launch" })).toBeTruthy();
+    expect(
+      await screen.findByText("Saved input is unavailable. Retry to continue."),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Retry primary input" }),
+    ).toBeTruthy();
+    expect(screen.queryByLabelText("Pasted text")).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Save primary input" }),
+    ).toBeNull();
+  });
 });

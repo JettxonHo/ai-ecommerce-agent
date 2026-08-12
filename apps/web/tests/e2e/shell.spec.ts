@@ -32,6 +32,15 @@ const task = {
     },
   ],
 };
+const primaryInput = {
+  taskId: "shell-primary-input",
+  inputRevision: 0,
+  inputKind: "pasted_text",
+  fileName: null,
+  content: "Existing saved input",
+  byteCount: 20,
+  updatedAt: "2026-08-12T00:00:00Z",
+};
 
 test("renders recent tasks and restores a stable deep link without errors", async ({
   page,
@@ -49,7 +58,11 @@ test("renders recent tasks and restores a stable deep link without errors", asyn
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith("/primary-input")) {
-      await route.fulfill({ status: 200, contentType: "application/json" });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
       return;
     }
     if (url.pathname === "/api/v1/tasks") {
@@ -114,7 +127,11 @@ test("canonicalizes an invalid panel and stage selection on the same Task URL", 
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith("/primary-input")) {
-      await route.fulfill({ status: 200, contentType: "application/json" });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
       return;
     }
     requestPaths.push(`${route.request().method()} ${url.pathname}`);
@@ -192,7 +209,11 @@ test("renders representative intake, active-run, and recovery modes without extr
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith("/primary-input")) {
-      await route.fulfill({ status: 200, contentType: "application/json" });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
       return;
     }
     requestPaths.push(`${route.request().method()} ${url.pathname}`);
@@ -304,7 +325,11 @@ test("renders long reference identities as literal text without overflow or exec
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith("/primary-input")) {
-      await route.fulfill({ status: 200, contentType: "application/json" });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
       return;
     }
     requestPaths.push(`${route.request().method()} ${url.pathname}`);
@@ -399,7 +424,11 @@ test("reflows long Task values without page-level horizontal overflow", async ({
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith("/primary-input")) {
-      await route.fulfill({ status: 200, contentType: "application/json" });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
       return;
     }
     if (url.pathname === "/api/v1/tasks") {
@@ -471,7 +500,11 @@ test("creates a Task through the generated HTTP client and reuses its key on exp
     const request = route.request();
     const url = new URL(request.url());
     if (url.pathname.endsWith("/primary-input")) {
-      await route.fulfill({ status: 200, contentType: "application/json" });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
       return;
     }
     requestPaths.push(url.pathname);
@@ -573,7 +606,11 @@ test("reuses the same key after a malformed-success response and rotates it only
     const request = route.request();
     const url = new URL(request.url());
     if (url.pathname.endsWith("/primary-input")) {
-      await route.fulfill({ status: 200, contentType: "application/json" });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
       return;
     }
     if (request.method() === "POST" && url.pathname === "/api/v1/tasks") {

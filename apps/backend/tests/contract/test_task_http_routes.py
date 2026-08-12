@@ -77,9 +77,10 @@ def _task(task_id: str = "task-1") -> TaskSnapshot:
 
 
 class _Tasks:
-    def __init__(self) -> None:
-        self.created = _task()
+    def __init__(self, task_id: str = "task-1") -> None:
+        self.created = _task(task_id)
         self.keys: dict[str, tuple[str, str, str]] = {}
+        self.seen_task_ids: list[TaskId] = []
 
     def create_draft_task(self, command: object) -> TaskSnapshot:
         del command
@@ -118,7 +119,7 @@ class _Tasks:
         return self.created, False
 
     def get_task(self, query: object) -> TaskSnapshot:
-        del query
+        self.seen_task_ids.append(query.task_id)  # type: ignore[attr-defined]
         return self.created
 
     def list_tasks(self, query: object) -> tuple[TaskSnapshot, ...]:
@@ -127,7 +128,8 @@ class _Tasks:
 
 
 class _PrimaryInputs:
-    def __init__(self) -> None:
+    def __init__(self, task_id: str = "task-1") -> None:
+        self.task_id = TaskId(task_id)
         self.value: PrimaryInputSnapshot | None = None
 
     def get_primary_input(self, query: object) -> PrimaryInputSnapshot:
@@ -137,13 +139,13 @@ class _PrimaryInputs:
                 PrimaryInputNotFound,
             )
 
-            raise PrimaryInputNotFound(TaskId("task-1"))
+            raise PrimaryInputNotFound(self.task_id)
         return self.value
 
     def save_primary_input(self, command: object) -> PrimaryInputSnapshot:
         del command
         self.value = PrimaryInputSnapshot(
-            task_id=TaskId("task-1"),
+            task_id=self.task_id,
             input_kind=PrimaryInputKind.PASTED_TEXT,
             file_name=None,
             content="Product details",
@@ -231,3 +233,30 @@ def test_task_create_replay_uses_application_idempotency_boundary() -> None:
     assert replay.status_code == 200
     assert replay.json()["taskId"] == first.json()["taskId"]
     assert conflict.status_code == 409
+
+
+def test_primary_input_route_accepts_an_opaque_task_id_with_a_slash() -> None:
+    tasks = _Tasks("task/7")
+    inputs = _PrimaryInputs("task/7")
+    with TestClient(
+        create_task_http_application(
+            config=FixedWorkspaceHttpConfig(
+                workspace_id="workspace-demo",
+                workbench_origin="http://127.0.0.1:5173",
+            ),
+            task_application=tasks,
+            primary_input_application=inputs,
+        )
+    ) as client:
+        saved = client.put(
+            "/api/v1/tasks/task%2F7/primary-input",
+            json={
+                "inputKind": "pasted_text",
+                "fileName": None,
+                "content": "Product details",
+            },
+        )
+
+    assert saved.status_code == 200
+    assert saved.json()["taskId"] == "task/7"
+    assert tasks.seen_task_ids == [TaskId("task/7")]

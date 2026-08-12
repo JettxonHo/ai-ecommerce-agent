@@ -165,7 +165,7 @@ def test_create_list_read_save_input_and_replay_survive_new_composition(
             json={
                 "inputKind": "pasted_text",
                 "fileName": None,
-                "content": "Product details",
+                "content": "Product details\nwith transit context",
             },
         )
         input_read = client.get(f"/api/v1/tasks/{task_id}/primary-input")
@@ -178,6 +178,22 @@ def test_create_list_read_save_input_and_replay_survive_new_composition(
             "/api/v1/tasks",
             headers=headers,
             json={**body, "promotionGoal": "Different"},
+        )
+        same_input_replay = reconstructed_client.put(
+            f"/api/v1/tasks/{task_id}/primary-input",
+            json={
+                "inputKind": "pasted_text",
+                "fileName": None,
+                "content": "Product details\r\nwith transit context",
+            },
+        )
+        changed_input = reconstructed_client.put(
+            f"/api/v1/tasks/{task_id}/primary-input",
+            json={
+                "inputKind": "pasted_text",
+                "fileName": None,
+                "content": "Changed details",
+            },
         )
         reloaded_input = reconstructed_client.get(
             f"/api/v1/tasks/{task_id}/primary-input"
@@ -198,13 +214,18 @@ def test_create_list_read_save_input_and_replay_survive_new_composition(
     assert read.json()["taskId"] == task_id
     assert saved.status_code == 200
     assert input_read.status_code == 200
-    assert input_read.json()["content"] == "Product details"
+    assert input_read.json()["content"] == "Product details\nwith transit context"
     assert input_read.json()["inputRevision"] == 0
     assert replayed.status_code == 200
     assert replayed.json()["taskId"] == task_id
     assert changed.status_code == 409
+    assert same_input_replay.status_code == 200
+    assert same_input_replay.json() == input_read.json()
+    assert changed_input.status_code == 200
+    assert changed_input.json()["inputRevision"] == 1
     assert reloaded_input.status_code == 200
-    assert reloaded_input.json()["content"] == "Product details"
+    assert reloaded_input.json()["content"] == "Changed details"
+    assert reloaded_input.json()["inputRevision"] == 1
     assert oversize.status_code == 413
 
     with postgres_engine.connect() as connection:

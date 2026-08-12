@@ -21,6 +21,8 @@ type TaskWorkbenchProps = Readonly<{
   task: TaskOverview;
   primaryInput?: TaskPrimaryInput | null;
   primaryInputLoading?: boolean;
+  primaryInputError?: string | null;
+  retryPrimaryInput?: () => void;
   savePrimaryInput?: (
     input: TaskPrimaryInputDraft,
   ) => Promise<TaskPrimaryInput>;
@@ -114,11 +116,17 @@ function ReferenceDetails({ task }: Readonly<{ task: TaskOverview }>) {
 function PrimaryInputPanel({
   primaryInput,
   primaryInputLoading = false,
+  primaryInputError = null,
+  retryPrimaryInput,
   savePrimaryInput,
 }: Readonly<
   Pick<
     TaskWorkbenchProps,
-    "primaryInput" | "primaryInputLoading" | "savePrimaryInput"
+    | "primaryInput"
+    | "primaryInputLoading"
+    | "primaryInputError"
+    | "retryPrimaryInput"
+    | "savePrimaryInput"
   >
 >) {
   const [kind, setKind] = useState<TaskPrimaryInputKind>("pasted_text");
@@ -151,7 +159,38 @@ function PrimaryInputPanel({
     setSavedPreview(primaryInput);
   }, [inputIdentity, primaryInput]);
 
-  if (savePrimaryInput === undefined) return null;
+  if (
+    savePrimaryInput === undefined &&
+    !primaryInputLoading &&
+    primaryInputError === null
+  ) {
+    return null;
+  }
+
+  const inputBlocked = primaryInputLoading || primaryInput === undefined;
+
+  if (primaryInputError !== null) {
+    return (
+      <section
+        className={styles.primaryInput}
+        aria-labelledby="primary-input-heading"
+      >
+        <h2 id="primary-input-heading">Primary input</h2>
+        <p className={styles.inputHint}>
+          Paste product context or choose one UTF-8 .txt/.md file. The saved
+          input is scoped to this Task.
+        </p>
+        <p role="alert" aria-live="polite">
+          {primaryInputError}
+        </p>
+        {retryPrimaryInput !== undefined ? (
+          <button type="button" onClick={retryPrimaryInput}>
+            Retry primary input
+          </button>
+        ) : null}
+      </section>
+    );
+  }
 
   const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -188,6 +227,7 @@ function PrimaryInputPanel({
       );
       return;
     }
+    if (savePrimaryInput === undefined || inputBlocked) return;
     setSaving(true);
     try {
       const saved = await savePrimaryInput(draft);
@@ -226,6 +266,7 @@ function PrimaryInputPanel({
             type="radio"
             name="primary-input-kind"
             checked={kind === "pasted_text"}
+            disabled={inputBlocked || saving}
             onChange={() => {
               setKind("pasted_text");
               setFileName(null);
@@ -236,6 +277,7 @@ function PrimaryInputPanel({
         <label>
           <input
             type="file"
+            disabled={inputBlocked || saving}
             accept=".txt,.md,text/plain,text/markdown"
             onChange={onFileChange}
             aria-label="Choose a text or markdown file"
@@ -247,12 +289,17 @@ function PrimaryInputPanel({
         <textarea
           id="primary-input-content"
           value={content}
+          disabled={inputBlocked || saving}
           onChange={(event) => setContent(event.target.value)}
           rows={10}
           required
         />
       </label>
-      <button type="button" onClick={() => void save()} disabled={saving}>
+      <button
+        type="button"
+        onClick={() => void save()}
+        disabled={inputBlocked || saving}
+      >
         {saving ? "Saving…" : "Save primary input"}
       </button>
       {message !== null ? (
@@ -284,6 +331,8 @@ export function TaskWorkbench({
   task,
   primaryInput,
   primaryInputLoading,
+  primaryInputError,
+  retryPrimaryInput,
   savePrimaryInput,
 }: TaskWorkbenchProps) {
   const routerLocation = useLocation();
@@ -411,6 +460,8 @@ export function TaskWorkbench({
         <PrimaryInputPanel
           primaryInput={primaryInput}
           primaryInputLoading={primaryInputLoading}
+          primaryInputError={primaryInputError}
+          retryPrimaryInput={retryPrimaryInput}
           savePrimaryInput={savePrimaryInput}
         />
       ) : null}

@@ -96,10 +96,17 @@ function TaskOverviewRoute({
   });
   const primaryInputQuery = useQuery({
     queryKey: primaryInputKey(taskId),
-    queryFn: () =>
-      taskGateway.getPrimaryInput === undefined
-        ? Promise.resolve(null)
-        : taskGateway.getPrimaryInput(taskId),
+    queryFn: async () => {
+      if (taskGateway.getPrimaryInput === undefined) return null;
+      try {
+        return await taskGateway.getPrimaryInput(taskId);
+      } catch (error) {
+        if (error instanceof TaskGatewayError && error.kind === "missing") {
+          return null;
+        }
+        throw error;
+      }
+    },
     retry: false,
   });
   const savePrimaryInput = async (input: TaskPrimaryInputDraft) => {
@@ -145,7 +152,19 @@ function TaskOverviewRoute({
       task={query.data}
       primaryInput={primaryInputQuery.data}
       primaryInputLoading={primaryInputQuery.isPending}
-      savePrimaryInput={savePrimaryInput}
+      primaryInputError={
+        primaryInputQuery.isError
+          ? "Saved input is unavailable. Retry to continue."
+          : null
+      }
+      retryPrimaryInput={
+        primaryInputQuery.isError
+          ? () => void primaryInputQuery.refetch()
+          : undefined
+      }
+      savePrimaryInput={
+        primaryInputQuery.isSuccess ? savePrimaryInput : undefined
+      }
     />
   );
 }
