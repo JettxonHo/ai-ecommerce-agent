@@ -439,11 +439,62 @@ describe("TaskRoutes", () => {
     await userEvent.setup().click(screen.getByRole("link", { name: "Intake" }));
     await userEvent
       .setup()
+      .click(await screen.findByRole("button", { name: "Save primary input" }));
+    await userEvent
+      .setup()
       .click(await screen.findByRole("button", { name: "Generate result" }));
     expect(generateResult).toHaveBeenCalledTimes(2);
     expect(generateResult.mock.calls[0]?.[1]).toBe(
       generateResult.mock.calls[1]?.[1],
     );
     expect(generateResult.mock.calls[0]?.[2]).toBe(0);
+
+    await userEvent.setup().click(screen.getByRole("link", { name: "Intake" }));
+    await userEvent.setup().clear(await screen.findByLabelText("Pasted text"));
+    await userEvent
+      .setup()
+      .type(
+        screen.getByLabelText("Pasted text"),
+        "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包，约 18 升，可放入 14 英寸设备。changed",
+      );
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Save primary input" }));
+    await userEvent
+      .setup()
+      .click(await screen.findByRole("button", { name: "Generate result" }));
+    expect(generateResult).toHaveBeenCalledTimes(3);
+    expect(generateResult.mock.calls[2]?.[1]).not.toBe(
+      generateResult.mock.calls[0]?.[1],
+    );
+    expect(generateResult.mock.calls[2]?.[2]).toBe(1);
+  });
+
+  it("renders an insufficient-input result without candidate panels", async () => {
+    const task = overview({ taskId: "task-1" });
+    const gateway = createDeterministicTaskGateway({ tasks: [task] });
+    await gateway.savePrimaryInput("task-1", {
+      inputKind: "pasted_text",
+      fileName: null,
+      content: "A generic backpack with no Anchor SKU evidence.",
+    });
+
+    renderRoutes(
+      "/tasks/task-1?panel=intake&stage=product_positioning",
+      gateway,
+    );
+
+    await userEvent
+      .setup()
+      .click(await screen.findByRole("button", { name: "Generate result" }));
+    expect(
+      await screen.findByRole("heading", { name: "Current result" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Provide Anchor SKU product identity evidence."),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("heading", { name: "Marketing Brief" }),
+    ).toBeNull();
   });
 });

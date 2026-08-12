@@ -183,9 +183,9 @@ class _ResultSnapshot:
 
 
 class _Results:
-    def __init__(self) -> None:
+    def __init__(self, snapshot: _ResultSnapshot | None = None) -> None:
         self.calls: list[tuple[str, str, int]] = []
-        self.snapshot = _ResultSnapshot()
+        self.snapshot = snapshot or _ResultSnapshot()
 
     def generate_result(
         self,
@@ -353,6 +353,29 @@ def test_result_routes_require_injected_coordinator_and_preserve_idempotent_repl
         ("task-1", "result-retry-1", 0),
         ("task-1", "result-retry-1", 0),
     ]
+
+
+def test_result_location_encodes_an_opaque_task_id_as_one_path_segment() -> None:
+    task_id = "task/7"
+    application = create_task_http_application(
+        config=FixedWorkspaceHttpConfig(
+            workspace_id="workspace-demo",
+            workbench_origin="http://127.0.0.1:5173",
+        ),
+        task_application=_Tasks(task_id),
+        primary_input_application=_PrimaryInputs(task_id),
+        result_application=_Results(_ResultSnapshot(task_id=TaskId(task_id))),
+        pipeline_coordinator=_Coordinator(),
+    )
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/v1/tasks/task%2F7/commands/generate-result",
+            headers={"Idempotency-Key": "result-slash-1"},
+            json={"expectedInputRevision": 0},
+        )
+
+    assert response.status_code == 201
+    assert response.headers["location"] == ("/api/v1/tasks/task%2F7/current-result")
 
 
 def test_result_routes_fail_closed_without_injected_coordinator() -> None:

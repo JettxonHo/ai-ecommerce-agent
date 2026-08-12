@@ -369,6 +369,18 @@ def test_generate_result_is_durable_atomic_and_revision_fenced(
                 headers={"Idempotency-Key": "result-key-2"},
                 json={"expectedInputRevision": 0},
             )
-        assert fenced.status_code == 409, fenced.text
+            assert fenced.status_code == 409, fenced.text
+
+        stale_client, stale_composition = _result_client(postgres_engine)
+        try:
+            with stale_client:
+                stale_replay = stale_client.post(
+                    f"/api/v1/tasks/{task_id}/commands/generate-result",
+                    headers={"Idempotency-Key": "result-key-1"},
+                    json={"expectedInputRevision": 0},
+                )
+            assert stale_replay.status_code == 409, stale_replay.text
+        finally:
+            stale_composition.close()
     finally:
         composition.close()

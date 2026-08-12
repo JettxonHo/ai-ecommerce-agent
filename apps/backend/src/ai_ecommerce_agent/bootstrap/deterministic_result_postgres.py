@@ -231,6 +231,10 @@ class DeterministicResultApplication:
     ) -> tuple[DeterministicResultSnapshot, bool]:
         """Generate outside a transaction, then publish with a locked recheck."""
 
+        # Re-read the current input first, including its revision fence.  A
+        # retry key remains Task-scoped, but it must not resurrect a result
+        # after the Task's primary input has advanced.
+        input_text, _ = self._read_input(task_id, expected_input_revision)
         existing = self._read_existing_key(task_id, idempotency_key)
         if existing is not None:
             if existing.input_revision != expected_input_revision:
@@ -240,7 +244,6 @@ class DeterministicResultApplication:
                 )
             return existing, True
 
-        input_text, _ = self._read_input(task_id, expected_input_revision)
         try:
             generated = coordinator.generate(input_text=input_text)
         except Exception as error:

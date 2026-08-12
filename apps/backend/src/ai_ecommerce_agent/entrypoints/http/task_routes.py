@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from typing import Annotated, Any, Protocol
+from urllib.parse import quote
 
 from fastapi import APIRouter, FastAPI, Header, Path, Query, Request
 from fastapi.responses import JSONResponse
@@ -262,6 +263,12 @@ def _result_projection(value: Any) -> dict[str, Any]:
     }
 
 
+def _result_location(task_id: TaskId) -> str:
+    """Keep an opaque Task identity in one encoded URL path segment."""
+
+    return f"/api/v1/tasks/{quote(str(task_id), safe='')}/current-result"
+
+
 def _normalize_task_body(body: CreateTaskBody) -> tuple[str, str, str]:
     values = (body.task_name, body.product_category, body.promotion_goal)
     normalized = tuple(value.strip() for value in values)
@@ -478,7 +485,7 @@ def register_task_routes(
                 _result_projection(value),
                 status_code=200 if replayed else 201,
                 headers=(
-                    {"Location": f"/api/v1/tasks/{task_id_value}/current-result"}
+                    {"Location": _result_location(task_id_value)}
                     if not replayed
                     else None
                 ),

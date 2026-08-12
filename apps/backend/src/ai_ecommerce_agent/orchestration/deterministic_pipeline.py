@@ -65,7 +65,7 @@ def _json(value: Mapping[str, object]) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
 
 
-def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
+def _candidate_payloads(input_text: str) -> tuple[Mapping[str, object], ...]:
     """Return the fixed Anchor SKU candidate payloads.
 
     Every product claim below is copied from the accepted synthetic Anchor SKU
@@ -77,7 +77,16 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
         "intake_assessment": {
             "completeness_level": "evidence_rich",
             "runnable": True,
-            "available_source_types": ["json", "markdown", "txt", "csv"],
+            "available_source_types": [
+                extension
+                for extension, marker in (
+                    ("json", ".json"),
+                    ("markdown", ".md"),
+                    ("txt", ".txt"),
+                    ("csv", ".csv"),
+                )
+                if marker in input_text.casefold()
+            ],
             "excluded_sources": ["real customer research", "competitor results"],
             "missing_information": ["真实销量、转化、竞品或用户研究数据"],
             "warnings": ["防泼水描述不支持绝对防水或耐久性结论"],
@@ -128,14 +137,7 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
                 "notes": ["不得升级为绝对防水"],
             },
         ],
-        "claims_requiring_verification": [
-            {
-                "claim_text": "肩带采用分散受力设计",
-                "supporting_fragment_ids": ["product.json#documented_claims[0]"],
-                "verification_need": "资料未提供独立人体工学检测",
-                "notes": [],
-            }
-        ],
+        "claims_requiring_verification": [],
         "conflicts_and_limitations": {
             "source_conflicts": [],
             "evidence_limitations": [
@@ -151,9 +153,11 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
         "evidence_assessment": {
             "mode": "evidence_backed",
             "evidence_coverage": "anecdotal",
-            "source_types": ["synthetic_comments", "product_facts"],
+            "source_types": ["product_facts"],
             "source_set_version_id": "fixture-sufficient-v1",
-            "sample_summary": "Synthetic notes only; not a population estimate.",
+            "sample_summary": (
+                "Supplied product evidence only; not a population estimate."
+            ),
             "limitations": ["没有真实用户研究或规模数据"],
         },
         "themes": [
@@ -161,7 +165,7 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
                 "label": "通勤收纳与取用",
                 "evidence_coverage": "anecdotal",
                 "source_scopes": ["fixture-sufficient-v1"],
-                "supporting_fragment_ids": ["synthetic-comments.csv#comment-001"],
+                "supporting_fragment_ids": ["product.json#attributes[1]"],
                 "contradicting_fragment_ids": [],
                 "limitations": ["合成资料不代表总体用户"],
             }
@@ -169,17 +173,17 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
         "customer_insights": [
             {
                 "insight_type": "documented_signal",
-                "statement": "工作日通勤者可能重视电脑夹层的快速定位",
+                "statement": "工作日城市通勤需要携带电脑、文件和日常随身物品",
                 "audience_segment": "工作日城市通勤者",
                 "usage_context": "工作日城市通勤",
-                "user_problem_or_need": "需要在通勤中快速取放电脑和文件",
-                "underlying_reason": "资料展示了独立电脑夹层和文件收纳",
+                "user_problem_or_need": "需要在通勤中携带电脑、文件和日常随身物品",
+                "underlying_reason": "商品资料记录了工作日通勤用途和电脑收纳事实",
                 "behavioral_or_purchase_impact": "可作为内容沟通方向",
                 "evidence_coverage": "anecdotal",
                 "source_scopes": ["fixture-sufficient-v1"],
                 "supporting_fragment_ids": [
-                    "product-details.md#product-summary",
-                    "synthetic-comments.csv#comment-001",
+                    "product.json#product_identity",
+                    "product.json#attributes[1]",
                 ],
                 "contradicting_fragment_ids": [],
                 "dataset_statistic_ids": [],
@@ -191,11 +195,11 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
         ],
         "hypotheses_to_validate": [
             {
-                "statement": "简洁外形可能适合希望保持通勤造型利落的人群",
+                "statement": "清晰的通勤收纳方向可能适合需要携带电脑和文件的人群",
                 "audience_segment": "工作日城市通勤者",
                 "usage_context": "工作日城市通勤",
-                "user_problem_or_need": "希望兼顾收纳与外观",
-                "underlying_reason": "资料描述了紧凑外形和日常收纳",
+                "user_problem_or_need": "希望在通勤中有序携带电脑和文件",
+                "underlying_reason": "资料记录了工作日通勤用途和电脑收纳事实",
                 "behavioral_or_purchase_impact": "需要后续用户反馈验证",
                 "source_scopes": ["fixture-sufficient-v1"],
                 "supporting_fragment_ids": [],
@@ -227,13 +231,13 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
                 "job_or_core_need": "在通勤移动中保持物品有序并便于取用",
                 "job_or_core_need_is_hypothesis": False,
                 "category_frame": "城市通勤双肩包",
-                "value_proposition": "用独立电脑夹层和清晰收纳支持日常通勤取用",
+                "value_proposition": "用约 18 升容量和电脑收纳支持日常通勤携带",
                 "key_benefits": ["电脑取用更清晰", "日常物品集中收纳"],
                 "differentiation": "以收纳路径作为机会方向，未完成竞品验证",
                 "differentiation_is_opportunity_hypothesis": True,
                 "reasons_to_believe": [
                     {
-                        "statement": "资料提供了独立电脑夹层和约 18 升容量",
+                        "statement": "资料提供了约 18 升容量和 14 英寸级别电脑收纳事实",
                         "based_on_fact_ids": ["fact-capacity", "fact-laptop-fit"],
                         "based_on_insight_ids": ["insight-commuter-access"],
                     }
@@ -278,7 +282,7 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
             "objective_and_audience": {
                 "communication_objective": {
                     "primary_objective": "说明城市通勤中的清晰收纳价值",
-                    "secondary_objectives": ["展示电脑夹层和日常收纳"],
+                    "secondary_objectives": ["展示电脑收纳和日常物品携带"],
                     "business_assumption": True,
                 },
                 "audience": "工作日城市通勤者",
@@ -288,20 +292,20 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
             "message_architecture": {
                 "core_message": "为工作日通勤提供清晰的电脑与日常物品收纳",
                 "message_hierarchy": {
-                    "primary_message": "独立电脑夹层支持通勤取用",
+                    "primary_message": "电脑收纳事实支持通勤携带",
                     "secondary_benefits": ["约 18 升容量", "日常物品有序放置"],
                     "supporting_proof_points": ["可放入 14 英寸级别笔记本电脑"],
                 },
                 "benefit_hierarchy": {
                     "primary_benefit": "减少通勤取用时的寻找成本",
                     "secondary_benefits": ["携带电脑和文件更清晰"],
-                    "supporting_features": ["独立电脑夹层", "约 18 升容量"],
+                    "supporting_features": ["14 英寸级别电脑收纳", "约 18 升容量"],
                 },
             },
             "reasons_to_believe_and_evidence": {
                 "reasons_to_believe": [
                     {
-                        "statement": "商品资料描述了独立电脑夹层",
+                        "statement": "商品资料描述了 14 英寸级别电脑收纳",
                         "based_on_fact_ids": ["fact-laptop-fit"],
                         "based_on_insight_ids": ["insight-commuter-access"],
                     }
@@ -336,7 +340,7 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
                         "angle_title": "通勤收纳路径",
                         "angle_type": "functional_demo",
                         "user_tension": "电脑和文件在通勤中需要快速取用",
-                        "message_focus": "独立电脑夹层与约 18 升容量",
+                        "message_focus": "14 英寸级别电脑收纳与约 18 升容量",
                         "supporting_benefits": ["有序放置"],
                         "proof_points": ["可放入 14 英寸级别笔记本电脑"],
                         "hypothesis_status": "目标人群为待验证假设",
@@ -392,13 +396,13 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
                         "title_direction": "通勤包如何把电脑和日常物品放得更清楚",
                         "user_question_or_tension": "通勤时电脑和文件如何快速取用",
                         "primary_keyword": "通勤收纳",
-                        "message_focus": "独立电脑夹层",
+                        "message_focus": "14 英寸级别电脑收纳",
                         "proof_required": True,
                         "risk_notes": ["不写绝对化效果"],
                     }
                 ],
                 "cover_direction": {
-                    "cover_message_direction": "展示电脑夹层和日常收纳",
+                    "cover_message_direction": "展示电脑收纳和日常物品携带",
                     "cover_visual_focus": "通勤物品分区",
                     "cover_information_priority": "先展示真实收纳事实",
                     "cover_risk_notes": ["不制造未提供的物品或场景"],
@@ -407,7 +411,7 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
                     {
                         "module_name": "问题",
                         "content_direction": "通勤中寻找电脑和文件",
-                        "proof_points": ["独立电脑夹层"],
+                        "proof_points": ["14 英寸级别电脑收纳"],
                         "limitations": ["仅为合成资料"],
                         "risk_notes": [],
                     },
@@ -426,7 +430,7 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
                         "note_format": "image_text_note_brief",
                         "content_mode": "usage_demo",
                         "narrative_structure": ["问题", "解决方式"],
-                        "proof_points": ["独立电脑夹层", "约 18 升容量"],
+                        "proof_points": ["14 英寸级别电脑收纳", "约 18 升容量"],
                         "customer_language": [],
                         "hypotheses": ["目标读者为工作日城市通勤者"],
                         "limitations": ["缺少真实研究与竞品对比"],
@@ -445,7 +449,7 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
             },
             "discovery_and_action_directions": {
                 "search_intent": "寻找通勤电脑收纳方案",
-                "keyword_directions": ["通勤收纳", "电脑夹层"],
+                "keyword_directions": ["通勤收纳", "电脑收纳"],
                 "topic_directions": ["工作日通勤"],
                 "hashtag_directions": ["通勤包", "城市通勤"],
                 "cta_mapping": {
@@ -456,7 +460,7 @@ def _candidate_payloads() -> tuple[Mapping[str, object], ...]:
                 "interaction_prompt_direction": "询问读者通勤时最常取用的物品",
             },
             "evidence_and_platform_constraints": {
-                "proof_points": ["独立电脑夹层", "约 18 升容量"],
+                "proof_points": ["14 英寸级别电脑收纳", "约 18 升容量"],
                 "customer_language": [],
                 "mandatory_messages": ["购买前确认设备尺寸"],
                 "prohibited_claims": ["绝对防水", "保证舒适", "提高转化"],
@@ -489,40 +493,35 @@ def _specs(
     return tuple(factory() for factory in spec_factories)
 
 
-def _requests(
+def _request(
     input_text: str,
-    specs: Sequence[StructuredOutputSpec],
-    payloads: Sequence[str],
-) -> tuple[ModelCallRequest, ...]:
-    requests: list[ModelCallRequest] = []
-    upstream: StructuredContent | None = None
-    for index, spec in enumerate(specs, start=1):
-        call_id = ModelCallId(f"deterministic-stage-{index}")
-        profile = ModelExecutionProfile("mvp0-fast-lane-deterministic", "v1")
-        request = ModelCallRequest(
-            identity=ModelCallIdentity(call_id),
-            instructions=f"Produce the validated {spec.output_schema_id} candidate.",
-            context=StructuredContent.from_mapping(
-                {
-                    "primary_input": input_text,
-                    "upstream_candidate": (
-                        upstream.to_mapping() if upstream is not None else None
-                    ),
-                }
-            ),
-            structured_output=spec,
-            execution_profile=profile,
-            contract_versions=ModelCallContractVersions(
-                prompt_template_id=f"mvp0-stage-{index}",
-                prompt_template_version="v1",
-                skill_contract_version="v1",
-                domain_validator_version="v1",
-                context_assembly_version="v1",
-            ),
-        )
-        requests.append(request)
-        upstream = StructuredContent.from_mapping(json.loads(payloads[index - 1]))
-    return tuple(requests)
+    spec: StructuredOutputSpec,
+    index: int,
+    upstream: StructuredContent | None,
+) -> ModelCallRequest:
+    call_id = ModelCallId(f"deterministic-stage-{index}")
+    profile = ModelExecutionProfile("mvp0-fast-lane-deterministic", "v1")
+    return ModelCallRequest(
+        identity=ModelCallIdentity(call_id),
+        instructions=f"Produce the validated {spec.output_schema_id} candidate.",
+        context=StructuredContent.from_mapping(
+            {
+                "primary_input": input_text,
+                "upstream_candidate": (
+                    upstream.to_mapping() if upstream is not None else None
+                ),
+            }
+        ),
+        structured_output=spec,
+        execution_profile=profile,
+        contract_versions=ModelCallContractVersions(
+            prompt_template_id=f"mvp0-stage-{index}",
+            prompt_template_version="v1",
+            skill_contract_version="v1",
+            domain_validator_version="v1",
+            context_assembly_version="v1",
+        ),
+    )
 
 
 def build_scripted_runtime(
@@ -616,32 +615,40 @@ class DeterministicPipelineCoordinator:
                 candidates=(),
             )
 
-        payloads = tuple(_json(value) for value in _candidate_payloads())
+        payloads = tuple(_json(value) for value in _candidate_payloads(input_text))
         specs = _specs(self._spec_factories)
-        requests = _requests(input_text, specs, payloads)
-        runtime = self._runtime_factory(requests, payloads)
+        # The scripted runtime only needs the stable call/spec metadata at
+        # construction.  Actual requests are assembled below, one stage at a
+        # time, after the previous stage has been parsed and validated.
+        runtime_requests = tuple(
+            _request(input_text, spec, index, None)
+            for index, spec in enumerate(specs, start=1)
+        )
+        runtime = self._runtime_factory(runtime_requests, payloads)
         validated: list[tuple[str, StructuredContent]] = []
-        for request, payload_name in zip(
-            requests,
-            (
-                "productIntake",
-                "customerInsight",
-                "productPositioning",
-                "marketingBrief",
-                "xiaohongshuBrief",
-            ),
-            strict=True,
-        ):
-            result = runtime.execute(request)
-            validated.append(
+        upstream: StructuredContent | None = None
+        for index, (spec, payload_name) in enumerate(
+            zip(
+                specs,
                 (
-                    payload_name,
-                    parse_and_validate_structured_output(
-                        result=result,
-                        spec=request.structured_output,
-                    ),
-                )
+                    "productIntake",
+                    "customerInsight",
+                    "productPositioning",
+                    "marketingBrief",
+                    "xiaohongshuBrief",
+                ),
+                strict=True,
+            ),
+            start=1,
+        ):
+            request = _request(input_text, spec, index, upstream)
+            result = runtime.execute(request)
+            candidate = parse_and_validate_structured_output(
+                result=result,
+                spec=request.structured_output,
             )
+            validated.append((payload_name, candidate))
+            upstream = candidate
         return PipelineResult(
             status="awaiting_review",
             missing_information=(),

@@ -150,10 +150,20 @@ export const createHttpTaskGateway = (client: ApiClient): TaskGateway => ({
   },
   getCurrentResult: async (taskId) => {
     const identity = normalizeTaskIdentity(taskId);
-    const result = await client.GET("/api/v1/tasks/{taskId}/current-result", {
-      params: { path: { taskId: identity } },
-    });
-    if (result.response.status === 404) return null;
-    return request("Current result", async () => result, mapTaskCurrentResult);
+    try {
+      return await request(
+        "Current result",
+        () =>
+          client.GET("/api/v1/tasks/{taskId}/current-result", {
+            params: { path: { taskId: identity } },
+          }),
+        mapTaskCurrentResult,
+      );
+    } catch (error) {
+      if (error instanceof TaskGatewayError && error.kind === "missing") {
+        return null;
+      }
+      throw error;
+    }
   },
 });

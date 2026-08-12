@@ -131,7 +131,12 @@ function TaskOverviewRoute({
   const savePrimaryInput = async (input: TaskPrimaryInputDraft) => {
     const saved = await taskGateway.savePrimaryInput(taskId, input);
     await queryClient.invalidateQueries({ queryKey: primaryInputKey(taskId) });
-    resultRetryKey.current = null;
+    if (
+      resultRetryKey.current !== null &&
+      resultRetryKey.current.inputRevision !== saved.inputRevision
+    ) {
+      resultRetryKey.current = null;
+    }
     return saved;
   };
   const generateResult = async (): Promise<TaskCurrentResult> => {

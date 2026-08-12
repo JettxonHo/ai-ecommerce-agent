@@ -74,6 +74,23 @@ const generatedPrimaryInput = (
   ...overrides,
 });
 
+const generatedCurrentResult = (
+  overrides: Partial<components["schemas"]["CurrentTaskResult"]> = {},
+): components["schemas"]["CurrentTaskResult"] => ({
+  taskId: "task-1",
+  resultRevision: 0,
+  inputRevision: 0,
+  status: "awaiting_review",
+  generatedAt: "2026-08-12T00:00:00Z",
+  missingInformation: [],
+  productIntake: { candidate: "intake" },
+  customerInsight: { candidate: "insight" },
+  productPositioning: { candidate: "positioning" },
+  marketingBrief: { candidate: "marketing" },
+  xiaohongshuBrief: { candidate: "xiaohongshu" },
+  ...overrides,
+});
+
 const input: TaskInput = {
   taskName: "Launch",
   productCategory: "Backpack",
@@ -157,6 +174,41 @@ describe("TaskGateway HTTP contract", () => {
     });
     await expect(gateway.getPrimaryInput("task-1")).rejects.toMatchObject({
       kind: "invalid",
+    });
+  });
+
+  it("maps current-result missing, network, and malformed responses safely", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(response({ detail: "private" }, 404))
+      .mockRejectedValueOnce(new Error("private socket details"))
+      .mockResolvedValueOnce(response({ status: "awaiting_review" }));
+    const gateway = createHttpTaskGateway(
+      createApiClient({ baseUrl: "https://example.test", fetch }),
+    );
+
+    await expect(gateway.getCurrentResult("task-1")).resolves.toBeNull();
+    await expect(gateway.getCurrentResult("task-1")).rejects.toMatchObject({
+      kind: "temporary",
+    });
+    await expect(gateway.getCurrentResult("task-1")).rejects.toMatchObject({
+      kind: "invalid",
+    });
+    await expect(gateway.getCurrentResult("task-1")).rejects.not.toThrow(
+      "private socket details",
+    );
+  });
+
+  it("maps a valid current-result response through the typed request wrapper", async () => {
+    const fetch = vi.fn(async () => response(generatedCurrentResult()));
+    const gateway = createHttpTaskGateway(
+      createApiClient({ baseUrl: "https://example.test", fetch }),
+    );
+
+    await expect(gateway.getCurrentResult("task-1")).resolves.toMatchObject({
+      taskId: "task-1",
+      status: "awaiting_review",
+      marketingBrief: { candidate: "marketing" },
     });
   });
 
