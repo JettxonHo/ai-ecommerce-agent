@@ -113,6 +113,27 @@ TASKS_TABLE = Table(
     schema=TASK_MANAGEMENT_SCHEMA_TOKEN,
 )
 
+TASK_CREATE_IDEMPOTENCY_TABLE = Table(
+    "task_management_create_idempotency",
+    TASK_MANAGEMENT_METADATA,
+    Column("idempotency_key", Text(), nullable=False),
+    Column("task_id", Text(), nullable=False),
+    PrimaryKeyConstraint(
+        "idempotency_key", name="pk_task_management_create_idempotency"
+    ),
+    UniqueConstraint("task_id", name="uq_task_management_create_idempotency_task"),
+    ForeignKeyConstraint(
+        ["task_id"],
+        [f"{TASK_MANAGEMENT_SCHEMA_TOKEN}.task_management_tasks.task_id"],
+        name="fk_task_management_create_idempotency_task_owner",
+    ),
+    CheckConstraint(
+        "length(btrim(idempotency_key)) > 0",
+        name="ck_task_management_create_idempotency_key_nonempty",
+    ),
+    schema=TASK_MANAGEMENT_SCHEMA_TOKEN,
+)
+
 RUNS_TABLE = Table(
     "task_management_runs",
     TASK_MANAGEMENT_METADATA,
@@ -279,6 +300,7 @@ __all__ = [
     "RUNS_TABLE",
     "STAGES_TABLE",
     "TASKS_TABLE",
+    "TASK_CREATE_IDEMPOTENCY_TABLE",
     "TASK_MANAGEMENT_METADATA",
     "TASK_MANAGEMENT_SCHEMA_TOKEN",
     "schema_translate_map",

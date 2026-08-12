@@ -13,7 +13,7 @@ from .application.errors import (
     TaskManagementResourceReference,
 )
 from .application.protocols import TaskManagementApplication
-from .application.queries import GetRun, GetStage, GetTask
+from .application.queries import GetRun, GetStage, GetTask, ListTasks
 from .application.results import PrepareInitialRunResult
 from .domain import (
     DomainVersionReference,
@@ -32,6 +32,7 @@ __all__ = [
     "GetRun",
     "GetStage",
     "GetTask",
+    "ListTasks",
     "RunSnapshot",
     "RunStatus",
     "StageReference",

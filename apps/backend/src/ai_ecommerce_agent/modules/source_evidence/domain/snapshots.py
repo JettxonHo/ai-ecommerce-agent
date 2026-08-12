@@ -20,6 +20,8 @@ from ai_ecommerce_agent.shared_kernel import (
     VersionNumber,
 )
 
+from .primary_input import PrimaryInputKind
+
 
 class SourceProcessingStatus(StrEnum):
     """The exact six-value SourceVersion processing lifecycle."""
@@ -70,9 +72,23 @@ class SourceAssociationSnapshot:
     replaced_by_association_id: SourceAssociationId | None
 
 
+@dataclass(frozen=True, slots=True)
+class PrimaryInputSnapshot:
+    """Immutable projection of a Task's current primary input."""
+
+    task_id: TaskId
+    input_kind: PrimaryInputKind
+    file_name: str | None
+    content: str
+    byte_count: int
+    revision: Revision
+    updated_at: datetime
+
+
 __all__ = [
     "SourceAssociationMembershipState",
     "SourceAssociationSnapshot",
     "SourceProcessingStatus",
     "SourceVersionSnapshot",
+    "PrimaryInputSnapshot",
 ]

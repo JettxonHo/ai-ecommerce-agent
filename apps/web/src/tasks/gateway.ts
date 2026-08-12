@@ -2,12 +2,27 @@ import type { components } from "../api/generated/schema";
 
 type SummaryDto = components["schemas"]["TaskSummary"];
 type OverviewDto = components["schemas"]["TaskOverview"];
+type PrimaryInputDto = components["schemas"]["TaskPrimaryInput"];
 
 export type TaskInput = Readonly<{
   taskName: string;
   productCategory: string;
   promotionGoal: string;
 }>;
+export type TaskPrimaryInputKind =
+  "pasted_text" | "text_file" | "markdown_file";
+export type TaskPrimaryInputDraft = Readonly<{
+  inputKind: TaskPrimaryInputKind;
+  fileName: string | null;
+  content: string;
+}>;
+export type TaskPrimaryInput = TaskPrimaryInputDraft &
+  Readonly<{
+    taskId: string;
+    inputRevision: number;
+    byteCount: number;
+    updatedAt: string;
+  }>;
 export type TaskPrimaryAction = Readonly<
   | { kind: "none" }
   | { kind: "navigate"; target: string }
@@ -71,6 +86,11 @@ export interface TaskGateway {
   listTasks(): Promise<readonly TaskSummary[]>;
   createTask(input: TaskInput, idempotencyKey: string): Promise<TaskOverview>;
   getTaskOverview(taskId: string): Promise<TaskOverview>;
+  getPrimaryInput(taskId: string): Promise<TaskPrimaryInput>;
+  savePrimaryInput(
+    taskId: string,
+    input: TaskPrimaryInputDraft,
+  ): Promise<TaskPrimaryInput>;
 }
 
 const invalid = (message: string) => new TaskGatewayError("invalid", message);
@@ -111,6 +131,117 @@ export const normalizeIdempotencyKey = (value: unknown): string =>
   nonblank(value, "A retry key is required.");
 export const normalizeTaskIdentity = (value: unknown): string =>
   nonblank(value, "A task identity is required.");
+
+const primaryKinds: readonly TaskPrimaryInputKind[] = [
+  "pasted_text",
+  "text_file",
+  "markdown_file",
+];
+const encoder = (): TextEncoder => new TextEncoder();
+const primaryInputError = (message: string): TaskGatewayError =>
+  invalid(message);
+const rfc3339DateTime =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):(\d{2}))$/u;
+
+const validPrimaryInputTimestamp = (value: unknown): value is string => {
+  if (typeof value !== "string") return false;
+  const match = rfc3339DateTime.exec(value);
+  if (match === null) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const offsetHour = match[7] === undefined ? 0 : Number(match[7]);
+  const offsetMinute = match[8] === undefined ? 0 : Number(match[8]);
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [
+    31,
+    leapYear ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
+  return (
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= (daysInMonth[month - 1] ?? 0) &&
+    hour <= 23 &&
+    minute <= 59 &&
+    second <= 59 &&
+    offsetHour <= 23 &&
+    offsetMinute <= 59 &&
+    Number.isFinite(Date.parse(value))
+  );
+};
+
+const validPrimaryInputFileName = (
+  value: unknown,
+  expectedExtension: ".txt" | ".md",
+): value is string =>
+  typeof value === "string" &&
+  value.trim() !== "" &&
+  value !== "." &&
+  value !== ".." &&
+  !/[\\/]/u.test(value) &&
+  value.toLowerCase().endsWith(expectedExtension);
+
+export const normalizePrimaryInput = (
+  value: unknown,
+): TaskPrimaryInputDraft => {
+  const input = objectInput(value);
+  const inputKind = input.inputKind;
+  if (
+    typeof inputKind !== "string" ||
+    !primaryKinds.includes(inputKind as TaskPrimaryInputKind)
+  ) {
+    throw primaryInputError("Choose pasted text, a .txt file, or a .md file.");
+  }
+  const contentValue = input.content;
+  if (typeof contentValue !== "string") {
+    throw primaryInputError("Primary input content is required.");
+  }
+  const content = contentValue.replace(/\r\n?/g, "\n");
+  if (content.trim() === "") {
+    throw primaryInputError("Primary input content is required.");
+  }
+  const byteCount = encoder().encode(content).byteLength;
+  if (byteCount > 1024 * 1024) {
+    throw primaryInputError("Primary input is too large (1 MiB maximum).");
+  }
+  const fileNameValue = input.fileName;
+  const fileName =
+    fileNameValue === null || fileNameValue === undefined
+      ? null
+      : nonblank(fileNameValue, "A file name is required.").trim();
+  if (inputKind === "pasted_text" && fileName !== null) {
+    throw primaryInputError("Pasted text does not have a file name.");
+  }
+  if (inputKind !== "pasted_text") {
+    if (fileName === null || /[\\/]/u.test(fileName)) {
+      throw primaryInputError("Choose one .txt or .md file.");
+    }
+    const suffix = fileName.slice(fileName.lastIndexOf(".")).toLowerCase();
+    const expected = inputKind === "text_file" ? ".txt" : ".md";
+    if (suffix !== expected) {
+      throw primaryInputError(`Choose a ${expected} file.`);
+    }
+  }
+  return Object.freeze({
+    inputKind: inputKind as TaskPrimaryInputKind,
+    fileName,
+    content,
+  });
+};
 
 const action = (value: unknown): TaskPrimaryAction => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -195,6 +326,69 @@ export const mapTaskOverview = (dto: OverviewDto): TaskOverview =>
     marketingBrief: mapDomainVersion(dto.marketingBrief),
     xiaohongshuBrief: mapDomainVersion(dto.xiaohongshuBrief),
   });
+
+export const mapTaskPrimaryInput = (dto: PrimaryInputDto): TaskPrimaryInput =>
+  (() => {
+    const input = objectInput(dto);
+    const taskId = input.taskId;
+    const inputRevision = input.inputRevision;
+    const inputKind = input.inputKind;
+    const fileNameValue = input.fileName;
+    const content = input.content;
+    const byteCount = input.byteCount;
+    const updatedAt = input.updatedAt;
+    const responseError = () =>
+      primaryInputError("The primary input response is invalid.");
+
+    if (typeof taskId !== "string" || taskId.trim() === "") {
+      throw responseError();
+    }
+    if (!Number.isInteger(inputRevision) || (inputRevision as number) < 0) {
+      throw responseError();
+    }
+    if (
+      typeof inputKind !== "string" ||
+      !primaryKinds.includes(inputKind as TaskPrimaryInputKind)
+    ) {
+      throw responseError();
+    }
+    if (typeof content !== "string" || content.trim() === "") {
+      throw responseError();
+    }
+    if (
+      !Number.isInteger(byteCount) ||
+      (byteCount as number) < 0 ||
+      (byteCount as number) > 1024 * 1024 ||
+      encoder().encode(content).byteLength !== byteCount
+    ) {
+      throw responseError();
+    }
+    if (!validPrimaryInputTimestamp(updatedAt)) {
+      throw responseError();
+    }
+
+    let fileName: string | null;
+    if (inputKind === "pasted_text") {
+      if (fileNameValue !== null) throw responseError();
+      fileName = null;
+    } else {
+      const expectedExtension = inputKind === "text_file" ? ".txt" : ".md";
+      if (!validPrimaryInputFileName(fileNameValue, expectedExtension)) {
+        throw responseError();
+      }
+      fileName = fileNameValue;
+    }
+
+    return Object.freeze({
+      taskId,
+      inputRevision: inputRevision as number,
+      inputKind: inputKind as TaskPrimaryInputKind,
+      fileName,
+      content,
+      byteCount,
+      updatedAt,
+    });
+  })();
 
 const cloneAction = (value: TaskPrimaryAction): TaskPrimaryAction => {
   if (typeof value !== "object" || value === null) {

@@ -44,7 +44,7 @@ from ai_ecommerce_agent.modules.task_management.domain import (
 from ai_ecommerce_agent.shared_kernel import ProjectError, Revision, RunId, TaskId
 
 from .commands import CreateDraftTask, PrepareInitialRun
-from .queries import GetRun, GetStage, GetTask
+from .queries import GetRun, GetStage, GetTask, ListTasks
 
 _ResultT = TypeVar("_ResultT")
 
@@ -232,7 +232,15 @@ class TaskManagementApplicationService(TaskManagementApplication):
             raise _translate(error, reference) from error
 
     def create_draft_task(self, command: CreateDraftTask) -> TaskSnapshot:
-        def operation(uow: TaskManagementUnitOfWork) -> TaskSnapshot:
+        task, _ = self.create_draft_task_idempotent(command)
+        return task
+
+    def create_draft_task_idempotent(
+        self, command: CreateDraftTask
+    ) -> tuple[TaskSnapshot, bool]:
+        def operation(
+            uow: TaskManagementUnitOfWork,
+        ) -> tuple[TaskSnapshot, bool]:
             if uow.tasks.get(command.task_id) is not None:
                 _already_exists(_task_reference(command.task_id), "task")
             task = Task.create(
@@ -242,8 +250,43 @@ class TaskManagementApplicationService(TaskManagementApplication):
                 promotion_goal=command.promotion_goal,
                 updated_at=command.updated_at,
             )
-            uow.tasks.add(task)
-            return task_to_snapshot(task)
+            if command.idempotency_key is None:
+                uow.tasks.add(task)
+                return task_to_snapshot(task), False
+            idempotency_key = command.idempotency_key.strip()
+            if not idempotency_key:
+                raise ValueError("idempotency_key must be nonblank")
+            existing = uow.tasks.get_by_idempotency_key(idempotency_key)
+            if existing is not None:
+                if (
+                    existing.task_name != command.task_name
+                    or existing.product_category != command.product_category
+                    or existing.promotion_goal != command.promotion_goal
+                ):
+                    raise _application_error(
+                        _task_reference(existing.task_id),
+                        error_code="idempotency_conflict",
+                        message=(
+                            "The retry key is already bound to different Task input"
+                        ),
+                        recovery_hint="correct_input",
+                    )
+                return task_to_snapshot(existing), True
+            persisted, replayed = uow.tasks.add_with_idempotency(
+                task, idempotency_key=idempotency_key
+            )
+            if replayed and (
+                persisted.task_name != command.task_name
+                or persisted.product_category != command.product_category
+                or persisted.promotion_goal != command.promotion_goal
+            ):
+                raise _application_error(
+                    _task_reference(persisted.task_id),
+                    error_code="idempotency_conflict",
+                    message=("The retry key is already bound to different Task input"),
+                    recovery_hint="correct_input",
+                )
+            return task_to_snapshot(persisted), replayed
 
         return self._write(_task_reference(command.task_id), operation)
 
@@ -255,6 +298,20 @@ class TaskManagementApplicationService(TaskManagementApplication):
             return task_to_snapshot(task)
 
         return self._read(_task_reference(query.task_id), operation)
+
+    def list_tasks(self, query: ListTasks) -> tuple[TaskSnapshot, ...]:
+        def operation(uow: TaskManagementUnitOfWork) -> tuple[TaskSnapshot, ...]:
+            return tuple(
+                task_to_snapshot(task) for task in uow.tasks.list(limit=query.limit)
+            )
+
+        return self._read(
+            TaskManagementResourceReference(
+                kind=TaskManagementResourceKind.TASK,
+                task_id=TaskId("task-list"),
+            ),
+            operation,
+        )
 
     def get_run(self, query: GetRun) -> RunSnapshot:
         def operation(uow: TaskManagementUnitOfWork) -> RunSnapshot:

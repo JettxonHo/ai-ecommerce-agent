@@ -7,6 +7,7 @@ cross-module callers use only ``modules.task_management.public``.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Protocol, runtime_checkable
 
 from ai_ecommerce_agent.application.ports import UnitOfWork
@@ -21,6 +22,23 @@ class TaskRepositoryPort(Protocol):
 
     def get(self, task_id: TaskId) -> Task | None:
         """Return the owned Task entity, or ``None`` if absent."""
+
+        ...
+
+    def list(self, *, limit: int) -> Sequence[Task]:
+        """Return the bounded recent Task window in server order."""
+
+        ...
+
+    def get_by_idempotency_key(self, idempotency_key: str) -> Task | None:
+        """Return the Task bound to one durable create retry key."""
+
+        ...
+
+    def add_with_idempotency(
+        self, task: Task, *, idempotency_key: str
+    ) -> tuple[Task, bool]:
+        """Atomically stage a Task and its durable create retry key."""
 
         ...
 

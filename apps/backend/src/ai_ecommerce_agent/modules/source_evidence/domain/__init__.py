@@ -7,8 +7,17 @@ from .errors import (
     OwnershipError,
     RevisionConflictError,
 )
+from .primary_input import (
+    PRIMARY_INPUT_MAX_BYTES,
+    PrimaryInputKind,
+    TaskPrimaryInput,
+    normalize_primary_content,
+    validate_primary_content,
+    validate_primary_file_name,
+)
 from .processing import SourceVersionProcessing
 from .snapshots import (
+    PrimaryInputSnapshot,
     SourceAssociationMembershipState,
     SourceAssociationSnapshot,
     SourceProcessingStatus,
@@ -28,5 +37,12 @@ __all__ = [
     "SourceVersion",
     "SourceVersionProcessing",
     "SourceVersionSnapshot",
+    "PRIMARY_INPUT_MAX_BYTES",
+    "PrimaryInputKind",
+    "PrimaryInputSnapshot",
+    "TaskPrimaryInput",
+    "normalize_primary_content",
+    "validate_primary_content",
+    "validate_primary_file_name",
     "TaskSourceAssociation",
 ]

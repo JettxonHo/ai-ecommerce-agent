@@ -324,6 +324,12 @@ describe("TaskWorkbench", () => {
         listTasks: () => Promise.resolve([]),
         createTask: () => Promise.resolve(task()),
         getTaskOverview,
+        getPrimaryInput: async () => {
+          throw new Error("Primary input is not available in this test.");
+        },
+        savePrimaryInput: async () => {
+          throw new Error("Primary input is not available in this test.");
+        },
       };
 
       render(

@@ -45,18 +45,41 @@ FACT_STAGE = StageReference.PRODUCT_INTAKE_AND_FACT_EXTRACTION
 
 
 class _TaskRepository:
-    def __init__(self, owner: _FakeUow, store: dict[TaskId, Task]) -> None:
+    def __init__(
+        self,
+        owner: _FakeUow,
+        store: dict[TaskId, Task],
+        idempotency: dict[str, TaskId],
+    ) -> None:
         self._owner = owner
         self._store = store
+        self._idempotency = idempotency
 
     def get(self, task_id: TaskId) -> Task | None:
         return self._store.get(task_id)
+
+    def list(self, *, limit: int) -> tuple[Task, ...]:
+        return tuple(self._store.values())[:limit]
 
     def add(self, task: Task) -> None:
         if task.task_id in self._store:
             raise TaskManagementConstraintError(constraint_name="task_identity")
         self._store[task.task_id] = task
         self._owner.writes += 1
+
+    def get_by_idempotency_key(self, idempotency_key: str) -> Task | None:
+        task_id = self._idempotency.get(idempotency_key)
+        return self._store.get(task_id) if task_id is not None else None
+
+    def add_with_idempotency(
+        self, task: Task, *, idempotency_key: str
+    ) -> tuple[Task, bool]:
+        existing = self.get_by_idempotency_key(idempotency_key)
+        if existing is not None:
+            return existing, True
+        self.add(task)
+        self._idempotency[idempotency_key] = task.task_id
+        return task, False
 
     def save(self, task: Task, *, expected_revision: Revision) -> None:
         current = self._store.get(task.task_id)
@@ -126,6 +149,7 @@ class _FakeUow:
         tasks: dict[TaskId, Task],
         runs: dict[RunId, Run],
         stages: dict[tuple[TaskId, StageReference], Stage],
+        idempotency: dict[str, TaskId],
         *,
         fail_task_save: bool = False,
         fail_task_get: BaseException | None = None,
@@ -133,17 +157,19 @@ class _FakeUow:
         self._tasks_store = tasks
         self._runs_store = runs
         self._stages_store = stages
+        self._idempotency_store = idempotency
         self._fail_task_save = fail_task_save
         self._fail_task_get = fail_task_get
         self._before_tasks: dict[TaskId, Task] = {}
         self._before_runs: dict[RunId, Run] = {}
         self._before_stages: dict[tuple[TaskId, StageReference], Stage] = {}
+        self._before_idempotency: dict[str, TaskId] = {}
         self.commits = 0
         self.rollbacks = 0
         self.writes = 0
         self._active = False
         self._state = UnitOfWorkState.NEW
-        self.tasks: TaskRepositoryPort = _TaskRepository(self, tasks)
+        self.tasks: TaskRepositoryPort = _TaskRepository(self, tasks, idempotency)
         self.runs: RunRepositoryPort = _RunRepository(self, runs)
         self.stages: StageRepositoryPort = _StageRepository(self, stages)
 
@@ -151,6 +177,7 @@ class _FakeUow:
         self._before_tasks = self._tasks_store.copy()
         self._before_runs = self._runs_store.copy()
         self._before_stages = self._stages_store.copy()
+        self._before_idempotency = self._idempotency_store.copy()
         self._active = True
         self._state = UnitOfWorkState.ACTIVE
         return self
@@ -184,6 +211,8 @@ class _FakeUow:
         self._runs_store.update(self._before_runs)
         self._stages_store.clear()
         self._stages_store.update(self._before_stages)
+        self._idempotency_store.clear()
+        self._idempotency_store.update(self._before_idempotency)
         self.rollbacks += 1
         self._active = False
         self._state = UnitOfWorkState.ROLLED_BACK
@@ -205,9 +234,10 @@ class _FailingTaskUow(_FakeUow):
         tasks: dict[TaskId, Task],
         runs: dict[RunId, Run],
         stages: dict[tuple[TaskId, StageReference], Stage],
+        idempotency: dict[str, TaskId],
     ) -> None:
-        super().__init__(tasks, runs, stages)
-        self.tasks = _FailingTaskRepository(self, tasks)
+        super().__init__(tasks, runs, stages, idempotency)
+        self.tasks = _FailingTaskRepository(self, tasks, idempotency)
 
 
 class _Factory:
@@ -215,14 +245,15 @@ class _Factory:
         self.tasks: dict[TaskId, Task] = {}
         self.runs: dict[RunId, Run] = {}
         self.stages: dict[tuple[TaskId, StageReference], Stage] = {}
+        self.idempotency: dict[str, TaskId] = {}
         self.uows: list[_FakeUow] = []
         self._failing_task_save = failing_task_save
 
     def __call__(self) -> TaskManagementUnitOfWork:
         if self._failing_task_save:
-            uow = _FailingTaskUow(self.tasks, self.runs, self.stages)
+            uow = _FailingTaskUow(self.tasks, self.runs, self.stages, self.idempotency)
         else:
-            uow = _FakeUow(self.tasks, self.runs, self.stages)
+            uow = _FakeUow(self.tasks, self.runs, self.stages, self.idempotency)
         self.uows.append(uow)
         return uow
 
@@ -261,6 +292,49 @@ def test_create_and_query_are_immutable_and_query_does_not_commit() -> None:
 
     with pytest.raises(AttributeError):
         snapshot.task_status = snapshot.task_status  # type: ignore[misc]
+
+
+def test_create_idempotency_replays_same_task_and_rejects_changed_input() -> None:
+    factory = _Factory()
+    service = _service(factory)
+    first, replayed = service.create_draft_task_idempotent(
+        CreateDraftTask(
+            task_id=TaskId("task-idempotent-first"),
+            task_name="City commute pack",
+            product_category="backpack",
+            promotion_goal="commute positioning",
+            updated_at=NOW,
+            idempotency_key="create-key",
+        )
+    )
+    replay, was_replayed = service.create_draft_task_idempotent(
+        CreateDraftTask(
+            task_id=TaskId("task-idempotent-retry"),
+            task_name="City commute pack",
+            product_category="backpack",
+            promotion_goal="commute positioning",
+            updated_at=NOW,
+            idempotency_key="create-key",
+        )
+    )
+
+    assert replayed is False
+    assert was_replayed is True
+    assert replay.task_id == first.task_id
+    assert len(factory.tasks) == 1
+    with pytest.raises(TaskManagementError) as raised:
+        service.create_draft_task_idempotent(
+            CreateDraftTask(
+                task_id=TaskId("task-idempotent-conflict"),
+                task_name="Different task",
+                product_category="backpack",
+                promotion_goal="commute positioning",
+                updated_at=NOW,
+                idempotency_key="create-key",
+            )
+        )
+    assert raised.value.error_code == "idempotency_conflict"
+    assert len(factory.tasks) == 1
 
 
 def test_prepare_initial_run_sets_draft_running_and_initial_fact_state_atomically() -> (
@@ -344,8 +418,8 @@ def test_unknown_programming_exception_is_not_hidden_as_persistence_error() -> N
 
     class _BrokenFactory(_Factory):
         def __call__(self) -> TaskManagementUnitOfWork:
-            uow = _FakeUow(self.tasks, self.runs, self.stages)
-            uow.tasks = _TaskRepository(uow, self.tasks)
+            uow = _FakeUow(self.tasks, self.runs, self.stages, self.idempotency)
+            uow.tasks = _TaskRepository(uow, self.tasks, self.idempotency)
 
             def broken_get(value: TaskId) -> Task | None:
                 del value

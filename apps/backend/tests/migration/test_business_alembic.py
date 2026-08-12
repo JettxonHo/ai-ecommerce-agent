@@ -44,15 +44,18 @@ BUSINESS_SCHEMA = "mvp0_019b_migration"
 BASELINE_REVISION = "0001_business_baseline"
 TASK_HEAD_REVISION = "0002_task_management"
 SOURCE_HEAD_REVISION = "0003_source_evidence"
-PREVIOUS_HEAD_REVISION = "0004_durable_dispatch"
-HEAD_REVISION = "0005_dispatch_supersession"
+DISPATCH_HEAD_REVISION = "0004_durable_dispatch"
+PREVIOUS_HEAD_REVISION = "0005_dispatch_supersession"
+HEAD_REVISION = "0006_task_primary_input"
 DATABASE_URL_ENV = "MVP0_MIGRATION_DATABASE_URL"
 DOMAIN_TABLES = (
     "durable_dispatch_work_intents",
     "source_evidence_source_version_processing",
     "source_evidence_source_versions",
     "source_evidence_sources",
+    "source_evidence_task_primary_inputs",
     "source_evidence_task_source_associations",
+    "task_management_create_idempotency",
     "task_management_runs",
     "task_management_stages",
     "task_management_tasks",
@@ -560,7 +563,10 @@ def test_revision_graph_has_one_business_head() -> None:
     assert head.down_revision == PREVIOUS_HEAD_REVISION
     previous_head = script.get_revision(PREVIOUS_HEAD_REVISION)
     assert previous_head is not None
-    assert previous_head.down_revision == SOURCE_HEAD_REVISION
+    assert previous_head.down_revision == DISPATCH_HEAD_REVISION
+    dispatch_head = script.get_revision(DISPATCH_HEAD_REVISION)
+    assert dispatch_head is not None
+    assert dispatch_head.down_revision == SOURCE_HEAD_REVISION
     source_head = script.get_revision(SOURCE_HEAD_REVISION)
     assert source_head is not None
     assert source_head.down_revision == TASK_HEAD_REVISION
@@ -657,7 +663,7 @@ def test_existing_durable_head_to_supersession_head_preserves_rows(
 
     _reset_schema(migration_engine)
     config = _config(_database_url())
-    command.upgrade(config, PREVIOUS_HEAD_REVISION)
+    command.upgrade(config, DISPATCH_HEAD_REVISION)
     _insert_work_intent(
         migration_engine,
         dispatch_id="dispatch-0004",
@@ -764,6 +770,10 @@ def test_named_tables_and_constraints_are_present(
         "fk_task_management_tasks_current_stage_owner",
         "fk_task_management_tasks_active_run_owner",
         "fk_task_management_tasks_latest_run_owner",
+        "pk_task_management_create_idempotency",
+        "uq_task_management_create_idempotency_task",
+        "fk_task_management_create_idempotency_task_owner",
+        "ck_task_management_create_idempotency_key_nonempty",
         "ck_task_management_tasks_status",
         "ck_task_management_runs_status",
         "ck_task_management_stages_stage",
@@ -788,6 +798,13 @@ def test_named_tables_and_constraints_are_present(
         "ck_source_evidence_assoc_revision_nonnegative",
         "ck_source_evidence_assoc_replacement_distinct",
         "ck_source_evidence_assoc_replacement_link",
+        "pk_source_evidence_task_primary_inputs",
+        "fk_source_evidence_task_primary_inputs_task_owner",
+        "ck_source_evidence_task_primary_inputs_kind",
+        "ck_source_evidence_task_primary_inputs_content_nonempty",
+        "ck_source_evidence_task_primary_inputs_byte_count",
+        "ck_source_evidence_task_primary_inputs_revision_nonnegative",
+        "ck_source_evidence_task_primary_inputs_filename_pair",
         *DURABLE_CONSTRAINT_NAMES,
     }
     assert expected_constraints <= _constraint_names(migration_engine)

@@ -8,6 +8,7 @@ import { createDeterministicTaskGateway } from "./deterministicGateway";
 import {
   TaskGatewayError,
   type TaskGateway,
+  type TaskPrimaryInput,
   type TaskOverview,
 } from "./gateway";
 
@@ -48,6 +49,15 @@ const overview = (overrides: Partial<TaskOverview> = {}): TaskOverview => ({
   ...overviewBaseline,
   ...overrides,
 });
+const savedPrimaryInput: TaskPrimaryInput = {
+  taskId: "task-1",
+  inputRevision: 0,
+  inputKind: "pasted_text",
+  fileName: null,
+  content: "Saved context",
+  byteCount: 13,
+  updatedAt: "2026-08-12T00:00:00Z",
+};
 
 const renderRoutes = (
   path = "/tasks",
@@ -77,6 +87,12 @@ const gatewayFor = (
   listTasks,
   getTaskOverview,
   createTask: vi.fn(),
+  getPrimaryInput: async () => {
+    throw new TaskGatewayError("missing", "Primary input not found.");
+  },
+  savePrimaryInput: async () => {
+    throw new TaskGatewayError("invalid", "Primary input is unavailable.");
+  },
 });
 
 describe("TaskRoutes", () => {
@@ -97,7 +113,9 @@ describe("TaskRoutes", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Launch" })).toBeTruthy();
-    const overviewRegion = screen.getByRole("region");
+    const overviewRegion = screen.getByRole("region", {
+      name: "Launch",
+    });
     expect(within(overviewRegion).getByText("Task ID: task/7")).toBeTruthy();
     expect(within(overviewRegion).getByText("Backpack")).toBeTruthy();
     const definitions = within(overviewRegion).getAllByRole("definition");
@@ -272,7 +290,9 @@ describe("TaskRoutes", () => {
       createDeterministicTaskGateway({ tasks: [task] }),
     );
 
-    const region = await screen.findByRole("region");
+    const region = await screen.findByRole("region", {
+      name: "Launch",
+    });
     expect(within(region).getByText("Needs a source")).toBeTruthy();
     expect(within(region).queryByText("Not started")).toBeNull();
     expect(within(region).getByText("waiting_for_input")).toBeTruthy();
@@ -312,5 +332,77 @@ describe("TaskRoutes", () => {
     ).toBeTruthy();
     expect(screen.getByText("Task ID: retry/7")).toBeTruthy();
     expect(attempts).toBe(2);
+  });
+
+  it("opens an empty editor only when the gateway reports missing input", async () => {
+    const task = overview({ taskId: "task-1" });
+    const gateway = gatewayFor([task]);
+    gateway.getPrimaryInput = vi.fn(async () => {
+      throw new TaskGatewayError("missing", "Task not found.");
+    });
+    gateway.savePrimaryInput = vi.fn(async () => savedPrimaryInput);
+
+    renderRoutes("/tasks/task-1", gateway);
+
+    expect(
+      await screen.findByRole("heading", { name: "Primary input" }),
+    ).toBeTruthy();
+    expect(screen.getByLabelText("Pasted text").hasAttribute("disabled")).toBe(
+      false,
+    );
+    expect(
+      screen
+        .getByRole("button", { name: "Save primary input" })
+        .hasAttribute("disabled"),
+    ).toBe(false);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("blocks malformed primary-input reads until retry returns valid data", async () => {
+    const task = overview({ taskId: "task-1" });
+    const gateway = gatewayFor([task]);
+    let attempts = 0;
+    gateway.getPrimaryInput = vi.fn(async () => {
+      attempts += 1;
+      if (attempts === 1) {
+        throw new TaskGatewayError(
+          "invalid",
+          "The primary input response is invalid.",
+        );
+      }
+      return savedPrimaryInput;
+    });
+    const savePrimaryInput = vi.fn(async () => savedPrimaryInput);
+    gateway.savePrimaryInput = savePrimaryInput;
+
+    renderRoutes("/tasks/task-1", gateway);
+
+    expect(await screen.findByRole("heading", { name: "Launch" })).toBeTruthy();
+    expect(
+      await screen.findByText("Saved input is unavailable. Retry to continue."),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Retry primary input" }),
+    ).toBeTruthy();
+    expect(screen.queryByLabelText("Pasted text")).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Save primary input" }),
+    ).toBeNull();
+    expect(savePrimaryInput).not.toHaveBeenCalled();
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Retry primary input" }));
+    const content = await screen.findByLabelText("Pasted text");
+    expect(content.hasAttribute("disabled")).toBe(false);
+    const save = screen.getByRole("button", { name: "Save primary input" });
+    expect(save.hasAttribute("disabled")).toBe(false);
+    await userEvent.setup().click(save);
+    expect(savePrimaryInput).toHaveBeenCalledWith("task-1", {
+      inputKind: "pasted_text",
+      fileName: null,
+      content: "Saved context",
+    });
+    expect(attempts).toBe(3);
   });
 });

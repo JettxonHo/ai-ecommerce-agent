@@ -96,6 +96,49 @@ paths:
         '500': { $ref: '#/components/responses/Problem500' }
         '503': { $ref: '#/components/responses/Problem503' }
 
+  /api/v1/tasks/{taskId}/primary-input:
+    get:
+      tags: [Task]
+      operationId: getTaskPrimaryInput
+      summary: Read the current Task-scoped primary input
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: Current primary input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskPrimaryInput'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+    put:
+      tags: [Task]
+      operationId: putTaskPrimaryInput
+      summary: Replace the current Task-scoped primary input
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveTaskPrimaryInputRequest'
+      responses:
+        '200':
+          description: Persisted current primary input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskPrimaryInput'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '413': { $ref: '#/components/responses/Problem413' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
   /api/v1/tasks/{taskId}/commands/start:
     post:
       tags: [Task]
@@ -1341,6 +1384,50 @@ components:
         promotionGoal:
           type: string
           minLength: 1
+    PrimaryInputKind:
+      type: string
+      enum: [pasted_text, text_file, markdown_file]
+    SaveTaskPrimaryInputRequest:
+      type: object
+      additionalProperties: false
+      required: [inputKind, fileName, content]
+      properties:
+        inputKind: { $ref: '#/components/schemas/PrimaryInputKind' }
+        fileName:
+          oneOf:
+            - type: string
+              minLength: 1
+            - type: 'null'
+          description: Display basename for a text/markdown file; null for pasted text.
+        content:
+          type: string
+          minLength: 1
+          description: Nonblank UTF-8 text, limited to 1 MiB after UTF-8 encoding.
+    TaskPrimaryInput:
+      type: object
+      additionalProperties: false
+      required: [taskId, inputRevision, inputKind, fileName, content, byteCount, updatedAt]
+      properties:
+        taskId:
+          type: string
+          minLength: 1
+        inputRevision: { $ref: '#/components/schemas/ResourceRevision' }
+        inputKind: { $ref: '#/components/schemas/PrimaryInputKind' }
+        fileName:
+          oneOf:
+            - type: string
+              minLength: 1
+            - type: 'null'
+        content:
+          type: string
+          minLength: 1
+        byteCount:
+          type: integer
+          minimum: 1
+          maximum: 1048576
+        updatedAt:
+          type: string
+          format: date-time
     TaskSummary:
       type: object
       required: [taskId, taskName, productCategory, taskStatus, currentStage, waitingReason, updatedAt, revision, primaryAction, capabilities]

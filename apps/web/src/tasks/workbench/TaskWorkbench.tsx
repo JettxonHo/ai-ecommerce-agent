@@ -1,6 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import type { TaskOverview } from "../gateway";
+import {
+  normalizePrimaryInput,
+  type TaskOverview,
+  type TaskPrimaryInput,
+  type TaskPrimaryInputDraft,
+  type TaskPrimaryInputKind,
+} from "../gateway";
 import {
   deriveWorkbenchLocation,
   deriveWorkbenchMode,
@@ -11,7 +17,16 @@ import {
 } from "./projection";
 import styles from "./TaskWorkbench.module.css";
 
-type TaskWorkbenchProps = Readonly<{ task: TaskOverview }>;
+type TaskWorkbenchProps = Readonly<{
+  task: TaskOverview;
+  primaryInput?: TaskPrimaryInput | null;
+  primaryInputLoading?: boolean;
+  primaryInputError?: string | null;
+  retryPrimaryInput?: () => void;
+  savePrimaryInput?: (
+    input: TaskPrimaryInputDraft,
+  ) => Promise<TaskPrimaryInput>;
+}>;
 
 const panelLabels: Readonly<Record<WorkbenchPanel, string>> = {
   intake: "Intake",
@@ -98,7 +113,228 @@ function ReferenceDetails({ task }: Readonly<{ task: TaskOverview }>) {
   );
 }
 
-export function TaskWorkbench({ task }: TaskWorkbenchProps) {
+function PrimaryInputPanel({
+  primaryInput,
+  primaryInputLoading = false,
+  primaryInputError = null,
+  retryPrimaryInput,
+  savePrimaryInput,
+}: Readonly<
+  Pick<
+    TaskWorkbenchProps,
+    | "primaryInput"
+    | "primaryInputLoading"
+    | "primaryInputError"
+    | "retryPrimaryInput"
+    | "savePrimaryInput"
+  >
+>) {
+  const [kind, setKind] = useState<TaskPrimaryInputKind>("pasted_text");
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [content, setContent] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [savedPreview, setSavedPreview] = useState<TaskPrimaryInput | null>(
+    null,
+  );
+  const [message, setMessage] = useState<string | null>(null);
+  const inputIdentity =
+    primaryInput === undefined
+      ? "loading"
+      : primaryInput === null
+        ? "empty"
+        : `${primaryInput.inputRevision}:${primaryInput.updatedAt}`;
+
+  useEffect(() => {
+    if (primaryInput === undefined) return;
+    if (primaryInput === null) {
+      setKind("pasted_text");
+      setFileName(null);
+      setContent("");
+      setSavedPreview(null);
+      return;
+    }
+    setKind(primaryInput.inputKind);
+    setFileName(primaryInput.fileName);
+    setContent(primaryInput.content);
+    setSavedPreview(primaryInput);
+  }, [inputIdentity, primaryInput]);
+
+  if (
+    savePrimaryInput === undefined &&
+    !primaryInputLoading &&
+    primaryInputError === null
+  ) {
+    return null;
+  }
+
+  const inputBlocked = primaryInputLoading || primaryInput === undefined;
+
+  if (primaryInputError !== null) {
+    return (
+      <section
+        className={styles.primaryInput}
+        aria-labelledby="primary-input-heading"
+      >
+        <h2 id="primary-input-heading">Primary input</h2>
+        <p className={styles.inputHint}>
+          Paste product context or choose one UTF-8 .txt/.md file. The saved
+          input is scoped to this Task.
+        </p>
+        <p role="alert" aria-live="polite">
+          {primaryInputError}
+        </p>
+        {retryPrimaryInput !== undefined ? (
+          <button type="button" onClick={retryPrimaryInput}>
+            Retry primary input
+          </button>
+        ) : null}
+      </section>
+    );
+  }
+
+  const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file === undefined) return;
+    const displayName = file.name.split(/[\\/]/u).pop() ?? file.name;
+    const suffix = displayName
+      .slice(displayName.lastIndexOf("."))
+      .toLowerCase();
+    if (suffix !== ".txt" && suffix !== ".md") {
+      setMessage("Choose one .txt or .md file.");
+      return;
+    }
+    try {
+      const text = new TextDecoder("utf-8", { fatal: true }).decode(
+        await file.arrayBuffer(),
+      );
+      setKind(suffix === ".md" ? "markdown_file" : "text_file");
+      setFileName(displayName);
+      setContent(text);
+      setMessage(`Loaded ${displayName}. Review it, then save the input.`);
+    } catch {
+      setMessage("The selected file could not be read as UTF-8 text.");
+    }
+  };
+
+  const save = async () => {
+    setMessage(null);
+    let draft: TaskPrimaryInputDraft;
+    try {
+      draft = normalizePrimaryInput({ inputKind: kind, fileName, content });
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Primary input is invalid.",
+      );
+      return;
+    }
+    if (savePrimaryInput === undefined || inputBlocked) return;
+    setSaving(true);
+    try {
+      const saved = await savePrimaryInput(draft);
+      setSavedPreview(saved);
+      setMessage(`Saved revision ${saved.inputRevision}.`);
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "The primary input could not be saved. Try again.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section
+      className={styles.primaryInput}
+      aria-labelledby="primary-input-heading"
+    >
+      <h2 id="primary-input-heading">Primary input</h2>
+      <p className={styles.inputHint}>
+        Paste product context or choose one UTF-8 .txt/.md file. The saved input
+        is scoped to this Task.
+      </p>
+      {primaryInputLoading ? (
+        <p role="status" aria-live="polite">
+          Loading saved input…
+        </p>
+      ) : null}
+      <fieldset className={styles.inputChoices}>
+        <legend>Input source</legend>
+        <label>
+          <input
+            type="radio"
+            name="primary-input-kind"
+            checked={kind === "pasted_text"}
+            disabled={inputBlocked || saving}
+            onChange={() => {
+              setKind("pasted_text");
+              setFileName(null);
+            }}
+          />
+          Paste text
+        </label>
+        <label>
+          <input
+            type="file"
+            disabled={inputBlocked || saving}
+            accept=".txt,.md,text/plain,text/markdown"
+            onChange={onFileChange}
+            aria-label="Choose a text or markdown file"
+          />
+        </label>
+      </fieldset>
+      <label className={styles.inputField} htmlFor="primary-input-content">
+        {fileName === null ? "Pasted text" : `File: ${fileName}`}
+        <textarea
+          id="primary-input-content"
+          value={content}
+          disabled={inputBlocked || saving}
+          onChange={(event) => setContent(event.target.value)}
+          rows={10}
+          required
+        />
+      </label>
+      <button
+        type="button"
+        onClick={() => void save()}
+        disabled={inputBlocked || saving}
+      >
+        {saving ? "Saving…" : "Save primary input"}
+      </button>
+      {message !== null ? (
+        <p className={styles.inputStatus} role="status" aria-live="polite">
+          {message}
+        </p>
+      ) : null}
+      {savedPreview !== null ? (
+        <section
+          className={styles.preview}
+          aria-labelledby="saved-input-heading"
+        >
+          <h3 id="saved-input-heading">Saved input preview</h3>
+          <p>
+            Revision {savedPreview.inputRevision} · {savedPreview.inputKind} ·{" "}
+            {savedPreview.byteCount} bytes
+          </p>
+          <pre>{savedPreview.content}</pre>
+          <time dateTime={savedPreview.updatedAt}>
+            Updated {savedPreview.updatedAt}
+          </time>
+        </section>
+      ) : null}
+    </section>
+  );
+}
+
+export function TaskWorkbench({
+  task,
+  primaryInput,
+  primaryInputLoading,
+  primaryInputError,
+  retryPrimaryInput,
+  savePrimaryInput,
+}: TaskWorkbenchProps) {
   const routerLocation = useLocation();
   const navigate = useNavigate();
   const mode = deriveWorkbenchMode(task);
@@ -215,8 +451,20 @@ export function TaskWorkbench({ task }: TaskWorkbenchProps) {
       </nav>
 
       <p className={styles.neutral} role="status" aria-live="polite">
-        {neutralPanelMessage[selectedPanel]}
+        {selectedPanel === "intake" && savePrimaryInput !== undefined
+          ? "Intake input is ready to save."
+          : neutralPanelMessage[selectedPanel]}
       </p>
+
+      {selectedPanel === "intake" ? (
+        <PrimaryInputPanel
+          primaryInput={primaryInput}
+          primaryInputLoading={primaryInputLoading}
+          primaryInputError={primaryInputError}
+          retryPrimaryInput={retryPrimaryInput}
+          savePrimaryInput={savePrimaryInput}
+        />
+      ) : null}
 
       <section>
         <h2 id="stage-summaries-heading">Stage summaries</h2>

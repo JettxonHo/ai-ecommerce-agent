@@ -20,6 +20,7 @@ def test_public_facade_and_adapter_facade_stay_narrow() -> None:
         "GetRun",
         "GetStage",
         "GetTask",
+        "ListTasks",
         "PrepareInitialRun",
         "PrepareInitialRunResult",
         "RunSnapshot",
