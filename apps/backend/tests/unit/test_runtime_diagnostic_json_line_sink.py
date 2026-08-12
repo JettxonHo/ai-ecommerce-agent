@@ -21,6 +21,20 @@ from ai_ecommerce_agent.platform.runtime_diagnostics import (
 pytestmark = pytest.mark.unit
 
 
+class CountingStringIO(StringIO):
+    """Real text stream that records writes without mocking the stream API."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.write_calls = 0
+        self.writes: list[str] = []
+
+    def write(self, data: str) -> int:
+        self.write_calls += 1
+        self.writes.append(data)
+        return super().write(data)
+
+
 def _event(
     name: str = "task.started",
     *,
@@ -55,15 +69,31 @@ def test_sequential_events_are_independent_and_stream_remains_caller_owned() -> 
     assert "second-task" in stream.getvalue()
 
 
+def test_successful_emit_writes_exactly_once_with_one_newline() -> None:
+    stream = CountingStringIO()
+    sink = RuntimeDiagnosticJsonLineSink(stream=stream)
+    events = (_event("first"), _event("second", level=RuntimeDiagnosticLevel.ERROR))
+
+    for event in events:
+        before = stream.write_calls
+        sink.emit(event)
+        assert stream.write_calls == before + 1
+        assert stream.writes[-1] == f"{encode_runtime_diagnostic_event(event)}\n"
+        assert stream.writes[-1].count("\n") == 1
+
+    assert stream.write_calls == len(events)
+
+
 @pytest.mark.parametrize("invalid", [None, {}, {"event_name": "raw"}, "message"])
 def test_invalid_event_writes_nothing(invalid: object) -> None:
-    stream = StringIO()
+    stream = CountingStringIO()
     sink = RuntimeDiagnosticJsonLineSink(stream=stream)
 
     with pytest.raises(TypeError):
         sink.emit(cast(RuntimeDiagnosticEvent, invalid))
 
     assert stream.getvalue() == ""
+    assert stream.write_calls == 0
 
 
 def test_event_subclass_is_rejected_without_a_write() -> None:

@@ -40,6 +40,22 @@ _FORBIDDEN_IMPORT_PREFIXES = (
     "starlette",
 )
 _FORBIDDEN_LOGGING_CALLS = {"logging.getLogger", "logging.basicConfig"}
+_ALLOWED_LOGGING_MODULE_CALLS = {"Formatter", "Logger", "StreamHandler"}
+_FORBIDDEN_GLOBAL_LOGGING_SYMBOLS = {
+    "addLevelName",
+    "basicConfig",
+    "captureWarnings",
+    "disable",
+    "getLogger",
+    "setLoggerClass",
+    "setLogRecordFactory",
+    "shutdown",
+}
+_FORBIDDEN_GLOBAL_LOGGING_METHODS = {
+    "addHandler",
+    "removeHandler",
+    "setLevel",
+}
 
 
 def _tree(path: Path) -> ast.Module:
@@ -202,6 +218,172 @@ def _forbidden_logging_calls(tree: ast.Module) -> list[str]:
     ]
 
 
+def _logging_global_violations(tree: ast.Module) -> list[str]:
+    """Reject global logging configuration while allowing local logger setup."""
+
+    logging_aliases = {"logging"}
+    forbidden_symbol_aliases: set[str] = set()
+    root_aliases: set[str] = set()
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name == "logging":
+                    logging_aliases.add(alias.asname or "logging")
+        elif isinstance(node, ast.ImportFrom) and node.module == "logging":
+            for alias in node.names:
+                local_name = alias.asname or alias.name
+                if alias.name in _FORBIDDEN_GLOBAL_LOGGING_SYMBOLS:
+                    forbidden_symbol_aliases.add(local_name)
+                if alias.name == "root":
+                    root_aliases.add(local_name)
+
+    changed = True
+    while changed:
+        changed = False
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)) or node.value is None:
+                continue
+            if (
+                not isinstance(node.value, ast.Name)
+                or node.value.id not in logging_aliases
+            ):
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                dotted = _dotted_name(target)
+                if dotted is not None and dotted not in logging_aliases:
+                    logging_aliases.add(dotted)
+                    changed = True
+
+    def root_reference(node: ast.AST) -> bool:
+        dotted = _dotted_name(node)
+        if dotted is None:
+            return False
+        parts = dotted.split(".")
+        return dotted in root_aliases or (
+            len(parts) == 2 and parts[0] in logging_aliases and parts[1] == "root"
+        )
+
+    changed = True
+    while changed:
+        changed = False
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            if node.value is None:
+                continue
+            if not root_reference(node.value):
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                dotted = _dotted_name(target)
+                if dotted is not None and dotted not in root_aliases:
+                    root_aliases.add(dotted)
+                    changed = True
+
+    local_logger_names: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        value = node.value
+        if not isinstance(value, ast.Call) or not isinstance(value.func, ast.Attribute):
+            continue
+        if not isinstance(value.func.value, ast.Name):
+            continue
+        if value.func.value.id in logging_aliases and value.func.attr == "Logger":
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            local_logger_names.update(
+                dotted
+                for target in targets
+                if (dotted := _dotted_name(target)) is not None
+            )
+
+    def is_root_expression(node: ast.AST) -> bool:
+        return root_reference(node)
+
+    violations: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            function = node.func
+            if isinstance(function, ast.Name):
+                if function.id in forbidden_symbol_aliases:
+                    violations.append(f"global logging symbol: {function.id}")
+                continue
+            if not isinstance(function, ast.Attribute):
+                continue
+            if is_root_expression(function.value):
+                violations.append(f"global logging root: {_dotted_name(function)}")
+                continue
+            dotted_function = _dotted_name(function)
+            dotted_parts = dotted_function.split(".") if dotted_function else []
+            if dotted_parts and dotted_parts[0] in logging_aliases:
+                if len(dotted_parts) == 2 and dotted_parts[1] in (
+                    _ALLOWED_LOGGING_MODULE_CALLS
+                ):
+                    continue
+                violations.append(f"global logging module: {dotted_function}")
+                continue
+            if isinstance(function.value, ast.Name):
+                if function.value.id in logging_aliases:
+                    continue
+                base = _dotted_name(function.value)
+                if (
+                    function.attr in _FORBIDDEN_GLOBAL_LOGGING_METHODS
+                    and base not in local_logger_names
+                ):
+                    violations.append(
+                        f"global logging method: {_dotted_name(function)}"
+                    )
+        if isinstance(node, ast.Attribute):
+            if node.attr == "handlers" and is_root_expression(node.value):
+                violations.append("global logging handlers")
+            if is_root_expression(node):
+                violations.append(f"global logging root: {_dotted_name(node)}")
+        if isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if any(
+                isinstance(target, ast.Attribute)
+                and target.attr == "handlers"
+                and is_root_expression(target.value)
+                for target in targets
+            ):
+                violations.append("global logging handlers assignment")
+    return violations
+
+
+def _level_mapping(tree: ast.Module) -> list[tuple[str, str]]:
+    function = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef) and node.name == "_logging_level"
+    )
+    mapping: list[tuple[str, str]] = []
+    for node in function.body:
+        if not isinstance(node, ast.If):
+            continue
+        test = node.test
+        if not (
+            isinstance(test, ast.Compare)
+            and isinstance(test.left, ast.Name)
+            and test.left.id == "level"
+            and len(test.ops) == 1
+            and isinstance(test.ops[0], ast.Is)
+            and len(test.comparators) == 1
+            and isinstance(test.comparators[0], ast.Attribute)
+            and isinstance(test.comparators[0].value, ast.Name)
+            and test.comparators[0].value.id == "RuntimeDiagnosticLevel"
+            and len(node.body) == 1
+            and isinstance(node.body[0], ast.Return)
+            and node.body[0].value is not None
+        ):
+            continue
+        returned = _dotted_name(node.body[0].value)
+        if returned is not None:
+            mapping.append((test.comparators[0].attr, returned))
+    return mapping
+
+
 def test_sink_has_exact_one_production_file_and_facade() -> None:
     assert sorted(
         path.name for path in _PLATFORM_ROOT.glob("runtime_diagnostic*.py")
@@ -239,6 +421,94 @@ def test_sink_has_no_import_time_effects_mutable_globals_or_global_logger_setup(
     assert _import_time_calls(tree) == []
     assert _mutable_module_assignments(tree) == []
     assert _forbidden_logging_calls(tree) == []
+    assert _logging_global_violations(tree) == []
+
+
+def test_level_mapping_is_exact_and_global_logging_mutations_are_rejected() -> None:
+    tree = _tree(_MODULE)
+    expected_mapping = [
+        ("INFO", "logging.INFO"),
+        ("WARNING", "logging.WARNING"),
+        ("ERROR", "logging.ERROR"),
+        ("CRITICAL", "logging.CRITICAL"),
+    ]
+    assert _level_mapping(tree) == expected_mapping
+
+    baseline = """
+import logging
+__all__ = ["RuntimeDiagnosticJsonLineSink"]
+class RuntimeDiagnosticJsonLineSink:
+    def __init__(self) -> None:
+        logger = logging.Logger("sink")
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logger.setLevel(logging.INFO)
+        logger.addHandler(handler)
+        logger.log(logging.INFO, "message")
+    def emit(self) -> None:
+        self._logger.log(logging.WARNING, "message")
+
+def _logging_level(level):
+    if level is RuntimeDiagnosticLevel.INFO:
+        return logging.INFO
+    if level is RuntimeDiagnosticLevel.WARNING:
+        return logging.WARNING
+    if level is RuntimeDiagnosticLevel.ERROR:
+        return logging.ERROR
+    if level is RuntimeDiagnosticLevel.CRITICAL:
+        return logging.CRITICAL
+"""
+    baseline_tree = ast.parse(baseline)
+    assert _logging_global_violations(baseline_tree) == []
+    assert _level_mapping(baseline_tree) == expected_mapping
+
+    mutations = (
+        "logging.root.addHandler(handler)",
+        "import logging as log\nlog.root.removeHandler(handler)",
+        (
+            "import logging as log\n"
+            "root_alias = log.root\n"
+            "root_alias.setLevel(logging.WARNING)"
+        ),
+        (
+            "import logging as log\n"
+            "module_alias = log\n"
+            "module_alias.root.setLevel(logging.WARNING)"
+        ),
+        ("import logging as log\nroot_alias = log.root\nroot_alias.handlers.clear()"),
+        (
+            "from logging import root as global_root\n"
+            "global_root.setLevel(logging.WARNING)"
+        ),
+        "import logging as log\nlog.root.handlers.clear()",
+        "import logging\nlogging.root.handlers = []",
+        "import logging\nlogging.captureWarnings(True)",
+        "from logging import shutdown as stop\nstop()",
+        "import logging as log\nlog.config.dictConfig({})",
+        "import logging\nlogging.disable(logging.CRITICAL)",
+        (
+            "class Leaked:\n"
+            "    def __init__(self):\n"
+            "        logging.root.addHandler(handler)"
+        ),
+        (
+            "class Leaked:\n"
+            "    def emit(self):\n"
+            "        from logging import shutdown as stop\n"
+            "        stop()"
+        ),
+    )
+    for mutation in mutations:
+        mutated_tree = ast.parse(baseline + "\n" + mutation)
+        assert _logging_global_violations(mutated_tree), mutation
+
+    always_info = (
+        baseline.replace("return logging.WARNING", "return logging.INFO")
+        .replace("return logging.ERROR", "return logging.INFO")
+        .replace("return logging.CRITICAL", "return logging.INFO")
+    )
+    assert _logging_global_violations(ast.parse(always_info)) == []
+    assert _level_mapping(ast.parse(always_info)) != expected_mapping
 
 
 def test_platform_and_repository_have_no_sink_reexport() -> None:
