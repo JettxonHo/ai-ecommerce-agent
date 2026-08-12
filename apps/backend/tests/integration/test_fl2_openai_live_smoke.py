@@ -243,9 +243,7 @@ def _write_evidence(
     runtimes: list[OpenAIResponsesModelRuntime],
     behavior_gates: dict[str, bool],
 ) -> None:
-    metadata = tuple(
-        item for runtime in runtimes for item in runtime.metadata_records
-    )
+    metadata = tuple(item for runtime in runtimes for item in runtime.metadata_records)
     serialized = serialize_live_smoke_evidence(
         commit=os.environ["GIT_COMMIT"].strip(),
         started_at_utc=started_at.isoformat().replace("+00:00", "Z"),
@@ -360,9 +358,7 @@ def test_one_real_task_to_export_smoke(postgres_engine: Engine) -> None:
                 item for runtime in runtimes for item in runtime.metadata_records
             )
             assert len(metadata) == 5
-            assert [
-                item.version_tuple.execution_profile_id for item in metadata
-            ] == [
+            assert [item.version_tuple.execution_profile_id for item in metadata] == [
                 "product_intake_v1",
                 "customer_insight_v1",
                 "product_positioning_v1",

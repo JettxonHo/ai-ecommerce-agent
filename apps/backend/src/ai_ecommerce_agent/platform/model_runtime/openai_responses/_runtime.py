@@ -28,9 +28,7 @@ _CONFIGURATION_MESSAGE = "OpenAI Responses configuration/access failure"
 _FALLBACK_RETRY_DELAY_SECONDS = 0.25
 
 
-OPENAI_RESPONSES_PROFILE_CATALOG: tuple[
-    OpenAIResponsesCallParameters, ...
-] = (
+OPENAI_RESPONSES_PROFILE_CATALOG: tuple[OpenAIResponsesCallParameters, ...] = (
     OpenAIResponsesCallParameters(
         _contracts.ModelExecutionProfile("product_intake_v1", "v1"),
         OpenAIReasoningEffort.LOW,
@@ -134,8 +132,7 @@ class OpenAIResponsesModelRuntime:
                 request=request,
                 parameters=parameters,
                 provider_attempt_ids=attempts,
-                overall_deadline_monotonic=_monotonic()
-                + parameters.timeout_seconds,
+                overall_deadline_monotonic=_monotonic() + parameters.timeout_seconds,
                 fallback_retry_delay_seconds=_FALLBACK_RETRY_DELAY_SECONDS,
             )
         except _contracts.ModelRuntimeError as error:
@@ -162,9 +159,7 @@ def create_openai_responses_runtime(
     """
 
     if credential_ref != OPENAI_PRIMARY_CREDENTIAL_REF:
-        raise ValueError(
-            "unsupported credential reference; expected openai_primary"
-        )
+        raise ValueError("unsupported credential reference; expected openai_primary")
     secret = _os.environ.get(_OPENAI_API_KEY_ENVIRONMENT_NAME, "")
     if type(secret) is not str or not secret.strip():
         raise OpenAIResponsesConfigurationError(_CONFIGURATION_MESSAGE)
