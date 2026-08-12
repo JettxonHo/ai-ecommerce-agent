@@ -44,6 +44,9 @@ function RecentTasks({ taskGateway }: TaskRoutesProps) {
       <p className={styles.intro}>
         Return to a saved task from the fixed workspace.
       </p>
+      <p className={styles.createLink}>
+        <Link to="/tasks/new">Create a task</Link>
+      </p>
       {query.isPending ? <ReadState>Loading recent tasks…</ReadState> : null}
       {query.isError ? (
         <div className={styles.state} role="alert">

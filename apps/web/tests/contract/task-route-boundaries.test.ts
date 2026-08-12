@@ -5,16 +5,21 @@ import { describe, expect, it } from "vitest";
 const sourceRoot = resolve(import.meta.dirname, "../../src");
 const read = (file: string) => readFileSync(resolve(sourceRoot, file), "utf8");
 
-describe("read-only Task route boundaries", () => {
-  it("keeps the exact outer route inventory and excludes create behavior", () => {
+describe("Task route boundaries", () => {
+  it("keeps the exact outer route inventory and excludes workflow actions", () => {
     const app = read("App.tsx");
+    const create = read("tasks/NewTaskRoute.tsx");
     const paths = [...app.matchAll(/<Route\s+path="([^"]+)"/g)].map(
       (match) => match[1],
     );
 
-    expect(paths).toEqual(["/", "/tasks", "/tasks/:taskId", "*"]);
-    expect(app).not.toContain('path="/tasks/new"');
-    expect(app).not.toContain("createTask");
+    expect(paths).toEqual(["/", "/tasks", "/tasks/new", "/tasks/:taskId", "*"]);
+    expect(app).toContain('path="/tasks/new"');
+    expect(app).toContain("NewTaskRoute");
+    expect(create).toContain("type TaskGateway");
+    expect(create).toContain("taskGateway.createTask(input, key)");
+    expect(create).not.toMatch(/commands\/start|startTask|runTask|\.run\(/);
+    expect(create).not.toMatch(/generated\/schema|openapi-fetch|\bfetch\s*\(/);
   });
 
   it("keeps the route module on the private gateway and Query seam", () => {
