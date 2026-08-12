@@ -60,7 +60,7 @@ def test_authored_document_passes_oas_and_catalog_validation() -> None:
 def test_operation_ids_are_unique_and_catalog_is_bounded() -> None:
     spec = _load_contract()
     operation_ids = [operation["operationId"] for operation in _operations(spec)]
-    assert len(operation_ids) == 38
+    assert len(operation_ids) == 40
     assert len(operation_ids) == len(set(operation_ids))
     assert all(path.startswith("/api/v1/") for path in spec["paths"])
     assert "/api/v1/tasks" in spec["paths"]
@@ -81,6 +81,7 @@ def test_idempotency_and_semantic_revision_are_explicit() -> None:
     spec = _load_contract()
     idempotent_operations = {
         "createTask",
+        "generateTaskResult",
         "startTask",
         "rerunTask",
         "cancelRun",

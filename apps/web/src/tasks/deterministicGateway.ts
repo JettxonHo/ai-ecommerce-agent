@@ -9,11 +9,13 @@ import {
   type TaskInput,
   type TaskPrimaryInput,
   type TaskPrimaryInputDraft,
+  type TaskCurrentResult,
   type TaskOverview,
 } from "./gateway";
 
 export type DeterministicTaskGatewayOptions = Readonly<{
   tasks?: readonly TaskOverview[];
+  results?: readonly TaskCurrentResult[];
 }>;
 
 const createdAt = "2026-08-12T00:00:00Z";
@@ -33,6 +35,9 @@ export const createDeterministicTaskGateway = (
   const byId = new Map(tasks.map((task) => [task.taskId, task]));
   const byKey = new Map<string, { input: TaskInput; task: TaskOverview }>();
   const primaryInputs = new Map<string, TaskPrimaryInput>();
+  const currentResults = new Map(
+    (options.results ?? []).map((result) => [result.taskId, result]),
+  );
   let nextId = 1;
 
   const allocateId = (): string => {
@@ -123,6 +128,61 @@ export const createDeterministicTaskGateway = (
       });
       primaryInputs.set(taskId, saved);
       return clonePrimaryInput(saved);
+    },
+    generateResult: async (value, valueKey, expectedInputRevision) => {
+      const taskId = normalizeTaskIdentity(value);
+      normalizeIdempotencyKey(valueKey);
+      const input = primaryInputs.get(taskId);
+      if (!input)
+        throw new TaskGatewayError("missing", "Primary input not found.");
+      if (input.inputRevision !== expectedInputRevision) {
+        throw new TaskGatewayError(
+          "invalid",
+          "The primary input changed; refresh before retrying.",
+        );
+      }
+      const previous = currentResults.get(taskId);
+      if (previous && previous.inputRevision === expectedInputRevision) {
+        return Object.freeze({ ...previous });
+      }
+      const sufficient =
+        input.content.includes("anchor-city-commuter-backpack") &&
+        input.content.includes("CBP-SYN-001") &&
+        input.content.includes("18 升");
+      const result: TaskCurrentResult = Object.freeze({
+        taskId,
+        resultRevision: previous ? previous.resultRevision + 1 : 0,
+        inputRevision: expectedInputRevision,
+        status: sufficient ? "awaiting_review" : "insufficient_input",
+        generatedAt: createdAt,
+        missingInformation: sufficient
+          ? Object.freeze([])
+          : Object.freeze(["Provide Anchor SKU product identity evidence."]),
+        productIntake: sufficient
+          ? Object.freeze({ stage: "Product Intake" })
+          : null,
+        customerInsight: sufficient
+          ? Object.freeze({ stage: "Customer Insight" })
+          : null,
+        productPositioning: sufficient
+          ? Object.freeze({ stage: "Product Positioning" })
+          : null,
+        marketingBrief: sufficient
+          ? Object.freeze({ stage: "Marketing Brief" })
+          : null,
+        xiaohongshuBrief: sufficient
+          ? Object.freeze({ stage: "Xiaohongshu Brief" })
+          : null,
+      });
+      currentResults.set(taskId, result);
+      return Object.freeze({ ...result });
+    },
+    getCurrentResult: async (value) => {
+      const taskId = normalizeTaskIdentity(value);
+      if (!byId.has(taskId))
+        throw new TaskGatewayError("missing", "Task not found.");
+      const result = currentResults.get(taskId);
+      return result ? Object.freeze({ ...result }) : null;
     },
   };
 };

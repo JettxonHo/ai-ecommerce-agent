@@ -60,6 +60,8 @@ const gateway = (): TaskGateway => ({
   getTaskOverview: vi.fn(),
   getPrimaryInput: vi.fn(),
   savePrimaryInput: vi.fn(),
+  generateResult: vi.fn(),
+  getCurrentResult: vi.fn(),
 });
 
 const fill = async (

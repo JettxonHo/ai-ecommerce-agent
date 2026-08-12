@@ -15,6 +15,7 @@ _PACKAGE = _SRC / "modules/marketing_brief"
 _GENERATION = _PACKAGE / "application/skills/marketing_brief_generation"
 _OUTPUT = _GENERATION / "output_contract.py"
 _PUBLIC = _PACKAGE / "public.py"
+_RESULT_BOOTSTRAP = _SRC / "bootstrap/deterministic_result_postgres.py"
 _FILES = [
     _PACKAGE / "application/__init__.py",
     _PACKAGE / "application/skills/__init__.py",
@@ -120,6 +121,14 @@ def _consumer_violations(path: Path, tree: ast.Module) -> list[str]:
             and targets_output
         )
         if allowed_facade_import:
+            continue
+        allowed_pipeline_import = (
+            path == _RESULT_BOOTSTRAP
+            and imported
+            == "ai_ecommerce_agent.modules.marketing_brief.application.skills"
+            and aliases == {"marketing_brief_generation"}
+        )
+        if allowed_pipeline_import:
             continue
         if (
             "marketing_brief" in imported

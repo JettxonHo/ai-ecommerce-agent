@@ -45,8 +45,9 @@ BASELINE_REVISION = "0001_business_baseline"
 TASK_HEAD_REVISION = "0002_task_management"
 SOURCE_HEAD_REVISION = "0003_source_evidence"
 DISPATCH_HEAD_REVISION = "0004_durable_dispatch"
-PREVIOUS_HEAD_REVISION = "0005_dispatch_supersession"
-HEAD_REVISION = "0006_task_primary_input"
+PREVIOUS_HEAD_REVISION = "0006_task_primary_input"
+SUPERSESSION_REVISION = "0005_dispatch_supersession"
+HEAD_REVISION = "0007_deterministic_result"
 DATABASE_URL_ENV = "MVP0_MIGRATION_DATABASE_URL"
 DOMAIN_TABLES = (
     "durable_dispatch_work_intents",
@@ -56,6 +57,7 @@ DOMAIN_TABLES = (
     "source_evidence_task_primary_inputs",
     "source_evidence_task_source_associations",
     "task_management_create_idempotency",
+    "task_management_deterministic_results",
     "task_management_runs",
     "task_management_stages",
     "task_management_tasks",
@@ -65,6 +67,21 @@ SOURCE_VERSION_TABLE = "source_evidence_source_versions"
 PROCESSING_TABLE = "source_evidence_source_version_processing"
 ASSOCIATION_TABLE = "source_evidence_task_source_associations"
 DURABLE_TABLE = "durable_dispatch_work_intents"
+RESULT_TABLE = "task_management_deterministic_results"
+RESULT_COLUMNS = (
+    "task_id",
+    "result_revision",
+    "input_revision",
+    "idempotency_key",
+    "status",
+    "generated_at",
+    "missing_information",
+    "product_intake",
+    "customer_insight",
+    "product_positioning",
+    "marketing_brief",
+    "xiaohongshu_brief",
+)
 DURABLE_COLUMNS = (
     "dispatch_id",
     "intent_type",
@@ -563,7 +580,10 @@ def test_revision_graph_has_one_business_head() -> None:
     assert head.down_revision == PREVIOUS_HEAD_REVISION
     previous_head = script.get_revision(PREVIOUS_HEAD_REVISION)
     assert previous_head is not None
-    assert previous_head.down_revision == DISPATCH_HEAD_REVISION
+    assert previous_head.down_revision == SUPERSESSION_REVISION
+    supersession = script.get_revision(SUPERSESSION_REVISION)
+    assert supersession is not None
+    assert supersession.down_revision == DISPATCH_HEAD_REVISION
     dispatch_head = script.get_revision(DISPATCH_HEAD_REVISION)
     assert dispatch_head is not None
     assert dispatch_head.down_revision == SOURCE_HEAD_REVISION
@@ -805,6 +825,16 @@ def test_named_tables_and_constraints_are_present(
         "ck_source_evidence_task_primary_inputs_byte_count",
         "ck_source_evidence_task_primary_inputs_revision_nonnegative",
         "ck_source_evidence_task_primary_inputs_filename_pair",
+        "pk_task_management_deterministic_results",
+        "uq_task_management_results_task_input",
+        "uq_task_management_results_task_key",
+        "fk_task_management_results_task_owner",
+        "ck_task_management_results_task_id_nonempty",
+        "ck_task_management_results_key_nonempty",
+        "ck_task_management_results_result_revision_nonnegative",
+        "ck_task_management_results_input_revision_nonnegative",
+        "ck_task_management_results_status",
+        "ck_task_management_results_missing_information_nonempty",
         *DURABLE_CONSTRAINT_NAMES,
     }
     assert expected_constraints <= _constraint_names(migration_engine)
@@ -840,6 +870,38 @@ def test_source_tables_have_exact_minimal_columns(
         "revision",
         "replaced_by_association_id",
     ]
+
+
+def test_deterministic_result_has_exact_atomic_columns_and_constraints(
+    migration_engine: Engine,
+) -> None:
+    """Result rows carry one complete candidate set and durable fences."""
+
+    _reset_schema(migration_engine)
+    command.upgrade(_config(_database_url()), HEAD_REVISION)
+
+    assert _columns(migration_engine, RESULT_TABLE) == list(RESULT_COLUMNS)
+    assert _column_details(migration_engine, RESULT_TABLE) == [
+        ("task_id", "text", "text", "NO"),
+        ("result_revision", "bigint", "int8", "NO"),
+        ("input_revision", "bigint", "int8", "NO"),
+        ("idempotency_key", "text", "text", "NO"),
+        ("status", "text", "text", "NO"),
+        ("generated_at", "timestamp with time zone", "timestamptz", "NO"),
+        ("missing_information", "text", "text", "NO"),
+        ("product_intake", "text", "text", "YES"),
+        ("customer_insight", "text", "text", "YES"),
+        ("product_positioning", "text", "text", "YES"),
+        ("marketing_brief", "text", "text", "YES"),
+        ("xiaohongshu_brief", "text", "text", "YES"),
+    ]
+    assert {
+        "pk_task_management_deterministic_results",
+        "uq_task_management_results_task_input",
+        "uq_task_management_results_task_key",
+        "fk_task_management_results_task_owner",
+        "ck_task_management_results_status",
+    } <= set(_constraint_definitions(migration_engine, RESULT_TABLE))
 
 
 def test_durable_work_intent_has_exact_columns_and_types(

@@ -139,6 +139,61 @@ paths:
         '500': { $ref: '#/components/responses/Problem500' }
         '503': { $ref: '#/components/responses/Problem503' }
 
+  /api/v1/tasks/{taskId}/commands/generate-result:
+    post:
+      tags: [Task]
+      operationId: generateTaskResult
+      summary: Run the deterministic Fast Lane pipeline for the current input
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateResultRequest'
+      responses:
+        '201':
+          description: First committed current result
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentTaskResult'
+        '200':
+          description: Durable same-key replay of the committed result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentTaskResult'
+        '400': { $ref: '#/components/responses/Problem400' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
+  /api/v1/tasks/{taskId}/current-result:
+    get:
+      tags: [Task]
+      operationId: getTaskCurrentResult
+      summary: Read the current deterministic result for a Task
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: Current generated candidate result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentTaskResult'
+        '404': { $ref: '#/components/responses/Problem404' }
+        '500': { $ref: '#/components/responses/Problem500' }
+        '503': { $ref: '#/components/responses/Problem503' }
+
   /api/v1/tasks/{taskId}/commands/start:
     post:
       tags: [Task]
@@ -1428,6 +1483,60 @@ components:
         updatedAt:
           type: string
           format: date-time
+    GenerateResultRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedInputRevision]
+      properties:
+        expectedInputRevision:
+          $ref: '#/components/schemas/ResourceRevision'
+    DeterministicCandidate:
+      type: object
+      description: Validated candidate using the existing private skill output contract.
+      additionalProperties: true
+    CurrentTaskResult:
+      type: object
+      additionalProperties: false
+      required: [taskId, resultRevision, inputRevision, status, generatedAt, missingInformation, productIntake, customerInsight, productPositioning, marketingBrief, xiaohongshuBrief]
+      properties:
+        taskId:
+          type: string
+          minLength: 1
+        resultRevision:
+          $ref: '#/components/schemas/ResourceRevision'
+        inputRevision:
+          $ref: '#/components/schemas/ResourceRevision'
+        status:
+          type: string
+          enum: [awaiting_review, insufficient_input]
+        generatedAt:
+          type: string
+          format: date-time
+        missingInformation:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        productIntake:
+          oneOf:
+            - $ref: '#/components/schemas/DeterministicCandidate'
+            - type: 'null'
+        customerInsight:
+          oneOf:
+            - $ref: '#/components/schemas/DeterministicCandidate'
+            - type: 'null'
+        productPositioning:
+          oneOf:
+            - $ref: '#/components/schemas/DeterministicCandidate'
+            - type: 'null'
+        marketingBrief:
+          oneOf:
+            - $ref: '#/components/schemas/DeterministicCandidate'
+            - type: 'null'
+        xiaohongshuBrief:
+          oneOf:
+            - $ref: '#/components/schemas/DeterministicCandidate'
+            - type: 'null'
     TaskSummary:
       type: object
       required: [taskId, taskName, productCategory, taskStatus, currentStage, waitingReason, updatedAt, revision, primaryAction, capabilities]

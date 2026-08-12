@@ -614,6 +614,8 @@ describe("TaskGateway deterministic contract", () => {
     const gateway: TaskGateway = createDeterministicTaskGateway();
     expect(Object.keys(gateway).sort()).toEqual([
       "createTask",
+      "generateResult",
+      "getCurrentResult",
       "getPrimaryInput",
       "getTaskOverview",
       "listTasks",

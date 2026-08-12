@@ -2,6 +2,7 @@ import type { ApiClient } from "../api/client";
 import {
   mapTaskOverview,
   mapTaskPrimaryInput,
+  mapTaskCurrentResult,
   mapTaskSummary,
   normalizeIdempotencyKey,
   normalizeTaskIdentity,
@@ -124,5 +125,35 @@ export const createHttpTaskGateway = (client: ApiClient): TaskGateway => ({
         }),
       mapTaskPrimaryInput,
     );
+  },
+  generateResult: async (taskId, idempotencyKey, expectedInputRevision) => {
+    const identity = normalizeTaskIdentity(taskId);
+    const key = normalizeIdempotencyKey(idempotencyKey);
+    if (!Number.isInteger(expectedInputRevision) || expectedInputRevision < 0) {
+      throw new TaskGatewayError(
+        "invalid",
+        "The expected input revision is invalid.",
+      );
+    }
+    return request(
+      "Deterministic result",
+      () =>
+        client.POST("/api/v1/tasks/{taskId}/commands/generate-result", {
+          params: {
+            path: { taskId: identity },
+            header: { "Idempotency-Key": key },
+          },
+          body: { expectedInputRevision },
+        }),
+      mapTaskCurrentResult,
+    );
+  },
+  getCurrentResult: async (taskId) => {
+    const identity = normalizeTaskIdentity(taskId);
+    const result = await client.GET("/api/v1/tasks/{taskId}/current-result", {
+      params: { path: { taskId: identity } },
+    });
+    if (result.response.status === 404) return null;
+    return request("Current result", async () => result, mapTaskCurrentResult);
   },
 });

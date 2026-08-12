@@ -134,6 +134,79 @@ TASK_CREATE_IDEMPOTENCY_TABLE = Table(
     schema=TASK_MANAGEMENT_SCHEMA_TOKEN,
 )
 
+# The Fast Lane result participant deliberately remains Task-owned.  The
+# primary-input mirror is read-only metadata used to recheck the input
+# revision in the same transaction as result publication; it is not a second
+# persistence owner or a generic repository.
+TASK_PRIMARY_INPUTS_FOR_RESULT_TABLE = Table(
+    "source_evidence_task_primary_inputs",
+    TASK_MANAGEMENT_METADATA,
+    Column("task_id", Text(), nullable=False),
+    Column("input_kind", Text(), nullable=False),
+    Column("file_name", Text()),
+    Column("content", Text(), nullable=False),
+    Column("byte_count", BigInteger(), nullable=False),
+    Column("revision", BigInteger(), nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+    schema=TASK_MANAGEMENT_SCHEMA_TOKEN,
+)
+
+TASK_RESULTS_TABLE = Table(
+    "task_management_deterministic_results",
+    TASK_MANAGEMENT_METADATA,
+    Column("task_id", Text(), nullable=False),
+    Column("result_revision", BigInteger(), nullable=False),
+    Column("input_revision", BigInteger(), nullable=False),
+    Column("idempotency_key", Text(), nullable=False),
+    Column("status", Text(), nullable=False),
+    Column("generated_at", DateTime(timezone=True), nullable=False),
+    Column("missing_information", Text(), nullable=False),
+    Column("product_intake", Text()),
+    Column("customer_insight", Text()),
+    Column("product_positioning", Text()),
+    Column("marketing_brief", Text()),
+    Column("xiaohongshu_brief", Text()),
+    PrimaryKeyConstraint(
+        "task_id", "result_revision", name="pk_task_management_deterministic_results"
+    ),
+    UniqueConstraint(
+        "task_id", "input_revision", name="uq_task_management_results_task_input"
+    ),
+    UniqueConstraint(
+        "task_id", "idempotency_key", name="uq_task_management_results_task_key"
+    ),
+    ForeignKeyConstraint(
+        ["task_id"],
+        [f"{TASK_MANAGEMENT_SCHEMA_TOKEN}.task_management_tasks.task_id"],
+        name="fk_task_management_results_task_owner",
+    ),
+    CheckConstraint(
+        "length(btrim(task_id)) > 0",
+        name="ck_task_management_results_task_id_nonempty",
+    ),
+    CheckConstraint(
+        "length(btrim(idempotency_key)) > 0",
+        name="ck_task_management_results_key_nonempty",
+    ),
+    CheckConstraint(
+        "result_revision >= 0",
+        name="ck_task_management_results_result_revision_nonnegative",
+    ),
+    CheckConstraint(
+        "input_revision >= 0",
+        name="ck_task_management_results_input_revision_nonnegative",
+    ),
+    CheckConstraint(
+        "status IN ('awaiting_review', 'insufficient_input')",
+        name="ck_task_management_results_status",
+    ),
+    CheckConstraint(
+        "length(btrim(missing_information)) > 0",
+        name="ck_task_management_results_missing_information_nonempty",
+    ),
+    schema=TASK_MANAGEMENT_SCHEMA_TOKEN,
+)
+
 RUNS_TABLE = Table(
     "task_management_runs",
     TASK_MANAGEMENT_METADATA,
@@ -301,6 +374,8 @@ __all__ = [
     "STAGES_TABLE",
     "TASKS_TABLE",
     "TASK_CREATE_IDEMPOTENCY_TABLE",
+    "TASK_PRIMARY_INPUTS_FOR_RESULT_TABLE",
+    "TASK_RESULTS_TABLE",
     "TASK_MANAGEMENT_METADATA",
     "TASK_MANAGEMENT_SCHEMA_TOKEN",
     "schema_translate_map",

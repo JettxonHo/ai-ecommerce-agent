@@ -93,6 +93,8 @@ const gatewayFor = (
   savePrimaryInput: async () => {
     throw new TaskGatewayError("invalid", "Primary input is unavailable.");
   },
+  generateResult: vi.fn(),
+  getCurrentResult: vi.fn(),
 });
 
 describe("TaskRoutes", () => {
@@ -404,5 +406,44 @@ describe("TaskRoutes", () => {
       content: "Saved context",
     });
     expect(attempts).toBe(3);
+  });
+
+  it("generates persisted result candidates from intake and keeps the retry key stable", async () => {
+    const task = overview({ taskId: "task-1" });
+    const gateway = createDeterministicTaskGateway({ tasks: [task] });
+    await gateway.savePrimaryInput("task-1", {
+      inputKind: "pasted_text",
+      fileName: null,
+      content:
+        "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包，约 18 升，可放入 14 英寸设备。",
+    });
+    const generateResult = vi.spyOn(gateway, "generateResult");
+
+    renderRoutes(
+      "/tasks/task-1?panel=intake&stage=product_positioning",
+      gateway,
+    );
+
+    await userEvent
+      .setup()
+      .click(await screen.findByRole("button", { name: "Generate result" }));
+    expect(
+      await screen.findByRole("heading", { name: "Current result" }),
+    ).toBeTruthy();
+    expect(screen.getByText("awaiting_review")).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Marketing Brief" }),
+    ).toBeTruthy();
+    expect(generateResult).toHaveBeenCalledTimes(1);
+
+    await userEvent.setup().click(screen.getByRole("link", { name: "Intake" }));
+    await userEvent
+      .setup()
+      .click(await screen.findByRole("button", { name: "Generate result" }));
+    expect(generateResult).toHaveBeenCalledTimes(2);
+    expect(generateResult.mock.calls[0]?.[1]).toBe(
+      generateResult.mock.calls[1]?.[1],
+    );
+    expect(generateResult.mock.calls[0]?.[2]).toBe(0);
   });
 });

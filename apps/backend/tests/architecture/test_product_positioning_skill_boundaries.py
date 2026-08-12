@@ -23,6 +23,7 @@ _FILES = [
     _PACKAGE / "application/skills/product_positioning/output_contract.py",
 ]
 _FACADE = _PACKAGE / "application/skills/product_positioning/__init__.py"
+_RESULT_BOOTSTRAP = _SRC / "bootstrap/deterministic_result_postgres.py"
 _ALLOWED_IMPORTS = {
     "__future__",
     "collections.abc",
@@ -92,6 +93,13 @@ def _positioning_consumer_violations(path: Path, tree: ast.Module) -> list[str]:
         elif isinstance(node, ast.ImportFrom):
             imported = "." * node.level + (node.module or "")
             aliases = {alias.name for alias in node.names}
+            if (
+                path == _RESULT_BOOTSTRAP
+                and imported
+                == "ai_ecommerce_agent.modules.product_positioning.application.skills"
+                and aliases == {"product_positioning"}
+            ):
+                continue
             relative_targets = (
                 _relative_import_targets(path, node) if node.level else []
             )
