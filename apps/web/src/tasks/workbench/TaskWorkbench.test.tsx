@@ -330,6 +330,8 @@ describe("TaskWorkbench", () => {
         savePrimaryInput: async () => {
           throw new Error("Primary input is not available in this test.");
         },
+        generateResult: vi.fn(),
+        getCurrentResult: vi.fn(),
       };
 
       render(

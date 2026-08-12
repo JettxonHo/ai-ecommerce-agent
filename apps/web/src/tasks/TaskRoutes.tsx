@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import { Link, Navigate, useParams } from "react-router";
 import styles from "./TaskRoutes.module.css";
 import { TaskWorkbench } from "./workbench/TaskWorkbench";
@@ -7,6 +8,7 @@ import {
   type TaskGateway,
   type TaskPrimaryInputDraft,
   type TaskPrimaryAction,
+  type TaskCurrentResult,
   type TaskSummary,
 } from "./gateway";
 
@@ -16,6 +18,16 @@ const recentTasksKey = ["tasks", "recent"] as const;
 const overviewKey = (taskId: string) => ["tasks", "overview", taskId] as const;
 const primaryInputKey = (taskId: string) =>
   ["tasks", "primary-input", taskId] as const;
+const currentResultKey = (taskId: string) =>
+  ["tasks", "current-result", taskId] as const;
+
+const makeRetryKey = (taskId: string, inputRevision: number): string => {
+  const random =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `result:${taskId}:${inputRevision}:${random}`;
+};
 
 const taskStatus = (task: TaskSummary): string =>
   task.currentStage ?? task.waitingReason ?? task.taskStatus;
@@ -108,10 +120,54 @@ function TaskOverviewRoute({
     },
     retry: false,
   });
+  const currentResultQuery = useQuery({
+    queryKey: currentResultKey(taskId),
+    queryFn: async () => (await taskGateway.getCurrentResult(taskId)) ?? null,
+    retry: false,
+  });
+  const resultRetryKey = useRef<{ inputRevision: number; key: string } | null>(
+    null,
+  );
   const savePrimaryInput = async (input: TaskPrimaryInputDraft) => {
     const saved = await taskGateway.savePrimaryInput(taskId, input);
     await queryClient.invalidateQueries({ queryKey: primaryInputKey(taskId) });
+    if (
+      resultRetryKey.current !== null &&
+      resultRetryKey.current.inputRevision !== saved.inputRevision
+    ) {
+      resultRetryKey.current = null;
+    }
     return saved;
+  };
+  const generateResult = async (): Promise<TaskCurrentResult> => {
+    const input = primaryInputQuery.data;
+    if (input === undefined || input === null) {
+      throw new TaskGatewayError(
+        "invalid",
+        "Save primary input before generating a result.",
+      );
+    }
+    const existingKey = resultRetryKey.current;
+    const retryKey =
+      existingKey?.inputRevision === input.inputRevision
+        ? existingKey.key
+        : makeRetryKey(taskId, input.inputRevision);
+    resultRetryKey.current = {
+      inputRevision: input.inputRevision,
+      key: retryKey,
+    };
+    try {
+      const result = await taskGateway.generateResult(
+        taskId,
+        retryKey,
+        input.inputRevision,
+      );
+      queryClient.setQueryData(currentResultKey(taskId), result);
+      await queryClient.invalidateQueries({ queryKey: overviewKey(taskId) });
+      return result;
+    } catch (error) {
+      throw error;
+    }
   };
 
   if (query.isPending) {
@@ -161,6 +217,21 @@ function TaskOverviewRoute({
       savePrimaryInput={
         primaryInputQuery.isSuccess ? savePrimaryInput : undefined
       }
+      currentResult={
+        currentResultQuery.isSuccess ? currentResultQuery.data : undefined
+      }
+      currentResultLoading={currentResultQuery.isPending}
+      currentResultError={
+        currentResultQuery.isError
+          ? "The current result is temporarily unavailable. Retry to reload it."
+          : null
+      }
+      retryCurrentResult={
+        currentResultQuery.isError
+          ? () => void currentResultQuery.refetch()
+          : undefined
+      }
+      generateResult={generateResult}
     />
   );
 }

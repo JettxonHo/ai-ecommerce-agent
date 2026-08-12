@@ -41,6 +41,15 @@ const primaryInput = {
   byteCount: 20,
   updatedAt: "2026-08-12T00:00:00Z",
 };
+const missingCurrentResult = (instance: string) => ({
+  type: "urn:ai-ecommerce-agent:problem:not-found",
+  title: "Not found",
+  status: 404,
+  detail: "The current result was not found.",
+  instance,
+  action: "none",
+});
+const missingCurrentResultStatus = "status of 404 (Not Found)";
 
 test("renders recent tasks and restores a stable deep link without errors", async ({
   page,
@@ -50,7 +59,10 @@ test("renders recent tasks and restores a stable deep link without errors", asyn
 
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("console", (message) => {
-    if (message.type() === "error") {
+    if (
+      message.type() === "error" &&
+      !message.text().includes(missingCurrentResultStatus)
+    ) {
       consoleErrors.push(message.text());
     }
   });
@@ -62,6 +74,14 @@ test("renders recent tasks and restores a stable deep link without errors", asyn
         status: 200,
         contentType: "application/json",
         body: JSON.stringify(primaryInput),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/current-result")) {
+      await route.fulfill({
+        status: 404,
+        contentType: "application/problem+json",
+        body: JSON.stringify(missingCurrentResult(url.pathname)),
       });
       return;
     }
@@ -135,6 +155,14 @@ test("canonicalizes an invalid panel and stage selection on the same Task URL", 
       return;
     }
     requestPaths.push(`${route.request().method()} ${url.pathname}`);
+    if (url.pathname.endsWith("/current-result")) {
+      await route.fulfill({
+        status: 404,
+        contentType: "application/problem+json",
+        body: JSON.stringify(missingCurrentResult(url.pathname)),
+      });
+      return;
+    }
     if (decodeURIComponent(url.pathname) === "/api/v1/tasks/task/7") {
       await route.fulfill({
         status: 200,
@@ -162,7 +190,9 @@ test("canonicalizes an invalid panel and stage selection on the same Task URL", 
   );
   expect(requestPaths).toEqual([
     "GET /api/v1/tasks/task%2F7",
+    "GET /api/v1/tasks/task%2F7/current-result",
     "GET /api/v1/tasks/task%2F7",
+    "GET /api/v1/tasks/task%2F7/current-result",
   ]);
 });
 
@@ -204,7 +234,12 @@ test("renders representative intake, active-run, and recovery modes without extr
   const consoleErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("console", (message) => {
-    if (message.type() === "error") consoleErrors.push(message.text());
+    if (
+      message.type() === "error" &&
+      !message.text().includes(missingCurrentResultStatus)
+    ) {
+      consoleErrors.push(message.text());
+    }
   });
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
@@ -217,6 +252,14 @@ test("renders representative intake, active-run, and recovery modes without extr
       return;
     }
     requestPaths.push(`${route.request().method()} ${url.pathname}`);
+    if (url.pathname.endsWith("/current-result")) {
+      await route.fulfill({
+        status: 404,
+        contentType: "application/problem+json",
+        body: JSON.stringify(missingCurrentResult(url.pathname)),
+      });
+      return;
+    }
     const taskId = url.pathname.split("/").pop() ?? "";
     const selected = tasks.get(decodeURIComponent(taskId));
     if (selected) {
@@ -254,8 +297,11 @@ test("renders representative intake, active-run, and recovery modes without extr
 
   expect(requestPaths).toEqual([
     "GET /api/v1/tasks/task%2F7",
+    "GET /api/v1/tasks/task%2F7/current-result",
     "GET /api/v1/tasks/task-active",
+    "GET /api/v1/tasks/task-active/current-result",
     "GET /api/v1/tasks/task-recovery",
+    "GET /api/v1/tasks/task-recovery/current-result",
   ]);
   expect(requestPaths.some((path) => path.includes("/commands/"))).toBe(false);
   expect(pageErrors).toEqual([]);
@@ -314,7 +360,10 @@ test("renders long reference identities as literal text without overflow or exec
 
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("console", (message) => {
-    if (message.type() === "error") {
+    if (
+      message.type() === "error" &&
+      !message.text().includes(missingCurrentResultStatus)
+    ) {
       consoleErrors.push(message.text());
     }
   });
@@ -333,6 +382,14 @@ test("renders long reference identities as literal text without overflow or exec
       return;
     }
     requestPaths.push(`${route.request().method()} ${url.pathname}`);
+    if (url.pathname.endsWith("/current-result")) {
+      await route.fulfill({
+        status: 404,
+        contentType: "application/problem+json",
+        body: JSON.stringify(missingCurrentResult(url.pathname)),
+      });
+      return;
+    }
     if (url.pathname === "/api/v1/tasks/task-long-references") {
       await route.fulfill({
         status: 200,
@@ -404,7 +461,10 @@ test("renders long reference identities as literal text without overflow or exec
     ),
   ).not.toBe("none");
 
-  expect(requestPaths).toEqual(["GET /api/v1/tasks/task-long-references"]);
+  expect(requestPaths).toEqual([
+    "GET /api/v1/tasks/task-long-references",
+    "GET /api/v1/tasks/task-long-references/current-result",
+  ]);
   expect(pageErrors).toEqual([]);
   expect(consoleErrors).toEqual([]);
 });
@@ -428,6 +488,14 @@ test("reflows long Task values without page-level horizontal overflow", async ({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify(primaryInput),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/current-result")) {
+      await route.fulfill({
+        status: 404,
+        contentType: "application/problem+json",
+        body: JSON.stringify(missingCurrentResult(url.pathname)),
       });
       return;
     }
@@ -490,7 +558,8 @@ test("creates a Task through the generated HTTP client and reuses its key on exp
   page.on("console", (message) => {
     if (
       message.type() === "error" &&
-      !message.text().includes("status of 503 (Service Unavailable)")
+      !message.text().includes("status of 503 (Service Unavailable)") &&
+      !message.text().includes(missingCurrentResultStatus)
     ) {
       consoleErrors.push(message.text());
     }
@@ -508,6 +577,14 @@ test("creates a Task through the generated HTTP client and reuses its key on exp
       return;
     }
     requestPaths.push(url.pathname);
+    if (url.pathname.endsWith("/current-result")) {
+      await route.fulfill({
+        status: 404,
+        contentType: "application/problem+json",
+        body: JSON.stringify(missingCurrentResult(url.pathname)),
+      });
+      return;
+    }
 
     if (request.method() === "POST" && url.pathname === "/api/v1/tasks") {
       createAttempts += 1;
@@ -610,6 +687,14 @@ test("reuses the same key after a malformed-success response and rotates it only
         status: 200,
         contentType: "application/json",
         body: JSON.stringify(primaryInput),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/current-result")) {
+      await route.fulfill({
+        status: 404,
+        contentType: "application/problem+json",
+        body: JSON.stringify(missingCurrentResult(url.pathname)),
       });
       return;
     }

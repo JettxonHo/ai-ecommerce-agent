@@ -6,7 +6,8 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Protocol
+from urllib.parse import quote
 
 from fastapi import APIRouter, FastAPI, Header, Path, Query, Request
 from fastapi.responses import JSONResponse
@@ -44,6 +45,7 @@ _NOT_FOUND = "urn:ai-ecommerce-agent:problem:not-found"
 _VALIDATION_FAILED = "urn:ai-ecommerce-agent:problem:validation-failed"
 _REVISION_CONFLICT = "urn:ai-ecommerce-agent:problem:revision-conflict"
 _SERVICE_UNAVAILABLE = "urn:ai-ecommerce-agent:problem:service-unavailable"
+_IDEMPOTENCY_CONFLICT = "urn:ai-ecommerce-agent:problem:idempotency-conflict"
 
 
 class CreateTaskBody(BaseModel):
@@ -64,6 +66,20 @@ class PrimaryInputBody(BaseModel):
     input_kind: Annotated[str, Field(alias="inputKind", min_length=1)]
     file_name: Annotated[str | None, Field(alias="fileName")]
     content: Annotated[str, Field(min_length=1)]
+
+
+class GenerateResultBody(BaseModel):
+    """Authored body for one deterministic current-result generation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    expected_input_revision: Annotated[int, Field(alias="expectedInputRevision", ge=0)]
+
+
+class ResultPipelineCoordinator(Protocol):
+    """Narrow request-time seam injected by the composition root."""
+
+    def generate(self, *, input_text: str) -> Any: ...
 
 
 def _timestamp(value: datetime) -> str:
@@ -178,6 +194,81 @@ def _input_problem(request: Request, error: PrimaryInputError) -> JSONResponse:
     )
 
 
+def _result_problem(request: Request, error: Exception) -> JSONResponse:
+    code = getattr(error, "error_code", None)
+    if code == "not_found":
+        return safe_problem_response(
+            request=request,
+            problem_type=_NOT_FOUND,
+            title="Not found",
+            status=404,
+            detail="The requested Task or primary input was not found.",
+            action="none",
+        )
+    if code == "revision_conflict":
+        return safe_problem_response(
+            request=request,
+            problem_type=_REVISION_CONFLICT,
+            title="Revision conflict",
+            status=409,
+            detail="The primary input changed; refresh before retrying.",
+            action="refresh",
+        )
+    if code == "idempotency_conflict":
+        return safe_problem_response(
+            request=request,
+            problem_type=_IDEMPOTENCY_CONFLICT,
+            title="Idempotency conflict",
+            status=409,
+            detail="The retry key belongs to another result request.",
+            action="correct_input",
+        )
+    if code == "generation_failed":
+        return safe_problem_response(
+            request=request,
+            problem_type="urn:ai-ecommerce-agent:problem:internal-error",
+            title="Internal error",
+            status=500,
+            detail="The deterministic result could not be generated.",
+            action="contact_operator",
+        )
+    retryable = bool(getattr(error, "retryability", False))
+    return safe_problem_response(
+        request=request,
+        problem_type=_SERVICE_UNAVAILABLE if retryable else _VALIDATION_FAILED,
+        title="Service unavailable" if retryable else "Validation failed",
+        status=503 if retryable else 422,
+        detail=(
+            "The result service is temporarily unavailable."
+            if retryable
+            else "The result request is invalid."
+        ),
+        action="retry_later" if retryable else "correct_input",
+    )
+
+
+def _result_projection(value: Any) -> dict[str, Any]:
+    return {
+        "taskId": str(value.task_id),
+        "resultRevision": value.result_revision,
+        "inputRevision": value.input_revision,
+        "status": value.status,
+        "generatedAt": _timestamp(value.generated_at),
+        "missingInformation": list(value.missing_information),
+        "productIntake": value.candidates.get("productIntake"),
+        "customerInsight": value.candidates.get("customerInsight"),
+        "productPositioning": value.candidates.get("productPositioning"),
+        "marketingBrief": value.candidates.get("marketingBrief"),
+        "xiaohongshuBrief": value.candidates.get("xiaohongshuBrief"),
+    }
+
+
+def _result_location(task_id: TaskId) -> str:
+    """Keep an opaque Task identity in one encoded URL path segment."""
+
+    return f"/api/v1/tasks/{quote(str(task_id), safe='')}/current-result"
+
+
 def _normalize_task_body(body: CreateTaskBody) -> tuple[str, str, str]:
     values = (body.task_name, body.product_category, body.promotion_goal)
     normalized = tuple(value.strip() for value in values)
@@ -223,6 +314,8 @@ def register_task_routes(
     *,
     task_application: TaskManagementApplication,
     primary_input_application: PrimaryInputApplication,
+    result_application: Any | None = None,
+    pipeline_coordinator: ResultPipelineCoordinator | None = None,
 ) -> None:
     """Register only the Task/input operations consumed by the Fast Lane Web UI."""
 
@@ -347,6 +440,79 @@ def register_task_routes(
         except PrimaryInputError as error:
             return _input_problem(request, error)
         return JSONResponse(_input_projection(value))
+
+    if result_application is not None:
+        if pipeline_coordinator is None:
+            raise ValueError(
+                "pipeline_coordinator is required when result routes are enabled"
+            )
+        coordinator = pipeline_coordinator
+
+        @router.post(
+            "/api/v1/tasks/{taskId:path}/commands/generate-result",
+            status_code=201,
+        )
+        def generate_result(
+            request: Request,
+            body: GenerateResultBody,
+            task_id: Annotated[str, Path(alias="taskId", min_length=1)],
+            idempotency_key: Annotated[
+                str, Header(alias="Idempotency-Key", min_length=1, max_length=200)
+            ],
+        ) -> JSONResponse:
+            try:
+                task_id_value = TaskId(task_id)
+                if not idempotency_key.strip():
+                    return safe_problem_response(
+                        request=request,
+                        problem_type=_VALIDATION_FAILED,
+                        title="Validation failed",
+                        status=422,
+                        detail="The result request is invalid.",
+                        action="correct_input",
+                    )
+                value, replayed = result_application.generate_result(
+                    task_id=task_id_value,
+                    idempotency_key=idempotency_key.strip(),
+                    expected_input_revision=body.expected_input_revision,
+                    coordinator=coordinator,
+                )
+            except (TypeError, ValueError):
+                return _invalid_task_id_problem(request)
+            except Exception as error:
+                return _result_problem(request, error)
+            return JSONResponse(
+                _result_projection(value),
+                status_code=200 if replayed else 201,
+                headers=(
+                    {"Location": _result_location(task_id_value)}
+                    if not replayed
+                    else None
+                ),
+            )
+
+        @router.get("/api/v1/tasks/{taskId:path}/current-result")
+        def get_current_result(
+            request: Request,
+            task_id: Annotated[str, Path(alias="taskId", min_length=1)],
+        ) -> JSONResponse:
+            try:
+                task_id_value = TaskId(task_id)
+                value = result_application.get_current_result(task_id=task_id_value)
+            except (TypeError, ValueError):
+                return _invalid_task_id_problem(request)
+            except Exception as error:
+                return _result_problem(request, error)
+            if value is None:
+                return safe_problem_response(
+                    request=request,
+                    problem_type=_NOT_FOUND,
+                    title="Not found",
+                    status=404,
+                    detail="The current result was not found.",
+                    action="none",
+                )
+            return JSONResponse(_result_projection(value))
 
     @router.get("/api/v1/tasks/{taskId:path}")
     def get_task(

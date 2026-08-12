@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import {
   normalizePrimaryInput,
+  type TaskCurrentResult,
   type TaskOverview,
   type TaskPrimaryInput,
   type TaskPrimaryInputDraft,
@@ -26,6 +27,11 @@ type TaskWorkbenchProps = Readonly<{
   savePrimaryInput?: (
     input: TaskPrimaryInputDraft,
   ) => Promise<TaskPrimaryInput>;
+  currentResult?: TaskCurrentResult | null;
+  currentResultLoading?: boolean;
+  currentResultError?: string | null;
+  retryCurrentResult?: () => void;
+  generateResult?: () => Promise<TaskCurrentResult>;
 }>;
 
 const panelLabels: Readonly<Record<WorkbenchPanel, string>> = {
@@ -119,6 +125,7 @@ function PrimaryInputPanel({
   primaryInputError = null,
   retryPrimaryInput,
   savePrimaryInput,
+  generateResult,
 }: Readonly<
   Pick<
     TaskWorkbenchProps,
@@ -127,12 +134,14 @@ function PrimaryInputPanel({
     | "primaryInputError"
     | "retryPrimaryInput"
     | "savePrimaryInput"
+    | "generateResult"
   >
 >) {
   const [kind, setKind] = useState<TaskPrimaryInputKind>("pasted_text");
   const [fileName, setFileName] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [savedPreview, setSavedPreview] = useState<TaskPrimaryInput | null>(
     null,
   );
@@ -244,6 +253,30 @@ function PrimaryInputPanel({
     }
   };
 
+  const generate = async () => {
+    if (generateResult === undefined || savedPreview === null || generating) {
+      return;
+    }
+    setMessage(null);
+    setGenerating(true);
+    try {
+      const result = await generateResult();
+      setMessage(
+        result.status === "awaiting_review"
+          ? `Generated result revision ${result.resultRevision}.`
+          : "The input is insufficient to generate all candidate results.",
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "The result could not be generated. Try again.",
+      );
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <section
       className={styles.primaryInput}
@@ -302,6 +335,15 @@ function PrimaryInputPanel({
       >
         {saving ? "Saving…" : "Save primary input"}
       </button>
+      {generateResult !== undefined && savedPreview !== null ? (
+        <button
+          type="button"
+          onClick={() => void generate()}
+          disabled={inputBlocked || saving || generating}
+        >
+          {generating ? "Generating…" : "Generate result"}
+        </button>
+      ) : null}
       {message !== null ? (
         <p className={styles.inputStatus} role="status" aria-live="polite">
           {message}
@@ -327,6 +369,102 @@ function PrimaryInputPanel({
   );
 }
 
+const resultCandidates: Readonly<
+  Readonly<{
+    key: keyof Pick<
+      TaskCurrentResult,
+      | "productIntake"
+      | "customerInsight"
+      | "productPositioning"
+      | "marketingBrief"
+      | "xiaohongshuBrief"
+    >;
+    label: string;
+  }>[]
+> = [
+  { key: "productIntake", label: "Product Intake" },
+  { key: "customerInsight", label: "Customer Insight" },
+  { key: "productPositioning", label: "Product Positioning" },
+  { key: "marketingBrief", label: "Marketing Brief" },
+  { key: "xiaohongshuBrief", label: "Xiaohongshu Brief" },
+];
+
+function ResultPanel({
+  result,
+  loading = false,
+  error = null,
+  retry,
+}: Readonly<{
+  result?: TaskCurrentResult | null;
+  loading?: boolean;
+  error?: string | null;
+  retry?: () => void;
+}>) {
+  if (loading || result === undefined) {
+    return (
+      <p className={styles.neutral} role="status" aria-live="polite">
+        Loading current result…
+      </p>
+    );
+  }
+  if (error !== null && error !== undefined) {
+    return (
+      <section className={styles.resultPanel} aria-labelledby="result-heading">
+        <h2 id="result-heading">Current result</h2>
+        <p role="alert">{error}</p>
+        {retry !== undefined ? (
+          <button type="button" onClick={retry}>
+            Retry current result
+          </button>
+        ) : null}
+      </section>
+    );
+  }
+  if (result === null) {
+    return (
+      <section className={styles.resultPanel} aria-labelledby="result-heading">
+        <h2 id="result-heading">Current result</h2>
+        <p>
+          No current result yet. Save primary input, then generate a result.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className={styles.resultPanel} aria-labelledby="result-heading">
+      <h2 id="result-heading">Current result</h2>
+      <p>
+        Revision {result.resultRevision} · input revision {result.inputRevision}{" "}
+        · <strong>{result.status}</strong>
+      </p>
+      <time dateTime={result.generatedAt}>Generated {result.generatedAt}</time>
+      {result.status === "insufficient_input" ? (
+        <div className={styles.resultWarning} role="status">
+          <h3>More input required</h3>
+          <ul>
+            {result.missingInformation.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className={styles.resultCandidates}>
+          {resultCandidates.map(({ key, label }) => {
+            const candidate = result[key];
+            return (
+              <article key={key}>
+                <h3>{label}</h3>
+                <pre>{JSON.stringify(candidate, null, 2)}</pre>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function TaskWorkbench({
   task,
   primaryInput,
@@ -334,6 +472,11 @@ export function TaskWorkbench({
   primaryInputError,
   retryPrimaryInput,
   savePrimaryInput,
+  currentResult,
+  currentResultLoading,
+  currentResultError,
+  retryCurrentResult,
+  generateResult,
 }: TaskWorkbenchProps) {
   const routerLocation = useLocation();
   const navigate = useNavigate();
@@ -373,6 +516,17 @@ export function TaskWorkbench({
   const selectedStage = workbenchLocation.stage;
   const selectedSearch = (panel: WorkbenchPanel, stage = selectedStage) =>
     linkSearch(routerLocation.search, panel, stage);
+  const generateAndShowResults = async (): Promise<TaskCurrentResult> => {
+    if (generateResult === undefined) {
+      throw new Error("Result generation is unavailable.");
+    }
+    const result = await generateResult();
+    navigate({
+      pathname: routerLocation.pathname,
+      search: selectedSearch("results"),
+    });
+    return result;
+  };
 
   return (
     <section className={styles.page} aria-labelledby="task-workbench-heading">
@@ -463,6 +617,22 @@ export function TaskWorkbench({
           primaryInputError={primaryInputError}
           retryPrimaryInput={retryPrimaryInput}
           savePrimaryInput={savePrimaryInput}
+          generateResult={
+            generateResult === undefined ? undefined : generateAndShowResults
+          }
+        />
+      ) : null}
+
+      {selectedPanel === "results" &&
+      (currentResult !== undefined ||
+        currentResultLoading !== undefined ||
+        currentResultError !== undefined ||
+        retryCurrentResult !== undefined) ? (
+        <ResultPanel
+          result={currentResult}
+          loading={currentResultLoading}
+          error={currentResultError}
+          retry={retryCurrentResult}
         />
       ) : null}
 

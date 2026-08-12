@@ -20,6 +20,10 @@ from sqlalchemy import Engine, text
 from sqlalchemy.engine import URL
 from starlette.exceptions import StarletteDeprecationWarning
 
+from ai_ecommerce_agent.bootstrap.deterministic_result_postgres import (
+    DeterministicResultPostgresComposition,
+    compose_deterministic_result_postgres,
+)
 from ai_ecommerce_agent.entrypoints.http import (
     FixedWorkspaceHttpConfig,
     create_task_http_application,
@@ -142,6 +146,41 @@ def _client(engine: Engine) -> TestClient:
     )
 
 
+def _result_client(
+    engine: Engine,
+) -> tuple[TestClient, DeterministicResultPostgresComposition]:
+    task_factory = TaskManagementPostgresUnitOfWorkFactory.from_engine(
+        engine, schema=SCHEMA
+    )
+    input_factory = PrimaryInputPostgresUnitOfWorkFactory.from_engine(
+        engine, schema=SCHEMA
+    )
+    composition = compose_deterministic_result_postgres(
+        PostgresEngineConfig(
+            database_url=_database_url(),
+            pool_size=2,
+            max_overflow=0,
+            pool_timeout=5,
+        ),
+        schema=SCHEMA,
+    )
+    return (
+        TestClient(
+            create_task_http_application(
+                config=FixedWorkspaceHttpConfig(
+                    workspace_id="workspace-demo",
+                    workbench_origin="http://127.0.0.1:5173",
+                ),
+                task_application=TaskManagementApplicationService(task_factory),
+                primary_input_application=PrimaryInputApplicationService(input_factory),
+                result_application=composition.application,
+                pipeline_coordinator=composition.coordinator,
+            )
+        ),
+        composition,
+    )
+
+
 def test_create_list_read_save_input_and_replay_survive_new_composition(
     postgres_engine: Engine,
 ) -> None:
@@ -245,3 +284,103 @@ def test_create_list_read_save_input_and_replay_survive_new_composition(
         )
     assert task_count == 1
     assert key_count == 1
+
+
+def test_generate_result_is_durable_atomic_and_revision_fenced(
+    postgres_engine: Engine,
+) -> None:
+    task_body = {
+        "taskName": "Anchor result launch",
+        "productCategory": "Backpack",
+        "promotionGoal": "Awareness",
+    }
+    anchor_input = (
+        "fixture-sufficient-v1 fictional synthetic non-regulated\n"
+        "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包\n"
+        "工作日城市通勤时携带电脑、文件和日常随身物品，约 18 升，"
+        "可放入 14 英寸级别笔记本电脑。\n"
+        "表面有防泼水处理。source-sufficient-product-v1 product.json direct_source。"
+    )
+    client, composition = _result_client(postgres_engine)
+    try:
+        with client:
+            created = client.post(
+                "/api/v1/tasks",
+                headers={"Idempotency-Key": "result-task-create"},
+                json=task_body,
+            )
+            task_id = created.json()["taskId"]
+            saved = client.put(
+                f"/api/v1/tasks/{task_id}/primary-input",
+                json={
+                    "inputKind": "pasted_text",
+                    "fileName": None,
+                    "content": anchor_input,
+                },
+            )
+            generated = client.post(
+                f"/api/v1/tasks/{task_id}/commands/generate-result",
+                headers={"Idempotency-Key": "result-key-1"},
+                json={"expectedInputRevision": 0},
+            )
+            current = client.get(f"/api/v1/tasks/{task_id}/current-result")
+        assert created.status_code == 201, created.text
+        assert saved.status_code == 200, saved.text
+        assert generated.status_code == 201, generated.text
+        assert generated.json()["status"] == "awaiting_review"
+        assert all(
+            generated.json()[name] is not None
+            for name in (
+                "productIntake",
+                "customerInsight",
+                "productPositioning",
+                "marketingBrief",
+                "xiaohongshuBrief",
+            )
+        )
+        assert current.status_code == 200, current.text
+        assert current.json() == generated.json()
+
+        replay_client, replay_composition = _result_client(postgres_engine)
+        try:
+            with replay_client:
+                replay = replay_client.post(
+                    f"/api/v1/tasks/{task_id}/commands/generate-result",
+                    headers={"Idempotency-Key": "result-key-1"},
+                    json={"expectedInputRevision": 0},
+                )
+            assert replay.status_code == 200, replay.text
+            assert replay.json() == generated.json()
+        finally:
+            replay_composition.close()
+
+        with client:
+            changed = client.put(
+                f"/api/v1/tasks/{task_id}/primary-input",
+                json={
+                    "inputKind": "pasted_text",
+                    "fileName": None,
+                    "content": "Changed input with no Anchor SKU evidence.",
+                },
+            )
+            assert changed.status_code == 200, changed.text
+            fenced = client.post(
+                f"/api/v1/tasks/{task_id}/commands/generate-result",
+                headers={"Idempotency-Key": "result-key-2"},
+                json={"expectedInputRevision": 0},
+            )
+            assert fenced.status_code == 409, fenced.text
+
+        stale_client, stale_composition = _result_client(postgres_engine)
+        try:
+            with stale_client:
+                stale_replay = stale_client.post(
+                    f"/api/v1/tasks/{task_id}/commands/generate-result",
+                    headers={"Idempotency-Key": "result-key-1"},
+                    json={"expectedInputRevision": 0},
+                )
+            assert stale_replay.status_code == 409, stale_replay.text
+        finally:
+            stale_composition.close()
+    finally:
+        composition.close()

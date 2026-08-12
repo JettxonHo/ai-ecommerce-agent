@@ -3,6 +3,7 @@ import type { components } from "../api/generated/schema";
 type SummaryDto = components["schemas"]["TaskSummary"];
 type OverviewDto = components["schemas"]["TaskOverview"];
 type PrimaryInputDto = components["schemas"]["TaskPrimaryInput"];
+type CurrentResultDto = components["schemas"]["CurrentTaskResult"];
 
 export type TaskInput = Readonly<{
   taskName: string;
@@ -23,6 +24,20 @@ export type TaskPrimaryInput = TaskPrimaryInputDraft &
     byteCount: number;
     updatedAt: string;
   }>;
+export type TaskResultStatus = "awaiting_review" | "insufficient_input";
+export type TaskCurrentResult = Readonly<{
+  taskId: string;
+  resultRevision: number;
+  inputRevision: number;
+  status: TaskResultStatus;
+  generatedAt: string;
+  missingInformation: readonly string[];
+  productIntake: Record<string, unknown> | null;
+  customerInsight: Record<string, unknown> | null;
+  productPositioning: Record<string, unknown> | null;
+  marketingBrief: Record<string, unknown> | null;
+  xiaohongshuBrief: Record<string, unknown> | null;
+}>;
 export type TaskPrimaryAction = Readonly<
   | { kind: "none" }
   | { kind: "navigate"; target: string }
@@ -91,6 +106,12 @@ export interface TaskGateway {
     taskId: string,
     input: TaskPrimaryInputDraft,
   ): Promise<TaskPrimaryInput>;
+  generateResult(
+    taskId: string,
+    idempotencyKey: string,
+    expectedInputRevision: number,
+  ): Promise<TaskCurrentResult>;
+  getCurrentResult(taskId: string): Promise<TaskCurrentResult | null>;
 }
 
 const invalid = (message: string) => new TaskGatewayError("invalid", message);
@@ -389,6 +410,79 @@ export const mapTaskPrimaryInput = (dto: PrimaryInputDto): TaskPrimaryInput =>
       updatedAt,
     });
   })();
+
+export const mapTaskCurrentResult = (
+  dto: CurrentResultDto,
+): TaskCurrentResult => {
+  const input = objectInput(dto);
+  const invalidResult = () =>
+    new TaskGatewayError("invalid", "The current result response is invalid.");
+  const taskId = input.taskId;
+  const resultRevision = input.resultRevision;
+  const inputRevision = input.inputRevision;
+  const status = input.status;
+  const generatedAt = input.generatedAt;
+  const missingInformation = input.missingInformation;
+  if (
+    typeof taskId !== "string" ||
+    taskId.trim() === "" ||
+    !Number.isInteger(resultRevision) ||
+    (resultRevision as number) < 0 ||
+    !Number.isInteger(inputRevision) ||
+    (inputRevision as number) < 0 ||
+    (status !== "awaiting_review" && status !== "insufficient_input") ||
+    !validPrimaryInputTimestamp(generatedAt) ||
+    !Array.isArray(missingInformation) ||
+    missingInformation.some(
+      (value) => typeof value !== "string" || value.trim() === "",
+    )
+  ) {
+    throw invalidResult();
+  }
+  const candidate = (value: unknown): Record<string, unknown> | null => {
+    if (value === null) return null;
+    if (typeof value !== "object" || Array.isArray(value))
+      throw invalidResult();
+    return value as Record<string, unknown>;
+  };
+  const result: TaskCurrentResult = {
+    taskId,
+    resultRevision: resultRevision as number,
+    inputRevision: inputRevision as number,
+    status,
+    generatedAt,
+    missingInformation: Object.freeze(
+      (missingInformation as unknown[]).map((value) => String(value)),
+    ),
+    productIntake: candidate(input.productIntake),
+    customerInsight: candidate(input.customerInsight),
+    productPositioning: candidate(input.productPositioning),
+    marketingBrief: candidate(input.marketingBrief),
+    xiaohongshuBrief: candidate(input.xiaohongshuBrief),
+  };
+  if (status === "awaiting_review") {
+    if (
+      result.productIntake === null ||
+      result.customerInsight === null ||
+      result.productPositioning === null ||
+      result.marketingBrief === null ||
+      result.xiaohongshuBrief === null ||
+      result.missingInformation.length !== 0
+    ) {
+      throw invalidResult();
+    }
+  } else if (
+    result.productIntake !== null ||
+    result.customerInsight !== null ||
+    result.productPositioning !== null ||
+    result.marketingBrief !== null ||
+    result.xiaohongshuBrief !== null ||
+    result.missingInformation.length === 0
+  ) {
+    throw invalidResult();
+  }
+  return Object.freeze(result);
+};
 
 const cloneAction = (value: TaskPrimaryAction): TaskPrimaryAction => {
   if (typeof value !== "object" || value === null) {

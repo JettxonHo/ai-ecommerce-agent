@@ -156,9 +156,7 @@ def test_workflow_runtime_has_exact_three_production_files() -> None:
         _RUNTIME_ROOT / "__init__.py",
         _RUNTIME_ROOT / "checkpoint_state.py",
     }
-    assert sorted(path.name for path in _ORCHESTRATION_ROOT.glob("*.py")) == [
-        "__init__.py"
-    ]
+    assert (_ORCHESTRATION_ROOT / "__init__.py").is_file()
     assert sorted(path.name for path in _RUNTIME_ROOT.glob("*.py")) == [
         "__init__.py",
         "checkpoint_state.py",

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import socket
 import warnings
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 import pytest
@@ -156,6 +157,59 @@ class _PrimaryInputs:
         return self.value
 
 
+@dataclass(frozen=True)
+class _ResultSnapshot:
+    task_id: TaskId = TaskId("task-1")
+    result_revision: int = 0
+    input_revision: int = 0
+    status: str = "awaiting_review"
+    generated_at: datetime = NOW
+    missing_information: tuple[str, ...] = ()
+    candidates: dict[str, dict[str, str] | None] | None = None
+
+    def __post_init__(self) -> None:
+        if self.candidates is None:
+            object.__setattr__(
+                self,
+                "candidates",
+                {
+                    "productIntake": {"candidate": "intake"},
+                    "customerInsight": {"candidate": "insight"},
+                    "productPositioning": {"candidate": "positioning"},
+                    "marketingBrief": {"candidate": "marketing"},
+                    "xiaohongshuBrief": {"candidate": "xiaohongshu"},
+                },
+            )
+
+
+class _Results:
+    def __init__(self, snapshot: _ResultSnapshot | None = None) -> None:
+        self.calls: list[tuple[str, str, int]] = []
+        self.snapshot = snapshot or _ResultSnapshot()
+
+    def generate_result(
+        self,
+        *,
+        task_id: TaskId,
+        idempotency_key: str,
+        expected_input_revision: int,
+        coordinator: object,
+    ) -> tuple[_ResultSnapshot, bool]:
+        assert coordinator is not None
+        self.calls.append((str(task_id), idempotency_key, expected_input_revision))
+        replayed = len(self.calls) > 1
+        return self.snapshot, replayed
+
+    def get_current_result(self, *, task_id: TaskId) -> _ResultSnapshot:
+        assert task_id == self.snapshot.task_id
+        return self.snapshot
+
+
+class _Coordinator:
+    def generate(self, *, input_text: str) -> object:
+        return input_text
+
+
 def _client() -> TestClient:
     return TestClient(
         create_task_http_application(
@@ -260,3 +314,78 @@ def test_primary_input_route_accepts_an_opaque_task_id_with_a_slash() -> None:
     assert saved.status_code == 200
     assert saved.json()["taskId"] == "task/7"
     assert tasks.seen_task_ids == [TaskId("task/7")]
+
+
+def test_result_routes_require_injected_coordinator_and_preserve_idempotent_replay(  # noqa: E501
+) -> None:
+    tasks = _Tasks()
+    results = _Results()
+    application = create_task_http_application(
+        config=FixedWorkspaceHttpConfig(
+            workspace_id="workspace-demo",
+            workbench_origin="http://127.0.0.1:5173",
+        ),
+        task_application=tasks,
+        primary_input_application=_PrimaryInputs(),
+        result_application=results,
+        pipeline_coordinator=_Coordinator(),
+    )
+    with TestClient(application) as client:
+        first = client.post(
+            "/api/v1/tasks/task-1/commands/generate-result",
+            headers={"Idempotency-Key": "result-retry-1"},
+            json={"expectedInputRevision": 0},
+        )
+        replay = client.post(
+            "/api/v1/tasks/task-1/commands/generate-result",
+            headers={"Idempotency-Key": "result-retry-1"},
+            json={"expectedInputRevision": 0},
+        )
+        current = client.get("/api/v1/tasks/task-1/current-result")
+
+    assert first.status_code == 201
+    assert first.headers["location"].endswith("/current-result")
+    assert replay.status_code == 200
+    assert "location" not in replay.headers
+    assert current.status_code == 200
+    assert current.json()["productIntake"] == {"candidate": "intake"}
+    assert results.calls == [
+        ("task-1", "result-retry-1", 0),
+        ("task-1", "result-retry-1", 0),
+    ]
+
+
+def test_result_location_encodes_an_opaque_task_id_as_one_path_segment() -> None:
+    task_id = "task/7"
+    application = create_task_http_application(
+        config=FixedWorkspaceHttpConfig(
+            workspace_id="workspace-demo",
+            workbench_origin="http://127.0.0.1:5173",
+        ),
+        task_application=_Tasks(task_id),
+        primary_input_application=_PrimaryInputs(task_id),
+        result_application=_Results(_ResultSnapshot(task_id=TaskId(task_id))),
+        pipeline_coordinator=_Coordinator(),
+    )
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/v1/tasks/task%2F7/commands/generate-result",
+            headers={"Idempotency-Key": "result-slash-1"},
+            json={"expectedInputRevision": 0},
+        )
+
+    assert response.status_code == 201
+    assert response.headers["location"] == ("/api/v1/tasks/task%2F7/current-result")
+
+
+def test_result_routes_fail_closed_without_injected_coordinator() -> None:
+    with pytest.raises(ValueError, match="pipeline_coordinator is required"):
+        create_task_http_application(
+            config=FixedWorkspaceHttpConfig(
+                workspace_id="workspace-demo",
+                workbench_origin="http://127.0.0.1:5173",
+            ),
+            task_application=_Tasks(),
+            primary_input_application=_PrimaryInputs(),
+            result_application=_Results(),
+        )

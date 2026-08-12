@@ -57,6 +57,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tasks/{taskId}/commands/generate-result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run the deterministic Fast Lane pipeline for the current input */
+        post: operations["generateTaskResult"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{taskId}/current-result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the current deterministic result for a Task */
+        get: operations["getTaskCurrentResult"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tasks/{taskId}/commands/start": {
         parameters: {
             query?: never;
@@ -693,6 +727,28 @@ export interface components {
             byteCount: number;
             /** Format: date-time */
             updatedAt: string;
+        };
+        GenerateResultRequest: {
+            expectedInputRevision: components["schemas"]["ResourceRevision"];
+        };
+        /** @description Validated candidate using the existing private skill output contract. */
+        DeterministicCandidate: {
+            [key: string]: unknown;
+        };
+        CurrentTaskResult: {
+            taskId: string;
+            resultRevision: components["schemas"]["ResourceRevision"];
+            inputRevision: components["schemas"]["ResourceRevision"];
+            /** @enum {string} */
+            status: "awaiting_review" | "insufficient_input";
+            /** Format: date-time */
+            generatedAt: string;
+            missingInformation: string[];
+            productIntake: components["schemas"]["DeterministicCandidate"] | null;
+            customerInsight: components["schemas"]["DeterministicCandidate"] | null;
+            productPositioning: components["schemas"]["DeterministicCandidate"] | null;
+            marketingBrief: components["schemas"]["DeterministicCandidate"] | null;
+            xiaohongshuBrief: components["schemas"]["DeterministicCandidate"] | null;
         };
         TaskSummary: {
             taskId: string;
@@ -1526,6 +1582,76 @@ export interface operations {
             409: components["responses"]["Problem409"];
             413: components["responses"]["Problem413"];
             422: components["responses"]["Problem422"];
+            500: components["responses"]["Problem500"];
+            503: components["responses"]["Problem503"];
+        };
+    };
+    generateTaskResult: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Project-defined retry identity scoped to the current fixed workspace and operation. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                taskId: components["parameters"]["TaskId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateResultRequest"];
+            };
+        };
+        responses: {
+            /** @description Durable same-key replay of the committed result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentTaskResult"];
+                };
+            };
+            /** @description First committed current result */
+            201: {
+                headers: {
+                    Location: components["headers"]["Location"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentTaskResult"];
+                };
+            };
+            400: components["responses"]["Problem400"];
+            404: components["responses"]["Problem404"];
+            409: components["responses"]["Problem409"];
+            422: components["responses"]["Problem422"];
+            500: components["responses"]["Problem500"];
+            503: components["responses"]["Problem503"];
+        };
+    };
+    getTaskCurrentResult: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: components["parameters"]["TaskId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current generated candidate result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentTaskResult"];
+                };
+            };
+            404: components["responses"]["Problem404"];
             500: components["responses"]["Problem500"];
             503: components["responses"]["Problem503"];
         };

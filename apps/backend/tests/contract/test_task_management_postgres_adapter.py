@@ -35,6 +35,7 @@ from ai_ecommerce_agent.modules.task_management.infrastructure.tables import (
     RUNS_TABLE,
     STAGES_TABLE,
     TASK_MANAGEMENT_SCHEMA_TOKEN,
+    TASK_RESULTS_TABLE,
     TASKS_TABLE,
 )
 from ai_ecommerce_agent.modules.task_management.infrastructure.uow import (
@@ -195,6 +196,32 @@ def test_metadata_matches_merged_migration_columns_and_schema_token() -> None:
         "fk_task_management_tasks_latest_run_owner",
         "fk_task_management_tasks_current_stage_owner",
     } <= constraint_names
+
+
+def test_deterministic_result_metadata_is_task_scoped_and_atomic() -> None:
+    assert TASK_RESULTS_TABLE.schema == TASK_MANAGEMENT_SCHEMA_TOKEN
+    assert [column.name for column in TASK_RESULTS_TABLE.columns] == [
+        "task_id",
+        "result_revision",
+        "input_revision",
+        "idempotency_key",
+        "status",
+        "generated_at",
+        "missing_information",
+        "product_intake",
+        "customer_insight",
+        "product_positioning",
+        "marketing_brief",
+        "xiaohongshu_brief",
+    ]
+    constraints = {constraint.name for constraint in TASK_RESULTS_TABLE.constraints}
+    assert {
+        "pk_task_management_deterministic_results",
+        "uq_task_management_results_task_input",
+        "uq_task_management_results_task_key",
+        "fk_task_management_results_task_owner",
+        "ck_task_management_results_status",
+    } <= constraints
 
 
 def test_domain_mapping_is_explicit_and_roundtrips() -> None:
