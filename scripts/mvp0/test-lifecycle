@@ -1,0 +1,243 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Fast, offline regression coverage for the local demo shell lifecycle. The
+# harness executes copies of the production scripts against bounded fake
+# Docker/host processes, so it never needs a daemon, a real database, or a
+# network listener.
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+
+fail() {
+  printf 'FAIL: %s\n' "$*" >&2
+  exit 1
+}
+
+assert_contains() {
+  local needle="$1"
+  local haystack="$2"
+  [[ "$haystack" == *"$needle"* ]] || fail "expected output to contain: $needle"
+}
+
+assert_not_contains() {
+  local needle="$1"
+  local haystack="$2"
+  [[ "$haystack" != *"$needle"* ]] || fail "unexpected output: $needle"
+}
+
+assert_not_running() {
+  local pid_file="$1"
+  [[ -f "$pid_file" ]] || fail "missing process marker: $pid_file"
+  local pid
+  pid="$(<"$pid_file")"
+  if kill -0 "$pid" >/dev/null 2>&1; then
+    fail "orphan process remains: $pid"
+  fi
+}
+
+SANDBOX="$(mktemp -d "${TMPDIR:-/tmp}/mvp0-lifecycle.XXXXXX")"
+cleanup() {
+  rm -rf "$SANDBOX"
+}
+trap cleanup EXIT
+
+mkdir -p "$SANDBOX/scripts/mvp0" \
+  "$SANDBOX/apps/backend" \
+  "$SANDBOX/apps/web/node_modules/.bin" \
+  "$SANDBOX/fake-bin"
+cp "$SCRIPT_DIR/../../apps/web/package.json" "$SANDBOX/apps/web/package.json"
+printf 'services:\n  postgres:\n    image: postgres:16.14-bookworm\n' >"$SANDBOX/compose.yaml"
+cp "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/preflight" "$SCRIPT_DIR/demo" \
+  "$SCRIPT_DIR/up" "$SCRIPT_DIR/migrate-business" "$SANDBOX/scripts/mvp0/"
+chmod +x "$SANDBOX/scripts/mvp0"/*
+
+REAL_PYTHON="$(command -v python3)"
+cat >"$SANDBOX/fake-bin/docker" <<'FAKE_DOCKER'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf 'docker %s\n' "$*" >>"${MVP0_TEST_DOCKER_LOG:?}"
+if [[ "${1:-}" != compose ]]; then
+  [[ "${1:-}" == info ]] && exit 0
+  exit 0
+fi
+shift
+while (($#)); do
+  case "$1" in
+    --project-name|--file|--env-file)
+      shift 2
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+command_name="${1:-}"
+shift || true
+case "$command_name" in
+  version)
+    if [[ "${1:-}" == --short ]]; then
+      printf '2.40.0\n'
+    else
+      printf 'Docker Compose version v2.40.0\n'
+    fi
+    ;;
+  config)
+    case " $* " in
+      *' --images '*) printf 'postgres:16.14-bookworm\n' ;;
+      *' --services '*) printf 'postgres\n' ;;
+      *' --volumes '*) printf 'postgres-data\n' ;;
+      *' --format json '*|*' --format=json '*)
+        printf '%s\n' '{"services":{"postgres":{"environment":{"MVP0_BUSINESS_DB":"mvp0_business","MVP0_BUSINESS_ROLE":"mvp0_business","MVP0_BUSINESS_PASSWORD":"mvp0_business_local_only"},"ports":[{"host_ip":"127.0.0.1","published":55432}]}}}'
+        ;;
+      *) ;;
+    esac
+    ;;
+  *) ;;
+esac
+FAKE_DOCKER
+cat >"$SANDBOX/fake-bin/node" <<'FAKE_NODE'
+#!/usr/bin/env bash
+printf 'v%s\n' "${MVP0_TEST_NODE_VERSION:-24.18.0}"
+FAKE_NODE
+cat >"$SANDBOX/fake-bin/npm" <<'FAKE_NPM'
+#!/usr/bin/env bash
+printf '%s\n' "${MVP0_TEST_NPM_VERSION:-11.16.0}"
+FAKE_NPM
+cat >"$SANDBOX/fake-bin/uv" <<'FAKE_UV'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+if [[ " $* " == *' --version '* ]]; then
+  printf 'uv 0.12.8\n'
+  exit 0
+fi
+if [[ " $* " == *' alembic '* ]]; then
+  exit 0
+fi
+if [[ " $* " == *' uvicorn '* ]]; then
+  printf '%s\n' "$$" >"${MVP0_TEST_API_PID:?}"
+  : >"${MVP0_TEST_API_STARTED:?}"
+  while :; do /bin/sleep 1; done
+fi
+exit 0
+FAKE_UV
+cat >"$SANDBOX/fake-bin/python3" <<FAKE_PYTHON
+#!/usr/bin/env bash
+if [[ " \$* " == *'sys.version_info'* ]]; then
+  printf '3.13.5\n'
+  exit 0
+fi
+exec "$REAL_PYTHON" "\$@"
+FAKE_PYTHON
+cat >"$SANDBOX/fake-bin/curl" <<'FAKE_CURL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+url="${!#}"
+case "$url" in
+  *:8000/*)
+    printf 'api\n' >>"${MVP0_TEST_CURL_LOG:?}"
+    [[ -f "${MVP0_TEST_API_STARTED:?}" ]] || exit 22
+    ;;
+  *:5173/*)
+    printf 'web\n' >>"${MVP0_TEST_CURL_LOG:?}"
+    [[ -f "${MVP0_TEST_WEB_STARTED:?}" ]] || exit 22
+    ;;
+  *) exit 22 ;;
+esac
+FAKE_CURL
+cat >"$SANDBOX/fake-bin/lsof" <<'FAKE_LSOF'
+#!/usr/bin/env bash
+if [[ -n "${MVP0_TEST_OCCUPIED_PORT:-}" && "$*" == *":${MVP0_TEST_OCCUPIED_PORT}"* ]]; then
+  exit 0
+fi
+exit 1
+FAKE_LSOF
+cat >"$SANDBOX/apps/web/node_modules/.bin/vite" <<'FAKE_VITE'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf '%s\n' "$$" >"${MVP0_TEST_WEB_PID:?}"
+: >"${MVP0_TEST_WEB_STARTED:?}"
+if [[ "${MVP0_TEST_WEB_FAIL:-0}" == 1 ]]; then
+  /bin/sleep 1
+  exit 17
+fi
+while :; do /bin/sleep 1; done
+FAKE_VITE
+chmod +x "$SANDBOX/fake-bin"/* "$SANDBOX/apps/web/node_modules/.bin/vite"
+
+FAKE_PATH="$SANDBOX/fake-bin:$PATH"
+preflight_env=(
+  PATH="$FAKE_PATH"
+  MVP0_TEST_DOCKER_LOG="$SANDBOX/docker.log"
+)
+
+set +e
+negative_output="$(env "${preflight_env[@]}" MVP0_TEST_NODE_VERSION=22.15.1 MVP0_TEST_NPM_VERSION=10.9.2 \
+  "$SANDBOX/scripts/mvp0/preflight" --host-processes 2>&1)"
+negative_status=$?
+set -e
+(( negative_status != 0 )) || fail 'Node 22/npm 10 preflight unexpectedly passed'
+assert_contains 'Node.js 24.18.0' "$negative_output"
+assert_not_contains 'MVP-0 local PostgreSQL preflight: PASS' "$negative_output"
+
+set +e
+npm_negative_output="$(env "${preflight_env[@]}" MVP0_TEST_NODE_VERSION=24.18.0 MVP0_TEST_NPM_VERSION=10.9.2 \
+  "$SANDBOX/scripts/mvp0/preflight" --host-processes 2>&1)"
+npm_negative_status=$?
+set -e
+(( npm_negative_status != 0 )) || fail 'Node 24/npm 10 preflight unexpectedly passed'
+assert_contains 'npm 11.16.0' "$npm_negative_output"
+assert_not_contains 'MVP-0 local PostgreSQL preflight: PASS' "$npm_negative_output"
+
+positive_output="$(env "${preflight_env[@]}" \
+  "$SANDBOX/scripts/mvp0/preflight" --host-processes 2>&1)" || fail 'pinned Node/npm preflight failed'
+assert_contains 'MVP-0 local PostgreSQL preflight: PASS' "$positive_output"
+assert_contains 'Node v24.18.0, npm 11.16.0' "$positive_output"
+
+occupied_log="$SANDBOX/occupied-docker.log"
+set +e
+occupied_output="$(env "${preflight_env[@]}" MVP0_TEST_DOCKER_LOG="$occupied_log" \
+  MVP0_TEST_OCCUPIED_PORT=8000 "$SANDBOX/scripts/mvp0/demo" 2>&1)"
+occupied_status=$?
+set -e
+(( occupied_status != 0 )) || fail 'occupied-port demo unexpectedly passed'
+assert_contains 'loopback port 8000 is already in use' "$occupied_output"
+if grep -Eq 'docker .* up ' "$occupied_log" 2>/dev/null; then
+  fail 'occupied-port failure started PostgreSQL'
+fi
+
+run_demo() {
+  local output_file="$1"
+  local docker_log="$2"
+  shift 2
+  env "${preflight_env[@]}" MVP0_TEST_DOCKER_LOG="$docker_log" \
+    MVP0_TEST_CURL_LOG="$SANDBOX/curl.log" \
+    MVP0_TEST_API_PID="$SANDBOX/api.pid" \
+    MVP0_TEST_WEB_PID="$SANDBOX/web.pid" \
+    MVP0_TEST_API_STARTED="$SANDBOX/api.started" \
+    MVP0_TEST_WEB_STARTED="$SANDBOX/web.started" \
+    "$@" "$SANDBOX/scripts/mvp0/demo" >"$output_file" 2>&1 &
+  demo_pid="$!"
+}
+
+rm -f "$SANDBOX/curl.log" "$SANDBOX/api.pid" "$SANDBOX/web.pid" \
+  "$SANDBOX/api.started" "$SANDBOX/web.started"
+demo_output="$SANDBOX/demo.log"
+run_demo "$demo_output" "$SANDBOX/demo-docker.log"
+for _ in {1..20}; do
+  grep -Fq 'Browser URL: http://127.0.0.1:5173/tasks' "$demo_output" 2>/dev/null && break
+  /bin/sleep 0.2
+done
+grep -Fq 'Browser URL: http://127.0.0.1:5173/tasks' "$demo_output" || fail 'demo never reached browser readiness'
+readiness="$(tr '\n' ' ' <"$SANDBOX/curl.log")"
+[[ "$readiness" == 'api web ' ]] || fail "unexpected readiness order: ${readiness:-<none>}"
+# Terminate one fake child after both endpoints are ready. The production
+# monitor must detect the child failure and clean up the sibling process.
+kill -TERM "$(<"$SANDBOX/web.pid")"
+set +e
+wait "$demo_pid"
+demo_status=$?
+set -e
+(( demo_status != 0 )) || fail 'child failure demo unexpectedly passed'
+assert_not_running "$SANDBOX/api.pid"
+assert_not_running "$SANDBOX/web.pid"
+
+printf 'MVP-0 dynamic lifecycle checks: PASS\n'

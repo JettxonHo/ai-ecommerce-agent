@@ -4,7 +4,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPO_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
 
-scripts=(lib.sh postgres-init.sh preflight up down status verify reset-demo demo test-static)
+scripts=(lib.sh postgres-init.sh preflight up down status verify reset-demo demo test-static test-lifecycle)
 for script in "${scripts[@]}"; do
   path="$SCRIPT_DIR/$script"
   [[ -x "$path" ]] || {
@@ -33,5 +33,7 @@ if grep -Eq -- '--volumes|down -v|volume rm' "$SCRIPT_DIR/up" "$SCRIPT_DIR/down"
   exit 1
 fi
 grep -Fq -- 'down --volumes' "$SCRIPT_DIR/reset-demo"
+
+"$SCRIPT_DIR/test-lifecycle"
 
 printf 'MVP-0 lifecycle static checks: PASS\n'
