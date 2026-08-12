@@ -97,7 +97,6 @@ function TaskOverviewRoute({
   const primaryInputQuery = useQuery({
     queryKey: primaryInputKey(taskId),
     queryFn: async () => {
-      if (taskGateway.getPrimaryInput === undefined) return null;
       try {
         return await taskGateway.getPrimaryInput(taskId);
       } catch (error) {
@@ -110,9 +109,6 @@ function TaskOverviewRoute({
     retry: false,
   });
   const savePrimaryInput = async (input: TaskPrimaryInputDraft) => {
-    if (taskGateway.savePrimaryInput === undefined) {
-      throw new TaskGatewayError("temporary", "Primary input is unavailable.");
-    }
     const saved = await taskGateway.savePrimaryInput(taskId, input);
     await queryClient.invalidateQueries({ queryKey: primaryInputKey(taskId) });
     return saved;

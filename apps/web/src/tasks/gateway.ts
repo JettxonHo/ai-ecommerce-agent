@@ -86,9 +86,8 @@ export interface TaskGateway {
   listTasks(): Promise<readonly TaskSummary[]>;
   createTask(input: TaskInput, idempotencyKey: string): Promise<TaskOverview>;
   getTaskOverview(taskId: string): Promise<TaskOverview>;
-  /** Primary-input methods are optional for deterministic shell fixtures. */
-  getPrimaryInput?(taskId: string): Promise<TaskPrimaryInput>;
-  savePrimaryInput?(
+  getPrimaryInput(taskId: string): Promise<TaskPrimaryInput>;
+  savePrimaryInput(
     taskId: string,
     input: TaskPrimaryInputDraft,
   ): Promise<TaskPrimaryInput>;
@@ -275,15 +274,75 @@ export const mapTaskOverview = (dto: OverviewDto): TaskOverview =>
   });
 
 export const mapTaskPrimaryInput = (dto: PrimaryInputDto): TaskPrimaryInput =>
-  Object.freeze({
-    taskId: dto.taskId,
-    inputRevision: dto.inputRevision,
-    inputKind: dto.inputKind,
-    fileName: dto.fileName,
-    content: dto.content,
-    byteCount: dto.byteCount,
-    updatedAt: dto.updatedAt,
-  });
+  (() => {
+    const input = objectInput(dto);
+    const taskId = input.taskId;
+    const inputRevision = input.inputRevision;
+    const inputKind = input.inputKind;
+    const fileNameValue = input.fileName;
+    const content = input.content;
+    const byteCount = input.byteCount;
+    const updatedAt = input.updatedAt;
+    const responseError = () =>
+      primaryInputError("The primary input response is invalid.");
+
+    if (typeof taskId !== "string" || taskId.trim() === "") {
+      throw responseError();
+    }
+    if (!Number.isInteger(inputRevision) || (inputRevision as number) < 0) {
+      throw responseError();
+    }
+    if (
+      typeof inputKind !== "string" ||
+      !primaryKinds.includes(inputKind as TaskPrimaryInputKind)
+    ) {
+      throw responseError();
+    }
+    if (typeof content !== "string" || content.trim() === "") {
+      throw responseError();
+    }
+    if (
+      !Number.isInteger(byteCount) ||
+      (byteCount as number) < 0 ||
+      (byteCount as number) > 1024 * 1024 ||
+      encoder().encode(content).byteLength !== byteCount
+    ) {
+      throw responseError();
+    }
+    if (
+      typeof updatedAt !== "string" ||
+      updatedAt.trim() === "" ||
+      !Number.isFinite(Date.parse(updatedAt))
+    ) {
+      throw responseError();
+    }
+
+    let fileName: string | null;
+    if (fileNameValue === null) {
+      fileName = null;
+    } else if (typeof fileNameValue === "string") {
+      if (fileNameValue.trim() === "") throw responseError();
+      fileName = fileNameValue;
+    } else {
+      throw responseError();
+    }
+    if (
+      (inputKind === "pasted_text" && fileName !== null) ||
+      (inputKind !== "pasted_text" && fileName === null)
+    ) {
+      throw responseError();
+    }
+
+    return Object.freeze({
+      taskId,
+      inputRevision: inputRevision as number,
+      inputKind: inputKind as TaskPrimaryInputKind,
+      fileName,
+      content,
+      byteCount,
+      updatedAt,
+    });
+  })();
 
 const cloneAction = (value: TaskPrimaryAction): TaskPrimaryAction => {
   if (typeof value !== "object" || value === null) {

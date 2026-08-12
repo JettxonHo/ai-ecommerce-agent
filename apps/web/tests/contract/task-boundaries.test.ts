@@ -6,7 +6,7 @@ const sourceRoot = resolve(import.meta.dirname, "../../src/tasks");
 const read = (file: string) => readFileSync(resolve(sourceRoot, file), "utf8");
 
 describe("private Task gateway boundaries", () => {
-  it("keeps the exact three-method private seam and no framework dependencies", () => {
+  it("keeps the private seam and no framework dependencies", () => {
     const gateway = read("gateway.ts");
     expect(gateway).toContain("export interface TaskGateway");
     expect(gateway).toContain("listTasks(): Promise<readonly TaskSummary[]>");
@@ -15,6 +15,12 @@ describe("private Task gateway boundaries", () => {
     );
     expect(gateway).toContain(
       "getTaskOverview(taskId: string): Promise<TaskOverview>",
+    );
+    expect(gateway).toContain(
+      "getPrimaryInput(taskId: string): Promise<TaskPrimaryInput>",
+    );
+    expect(gateway).toContain(
+      "savePrimaryInput(\n    taskId: string,\n    input: TaskPrimaryInputDraft,\n  ): Promise<TaskPrimaryInput>",
     );
     expect(gateway).not.toMatch(
       /React|react-router|@tanstack\/react-query|openapi-fetch/,

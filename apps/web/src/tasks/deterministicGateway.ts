@@ -1,11 +1,14 @@
 import {
   cloneTaskOverview,
   normalizeIdempotencyKey,
+  normalizePrimaryInput,
   normalizeTaskInput,
   normalizeTaskIdentity,
   TaskGatewayError,
   type TaskGateway,
   type TaskInput,
+  type TaskPrimaryInput,
+  type TaskPrimaryInputDraft,
   type TaskOverview,
 } from "./gateway";
 
@@ -20,12 +23,16 @@ const sameInput = (left: TaskInput, right: TaskInput): boolean =>
   left.productCategory === right.productCategory &&
   left.promotionGoal === right.promotionGoal;
 
+const clonePrimaryInput = (value: TaskPrimaryInput): TaskPrimaryInput =>
+  Object.freeze({ ...value });
+
 export const createDeterministicTaskGateway = (
   options: DeterministicTaskGatewayOptions = {},
 ): TaskGateway => {
   const tasks = (options.tasks ?? []).map(cloneTaskOverview);
   const byId = new Map(tasks.map((task) => [task.taskId, task]));
   const byKey = new Map<string, { input: TaskInput; task: TaskOverview }>();
+  const primaryInputs = new Map<string, TaskPrimaryInput>();
   let nextId = 1;
 
   const allocateId = (): string => {
@@ -80,6 +87,42 @@ export const createDeterministicTaskGateway = (
       const task = byId.get(normalizeTaskIdentity(value));
       if (!task) throw new TaskGatewayError("missing", "Task not found.");
       return cloneTaskOverview(task);
+    },
+    getPrimaryInput: async (value) => {
+      const taskId = normalizeTaskIdentity(value);
+      if (!byId.has(taskId)) {
+        throw new TaskGatewayError("missing", "Task not found.");
+      }
+      const saved = primaryInputs.get(taskId);
+      if (!saved) {
+        throw new TaskGatewayError("missing", "Primary input not found.");
+      }
+      return clonePrimaryInput(saved);
+    },
+    savePrimaryInput: async (value, input: TaskPrimaryInputDraft) => {
+      const taskId = normalizeTaskIdentity(value);
+      if (!byId.has(taskId)) {
+        throw new TaskGatewayError("missing", "Task not found.");
+      }
+      const draft = normalizePrimaryInput(input);
+      const existing = primaryInputs.get(taskId);
+      if (
+        existing &&
+        existing.inputKind === draft.inputKind &&
+        existing.fileName === draft.fileName &&
+        existing.content === draft.content
+      ) {
+        return clonePrimaryInput(existing);
+      }
+      const saved: TaskPrimaryInput = Object.freeze({
+        taskId,
+        inputRevision: existing ? existing.inputRevision + 1 : 0,
+        ...draft,
+        byteCount: new TextEncoder().encode(draft.content).byteLength,
+        updatedAt: createdAt,
+      });
+      primaryInputs.set(taskId, saved);
+      return clonePrimaryInput(saved);
     },
   };
 };
