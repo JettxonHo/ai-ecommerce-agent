@@ -21,7 +21,7 @@ import warnings
 from typing import Annotated, get_type_hints
 
 import pytest
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from pytest_socket import SocketBlockedError, _true_socket
 from starlette.exceptions import StarletteDeprecationWarning
 from starlette.requests import Request
@@ -168,6 +168,42 @@ def test_read_methods_do_not_require_origin(method: str) -> None:
 
     assert response.status_code == 200
     assert "access-control-allow-origin" not in response.headers
+
+
+def test_existing_route_wrong_method_keeps_method_not_allowed() -> None:
+    """Only actual 404 responses use the not-found Problem projection."""
+
+    app = _app()
+
+    @app.get("/__contract/get-only")
+    def get_only() -> dict[str, str]:
+        return {"status": "ok"}
+
+    with TestClient(app) as client:
+        response = client.post("/__contract/get-only")
+
+    assert response.status_code == 405
+    assert response.headers["content-type"] == "application/json"
+    assert response.json() == {"detail": "Method Not Allowed"}
+    assert "urn:ai-ecommerce-agent:problem:not-found" not in response.text
+
+
+def test_explicit_http_exception_keeps_its_status_and_detail() -> None:
+    """An endpoint-owned 400 is not rewritten as a 404 foundation problem."""
+
+    app = _app()
+
+    @app.get("/__contract/bad-request")
+    def bad_request() -> None:
+        raise HTTPException(status_code=400, detail="explicit test detail")
+
+    with TestClient(app) as client:
+        response = client.get("/__contract/bad-request")
+
+    assert response.status_code == 400
+    assert response.headers["content-type"] == "application/json"
+    assert response.json() == {"detail": "explicit test detail"}
+    assert "urn:ai-ecommerce-agent:problem:not-found" not in response.text
 
 
 @pytest.mark.parametrize("method", ["post", "put", "patch", "delete"])

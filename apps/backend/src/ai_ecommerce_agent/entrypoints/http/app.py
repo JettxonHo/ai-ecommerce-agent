@@ -2,7 +2,6 @@
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ai_ecommerce_agent.entrypoints.http.config import FixedWorkspaceHttpConfig
 from ai_ecommerce_agent.entrypoints.http.middleware import FixedWorkspaceMiddleware
@@ -34,7 +33,7 @@ def create_http_application(*, config: FixedWorkspaceHttpConfig) -> FastAPI:
         request_validation_problem,
     )
     application.add_exception_handler(
-        StarletteHTTPException,
+        404,
         not_found_problem,
     )
     application.add_exception_handler(Exception, unhandled_problem)
