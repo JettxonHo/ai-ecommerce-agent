@@ -60,7 +60,7 @@ jobs:
           printf 'Changed paths:\n%s\n' "${changed_files:-<none>}"
           if [ "$EVENT_NAME" = "workflow_dispatch" ] || \
             printf '%s\n' "$changed_files" | grep -Eq \
-              '^(apps/web/|\.github/workflows/web\.yml$|README\.md$|\.gitignore$)'; then
+              '^(apps/web/|contracts/openapi/|\.github/workflows/web\.yml$|README\.md$|\.gitignore$)'; then
             echo "web_changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "web_changed=false" >> "$GITHUB_OUTPUT"
@@ -97,6 +97,9 @@ jobs:
       - name: Install locked dependencies
         if: needs.changes.outputs.web_changed == 'true'
         run: npm ci --no-audit --no-fund
+      - name: Check generated API client
+        if: needs.changes.outputs.web_changed == 'true'
+        run: npm run api:check
       - name: Format check
         if: needs.changes.outputs.web_changed == 'true'
         run: npm run format:check
