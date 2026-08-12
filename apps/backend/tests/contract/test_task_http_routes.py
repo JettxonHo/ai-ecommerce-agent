@@ -1,5 +1,9 @@
 """Representative HTTP behavior for the first Fast Lane Task/input slice."""
 
+# FastAPI/Starlette's current TestClient is an untyped framework test helper;
+# keep its boundary untyped while preserving strict typing for production code.
+# pyright: reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportPrivateUsage=false, reportUnusedFunction=false, reportCallIssue=false
+
 from __future__ import annotations
 
 import socket

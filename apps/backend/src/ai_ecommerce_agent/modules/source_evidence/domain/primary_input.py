@@ -54,7 +54,7 @@ def validate_primary_file_name(
 def validate_primary_content(content: str) -> tuple[str, int]:
     """Normalize content and return its UTF-8 byte count under the hard limit."""
 
-    if not isinstance(content, str):
+    if type(content) is not str:
         raise TypeError("content must be text")
     normalized = normalize_primary_content(content)
     if not normalized.strip():

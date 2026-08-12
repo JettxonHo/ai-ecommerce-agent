@@ -58,14 +58,17 @@ class _TaskRepository:
     def get(self, task_id: TaskId) -> Task | None:
         return self._store.get(task_id)
 
+    def list(self, *, limit: int) -> tuple[Task, ...]:
+        return tuple(self._store.values())[:limit]
+
     def add(self, task: Task) -> None:
         if task.task_id in self._store:
             raise TaskManagementConstraintError(constraint_name="task_identity")
         self._store[task.task_id] = task
         self._owner.writes += 1
 
-    def get_by_idempotency_key(self, key: str) -> Task | None:
-        task_id = self._idempotency.get(key)
+    def get_by_idempotency_key(self, idempotency_key: str) -> Task | None:
+        task_id = self._idempotency.get(idempotency_key)
         return self._store.get(task_id) if task_id is not None else None
 
     def add_with_idempotency(

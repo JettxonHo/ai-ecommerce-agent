@@ -30,11 +30,11 @@ from .application.queries import GetSourceAssociation, GetSourceVersion
 from .application.query_protocols import SourceEvidenceQueryApplication
 from .domain.primary_input import (
     PRIMARY_INPUT_MAX_BYTES,
+    PrimaryInputKind,
     validate_primary_content,
     validate_primary_file_name,
 )
 from .domain.snapshots import (
-    PrimaryInputKind,
     PrimaryInputSnapshot,
     SourceAssociationMembershipState,
     SourceAssociationSnapshot,
