@@ -41,7 +41,9 @@ _ANCHOR: Final[str] = "anchor-city-commuter-backpack"
 _REQUIRED_MARKERS: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
     ("product identity", ("城市通勤双肩包", "CBP-SYN-001", _ANCHOR)),
     ("core use", ("通勤", "commuter")),
-    ("product features", ("约 18 升", "18 升", "14 英寸", "laptop")),
+    ("capacity", ("约 18 升", "18 升")),
+    ("laptop fit", ("14 英寸", "laptop")),
+    ("weather cover", ("防泼水", "water-resistant")),
     ("source evidence", ("product.json", "direct_source", "source-sufficient")),
 )
 

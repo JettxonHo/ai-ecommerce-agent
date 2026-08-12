@@ -170,6 +170,42 @@ def test_each_stage_receives_the_validated_predecessor_exactly() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    ("label", "removed_text", "expected_missing"),
+    (
+        ("capacity", "约 18 升，", "Provide Anchor SKU capacity evidence."),
+        (
+            "laptop fit",
+            "可放入 14 英寸级别笔记本电脑。",
+            "Provide Anchor SKU laptop fit evidence.",
+        ),
+        (
+            "weather cover",
+            "表面有防泼水处理。",
+            "Provide Anchor SKU weather cover evidence.",
+        ),
+    ),
+)
+def test_missing_fixed_fact_fails_preflight_without_runtime_calls(
+    label: str, removed_text: str, expected_missing: str
+) -> None:
+    calls = 0
+
+    def factory(requests: tuple[ModelCallRequest, ...], payloads: tuple[str, ...]):
+        nonlocal calls
+        calls += 1
+        return build_scripted_runtime(requests, payloads)
+
+    result = DeterministicPipelineCoordinator(SPEC_FACTORIES, factory).generate(
+        input_text=SUFFICIENT.replace(removed_text, "")
+    )
+
+    assert result.status == "insufficient_input", label
+    assert expected_missing in result.missing_information
+    assert result.candidates == ()
+    assert calls == 0
+
+
 def test_insufficient_preflight_makes_zero_runtime_calls_and_no_candidates():
     calls = 0
 
