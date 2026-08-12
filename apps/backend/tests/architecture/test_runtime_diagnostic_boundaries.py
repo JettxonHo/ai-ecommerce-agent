@@ -16,6 +16,9 @@ _SRC_ROOT = _BACKEND_ROOT / "src"
 _APPLICATION_ROOT = _BACKEND_ROOT / "src" / "ai_ecommerce_agent" / "application"
 _APPLICATION_INIT = _APPLICATION_ROOT / "__init__.py"
 _MODULE = _APPLICATION_ROOT / "runtime_diagnostics.py"
+_AUTHORIZED_SINK_CONSUMER = (
+    _SRC_ROOT / "ai_ecommerce_agent" / "platform" / "runtime_diagnostics.py"
+)
 _RUNTIME_MODULE = "ai_ecommerce_agent.application.runtime_diagnostics"
 _EXPECTED_EXPORTS = [
     "CorrelationId",
@@ -219,7 +222,7 @@ def test_runtime_diagnostic_has_exact_one_production_module_and_facade() -> None
     assert all(not hasattr(application_package, name) for name in _EXPECTED_EXPORTS)
 
 
-def test_application_init_and_repository_have_no_runtime_diagnostic_consumer() -> None:
+def test_application_init_and_repository_have_no_unexpected_consumer() -> None:
     init_tree = ast.parse(_APPLICATION_INIT.read_text(encoding="utf-8"))
     assert _runtime_diagnostic_imports(_APPLICATION_INIT, init_tree) == []
     export_assignment = next(
@@ -242,7 +245,7 @@ def test_application_init_and_repository_have_no_runtime_diagnostic_consumer() -
     violations = [
         violation
         for path in sorted((_SRC_ROOT / "ai_ecommerce_agent").rglob("*.py"))
-        if path != _MODULE
+        if path not in {_MODULE, _AUTHORIZED_SINK_CONSUMER}
         for violation in _runtime_diagnostic_imports(
             path, ast.parse(path.read_text(encoding="utf-8"))
         )
