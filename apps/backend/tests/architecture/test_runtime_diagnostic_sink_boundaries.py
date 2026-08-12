@@ -260,9 +260,15 @@ def _logging_global_violations(tree: ast.Module) -> list[str]:
         dotted = _dotted_name(node)
         if dotted is None:
             return False
-        parts = dotted.split(".")
-        return dotted in root_aliases or (
-            len(parts) == 2 and parts[0] in logging_aliases and parts[1] == "root"
+        return dotted in root_aliases or any(
+            dotted == f"{alias}.root" for alias in logging_aliases
+        )
+
+    def module_reference(node: ast.AST) -> bool:
+        dotted = _dotted_name(node)
+        return dotted is not None and any(
+            dotted == alias or dotted.startswith(f"{alias}.")
+            for alias in logging_aliases
         )
 
     changed = True
@@ -316,11 +322,22 @@ def _logging_global_violations(tree: ast.Module) -> list[str]:
                 violations.append(f"global logging root: {_dotted_name(function)}")
                 continue
             dotted_function = _dotted_name(function)
-            dotted_parts = dotted_function.split(".") if dotted_function else []
-            if dotted_parts and dotted_parts[0] in logging_aliases:
-                if len(dotted_parts) == 2 and dotted_parts[1] in (
-                    _ALLOWED_LOGGING_MODULE_CALLS
-                ):
+            module_alias = next(
+                (
+                    alias
+                    for alias in sorted(logging_aliases, key=len, reverse=True)
+                    if dotted_function == alias
+                    or (
+                        dotted_function is not None
+                        and dotted_function.startswith(f"{alias}.")
+                    )
+                ),
+                None,
+            )
+            if module_alias is not None:
+                assert dotted_function is not None
+                suffix = dotted_function[len(module_alias) + 1 :].split(".")
+                if len(suffix) == 1 and suffix[0] in _ALLOWED_LOGGING_MODULE_CALLS:
                     continue
                 violations.append(f"global logging module: {dotted_function}")
                 continue
@@ -342,13 +359,18 @@ def _logging_global_violations(tree: ast.Module) -> list[str]:
                 violations.append(f"global logging root: {_dotted_name(node)}")
         if isinstance(node, (ast.Assign, ast.AnnAssign)):
             targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                if isinstance(target, ast.Attribute) and module_reference(target):
+                    violations.append("global logging module assignment")
+        if isinstance(node, ast.AugAssign):
+            if isinstance(node.target, ast.Attribute) and module_reference(node.target):
+                violations.append("global logging module assignment")
+        if isinstance(node, ast.Delete):
             if any(
-                isinstance(target, ast.Attribute)
-                and target.attr == "handlers"
-                and is_root_expression(target.value)
-                for target in targets
+                isinstance(target, ast.Attribute) and module_reference(target)
+                for target in node.targets
             ):
-                violations.append("global logging handlers assignment")
+                violations.append("global logging module deletion")
     return violations
 
 
@@ -445,6 +467,9 @@ class RuntimeDiagnosticJsonLineSink:
         logger.setLevel(logging.INFO)
         logger.addHandler(handler)
         logger.log(logging.INFO, "message")
+        self._logger = logging.Logger("instance")
+        self._logger.propagate = False
+        self._logger.addHandler(handler)
     def emit(self) -> None:
         self._logger.log(logging.WARNING, "message")
 
@@ -474,6 +499,27 @@ def _logging_level(level):
             "import logging as log\n"
             "module_alias = log\n"
             "module_alias.root.setLevel(logging.WARNING)"
+        ),
+        "import logging\nlogging.raiseExceptions = False",
+        "import logging as log\nlog.raiseExceptions = False",
+        (
+            "import logging as log\n"
+            "module_alias = log\n"
+            "module_alias.raiseExceptions = False"
+        ),
+        "import logging\ndel logging.raiseExceptions",
+        "import logging as log\nmodule_alias = log\ndel module_alias.raiseExceptions",
+        (
+            "class Leaked:\n"
+            "    def __init__(self):\n"
+            "        self.log_module = logging\n"
+            "        self.log_module.root.addHandler(handler)"
+        ),
+        (
+            "class Leaked:\n"
+            "    def __init__(self):\n"
+            "        self.log_module = logging\n"
+            "        self.log_module.raiseExceptions = False"
         ),
         ("import logging as log\nroot_alias = log.root\nroot_alias.handlers.clear()"),
         (
