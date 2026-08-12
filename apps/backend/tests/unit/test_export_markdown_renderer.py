@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from typing import Any, cast
 
 import pytest
+from markdown_it import MarkdownIt
 
 from ai_ecommerce_agent.modules.export_delivery.application.markdown_renderer import (
     render_export_markdown,
@@ -179,7 +180,7 @@ def _without_inline_code(line: str) -> str:
 
 
 def test_all_non_content_data_markers_stay_inside_data_fences() -> None:
-    marker = "\n# injected heading\n<h1>raw html</h1>\n```"
+    marker = "\n# injected heading\n<script>alert(1)</script>\n"
     brief = _brief(
         task_id=TaskId(marker),
         upstream_versions=(
@@ -201,7 +202,7 @@ def test_all_non_content_data_markers_stay_inside_data_fences() -> None:
     )
     outside = _outside_data_fence(rendered)
     unprotected = "\n".join(_without_inline_code(line) for line in outside)
-    assert "<h1>" in rendered
+    assert "<script>" in rendered
     assert marker not in unprotected
     assert "<h1>" not in unprotected
     assert "```" not in unprotected
@@ -220,6 +221,73 @@ def test_all_non_content_data_markers_stay_inside_data_fences() -> None:
         "## Risks",
         "## Evidence references",
         "## Export metadata",
+    ]
+
+
+@pytest.mark.parametrize("backticks", [1, 3, 4, 32, 40])
+def test_markdown_parser_keeps_dangerous_scalars_in_code_inline_tokens(
+    backticks: int,
+) -> None:
+    marker = (
+        "<script>alert(1)</script> [link](https://evil) **strong** _em_ "
+        + "`" * backticks
+    )
+    brief = _brief(
+        task_id=TaskId(marker),
+        hypotheses=(marker,),
+        evidence_references=(ResourceReference(marker, marker),),
+    )
+    rendered = render_export_markdown(
+        export_snapshot=_export(
+            brief,
+            export_snapshot_id=ExportSnapshotId(marker),
+            file_name=marker,
+            content_location=marker,
+        ),
+        brief_snapshot=brief,
+    )
+    tokens = MarkdownIt("commonmark").parse(rendered)
+    baseline = render_export_markdown(
+        export_snapshot=_export(_brief()), brief_snapshot=_brief()
+    )
+    baseline_tokens = MarkdownIt("commonmark").parse(baseline)
+    inline_children = [
+        child
+        for token in tokens
+        if token.type == "inline"
+        for child in (token.children or [])
+    ]
+    dangerous = {"html_inline", "html_block", "link_open", "strong_open", "em_open"}
+    actual_dangerous = [
+        child.type for child in inline_children if child.type in dangerous
+    ]
+    baseline_dangerous = [
+        child.type
+        for token in baseline_tokens
+        if token.type == "inline"
+        for child in (token.children or [])
+        if child.type in dangerous
+    ]
+    assert actual_dangerous == baseline_dangerous
+    code_tokens = [child for child in inline_children if child.type == "code_inline"]
+    assert any(
+        json_value in child.content for child in code_tokens for json_value in (marker,)
+    )
+    assert [token.tag for token in tokens if token.type == "heading_open"] == [
+        "h1",
+        "h2",
+        "h3",
+        "h2",
+        "h2",
+        "h2",
+        "h2",
+        "h2",
+        "h2",
+        "h2",
+        "h2",
+        "h2",
+        "h2",
+        "h2",
     ]
 
 
