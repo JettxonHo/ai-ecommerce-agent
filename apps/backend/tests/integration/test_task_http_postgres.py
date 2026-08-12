@@ -6,10 +6,12 @@
 
 from __future__ import annotations
 
+import json
 import os
 import socket
 import warnings
 from collections.abc import Iterator
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -349,7 +351,9 @@ def test_generate_result_is_durable_atomic_and_revision_fenced(
                 json={
                     "expectedResultRevision": 0,
                     "marketingCoreMessage": "Confirmed commuter storage message",
-                    "xiaohongshuTitleDirection": "Confirmed commuter title direction",
+                    "xiaohongshuTitleDirection": (
+                        "Confirmed commuter title direction"
+                    ),
                 },
             )
             confirmed_replay = client.post(
@@ -447,7 +451,19 @@ def test_generate_result_is_durable_atomic_and_revision_fenced(
                 headers={"Idempotency-Key": "result-key-2"},
                 json={"expectedInputRevision": 0},
             )
+            stale_confirmation_replay = client.post(
+                f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
+                headers={"Idempotency-Key": "confirm-key-1"},
+                json={
+                    "expectedResultRevision": 0,
+                    "marketingCoreMessage": "Confirmed commuter storage message",
+                    "xiaohongshuTitleDirection": "Confirmed commuter title direction",
+                },
+            )
             assert fenced.status_code == 409, fenced.text
+            assert stale_confirmation_replay.status_code == 409, (
+                stale_confirmation_replay.text
+            )
 
         stale_client, stale_composition = _result_client(postgres_engine)
         try:
@@ -457,8 +473,245 @@ def test_generate_result_is_durable_atomic_and_revision_fenced(
                     headers={"Idempotency-Key": "result-key-1"},
                     json={"expectedInputRevision": 0},
                 )
+                stale_confirmation = stale_client.post(
+                    f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
+                    headers={"Idempotency-Key": "confirm-key-1"},
+                    json={
+                        "expectedResultRevision": 0,
+                        "marketingCoreMessage": "Confirmed commuter storage message",
+                        "xiaohongshuTitleDirection": (
+                            "Confirmed commuter title direction"
+                        ),
+                    },
+                )
             assert stale_replay.status_code == 409, stale_replay.text
+            assert stale_confirmation.status_code == 409, stale_confirmation.text
         finally:
             stale_composition.close()
+    finally:
+        composition.close()
+
+
+def test_confirm_revalidates_both_candidates_and_rolls_back_on_malformed_json(
+    postgres_engine: Engine,
+) -> None:
+    """A corrupted persisted candidate cannot become a partial confirmation."""
+
+    task_body = {
+        "taskName": "Malformed review candidate",
+        "productCategory": "Backpack",
+        "promotionGoal": "Awareness",
+    }
+    anchor_input = (
+        "fixture-sufficient-v1 fictional synthetic non-regulated\n"
+        "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包\n"
+        "工作日城市通勤时携带电脑、文件和日常随身物品，约 18 升，"
+        "可放入 14 英寸级别笔记本电脑。\n"
+        "表面有防泼水处理。source-sufficient-product-v1 product.json direct_source。"
+    )
+    client, composition = _result_client(postgres_engine)
+    try:
+        with client:
+            created = client.post(
+                "/api/v1/tasks",
+                headers={"Idempotency-Key": "malformed-task-create"},
+                json=task_body,
+            )
+            task_id = created.json()["taskId"]
+            saved = client.put(
+                f"/api/v1/tasks/{task_id}/primary-input",
+                json={
+                    "inputKind": "pasted_text",
+                    "fileName": None,
+                    "content": anchor_input,
+                },
+            )
+            generated = client.post(
+                f"/api/v1/tasks/{task_id}/commands/generate-result",
+                headers={"Idempotency-Key": "malformed-result-key"},
+                json={"expectedInputRevision": 0},
+            )
+            assert created.status_code == 201, created.text
+            assert saved.status_code == 200, saved.text
+            assert generated.status_code == 201, generated.text
+            original = generated.json()
+
+            with postgres_engine.begin() as connection:
+                connection.execute(
+                    text(
+                        f'UPDATE "{SCHEMA}"."task_management_deterministic_results" '
+                        "SET marketing_brief = :candidate "
+                        "WHERE task_id = :task_id AND result_revision = 0"
+                    ),
+                    {
+                        "task_id": task_id,
+                        "candidate": json.dumps(
+                            {
+                                "brief_candidate": {
+                                    "message_architecture": {
+                                        "core_message": "corrupted leaf only"
+                                    }
+                                }
+                            },
+                            ensure_ascii=False,
+                        ),
+                    },
+                )
+
+            malformed_marketing = client.post(
+                f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
+                headers={"Idempotency-Key": "malformed-confirm-marketing"},
+                json={
+                    "expectedResultRevision": 0,
+                    "marketingCoreMessage": "safe correction",
+                    "xiaohongshuTitleDirection": "safe title",
+                },
+            )
+            assert malformed_marketing.status_code == 422, malformed_marketing.text
+            after_marketing = client.get(
+                f"/api/v1/tasks/{task_id}/current-result"
+            )
+            assert after_marketing.status_code == 200, after_marketing.text
+            assert after_marketing.json()["status"] == "awaiting_review"
+            assert after_marketing.json()["confirmation"] is None
+            assert after_marketing.json()["resultRevision"] == 0
+
+            with postgres_engine.begin() as connection:
+                connection.execute(
+                    text(
+                        f'UPDATE "{SCHEMA}"."task_management_deterministic_results" '
+                        "SET marketing_brief = :candidate, xiaohongshu_brief = :xhs "
+                        "WHERE task_id = :task_id AND result_revision = 0"
+                    ),
+                    {
+                        "task_id": task_id,
+                        "candidate": json.dumps(
+                            original["marketingBrief"], ensure_ascii=False
+                        ),
+                        "xhs": json.dumps(
+                            {
+                                "xiaohongshu_brief_candidate": {
+                                    "creative_structure_directions": {
+                                        "title_directions": [
+                                            {"title_direction": "corrupted leaf only"}
+                                        ]
+                                    }
+                                }
+                            },
+                            ensure_ascii=False,
+                        ),
+                    },
+                )
+
+            malformed_xhs = client.post(
+                f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
+                headers={"Idempotency-Key": "malformed-confirm-xhs"},
+                json={
+                    "expectedResultRevision": 0,
+                    "marketingCoreMessage": "safe correction",
+                    "xiaohongshuTitleDirection": "safe title",
+                },
+            )
+            assert malformed_xhs.status_code == 422, malformed_xhs.text
+            after_xhs = client.get(f"/api/v1/tasks/{task_id}/current-result")
+            assert after_xhs.status_code == 200, after_xhs.text
+            assert after_xhs.json()["status"] == "awaiting_review"
+            assert after_xhs.json()["confirmation"] is None
+            assert after_xhs.json()["resultRevision"] == 0
+    finally:
+        composition.close()
+
+
+def test_confirmation_and_export_boundaries_use_utf8_and_exported_at(
+    postgres_engine: Engine,
+) -> None:
+    """Exercise the representative UTF-8 boundary and snapshot timestamp contract."""
+
+    task_body = {
+        "taskName": "UTF-8 review boundary",
+        "productCategory": "Backpack",
+        "promotionGoal": "Awareness",
+    }
+    anchor_input = (
+        "fixture-sufficient-v1 fictional synthetic non-regulated\n"
+        "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包\n"
+        "工作日城市通勤时携带电脑、文件和日常随身物品，约 18 升，"
+        "可放入 14 英寸级别笔记本电脑。\n"
+        "表面有防泼水处理。source-sufficient-product-v1 product.json direct_source。"
+    )
+    client, composition = _result_client(postgres_engine)
+    try:
+        with client:
+            created = client.post(
+                "/api/v1/tasks",
+                headers={"Idempotency-Key": "utf8-task-create"},
+                json=task_body,
+            )
+            task_id = created.json()["taskId"]
+            assert client.put(
+                f"/api/v1/tasks/{task_id}/primary-input",
+                json={
+                    "inputKind": "pasted_text",
+                    "fileName": None,
+                    "content": anchor_input,
+                },
+            ).status_code == 200
+            assert client.post(
+                f"/api/v1/tasks/{task_id}/commands/generate-result",
+                headers={"Idempotency-Key": "utf8-result-key"},
+                json={"expectedInputRevision": 0},
+            ).status_code == 201
+            boundary = "界" * 1365
+            confirmed = client.post(
+                f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
+                headers={"Idempotency-Key": "utf8-confirm-key"},
+                json={
+                    "expectedResultRevision": 0,
+                    "marketingCoreMessage": boundary,
+                    "xiaohongshuTitleDirection": "UTF-8 title",
+                },
+            )
+            assert confirmed.status_code == 201, confirmed.text
+            assert (
+                confirmed.json()["marketingBrief"]["brief_candidate"][
+                    "message_architecture"
+                ]["core_message"]
+                == boundary
+            )
+            too_large = client.post(
+                f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
+                headers={"Idempotency-Key": "utf8-confirm-too-large"},
+                json={
+                    "expectedResultRevision": 0,
+                    "marketingCoreMessage": "界" * 1366,
+                    "xiaohongshuTitleDirection": "UTF-8 title",
+                },
+            )
+            assert too_large.status_code == 413, too_large.text
+
+            preview = client.post(
+                f"/api/v1/tasks/{task_id}/export-previews",
+                json={"briefKind": "marketing"},
+            )
+            assert preview.status_code == 200, preview.text
+            snapshot = client.post(
+                "/api/v1/export-snapshots",
+                headers={"Idempotency-Key": "utf8-export-key"},
+                json={"basis": preview.json()["basis"]},
+            )
+            assert snapshot.status_code == 201, snapshot.text
+            exported_at = datetime.fromisoformat(
+                snapshot.json()["exportedAt"].replace("Z", "+00:00")
+            ).astimezone(UTC)
+            timestamp = exported_at.strftime("%Y%m%dT%H%M%SZ")
+            assert snapshot.json()["fileName"].endswith(f"-{timestamp}.md")
+            downloaded = client.get(snapshot.json()["contentLocation"])
+            assert downloaded.status_code == 200, downloaded.text
+            assert '- Origin: ` "user" `' in downloaded.text
+            assert '- Origin: ` "model" `' in downloaded.text
+            assert downloaded.content.startswith(b"# Marketing Brief\n")
+            assert downloaded.content.endswith(b"\n")
+            assert not downloaded.content.startswith(b"\xef\xbb\xbf")
+            assert not downloaded.content.endswith(b"\n\n")
     finally:
         composition.close()

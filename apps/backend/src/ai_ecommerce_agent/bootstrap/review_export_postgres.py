@@ -180,7 +180,11 @@ def _brief_snapshot(
                         else candidate.get(name.value)
                     )
                 ),
-                origin=ContentOrigin.MODEL,
+                origin=(
+                    ContentOrigin.USER
+                    if name is MarketingBriefSemanticGroupName.MESSAGE_ARCHITECTURE
+                    else ContentOrigin.MODEL
+                ),
             )
             for name in expected
         )
@@ -232,7 +236,12 @@ def _brief_snapshot(
                         else candidate.get(name.value)
                     )
                 ),
-                origin=ContentOrigin.MODEL,
+                origin=(
+                    ContentOrigin.USER
+                    if name
+                    is XiaohongshuBriefSemanticGroupName.CREATIVE_STRUCTURE_DIRECTIONS
+                    else ContentOrigin.MODEL
+                ),
             )
             for name in expected
         )
@@ -534,11 +543,11 @@ class ReviewExportApplication:
                             "revision_conflict",
                             "The current Brief changed; refresh the export preview.",
                         )
-                    filename = _safe_filename(
-                        basis.task_id, basis.brief_kind, result.generated_at
-                    )
                     export_id = ExportSnapshotId.new()
                     exported_at = datetime.now(UTC)
+                    filename = _safe_filename(
+                        basis.task_id, basis.brief_kind, exported_at
+                    )
                     location = f"/api/v1/export-snapshots/{export_id}/content"
                     export = ExportSnapshot(
                         export_snapshot_id=export_id,

@@ -12,6 +12,9 @@ from sqlalchemy import Engine, func, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+from ai_ecommerce_agent.application.structured_output.validation import (
+    validate_structured_content,
+)
 from ai_ecommerce_agent.modules.customer_insight.application.skills import (
     customer_insight_analysis,
 )
@@ -626,6 +629,20 @@ class DeterministicResultApplication:
                                 "idempotency_conflict",
                                 "The retry key belongs to another confirmation.",
                             )
+                        latest_revision = session.scalar(
+                            select(func.max(TASK_RESULTS_TABLE.c.result_revision)).where(
+                                TASK_RESULTS_TABLE.c.task_id == str(task_id)
+                            )
+                        )
+                        if (
+                            replay.input_revision != input_revision
+                            or latest_revision != replay.result_revision
+                        ):
+                            raise DeterministicResultError(
+                                "revision_conflict",
+                                "The current result changed; refresh before "
+                                "confirming.",
+                            )
                         return replay, True
                     row = (
                         session.execute(
@@ -669,6 +686,26 @@ class DeterministicResultApplication:
                             "capability_conflict",
                             "The current result is already confirmed.",
                         )
+                    try:
+                        marketing_candidate = current.candidates.get("marketingBrief")
+                        xiaohongshu_candidate = current.candidates.get(
+                            "xiaohongshuBrief"
+                        )
+                        if marketing_candidate is None or xiaohongshu_candidate is None:
+                            raise ValueError("missing review candidate")
+                        validate_structured_content(
+                            candidate=marketing_candidate,
+                            spec=marketing_brief_generation.marketing_brief_candidate_output_spec(),
+                        )
+                        validate_structured_content(
+                            candidate=xiaohongshu_candidate,
+                            spec=xiaohongshu_brief_mapping.xiaohongshu_brief_candidate_output_spec(),
+                        )
+                    except (TypeError, ValueError) as error:
+                        raise DeterministicResultError(
+                            "validation_failed",
+                            "The current result candidate is malformed.",
+                        ) from error
                     version_id = f"brief-{task_id}-{expected_result_revision}"
                     marketing_json = _correct_candidate(
                         current.candidates.get("marketingBrief"),

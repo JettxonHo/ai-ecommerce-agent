@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { expect, test } from "@playwright/test";
 
 test.skip(
@@ -95,27 +97,112 @@ test("confirms current result and downloads both immutable Markdown exports", as
   await expect(
     page.getByRole("heading", { name: "Review current result" }),
   ).toBeVisible();
-  await page
-    .getByLabel("Marketing core message")
-    .fill("Chromium confirmed commuter message");
+  await page.setViewportSize({ width: 320, height: 900 });
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth);
+  const marketingCorrection =
+    "# Confirmed heading [safe link](https://example.test) <strong>literal</strong> ``ticks``";
+  const xiaohongshuCorrection =
+    "# Title [safe link](https://example.test) <em>literal</em> ``ticks``";
+  await page.getByLabel("Marketing core message").fill(marketingCorrection);
   await page
     .getByLabel("Xiaohongshu title direction")
-    .fill("Chromium confirmed commuter title");
+    .fill(xiaohongshuCorrection);
+  await page.getByLabel("Marketing core message").focus();
+  expect(await page.evaluate(() => document.activeElement?.id)).toBe(
+    "review-marketing-message",
+  );
   await page.getByRole("button", { name: "Confirm current result" }).click();
   await page.getByRole("link", { name: "Results", exact: true }).click();
   await expect(page.getByText("confirmed", { exact: true })).toBeVisible();
-  const marketingDownload = page.waitForEvent("download");
-  await page
-    .getByRole("button", { name: "Download Marketing Markdown" })
-    .click();
-  expect((await marketingDownload).suggestedFilename()).toMatch(
-    /marketing.*\.md$/u,
+  await expect(
+    page.locator("pre").filter({ hasText: marketingCorrection }),
+  ).toBeVisible();
+  await expect(
+    page.locator("pre").filter({ hasText: xiaohongshuCorrection }),
+  ).toBeVisible();
+  await expect(page.getByText(/Marketing version .*marketing/u)).toBeVisible();
+  await expect(
+    page.getByText(/Xiaohongshu version .*xiaohongshu/u),
+  ).toBeVisible();
+
+  const assertDownload = async (
+    buttonName: string,
+    kind: "marketing" | "xiaohongshu",
+    expected: string,
+  ) => {
+    const downloadEvent = page.waitForEvent("download");
+    await page.getByRole("button", { name: buttonName }).click();
+    const download = await downloadEvent;
+    const path = await download.path();
+    expect(path).not.toBeNull();
+    const bytes = await readFile(path as string);
+    expect(bytes.subarray(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf]))).toBe(
+      false,
+    );
+    const content = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    expect(content).toContain(expected);
+    expect(content.endsWith("\n")).toBe(true);
+    expect(content.endsWith("\n\n")).toBe(false);
+    expect(download.suggestedFilename()).toMatch(
+      new RegExp(`${kind}-v1-\\d{8}T\\d{6}Z\\.md$`, "u"),
+    );
+  };
+  await assertDownload(
+    "Download Marketing Markdown",
+    "marketing",
+    marketingCorrection,
   );
-  const xhsDownload = page.waitForEvent("download");
-  await page
-    .getByRole("button", { name: "Download Xiaohongshu Markdown" })
-    .click();
-  expect((await xhsDownload).suggestedFilename()).toMatch(
-    /xiaohongshu.*\.md$/u,
+  await assertDownload(
+    "Download Xiaohongshu Markdown",
+    "xiaohongshu",
+    xiaohongshuCorrection,
   );
+
+  await page.reload();
+  await expect(page.getByText("confirmed", { exact: true })).toBeVisible();
+  await expect(
+    page.locator("pre").filter({ hasText: marketingCorrection }),
+  ).toBeVisible();
+  await expect(
+    page.locator("pre").filter({ hasText: xiaohongshuCorrection }),
+  ).toBeVisible();
+  await expect(page.getByText(/Marketing version .*marketing/u)).toBeVisible();
+});
+
+test("does not expose review or export actions for an insufficient result", async ({
+  page,
+}) => {
+  await page.goto("/tasks");
+  await page.getByRole("link", { name: "Create a task" }).click();
+  await page.getByLabel("Task name").fill("Chromium insufficient result");
+  await page.getByLabel("Product category").fill("Backpack");
+  await page.getByLabel("Promotion goal").fill("Insufficient fixture");
+  await page.getByRole("button", { name: "Create task" }).click();
+  await page.getByLabel("Pasted text").fill("fixture-insufficient-v1 only");
+  await page.getByRole("button", { name: "Save primary input" }).click();
+  await page.getByRole("button", { name: "Generate result" }).click();
+
+  await expect(
+    page.getByText("insufficient_input", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "More input required" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Confirm current result" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Download Marketing Markdown" }),
+  ).toHaveCount(0);
+  await page.getByRole("link", { name: "Review", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Review current result" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Confirm current result" }),
+  ).toHaveCount(0);
 });
