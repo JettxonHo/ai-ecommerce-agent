@@ -9,28 +9,30 @@ import {
 
 const factStage = WORKBENCH_STAGES[0];
 const insightStage = WORKBENCH_STAGES[1];
-const task = (overrides: Partial<TaskOverview> = {}): TaskOverview =>
-  ({
-    taskId: "task-1",
-    taskName: "Launch",
-    productCategory: "Backpack",
-    taskStatus: "draft",
-    currentStage: null,
-    waitingReason: null,
-    updatedAt: "2026-08-12T00:00:00Z",
-    revision: 0,
-    primaryAction: { kind: "none" },
-    capabilities: [],
-    stages: [],
-    activeRunId: null,
-    latestRunId: null,
-    needsInputRequest: null,
-    reviewPackage: null,
-    approvedStrategy: null,
-    marketingBrief: null,
-    xiaohongshuBrief: null,
-    ...overrides,
-  }) as TaskOverview;
+const taskBaseline: TaskOverview = {
+  taskId: "task-1",
+  taskName: "Launch",
+  productCategory: "Backpack",
+  taskStatus: "draft",
+  currentStage: null,
+  waitingReason: null,
+  updatedAt: "2026-08-12T00:00:00Z",
+  revision: 0,
+  primaryAction: { kind: "none" },
+  capabilities: [],
+  stages: [],
+  activeRunId: null,
+  latestRunId: null,
+  needsInputRequest: null,
+  reviewPackage: null,
+  approvedStrategy: null,
+  marketingBrief: null,
+  xiaohongshuBrief: null,
+};
+const task = (overrides: Partial<TaskOverview> = {}): TaskOverview => ({
+  ...taskBaseline,
+  ...overrides,
+});
 
 const location = (overrides: Partial<TaskOverview> = {}, search = "") =>
   deriveWorkbenchLocation(task(overrides), search);
@@ -118,6 +120,36 @@ describe("private Workbench projection", () => {
         }),
       ),
     ).toBe("needs_input");
+  });
+
+  it("locks precedence through cumulative signal removal", () => {
+    const candidate = {
+      ...task({
+        needsInputRequest: { resourceId: "input-1", revision: 2 },
+        reviewPackage: { reviewPackageId: "review-1", packageVersion: 3 },
+        activeRunId: "run-1",
+        marketingBrief: {
+          resourceKind: "brief",
+          resourceVersionId: "brief-1",
+          versionNumber: 1,
+        },
+        taskStatus: "failed",
+        primaryAction: { kind: "navigate", target: "recovery" },
+      }),
+    };
+
+    expect(deriveWorkbenchMode(candidate)).toBe("needs_input");
+    candidate.needsInputRequest = null;
+    expect(deriveWorkbenchMode(candidate)).toBe("review");
+    candidate.reviewPackage = null;
+    expect(deriveWorkbenchMode(candidate)).toBe("running");
+    candidate.activeRunId = null;
+    expect(deriveWorkbenchMode(candidate)).toBe("results");
+    candidate.marketingBrief = null;
+    expect(deriveWorkbenchMode(candidate)).toBe("recovery");
+    candidate.taskStatus = "draft";
+    candidate.primaryAction = { kind: "none" };
+    expect(deriveWorkbenchMode(candidate)).toBe("intake");
   });
 
   it("ignores latest run, approved strategy, waiting text, current stage and unknown action for mode", () => {
@@ -216,6 +248,7 @@ describe("private Workbench projection", () => {
     ["?panel=unknown&stage=customer_insight_analysis", "intake"],
     ["?panel=review&panel=intake&stage=customer_insight_analysis", "intake"],
     ["?panel=review&stage=unknown", "review"],
+    ["?panel=review&stage=", "review"],
     [
       "?panel=review&stage=customer_insight_analysis&stage=human_review",
       "review",
@@ -303,5 +336,37 @@ describe("private Workbench projection", () => {
     expect(Object.isFrozen(first)).toBe(true);
     expect(input.stages).toHaveLength(1);
     expect(input.currentStage).toBeNull();
+  });
+
+  it("deep-snapshots the task before canonicalizing a blank stage", () => {
+    const input = task({
+      currentStage: insightStage,
+      stages: [
+        {
+          stage: insightStage,
+          status: "ready",
+          waitingReason: null,
+          updatedAt: "now",
+        },
+      ],
+      needsInputRequest: { resourceId: "input-1", revision: 2 },
+      reviewPackage: { reviewPackageId: "review-1", packageVersion: 3 },
+      approvedStrategy: {
+        resourceKind: "strategy",
+        resourceVersionId: "strategy-1",
+        versionNumber: 1,
+      },
+    });
+    const inputBefore = structuredClone(input);
+    const search = "?filter=mine&panel=review&stage=";
+    const result = deriveWorkbenchLocation(input, search);
+
+    expect(result).toEqual({
+      panel: "review",
+      stage: insightStage,
+      replaceSearch: `?filter=mine&panel=review&stage=${insightStage}`,
+    });
+    expect(input).toEqual(inputBefore);
+    expect(search).toBe("?filter=mine&panel=review&stage=");
   });
 });
