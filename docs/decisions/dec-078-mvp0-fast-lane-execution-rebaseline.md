@@ -1,8 +1,10 @@
 # DEC-078：采用 MVP-0 Fast Lane 执行重基线
 
+> **DEC-079 Amendment（2026-08-13）：** Fast Lane 的最小用户闭环、适度测试与 legacy cleanup sequencing 继续有效；FL-2 的单次真实 Provider proof 从 OpenAI 改为 DeepSeek 官方 `deepseek-v4-pro`。见 [DEC-079](dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)。
+
 ## Status
 
-Accepted
+Accepted — FL-2 Provider gate amended by [DEC-079](dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)
 
 ## Date
 
@@ -45,7 +47,7 @@ Fast Lane 只需交付：
 3. 使用确定性流程完成 Facts → Insight → Positioning → Marketing Brief → Xiaohongshu Brief；
 4. 完成一次查看、有限修改与确认；
 5. 导出当前结果为 UTF-8 Markdown；
-6. 确定性闭环通过后执行一次真实 OpenAI happy-path smoke。
+6. 确定性闭环通过后执行一次真实 DeepSeek V4 Pro official API happy-path smoke。
 
 第一阶段采用单进程纵向实现。现有 PostgreSQL、Model Runtime、Output Contract、generated client、Web route 和 Markdown renderer 在能减少工作时直接复用；不得为了完整旧设计而先补齐没有当前消费者的基础设施。
 
@@ -110,7 +112,7 @@ FL-1 原则上不超过三个实现 Issue：
 - **Amends:** DEC-075 对剩余 MVP-0 的 Goal、Testing 和 Readiness 执行方式。
 - **Applies DEC-039:** 将适度校验从原则变成 Fast Lane 的具体 Issue / Test / Review 约束。
 - **Defers implementation, does not revoke design:** DEC-050 / 051、DEC-056 的高级交互部分、DEC-063～070 中未被 Fast Lane 消费的 Runtime / API / Retrieval 能力。
-- **Preserves:** DEC-001 / 003 / 004 / 011 / 020 / 048 / 052 / 055 / 062 / 065 / 071 / 072 的核心产品、技术栈、安全与 Agent 路由边界。
+- **Preserves:** DEC-001 / 003 / 004 / 011 / 020 / 048 / 052 / 055 / 062 / 065 / 071 / 072 的核心产品、技术栈、安全与 Agent 路由边界；DEC-052 的 Provider-specific 部分后由 DEC-079 修订。
 
 ## Related
 

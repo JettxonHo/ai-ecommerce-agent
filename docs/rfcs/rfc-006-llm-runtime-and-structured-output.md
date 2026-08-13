@@ -1,8 +1,10 @@
 # RFC-006：LLM Runtime and Structured Output
 
+> **DEC-079 Amendment（2026-08-13）：** 本 RFC 的 OpenAI / Responses / `gpt-5.6-terra` / `OPENAI_API_KEY` / `store=false` 条款作为已接受历史基线保留；MVP-0 FL-2 当前 Provider-specific 合同改由 [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) 规定。Provider-neutral sync Port、确定性流程、本地 Schema / Domain authority、Secret 隔离与 ordinary-PR-offline 原则继续有效。
+
 ## Metadata
 
-- **Status:** ACCEPTED
+- **Status:** ACCEPTED — MVP-0 Provider-specific portions amended by DEC-079
 - **Date:** 2026-08-06
 - **Accepted:** 2026-08-06（用户明确接受：「接受 RFC-006 整体」）
 - **Issue:** [#48](https://github.com/JettxonHo/ai-ecommerce-agent/issues/48)
@@ -48,6 +50,7 @@ RFC-006 必须同时满足：
 - [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)
 - [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md)
 - [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md)
+- [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)
 - [RFC-001](rfc-001-repository-and-application-architecture.md)
 - [RFC-002](rfc-002-persistence-and-transaction-architecture.md)
 - [RFC-003](rfc-003-langgraph-runtime-and-checkpoint-architecture.md)

@@ -1,8 +1,10 @@
 # DEC-054：采用 Adapter Secret / Payload 边界与确定性模型验证
 
+> **DEC-079 Amendment（2026-08-13）：** Secret / payload / telemetry allowlist 与“普通 PR 断网、单次人工 RC smoke”原则继续有效；当前 FL-2 使用 `deepseek_primary` / `DEEPSEEK_API_KEY` 与 DeepSeek 官方 API，只允许虚构 Anchor SKU，且不得把 DeepSeek 数据处理边界表述为 OpenAI `store=false` 或 ZDR。见 [DEC-079](dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)。
+
 ## Metadata
 
-- **Status:** Accepted
+- **Status:** Accepted — MVP-0 Provider/Secret/live-smoke portions amended by [DEC-079](dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)
 - **Date:** 2026-08-06
 - **Decision Type:** LLM Runtime / Secret and Payload Boundary / Model Testing / Live Smoke
 - **Source:** Session-003；用户明确接受 P-34A、P-35A
