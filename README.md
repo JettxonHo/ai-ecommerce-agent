@@ -1,6 +1,6 @@
 # AI Ecommerce Agent
 
-> **Status: MVP-0 Fast Lane · FL-1/LOCAL DEMO COMPLETE · FL-2 TERMINAL GOAL_BLOCKED · CLEANUP PENDING**
+> **Status: MVP-0 Fast Lane · FL-1/LOCAL DEMO COMPLETE · FL-2 TERMINAL GOAL_BLOCKED · CLEANUP DELIVERED ON MERGE**
 >
 > The current execution authority is the [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md). The original [end-to-end MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) remains historical traceability, not the default remaining backlog.
 
@@ -24,7 +24,7 @@ The repository already contains:
 - PostgreSQL, SQLAlchemy, Psycopg and Alembic foundations;
 - Task / Run / Stage and Source persistence components;
 - bounded Durable Dispatch and checkpoint seams;
-- a provider-neutral Model Runtime, scripted substitute, historical OpenAI/Qwen adapters and the reviewed offline direct DeepSeek adapter;
+- a provider-neutral Model Runtime, scripted substitute, the reviewed offline direct DeepSeek adapter and retained shared live-evidence seam;
 - private output contracts for Facts, Insight, Positioning, Marketing Brief and Xiaohongshu mapping;
 - Marketing / Xiaohongshu domain snapshots and a safe Markdown renderer;
 - a FastAPI fixed-workspace HTTP foundation;
@@ -34,7 +34,7 @@ The repository already contains:
 - React `/tasks` list, Task creation, stable deep links, Workbench projection and TaskWorkbench review/results UI;
 - a real-backend Chromium path covering sufficient and insufficient input, review, download and reload persistence.
 
-The deterministic browser-to-backend loop is implemented and locally verifiable. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) implements the private direct DeepSeek `deepseek-v4-pro` runtime and opt-in smoke seam required by [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md). The one authorized smoke at `main@1c7c2107ead332235d492ed063b67101784d35f1` completed exactly five calls with zero retries but failed safely before `awaiting_review`; no OpenAI, Qwen or DeepSeek live acceptance is claimed. FL-2 is terminal `GOAL_BLOCKED`, [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) owns the single bounded post-FL-2 cleanup, and any second paid run requires new explicit authorization. The merged Qwen Token Plan code is offline-only and its live path is blocked by Provider Terms.
+The deterministic browser-to-backend loop is implemented and locally verifiable. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) implements the private direct DeepSeek `deepseek-v4-pro` runtime and opt-in smoke seam required by [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md). [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280) merged the DEC-080 Xiaohongshu v2 deadline-fence repair offline. The one authorized smoke at `main@1c7c2107ead332235d492ed063b67101784d35f1` completed exactly five calls with zero retries but failed safely before `awaiting_review`; no OpenAI, Qwen or DeepSeek live acceptance is claimed. FL-2 remains terminal `GOAL_BLOCKED`, and the single bounded post-FL-2 cleanup in [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) is delivered on merge. Issue #281 separately authorizes one second bounded DeepSeek v2 smoke, currently `AUTHORIZED_NOT_EXECUTED`: exactly one fictional Task, five ordered calls and zero retry/recovery, only after #274 Phase B is independently reviewed, checks pass and it is merged; execution is outside #274 and requires ORCHESTRATOR exact-commit GO, with no further user confirmation. The Goal remains `GOAL_BLOCKED` until a qualifying result and human judgment. The OpenAI/Qwen provider-specific legacy adapters, direct tests and live handoffs are removed; `openai==2.53.0` remains because DeepSeek consumes it.
 
 Advanced retrieval, distributed recovery and other deferred capabilities remain intentionally out of this release slice.
 

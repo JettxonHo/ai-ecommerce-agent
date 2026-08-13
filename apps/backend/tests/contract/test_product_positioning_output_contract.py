@@ -9,14 +9,10 @@ import pytest
 
 from ai_ecommerce_agent.application import model_runtime
 from ai_ecommerce_agent.application.model_runtime import (
-    ModelCallId,
     StructuredOutputSpec,
 )
 from ai_ecommerce_agent.modules.product_positioning.application.skills import (
     product_positioning as _positioning,
-)
-from ai_ecommerce_agent.platform.model_runtime.openai_responses import (
-    _schema_compatibility,
 )
 
 ProductPositioningStageDecision = _positioning.ProductPositioningStageDecision
@@ -62,10 +58,6 @@ def test_spec_facade_is_exact_synchronous_and_typed() -> None:
     assert first is not second
     assert first.output_schema_id == "product_positioning_candidate"
     assert first.output_schema_version == "v1"
-    _schema_compatibility.ensure_openai_responses_schema_compatible(
-        structured_output=first,
-        model_call_id=ModelCallId("positioning-schema-test"),
-    )
     first_mapping = cast(dict[str, object], first.schema.to_mapping())
     second_mapping = cast(dict[str, object], second.schema.to_mapping())
     assert first_mapping == second_mapping

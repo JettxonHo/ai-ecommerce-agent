@@ -10,29 +10,11 @@ from pathlib import Path
 
 import pytest
 
-from ai_ecommerce_agent.platform.model_runtime.openai_responses._live_evidence import (
-    serialize_live_smoke_evidence,
-    write_live_smoke_evidence,
-)
+import ai_ecommerce_agent.platform.model_runtime as _runtime_package
+
+_runtime_package.__dict__.pop("openai_responses", None)
 
 pytestmark = pytest.mark.unit
-
-
-def test_live_smoke_never_reads_provider_secret_directly() -> None:
-    source = (
-        Path(__file__).parents[1] / "integration" / "test_fl2_openai_live_smoke.py"
-    ).read_text(encoding="utf-8")
-    assert "OPENAI_API_KEY" not in source
-
-
-def test_qwen_supplemental_smoke_never_reads_provider_secret_directly() -> None:
-    source = (
-        Path(__file__).parents[1]
-        / "integration"
-        / "test_fl2_qwen_token_plan_live_smoke.py"
-    ).read_text(encoding="utf-8")
-    assert "QWEN_TOKEN_PLAN_API_KEY" not in source
-    assert "RUN_QWEN_SUPPLEMENTAL_SMOKE" in source
 
 
 def test_deepseek_smoke_never_reads_provider_secret_directly() -> None:
@@ -105,7 +87,11 @@ raise SystemExit(1)
 
 
 def test_live_evidence_has_only_the_operator_allowlist() -> None:
-    evidence = serialize_live_smoke_evidence(
+    from ai_ecommerce_agent.platform.model_runtime.openai_responses import (
+        _live_evidence as evidence_module,
+    )
+
+    evidence = evidence_module.serialize_live_smoke_evidence(
         commit="fa02d1f4e8172948ad1a909ac4ebf7fb9bdfb5a5",
         started_at_utc="2026-08-13T00:00:00Z",
         duration_ms=123,
@@ -141,7 +127,11 @@ def test_live_evidence_has_only_the_operator_allowlist() -> None:
 
 
 def test_live_evidence_file_is_append_only(tmp_path: Path) -> None:
+    from ai_ecommerce_agent.platform.model_runtime.openai_responses import (
+        _live_evidence as evidence_module,
+    )
+
     path = tmp_path / "fl2.json"
-    write_live_smoke_evidence(path, "{}\n")
+    evidence_module.write_live_smoke_evidence(path, "{}\n")
     with pytest.raises(FileExistsError):
-        write_live_smoke_evidence(path, "{}\n")
+        evidence_module.write_live_smoke_evidence(path, "{}\n")
