@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, cast
 
 from ai_ecommerce_agent.application.model_runtime import (
     ModelCallContractVersions,
@@ -21,6 +21,8 @@ from ai_ecommerce_agent.application.model_runtime import (
     ModelCallResult,
     ModelExecutionProfile,
     ModelOutputEnvelope,
+    ModelRuntimeError,
+    ModelRuntimeErrorCategory,
     ModelRuntimePort,
     ModelRuntimeVersionTuple,
     ProviderAttemptId,
@@ -70,6 +72,13 @@ _STAGE_INSTRUCTIONS: Final[tuple[str, ...]] = (
     "Map the validated Marketing Brief to a Xiaohongshu direction without "
     "creating final publish copy. "
     "Preserve evidence limitations and return project-schema JSON only.",
+)
+_STAGE_ALLOWED_DECISIONS: Final[tuple[frozenset[str], ...]] = (
+    frozenset({"valid"}),
+    frozenset({"valid", "valid_with_limitations"}),
+    frozenset({"ready_for_review", "ready_for_review_with_limitations"}),
+    frozenset({"valid", "valid_with_limitations"}),
+    frozenset({"valid", "valid_with_limitations"}),
 )
 
 
@@ -551,6 +560,97 @@ def _request(
     )
 
 
+def _fast_lane_invalid_candidate(
+    result: ModelCallResult,
+) -> ModelRuntimeError:
+    return ModelRuntimeError(
+        category=ModelRuntimeErrorCategory.INVALID_CANDIDATE,
+        message="candidate failed Fast Lane domain admission",
+        retryability=False,
+        model_call_id=result.provider_metadata.model_call_id,
+        provider_metadata=result.provider_metadata,
+    )
+
+
+def _stage_decision(candidate: StructuredContent, index: int) -> str | None:
+    mapping = candidate.to_mapping()
+    if index <= 3:
+        value = mapping.get("workflow_stage_decision")
+    else:
+        context_key = (
+            "version_and_workflow_context"
+            if index == 4
+            else "workflow_and_version_context"
+        )
+        context_value = mapping.get(context_key)
+        context: Mapping[str, object] | None = None
+        if isinstance(context_value, Mapping):
+            context = cast(Mapping[str, object], context_value)
+        value = context.get("stage_decision") if context is not None else None
+    return value if type(value) is str else None
+
+
+def _string_items(value: object) -> tuple[str, ...] | None:
+    if type(value) is not list:
+        return None
+    items = cast(list[object], value)
+    if any(type(item) is not str for item in items):
+        return None
+    return tuple(cast(list[str], items))
+
+
+def _admit_fast_lane_candidate(
+    *,
+    index: int,
+    candidate: StructuredContent,
+    result: ModelCallResult,
+    upstream: StructuredContent | None,
+) -> None:
+    """Apply the small domain gate required by the current Fast Lane.
+
+    Schema validation remains the structural authority.  This gate only
+    decides whether the current stage may progress and, for the final mapping,
+    preserves the Marketing Brief's explicit honesty boundaries.
+    """
+
+    if _stage_decision(candidate, index) not in _STAGE_ALLOWED_DECISIONS[index - 1]:
+        raise _fast_lane_invalid_candidate(result)
+    if index != 5 or upstream is None:
+        return
+
+    marketing = upstream.to_mapping()
+    marketing_candidate = marketing.get("brief_candidate")
+    candidate_mapping = candidate.to_mapping()
+    xhs = candidate_mapping.get("xiaohongshu_brief_candidate")
+    if not isinstance(marketing_candidate, Mapping) or not isinstance(xhs, Mapping):
+        raise _fast_lane_invalid_candidate(result)
+    marketing_mapping = cast(Mapping[str, object], marketing_candidate)
+    xhs_mapping = cast(Mapping[str, object], xhs)
+    honesty = marketing_mapping.get("constraints_and_honesty")
+    platform_constraints = xhs_mapping.get("evidence_and_platform_constraints")
+    if not isinstance(honesty, Mapping) or not isinstance(
+        platform_constraints, Mapping
+    ):
+        raise _fast_lane_invalid_candidate(result)
+    honesty_mapping = cast(Mapping[str, object], honesty)
+    constraints_mapping = cast(Mapping[str, object], platform_constraints)
+    for field_name in ("mandatory_messages", "prohibited_claims"):
+        upstream_items = _string_items(honesty_mapping.get(field_name))
+        downstream_items = _string_items(constraints_mapping.get(field_name))
+        if upstream_items is None or downstream_items is None:
+            raise _fast_lane_invalid_candidate(result)
+        if any(item not in downstream_items for item in upstream_items):
+            raise _fast_lane_invalid_candidate(result)
+    upstream_limitations = _string_items(honesty_mapping.get("evidence_limitations"))
+    downstream_limitations = _string_items(
+        constraints_mapping.get("evidence_limitations")
+    )
+    if upstream_limitations is None or downstream_limitations is None:
+        raise _fast_lane_invalid_candidate(result)
+    if upstream_limitations and not downstream_limitations:
+        raise _fast_lane_invalid_candidate(result)
+
+
 def build_scripted_runtime(
     requests: tuple[ModelCallRequest, ...], payloads: tuple[str, ...]
 ) -> ModelRuntimePort:
@@ -673,6 +773,12 @@ class DeterministicPipelineCoordinator:
             candidate = parse_and_validate_structured_output(
                 result=result,
                 spec=request.structured_output,
+            )
+            _admit_fast_lane_candidate(
+                index=index,
+                candidate=candidate,
+                result=result,
+                upstream=upstream,
             )
             validated.append((payload_name, candidate))
             upstream = candidate

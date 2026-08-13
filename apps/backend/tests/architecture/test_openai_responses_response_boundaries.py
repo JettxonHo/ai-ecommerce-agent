@@ -13,6 +13,7 @@ _BACKEND = Path(__file__).resolve().parents[2]
 _SOURCE = _BACKEND / "src"
 _PACKAGE = _SOURCE / "ai_ecommerce_agent/platform/model_runtime/openai_responses"
 _QWEN_PACKAGE = _SOURCE / "ai_ecommerce_agent/platform/model_runtime/qwen_token_plan"
+_DEEPSEEK_PACKAGE = _SOURCE / "ai_ecommerce_agent/platform/model_runtime/deepseek"
 _FILES = [
     _PACKAGE / "__init__.py",
     _PACKAGE / "_schema_compatibility.py",
@@ -382,6 +383,8 @@ def _expected_sdk_consumers() -> set[Path]:
         _PACKAGE / "_runtime.py",
         _QWEN_PACKAGE / "_response_mapping.py",
         _QWEN_PACKAGE / "_runtime.py",
+        _DEEPSEEK_PACKAGE / "_response_mapping.py",
+        _DEEPSEEK_PACKAGE / "_runtime.py",
     }
 
 

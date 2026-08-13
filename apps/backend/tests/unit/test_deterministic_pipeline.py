@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import replace
+from typing import cast
 
 import pytest
 
 from ai_ecommerce_agent.application.model_runtime import (
     ModelCallRequest,
     ModelOutputEnvelope,
+    ModelRuntimeError,
+    ModelRuntimeErrorCategory,
 )
 from ai_ecommerce_agent.modules.customer_insight.application.skills import (
     customer_insight_analysis,
@@ -267,3 +270,93 @@ def test_stage_failure_is_propagated_without_a_partial_pipeline_result():
         )
     assert runtime is not None
     assert runtime.calls == 3
+
+
+class _DomainMutationRuntime:
+    def __init__(
+        self,
+        requests: tuple[ModelCallRequest, ...],
+        payloads: tuple[str, ...],
+        *,
+        call_number: int,
+        mutate: Callable[[dict[str, object]], object],
+    ) -> None:
+        self._delegate = build_scripted_runtime(requests, payloads)
+        self._call_number = call_number
+        self._mutate = mutate
+        self.calls = 0
+
+    def execute(self, request: ModelCallRequest):
+        self.calls += 1
+        result = self._delegate.execute(request)
+        if self.calls == self._call_number:
+            payload = json.loads(result.output_envelope.payload_text)
+            self._mutate(payload)
+            return replace(
+                result,
+                output_envelope=ModelOutputEnvelope(
+                    json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+                ),
+            )
+        return result
+
+
+def test_schema_valid_nonprogress_decision_stops_before_next_stage() -> None:
+    runtime: _DomainMutationRuntime | None = None
+
+    def factory(
+        requests: tuple[ModelCallRequest, ...], payloads: tuple[str, ...]
+    ) -> _DomainMutationRuntime:
+        nonlocal runtime
+        runtime = _DomainMutationRuntime(
+            requests,
+            payloads,
+            call_number=2,
+            mutate=lambda payload: payload.__setitem__(
+                "workflow_stage_decision", "waiting_input"
+            ),
+        )
+        return runtime
+
+    with pytest.raises(ModelRuntimeError) as caught:
+        DeterministicPipelineCoordinator(SPEC_FACTORIES, factory).generate(
+            input_text=SUFFICIENT
+        )
+
+    assert caught.value.category is ModelRuntimeErrorCategory.INVALID_CANDIDATE
+    assert str(caught.value) == "candidate failed Fast Lane domain admission"
+    assert runtime is not None
+    assert runtime.calls == 2
+
+
+def test_xiaohongshu_dropped_marketing_boundary_stops_at_domain_admission() -> None:
+    runtime: _DomainMutationRuntime | None = None
+
+    def drop_mandatory_message(payload: dict[str, object]) -> None:
+        candidate = cast(dict[str, object], payload["xiaohongshu_brief_candidate"])
+        constraints = cast(
+            dict[str, object], candidate["evidence_and_platform_constraints"]
+        )
+        cast(list[str], constraints["mandatory_messages"]).clear()
+
+    def factory(
+        requests: tuple[ModelCallRequest, ...], payloads: tuple[str, ...]
+    ) -> _DomainMutationRuntime:
+        nonlocal runtime
+        runtime = _DomainMutationRuntime(
+            requests,
+            payloads,
+            call_number=5,
+            mutate=drop_mandatory_message,
+        )
+        return runtime
+
+    with pytest.raises(ModelRuntimeError) as caught:
+        DeterministicPipelineCoordinator(SPEC_FACTORIES, factory).generate(
+            input_text=SUFFICIENT
+        )
+
+    assert caught.value.category is ModelRuntimeErrorCategory.INVALID_CANDIDATE
+    assert str(caught.value) == "candidate failed Fast Lane domain admission"
+    assert runtime is not None
+    assert runtime.calls == 5
