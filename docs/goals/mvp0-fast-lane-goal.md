@@ -1,12 +1,14 @@
 # MVP-0 Fast Lane Goal
 
-> **Status: ACTIVE ON DOCUMENTATION PR MERGE**
+> **Status: ACTIVE**
 >
 > **Accepted baseline:** `main@371ea0c15546b91ee10fcde8622553b164e5740c`
 >
 > **Accepted by the user on 2026-08-12:** adopt the vertical Fast Lane approach; narrow first-phase inputs to pasted text, TXT and Markdown; rebaseline planning before further implementation; accept the detailed Goal.
 >
-> **Activation:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) records acceptance. This Goal becomes the sole active remaining MVP-0 Goal when the documentation PR carrying DEC-078 merges. FL-1 implementation starts only from a new vertical Issue after that merge.
+> **Activation:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) records acceptance. PR #248 merged on 2026-08-12 and made this the sole active remaining MVP-0 Goal.
+>
+> **Accepted cleanup amendment on 2026-08-13:** legacy code and tests are simplified immediately only when they block the current vertical. Other non-blocking legacy work stays frozen until one bounded cleanup reconciliation after the Fast Lane execution result is known and before the final Goal decision.
 
 ## 1. Outcome
 
@@ -87,7 +89,16 @@ Other Decisions and RFCs remain historical or future authority. They are read on
 - Login, RBAC, tenant management, internet exposure and enterprise security controls.
 - General-purpose compliance, telemetry, analytics or performance platforms.
 
-Deferred code already in the repository is not deleted during this Goal. It is frozen unless the Fast Lane path must call it or a confirmed defect blocks the path.
+Deferred code already in the repository is not deleted merely because it is outside the Fast Lane. It is frozen unless the Fast Lane path must call it, it blocks a valid current vertical, or the bounded cleanup reconciliation below proves that it is safe and useful to remove.
+
+### Legacy cleanup sequencing
+
+- **During vertical delivery:** if an obsolete guard, redundant abstraction, dead adapter or over-defensive test blocks the current user path, remove or narrow it in that Issue and replace it with the smallest representative behavior or boundary evidence needed. Do not preserve obsolete structure just to keep an old structural test green.
+- **While it does not block delivery:** freeze it. Do not spend Fast Lane time completing, refactoring, documenting or adding tests to unused advanced capabilities.
+- **After FL-2 reaches a terminal result and before the final Goal decision:** create one bounded cleanup Issue. Use repository-wide consumer and dependency evidence to classify legacy code, tests and current-status documentation as `retain`, `freeze for later` or `remove now`.
+- **Remove now** only when the item has no real current or accepted next-Goal consumer, is superseded or duplicated, and can be removed without weakening a required security/data boundary or destabilizing the demo.
+- **Retain or freeze** capabilities whose removal is riskier than leaving them dormant. Cleanup is not a line-count target and does not require deleting every deferred implementation.
+- Record what was removed, what remains frozen and why. Do not represent frozen capability as part of the working MVP.
 
 ## 5. Required security boundary
 
@@ -160,8 +171,11 @@ Outcome: a truthful, reproducible local demo.
 
 - one fresh-environment start rehearsal;
 - one concise operator path;
+- after FL-2 has a terminal result, one bounded legacy cleanup Issue and PR using the classification rules above;
 - one final five-axis review, with Security and Performance limited to relevant changes;
 - update current-status documents and list deferred capabilities.
+
+Exit: the demo remains reproducible, confirmed dead or obstructive legacy work is removed, retained deferred capability is explicitly frozen, and cleanup has not weakened the mandatory boundaries in section 5.
 
 ## 7. Test and review policy
 
@@ -200,6 +214,8 @@ Outcome: a truthful, reproducible local demo.
 - Do not create a new Decision for a reversible implementation choice.
 - Do not introduce an abstraction until the vertical path has a real consumer; prefer an existing interface or direct implementation before a speculative seam.
 - Stop adding defensive variants after the representative failure and invariant are proven.
+- Remove a legacy guard or implementation in the current Issue when it materially blocks that Issue; otherwise defer cleanup to the single bounded reconciliation rather than opening opportunistic cleanup work.
+- The cleanup Issue must use actual consumer/dependency evidence. Code size, aesthetics or a desire for a perfectly tidy architecture is not deletion evidence.
 - A completed sub-agent is closed promptly unless it has an immediate bounded follow-up.
 
 ## 9. Stop conditions
@@ -228,6 +244,7 @@ This Goal is complete only when all are true:
 - current result persistence survives page reload and stable deep-link return;
 - the fixed-workspace, SQL, XSS/Markdown, idempotency and Secret boundaries above pass representative tests;
 - one real OpenAI happy-path smoke succeeds;
+- the bounded legacy cleanup reconciliation is reviewed and merged, with retained deferred capability listed as frozen;
 - no Critical or Blocking defect remains;
 - deferred capabilities are documented without being represented as implemented;
 - current project status matches actual code.
