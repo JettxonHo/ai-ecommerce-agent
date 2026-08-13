@@ -285,23 +285,37 @@ def create_qwen_token_plan_runtime(
         raise ValueError(
             "unsupported credential reference; expected qwen_token_plan_supplemental"
         )
-    secret = _os.environ.get(_QWEN_TOKEN_PLAN_API_KEY_ENVIRONMENT_NAME, "")
-    if type(secret) is not str or not secret.strip():
+    client = _construct_qwen_client(
+        secret=_os.environ.get(_QWEN_TOKEN_PLAN_API_KEY_ENVIRONMENT_NAME, "")
+    )
+    if type(client) is not _openai.OpenAI or client.max_retries != 0:
+        if type(client) is _openai.OpenAI:
+            client.close()
         raise QwenTokenPlanConfigurationError(_CONFIGURATION_MESSAGE)
+    return QwenTokenPlanModelRuntime(client=client)
+
+
+def _construct_qwen_client(*, secret: str) -> _openai.OpenAI:
+    """Construct the SDK client without retaining the credential on failure."""
+
+    if type(secret) is not str or not secret.strip():
+        del secret
+        raise QwenTokenPlanConfigurationError(_CONFIGURATION_MESSAGE)
+    client: _openai.OpenAI | None = None
+    construction_failed = False
     try:
         client = _openai.OpenAI(
             api_key=secret,
             base_url=QWEN_TOKEN_PLAN_BASE_URL,
             max_retries=0,
         )
-    except Exception as error:
-        del error
-        raise QwenTokenPlanConfigurationError(_CONFIGURATION_MESSAGE) from None
-    if type(client) is not _openai.OpenAI or client.max_retries != 0:
-        if type(client) is _openai.OpenAI:
-            client.close()
+    except Exception:
+        construction_failed = True
+    finally:
+        del secret
+    if construction_failed or client is None:
         raise QwenTokenPlanConfigurationError(_CONFIGURATION_MESSAGE)
-    return QwenTokenPlanModelRuntime(client=client)
+    return client
 
 
 __all__ = [

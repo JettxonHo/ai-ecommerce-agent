@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json as _json
 from typing import NoReturn
+from typing import cast as _cast
 
 import openai as _openai
 from openai.types.chat.chat_completion import ChatCompletion as _ChatCompletion
@@ -182,88 +183,95 @@ def map_qwen_token_plan_response(
 ) -> _contracts.ModelCallResult:
     """Map one untrusted Chat Completion without retaining provider objects."""
 
-    if type(request) is not _contracts.ModelCallRequest:
-        raise TypeError("request must be an exact ModelCallRequest")
-    if type(response) is not _ChatCompletion:
-        raise TypeError("response must be an exact ChatCompletion")
-    if type(provider_attempt_ids) is not tuple or not provider_attempt_ids:
-        raise TypeError("provider_attempt_ids must be a non-empty tuple")
-    if any(
-        type(attempt) is not _contracts.ProviderAttemptId
-        for attempt in provider_attempt_ids
-    ):
-        raise TypeError("provider_attempt_ids members must be exact")
-    if type(latency_ms) is not int:
-        raise TypeError("latency_ms must be an int")
-    if latency_ms < 0:
-        raise ValueError("latency_ms must be non-negative")
-    _request_call_id(request)
-    metadata = _try_metadata(
-        request=request,
-        response=response,
-        provider_attempt_ids=provider_attempt_ids,
-        latency_ms=latency_ms,
-    )
-    if metadata is None:
-        _raise_transient(request)
-    if response.object != "chat.completion":
-        _raise_transient(request, metadata)
-    choices = response.choices
-    if type(choices) is not list or len(choices) != 1:
-        _raise_transient(request, metadata)
-    choice = choices[0]
-    if (
-        type(choice) is not _Choice
-        or type(choice.message) is not _ChatCompletionMessage
-    ):
-        _raise_transient(request, metadata)
-    message = choice.message
-    if message.role != "assistant":
-        _raise_transient(request, metadata)
-    if message.refusal is not None:
-        raise _error(
-            request,
-            _contracts.ModelRuntimeErrorCategory.REFUSAL,
-            False,
-            _REFUSAL_MESSAGE,
-            metadata,
-        )
-    if message.tool_calls is not None or message.function_call is not None:
-        _raise_transient(request, metadata)
-    finish_reason = choice.finish_reason
-    if finish_reason == "length":
-        raise _error(
-            request,
-            _contracts.ModelRuntimeErrorCategory.INCOMPLETE_OUTPUT,
-            False,
-            _INCOMPLETE_MESSAGE,
-            metadata,
-        )
-    if finish_reason != "stop":
-        _raise_transient(request, metadata)
-    content = message.content
-    if type(content) is not str or not content.strip():
-        raise _error(
-            request,
-            _contracts.ModelRuntimeErrorCategory.INCOMPLETE_OUTPUT,
-            False,
-            _INCOMPLETE_MESSAGE,
-            metadata,
-        )
+    choices: list[_Choice] = []
+    choice: _Choice = _cast(_Choice, None)
+    message: _ChatCompletionMessage = _cast(_ChatCompletionMessage, None)
+    content: str = _cast(str, None)
     try:
-        _validate_json_object(content)
-    except _MappingError:
-        raise _error(
-            request,
-            _contracts.ModelRuntimeErrorCategory.INVALID_CANDIDATE,
-            False,
-            _INVALID_CANDIDATE_MESSAGE,
+        if type(request) is not _contracts.ModelCallRequest:
+            raise TypeError("request must be an exact ModelCallRequest")
+        if type(response) is not _ChatCompletion:
+            raise TypeError("response must be an exact ChatCompletion")
+        if type(provider_attempt_ids) is not tuple or not provider_attempt_ids:
+            raise TypeError("provider_attempt_ids must be a non-empty tuple")
+        if any(
+            type(attempt) is not _contracts.ProviderAttemptId
+            for attempt in provider_attempt_ids
+        ):
+            raise TypeError("provider_attempt_ids members must be exact")
+        if type(latency_ms) is not int:
+            raise TypeError("latency_ms must be an int")
+        if latency_ms < 0:
+            raise ValueError("latency_ms must be non-negative")
+        _request_call_id(request)
+        metadata = _try_metadata(
+            request=request,
+            response=response,
+            provider_attempt_ids=provider_attempt_ids,
+            latency_ms=latency_ms,
+        )
+        if metadata is None:
+            _raise_transient(request)
+        if response.object != "chat.completion":
+            _raise_transient(request, metadata)
+        choices = response.choices
+        if type(choices) is not list or len(choices) != 1:
+            _raise_transient(request, metadata)
+        choice = choices[0]
+        if (
+            type(choice) is not _Choice
+            or type(choice.message) is not _ChatCompletionMessage
+        ):
+            _raise_transient(request, metadata)
+        message = choice.message
+        if message.role != "assistant":
+            _raise_transient(request, metadata)
+        if message.refusal is not None:
+            raise _error(
+                request,
+                _contracts.ModelRuntimeErrorCategory.REFUSAL,
+                False,
+                _REFUSAL_MESSAGE,
+                metadata,
+            )
+        if message.tool_calls is not None or message.function_call is not None:
+            _raise_transient(request, metadata)
+        finish_reason = choice.finish_reason
+        if finish_reason == "length":
+            raise _error(
+                request,
+                _contracts.ModelRuntimeErrorCategory.INCOMPLETE_OUTPUT,
+                False,
+                _INCOMPLETE_MESSAGE,
+                metadata,
+            )
+        if finish_reason != "stop":
+            _raise_transient(request, metadata)
+        content = _cast(str, message.content)
+        if type(content) is not str or not content.strip():
+            raise _error(
+                request,
+                _contracts.ModelRuntimeErrorCategory.INCOMPLETE_OUTPUT,
+                False,
+                _INCOMPLETE_MESSAGE,
+                metadata,
+            )
+        try:
+            _validate_json_object(content)
+        except _MappingError:
+            raise _error(
+                request,
+                _contracts.ModelRuntimeErrorCategory.INVALID_CANDIDATE,
+                False,
+                _INVALID_CANDIDATE_MESSAGE,
+                metadata,
+            ) from None
+        return _contracts.ModelCallResult(
+            _contracts.ModelOutputEnvelope(content),
             metadata,
-        ) from None
-    return _contracts.ModelCallResult(
-        _contracts.ModelOutputEnvelope(content),
-        metadata,
-    )
+        )
+    finally:
+        del response, choices, choice, message, content
 
 
 __all__ = ["map_qwen_token_plan_response"]

@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 from openai.types.chat import ChatCompletion
+from pydantic import BaseModel
 
 from ai_ecommerce_agent.application.model_runtime import (
     ModelCallContractVersions,
@@ -22,6 +25,8 @@ from ai_ecommerce_agent.platform.model_runtime.qwen_token_plan import _response_
 from ai_ecommerce_agent.shared_kernel import StructuredContent
 
 pytestmark = pytest.mark.unit
+_PROVIDER_CONTENT_MARKER = "raw-qwen-content-marker"
+_PROVIDER_REFUSAL_MARKER = "raw-qwen-refusal-marker"
 
 
 def _request() -> ModelCallRequest:
@@ -93,6 +98,38 @@ def _map(response: ChatCompletion) -> ModelCallResult:
         provider_attempt_ids=(ProviderAttemptId("qwen-call-1-attempt-1"),),
         latency_ms=17,
     )
+
+
+def _contains_marker(value: object, marker: str, seen: set[int]) -> bool:
+    identity = id(value)
+    if identity in seen:
+        return False
+    seen.add(identity)
+    if isinstance(value, str):
+        return marker in value
+    if isinstance(value, BaseModel):
+        return _contains_marker(value.model_dump(mode="python"), marker, seen)
+    if isinstance(value, dict):
+        mapping = cast(dict[object, object], value)
+        return any(
+            _contains_marker(item, marker, seen)
+            for item in (*mapping.keys(), *mapping.values())
+        )
+    if isinstance(value, (list, tuple, set, frozenset)):
+        items = cast(tuple[object, ...], tuple(cast(Any, value)))
+        return any(_contains_marker(item, marker, seen) for item in items)
+    return False
+
+
+def _assert_traceback_has_no_provider_marker(error: BaseException, marker: str) -> None:
+    traceback = error.__traceback__
+    assert traceback is not None
+    while traceback is not None:
+        assert all(
+            not _contains_marker(value, marker, set())
+            for value in traceback.tb_frame.f_locals.values()
+        ), traceback.tb_frame.f_code.co_name
+        traceback = traceback.tb_next
 
 
 def test_completed_json_maps_provider_neutral_result_and_usage() -> None:
@@ -179,3 +216,40 @@ def test_malformed_or_non_success_responses_are_safe_typed_errors(
     assert caught.value.category is category
     assert "refusal-marker" not in caught.value.message
     assert "not-json" not in caught.value.message
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        _response(content=_PROVIDER_CONTENT_MARKER),
+        _response(
+            choices=[
+                {
+                    "finish_reason": "stop",
+                    "index": 0,
+                    "message": {
+                        "content": None,
+                        "role": "assistant",
+                        "refusal": _PROVIDER_REFUSAL_MARKER,
+                    },
+                }
+            ]
+        ),
+    ],
+)
+def test_safe_mapping_errors_do_not_retain_raw_provider_objects_in_traceback(
+    response: ChatCompletion,
+) -> None:
+    is_refusal = response.choices[0].message.refusal is not None
+    with pytest.raises(ModelRuntimeError) as caught:
+        _response_mapping.map_qwen_token_plan_response(
+            request=_request(),
+            response=response,
+            provider_attempt_ids=(ProviderAttemptId("qwen-call-1-attempt-1"),),
+            latency_ms=17,
+        )
+    response = None  # type: ignore[assignment]
+    _assert_traceback_has_no_provider_marker(
+        caught.value,
+        _PROVIDER_REFUSAL_MARKER if is_refusal else _PROVIDER_CONTENT_MARKER,
+    )

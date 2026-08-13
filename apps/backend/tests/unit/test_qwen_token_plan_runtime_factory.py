@@ -12,6 +12,7 @@ from ai_ecommerce_agent.platform.model_runtime.qwen_token_plan._runtime import (
 )
 
 pytestmark = pytest.mark.unit
+_SECRET_FAILURE_MARKER = "synthetic-qwen-secret-marker"
 
 
 def test_missing_or_blank_secret_fails_before_sdk_construction(
@@ -71,3 +72,25 @@ def test_factory_uses_exact_sync_client_configuration(
         assert runtime.sdk_max_retries == 0
     finally:
         runtime.close()
+
+
+def test_constructor_failure_traceback_does_not_retain_secret_marker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QWEN_TOKEN_PLAN_API_KEY", _SECRET_FAILURE_MARKER)
+
+    def raising_constructor(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError(_SECRET_FAILURE_MARKER)
+
+    monkeypatch.setattr(openai, "OpenAI", raising_constructor)
+    with pytest.raises(QwenTokenPlanConfigurationError) as caught:
+        create_qwen_token_plan_runtime()
+
+    traceback = caught.value.__traceback__
+    assert traceback is not None
+    while traceback is not None:
+        assert all(
+            not (isinstance(value, str) and _SECRET_FAILURE_MARKER in value)
+            for value in traceback.tb_frame.f_locals.values()
+        ), traceback.tb_frame.f_code.co_name
+        traceback = traceback.tb_next
