@@ -17,8 +17,7 @@ Usage: scripts/mvp0/preflight [--host-processes]
 
 Checks Docker/Compose and the pinned PostgreSQL Compose configuration.
 --host-processes additionally checks the Python/uv/Node/npm tools required by
-future host API, Worker and Web entrypoints; this MVP-0 task does not start
-those processes yet.
+the deterministic local-demo API and Web host processes.
 USAGE
       exit 0
       ;;
@@ -85,12 +84,6 @@ if [[ "$configured_services" != 'postgres' ]]; then
   exit 1
 fi
 
-printf 'MVP-0 local PostgreSQL preflight: PASS\n'
-printf '  Docker Compose: %s\n' "$compose_version"
-printf '  PostgreSQL image: postgres:16.14-bookworm\n'
-printf '  Compose project: %s\n' "$MVP0_COMPOSE_PROJECT"
-printf '  Service topology: postgres only (API/Worker/Web remain host processes)\n'
-
 if (( host_processes == 1 )); then
   require_command uv 'Install uv 0.12.x or newer (the repository uses uv sync --locked).'
   uv_version="$(uv --version | awk '{print $2}')"
@@ -111,10 +104,58 @@ if (( host_processes == 1 )); then
     printf 'ERROR: Python 3.13.x is required by apps/backend; found %s. Run uv sync --locked or install Python 3.13.x.\n' "$python_version" >&2
     exit 1
   fi
-  require_command node 'Install Node.js for the future Web host process.'
-  require_command npm 'Install npm for the future Web host process.'
+  web_package_json="$MVP0_ROOT_DIR/apps/web/package.json"
+  [[ -f "$web_package_json" ]] || {
+    printf 'ERROR: apps/web/package.json is missing; cannot verify the pinned Web engine tuple.\n' >&2
+    exit 1
+  }
+  package_python="$backend_python"
+  if [[ ! -x "$package_python" ]]; then
+    require_command python3 'Install Python 3.13.x or run uv sync --locked in apps/backend.'
+    package_python="$(command -v python3)"
+  fi
+  engine_tuple="$("$package_python" - "$web_package_json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as package_file:
+    package = json.load(package_file)
+engines = package.get("engines")
+expected = ("24.18.0", "11.16.0")
+actual = (engines.get("node"), engines.get("npm")) if isinstance(engines, dict) else (None, None)
+if actual != expected:
+    raise SystemExit(
+        "apps/web/package.json must pin engines node=24.18.0 and npm=11.16.0"
+    )
+print(*expected)
+PY
+  )" || {
+    printf 'ERROR: apps/web/package.json does not contain the required exact Node/npm engine tuple.\n' >&2
+    exit 1
+  }
+  read -r required_node_version required_npm_version <<<"$engine_tuple"
+  require_command node 'Install Node.js 24.18.0 for the local demo Web host process.'
+  require_command npm 'Install npm 11.16.0 for the local demo Web host process.'
+  node_version="$(node --version)"
+  npm_version="$(npm --version)"
+  if [[ "$node_version" != "v${required_node_version}" ]]; then
+    printf 'ERROR: Node.js %s is required by apps/web/package.json; found %s.\n' \
+      "$required_node_version" "$node_version" >&2
+    exit 1
+  fi
+  if [[ "$npm_version" != "$required_npm_version" ]]; then
+    printf 'ERROR: npm %s is required by apps/web/package.json; found %s.\n' \
+      "$required_npm_version" "$npm_version" >&2
+    exit 1
+  fi
   printf '  Host tools: uv %s, Python %s, Node %s, npm %s\n' \
-    "$uv_version" "$python_version" "$(node --version)" "$(npm --version)"
+    "$uv_version" "$python_version" "$node_version" "$npm_version"
 else
-  printf '  Host process tools: not checked (use --host-processes before starting future API/Worker/Web processes)\n'
+  printf '  Host process tools: not checked (use --host-processes before scripts/mvp0/demo)\n'
 fi
+
+printf 'MVP-0 local PostgreSQL preflight: PASS\n'
+printf '  Docker Compose: %s\n' "$compose_version"
+printf '  PostgreSQL image: postgres:16.14-bookworm\n'
+printf '  Compose project: %s\n' "$MVP0_COMPOSE_PROJECT"
+printf '  Service topology: postgres only (deterministic API/Web remain host processes)\n'

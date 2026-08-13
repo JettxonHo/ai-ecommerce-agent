@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+usage() {
+  cat <<'USAGE'
+Usage: scripts/mvp0/demo
+
+Starts the fixed local MVP-0 PostgreSQL service, applies the Business Alembic
+head, and runs the deterministic Fast Lane API plus Vite Web process on
+loopback. The command stays in the foreground. Ctrl-C stops only API/Web;
+run scripts/mvp0/down separately to stop PostgreSQL while preserving its volume.
+USAGE
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  [[ "$#" -eq 1 ]] || {
+    printf 'ERROR: --help does not accept additional arguments.\n' >&2
+    exit 2
+  }
+  usage
+  exit 0
+fi
+if [[ "$#" -ne 0 ]]; then
+  printf 'ERROR: unknown option %q\n' "$1" >&2
+  usage >&2
+  exit 2
+fi
+
+"$SCRIPT_DIR/preflight" --host-processes
+command -v curl >/dev/null 2>&1 || {
+  printf 'ERROR: required command curl is missing; install it before starting the local demo.\n' >&2
+  exit 1
+}
+
+WEB_ROOT="$MVP0_ROOT_DIR/apps/web"
+BACKEND_ROOT="$MVP0_ROOT_DIR/apps/backend"
+WEB_BIN="$WEB_ROOT/node_modules/.bin/vite"
+[[ -x "$WEB_BIN" ]] || {
+  printf 'ERROR: Web dependencies are missing; run npm ci in apps/web first.\n' >&2
+  exit 1
+}
+
+check_port_free() {
+  local port="$1"
+  if command -v lsof >/dev/null 2>&1; then
+    if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+      printf 'ERROR: loopback port %s is already in use.\n' "$port" >&2
+      return 1
+    fi
+    return 0
+  fi
+
+  python3 - "$port" <<'PY'
+import socket
+import sys
+
+port = int(sys.argv[1])
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+    probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        probe.bind(("127.0.0.1", port))
+    except OSError:
+        print(f"ERROR: loopback port {port} is already in use.", file=sys.stderr)
+        raise SystemExit(1)
+PY
+}
+
+check_port_free 8000
+check_port_free 5173
+
+# Read only the effective fixed local PostgreSQL values already selected by
+# Compose. This keeps custom local .env values aligned with the mounted
+# service without loading that file into Python application code.
+mvp0_compose_value() {
+  local key="$1"
+  mvp0_compose config --format json | python3 -c '
+import json
+import sys
+
+config = json.load(sys.stdin)
+key = sys.argv[1]
+value = config["services"]["postgres"]["environment"].get(key)
+if not isinstance(value, str) or not value:
+    raise SystemExit(2)
+print(value)
+' "$key"
+}
+
+mvp0_compose_port() {
+  mvp0_compose config --format json | python3 -c '
+import json
+import sys
+
+config = json.load(sys.stdin)
+ports = config["services"]["postgres"]["ports"]
+if len(ports) != 1 or ports[0].get("host_ip") != "127.0.0.1":
+    raise SystemExit(2)
+print(ports[0]["published"])
+'
+}
+
+postgres_port="$(mvp0_compose_port)" || mvp0_die "could not resolve the fixed loopback PostgreSQL port"
+business_db="$(mvp0_compose_value MVP0_BUSINESS_DB)" || mvp0_die "could not resolve the fixed Business database"
+business_role="$(mvp0_compose_value MVP0_BUSINESS_ROLE)" || mvp0_die "could not resolve the fixed Business role"
+business_password="$(mvp0_compose_value MVP0_BUSINESS_PASSWORD)" || mvp0_die "could not resolve the fixed Business credential"
+database_url="postgresql+psycopg://${business_role}:${business_password}@127.0.0.1:${postgres_port}/${business_db}"
+
+log_dir="$(mktemp -d "${TMPDIR:-/tmp}/mvp0-demo.XXXXXX")"
+api_pid=""
+web_pid=""
+
+stop_child() {
+  local pid="$1"
+  [[ -n "$pid" ]] || return 0
+  if kill -0 "$pid" >/dev/null 2>&1; then
+    kill -TERM "$pid" >/dev/null 2>&1 || true
+    for _ in {1..25}; do
+      kill -0 "$pid" >/dev/null 2>&1 || break
+      sleep 0.2
+    done
+    kill -KILL "$pid" >/dev/null 2>&1 || true
+  fi
+  wait "$pid" >/dev/null 2>&1 || true
+}
+
+cleanup() {
+  stop_child "$web_pid"
+  stop_child "$api_pid"
+  rm -rf "$log_dir"
+}
+
+trap cleanup EXIT
+trap 'exit 130' INT TERM
+
+"$SCRIPT_DIR/up"
+printf 'Applying Business Alembic head for the local demo.\n'
+if ! MVP0_BUSINESS_DATABASE_URL="$database_url" "$SCRIPT_DIR/migrate-business" upgrade-head >"$log_dir/migration.log" 2>&1; then
+  printf 'ERROR: Business migration failed; inspect local database state and retry.\n' >&2
+  exit 1
+fi
+
+printf 'Starting deterministic API and Vite Web host processes.\n'
+(
+  cd "$BACKEND_ROOT"
+  export MVP0_LOCAL_DEMO_DATABASE_URL="$database_url"
+  export MVP0_LOCAL_DEMO_WORKSPACE_ID="local-demo"
+  export MVP0_LOCAL_DEMO_WORKBENCH_ORIGIN="http://127.0.0.1:5173"
+  exec uv run --locked uvicorn \
+    ai_ecommerce_agent.bootstrap.local_demo:create_local_demo_application \
+    --factory --host 127.0.0.1 --port 8000 --log-level warning
+) >"$log_dir/api.log" 2>&1 &
+api_pid="$!"
+
+(
+  cd "$WEB_ROOT"
+  exec "$WEB_BIN" --host 127.0.0.1 --port 5173 --strictPort
+) >"$log_dir/web.log" 2>&1 &
+web_pid="$!"
+
+wait_for_http() {
+  local label="$1"
+  local url="$2"
+  local pid="$3"
+  for _ in {1..60}; do
+    if ! kill -0 "$pid" >/dev/null 2>&1; then
+      printf 'ERROR: %s process exited before readiness.\n' "$label" >&2
+      return 1
+    fi
+    if curl --fail --silent --show-error --max-time 2 "$url" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  printf 'ERROR: %s did not become ready on loopback.\n' "$label" >&2
+  return 1
+}
+
+wait_for_http API "http://127.0.0.1:8000/api/v1/tasks?limit=1" "$api_pid"
+wait_for_http Web "http://127.0.0.1:5173/tasks" "$web_pid"
+
+printf 'Browser URL: http://127.0.0.1:5173/tasks\n'
+printf 'Ctrl-C stops API/Web only; PostgreSQL remains running.\n'
+printf 'Then run ./scripts/mvp0/down to stop PostgreSQL (the named volume is preserved).\n'
+
+while :; do
+  if ! kill -0 "$api_pid" >/dev/null 2>&1; then
+    api_status=0
+    wait "$api_pid" || api_status="$?"
+    printf 'ERROR: API process exited (status %s); Web was stopped.\n' "$api_status" >&2
+    exit 1
+  fi
+  if ! kill -0 "$web_pid" >/dev/null 2>&1; then
+    web_status=0
+    wait "$web_pid" || web_status="$?"
+    printf 'ERROR: Web process exited (status %s); API was stopped.\n' "$web_status" >&2
+    exit 1
+  fi
+  sleep 1
+done

@@ -1,6 +1,6 @@
 # AI Ecommerce Agent
 
-> **Status: MVP-0 Fast Lane · ACTIVE ON DEC-078 DOCUMENTATION MERGE**
+> **Status: MVP-0 Fast Lane · FL-1 COMPLETE · FL-3 RELEASE RECONCILIATION**
 >
 > The current execution authority is the [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md). The original [end-to-end MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) remains historical traceability, not the default remaining backlog.
 
@@ -29,11 +29,14 @@ The repository already contains:
 - Marketing / Xiaohongshu domain snapshots and a safe Markdown renderer;
 - a FastAPI fixed-workspace HTTP foundation;
 - authored OpenAPI, generated TypeScript client and a private Task gateway;
-- React `/tasks` list, Task creation, stable deep links, Workbench projection and TaskWorkbench progress shell.
+- real Task/input/result/review/export routes backed by PostgreSQL;
+- a deterministic five-stage scripted pipeline and safe Markdown exports;
+- React `/tasks` list, Task creation, stable deep links, Workbench projection and TaskWorkbench review/results UI;
+- a real-backend Chromium path covering sufficient and insufficient input, review, download and reload persistence.
 
-The repository does **not** yet provide a complete browser-to-backend business loop. In particular, the FastAPI application has no registered Task/input/workflow/review/export business routes, and the Skills are not connected into a production workflow.
+The deterministic browser-to-backend loop is implemented and locally verifiable. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. The real OpenAI acceptance remains a separate FL-2 smoke (Issue #255) and has not been claimed here.
 
-Refresh `main` before the first Fast Lane implementation Issue; a merged UI shell does not by itself complete the backend loop.
+Advanced retrieval, distributed recovery and other deferred capabilities remain intentionally out of this release slice.
 
 ## Fast Lane scope
 
@@ -88,13 +91,16 @@ Local PostgreSQL lifecycle:
 
 ```bash
 cp .env.example .env
-./scripts/mvp0/preflight
-./scripts/mvp0/up
-./scripts/mvp0/verify
-./scripts/mvp0/down
+./scripts/mvp0/preflight --host-processes
+(cd apps/backend && uv sync --locked)
+(cd apps/web && npm ci)
+./scripts/mvp0/demo
+# open the printed URL: http://127.0.0.1:5173/tasks
+# press Ctrl-C to stop only API/Web
+./scripts/mvp0/down       # stop PostgreSQL; named volume is preserved
 ```
 
-The complete Fast Lane stack command is not yet implemented. Do not describe deterministic fixture transport or the HTTP foundation as a completed real backend workflow.
+`./scripts/mvp0/up` and `./scripts/mvp0/verify` remain database-only lifecycle checks. `scripts/mvp0/demo` never starts a Worker or selects the OpenAI runtime. JSON/CSV/PDF/image/OCR intake, retrieval, distributed Worker/checkpoint recovery, advanced Review/Diff, auth/multi-tenant/public deployment and automatic publishing remain deferred.
 
 ## Governance
 

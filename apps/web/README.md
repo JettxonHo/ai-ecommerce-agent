@@ -1,9 +1,17 @@
-# Web foundation
+# Web Fast Lane workbench
 
-This directory is the MVP-0 React / Vite browser foundation. It currently
-mounts a semantic shell under React Router Declarative Mode and a TanStack
-Query provider; it does not expose task routes, business UI, a generated
-client, or API calls.
+This directory contains the MVP-0 React / Vite browser workbench. It uses
+React Router Declarative Mode for `/tasks`, `/tasks/new` and stable
+`/tasks/:taskId` deep links, TanStack Query for remote Task state, and the
+generated OpenAPI client through a private Task gateway.
+
+The current deterministic loop consumes the real local API: create a Task,
+save pasted/TXT/Markdown input, run the scripted Facts → Insight → Positioning
+→ Marketing Brief → Xiaohongshu Brief pipeline, make the bounded review
+correction, confirm once, and download both current Markdown exports. The
+Workbench also renders honest `insufficient_input` results and reloads saved
+Task/input/result state. The representative real-backend Chromium path is
+opt-in with `MVP0_RUN_REAL_BACKEND_E2E=1` and never calls a provider.
 
 ## Toolchain
 
@@ -40,7 +48,8 @@ npm run api:check
 `src/api/generated/schema.d.ts` is generated from the repository OpenAPI
 authority and must remain byte-identical after `npm run api:check`.
 
-The development server proxies `/api` to `http://127.0.0.1:8000` for later
-typed-client work. The foundation shell does not call that proxy. The
-contract smoke test fails if rendering starts a network request, and the
-Chromium smoke fails on page or console errors.
+The development server proxies `/api` to `http://127.0.0.1:8000`; start the
+complete local stack from the repository root with `./scripts/mvp0/demo`, or
+run `npm run dev` here when an API is already listening. The contract tests
+use an injected transport and the Chromium tests fail on page or console
+errors. A real OpenAI smoke is a separate FL-2 gate and remains pending.

@@ -4,7 +4,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPO_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
 
-scripts=(lib.sh postgres-init.sh preflight up down status verify reset-demo test-static)
+scripts=(lib.sh postgres-init.sh preflight up down status verify reset-demo demo test-static test-lifecycle)
 for script in "${scripts[@]}"; do
   path="$SCRIPT_DIR/$script"
   [[ -x "$path" ]] || {
@@ -20,10 +20,20 @@ compose=(docker compose --project-name ai-ecommerce-agent-mvp0 --file "$REPO_ROO
 [[ "$("${compose[@]}" config --images)" == postgres:16.14-bookworm ]]
 [[ "$("${compose[@]}" config --volumes)" == postgres-data ]]
 
+grep -Fq -- '--force-recreate postgres' "$SCRIPT_DIR/up"
+grep -Fq -- '127.0.0.1:8000' "$SCRIPT_DIR/demo"
+grep -Fq -- '127.0.0.1:5173' "$SCRIPT_DIR/demo"
+if grep -Eq -- 'openai|docker compose.*down --volumes|0\.0\.0\.0' "$SCRIPT_DIR/demo"; then
+  printf 'FAIL: local demo must not select a provider, delete the volume, or bind publicly\n' >&2
+  exit 1
+fi
+
 if grep -Eq -- '--volumes|down -v|volume rm' "$SCRIPT_DIR/up" "$SCRIPT_DIR/down" "$SCRIPT_DIR/status" "$SCRIPT_DIR/verify"; then
   printf 'FAIL: default lifecycle command contains a destructive volume operation\n' >&2
   exit 1
 fi
 grep -Fq -- 'down --volumes' "$SCRIPT_DIR/reset-demo"
+
+"$SCRIPT_DIR/test-lifecycle"
 
 printf 'MVP-0 lifecycle static checks: PASS\n'
