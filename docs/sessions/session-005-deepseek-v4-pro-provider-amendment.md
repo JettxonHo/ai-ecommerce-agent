@@ -5,8 +5,8 @@
 - Status: Concluded
 - Date: 2026-08-13
 - Topic: Qwen Token Plan 条款阻断、OpenAI Gate 取代与 DeepSeek 官方 API 合同
-- Related Decisions: [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md), [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md), [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md), [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md), [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)
-- Related Issues: [#255](https://github.com/JettxonHo/ai-ecommerce-agent/issues/255), [#264](https://github.com/JettxonHo/ai-ecommerce-agent/issues/264), [#268](https://github.com/JettxonHo/ai-ecommerce-agent/issues/268)
+- Related Decisions: [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md), [DEC-053](../decisions/dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md), [DEC-054](../decisions/dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md), [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md), [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), [DEC-080](../decisions/dec-080-fl2-xiaohongshu-profile-v2-and-deadline-fence.md)
+- Related Issues: [#255](https://github.com/JettxonHo/ai-ecommerce-agent/issues/255), [#264](https://github.com/JettxonHo/ai-ecommerce-agent/issues/264), [#268](https://github.com/JettxonHo/ai-ecommerce-agent/issues/268), [#274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274), [#277](https://github.com/JettxonHo/ai-ecommerce-agent/issues/277)
 
 ## Context
 
@@ -75,3 +75,21 @@ OpenAI FL-2 adapter 与 smoke seam 已离线完成，但操作者无法提供 `O
 - [x] 当前 Goal 与入口文档不再把 OpenAI 描述为待完成 Gate
 - [x] Qwen live 明确记录为 `BLOCKED_BY_PROVIDER_TERMS`
 - [x] 未创建业务实现代码、未读取 Secret、未调用 Provider
+
+## 2026-08-13 FL-2 terminal repair addendum
+
+### Facts
+
+- 唯一一次获授权的 DeepSeek smoke 在 exact reviewed `main@1c7c2107ead332235d492ed063b67101784d35f1` 上执行一个虚构 Task 的五次初始 calls，零 retry、零 recovery，随后在 `awaiting_review` 前安全失败。
+- 第五个 Xiaohongshu call 记录 12,288 output tokens 与 136,622 ms latency；sanitized evidence 不含 raw finish reason 或错误类别，因此不能声称唯一根因。
+- [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) Phase A 只读 inventory 已完成；OpenAI/Qwen provider-specific 组满足 `remove now` 提案，shared live evidence helper 与 DeepSeek 路径必须保留，advanced components 保持 `freeze for later`。Phase B 尚未获写入授权。
+
+### Accepted Decision
+
+用户明确回复 `APPROVE BOUNDED FL-2 REPAIR`。DEC-080 只把 `xiaohongshu_mapping_v1` 的 execution profile version 从 `v1` 提升为 `v2`，把 `max_tokens` / timeout 调整为 16,384 / 240 s，并要求同步 SDK 返回后执行 application deadline fence。其他 Profile、Provider、Schema/Domain、retry 与安全边界保持不变。
+
+### Authorization boundary
+
+- 允许先归档 DEC-080，再创建一个 tests-first 离线实现 Issue；可执行代码只路由给准确名称的 `luna-worker`。
+- 不授权第二次 smoke、Secret、Provider/PostgreSQL live action、raw Provider material 检查或自动 retry。
+- Issue #274 Phase B 暂停到 repair 实现通过独立五轴 Review 并合并之后。
