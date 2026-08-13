@@ -52,4 +52,6 @@ The development server proxies `/api` to `http://127.0.0.1:8000`; start the
 complete local stack from the repository root with `./scripts/mvp0/demo`, or
 run `npm run dev` here when an API is already listening. The contract tests
 use an injected transport and the Chromium tests fail on page or console
-errors. A real OpenAI smoke is a separate FL-2 gate and remains pending.
+errors. The reviewed direct DeepSeek adapter and opt-in smoke seam are backend
+offline capabilities; the one-Task/five-call live proof remains a separate
+human-authorized FL-2 gate and has not run.

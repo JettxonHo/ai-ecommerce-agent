@@ -24,7 +24,7 @@ The repository already contains:
 - PostgreSQL, SQLAlchemy, Psycopg and Alembic foundations;
 - Task / Run / Stage and Source persistence components;
 - bounded Durable Dispatch and checkpoint seams;
-- a provider-neutral Model Runtime, scripted substitute and OpenAI Responses transport components;
+- a provider-neutral Model Runtime, scripted substitute, historical OpenAI/Qwen adapters and the reviewed offline direct DeepSeek adapter;
 - private output contracts for Facts, Insight, Positioning, Marketing Brief and Xiaohongshu mapping;
 - Marketing / Xiaohongshu domain snapshots and a safe Markdown renderer;
 - a FastAPI fixed-workspace HTTP foundation;
@@ -34,7 +34,7 @@ The repository already contains:
 - React `/tasks` list, Task creation, stable deep links, Workbench projection and TaskWorkbench review/results UI;
 - a real-backend Chromium path covering sufficient and insufficient input, review, download and reload persistence.
 
-The deterministic browser-to-backend loop is implemented and locally verifiable. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) changes the remaining FL-2 proof to direct DeepSeek official `deepseek-v4-pro`; no OpenAI, Qwen or DeepSeek live acceptance is claimed yet. The merged Qwen Token Plan code is offline-only and its live path is blocked by Provider Terms.
+The deterministic browser-to-backend loop is implemented and locally verifiable. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) implements the private direct DeepSeek `deepseek-v4-pro` runtime and opt-in smoke seam required by [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), but no OpenAI, Qwen or DeepSeek live acceptance is claimed yet. Status remains `IMPLEMENTED_OFFLINE_NOT_LIVE_VERIFIED`; the merged Qwen Token Plan code is offline-only and its live path is blocked by Provider Terms.
 
 Advanced retrieval, distributed recovery and other deferred capabilities remain intentionally out of this release slice.
 
