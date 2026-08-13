@@ -154,8 +154,12 @@ def _evidence_path() -> Path:
     try:
         resolved.relative_to(_REPOSITORY_ROOT)
     except ValueError:
-        return resolved
-    pytest.fail("the live evidence path must be outside tracked source")
+        pass
+    else:
+        pytest.fail("the live evidence path must be outside tracked source")
+    if resolved.exists():
+        pytest.fail("the live evidence path must not already exist")
+    return resolved
 
 
 _COMMIT = _validated_commit()
