@@ -1,10 +1,10 @@
 # Implementation Readiness
 
-> **Status: FL-1 COMPLETE · LOCAL DEMO COMPLETE · FL-2 TERMINAL `GOAL_BLOCKED` · POST-FL-2 CLEANUP DELIVERED ON MERGE**
+> **Status: FL-1 COMPLETE · LOCAL DEMO COMPLETE · FL-2 TERMINAL `GOAL_BLOCKED` · POST-FL-2 CLEANUP COMPLETE**
 >
 > **Authority:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) · [MVP-0 Fast Lane Goal](../goals/mvp0-fast-lane-goal.md)
 >
-> **Current release boundary:** the deterministic local loop and one-command demo are implemented. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) completed the private DeepSeek adapter, local Schema / bounded Domain admission and opt-in smoke seam at merge commit `c12a9ab285eefee35c78342fd01180c1e47a83f0`. [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280) merged the DEC-080 Xiaohongshu v2 deadline-fence repair offline. The one authorized smoke at exact reviewed `main@1c7c2107ead332235d492ed063b67101784d35f1` completed exactly five calls with zero retries/recovery but failed safely before `awaiting_review`; FL-2 is terminal `GOAL_BLOCKED`, not live verified. Issue #255 is superseded, Issue #264 is `BLOCKED_BY_PROVIDER_TERMS`, and [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) is the single bounded post-FL-2 cleanup delivered on merge. Issue #281 separately authorizes one second bounded DeepSeek v2 smoke as `AUTHORIZED_NOT_EXECUTED`: exactly one fictional Task, five ordered calls and zero retry/recovery, only after #274 Phase B is independently reviewed, checks pass and merges; execution is outside #274 and requires ORCHESTRATOR exact-commit GO, with no further user confirmation. Goal remains `GOAL_BLOCKED` until qualifying result and human judgment.
+> **Current release boundary:** the deterministic local loop and one-command demo are implemented. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) completed the private DeepSeek adapter, local Schema / bounded Domain admission and opt-in smoke seam at merge commit `c12a9ab285eefee35c78342fd01180c1e47a83f0`; [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280) merged the DEC-080 Xiaohongshu v2 deadline-fence repair offline; [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) completed the single bounded post-FL-2 cleanup. The first smoke at `main@1c7c2107ead332235d492ed063b67101784d35f1` failed after five calls. The second smoke under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) ran at exact `main@ac4edfed6e8e216e9938affdc734298c8630d2de` and failed safely after one `product_intake_v1 / v1` call, before `awaiting_review`; retry/recovery were 0/0, all behavior gates were false and no stage 2～5 call occurred. FL-2 is terminal `GOAL_BLOCKED`, not live verified. #281 authorization is consumed and the Issue is closed; no further Provider run is authorized.
 
 ## 1. Product readiness
 
@@ -18,9 +18,9 @@ The following are accepted and sufficient for the minimal demo:
 - Marketing Brief, Xiaohongshu Brief and Markdown export;
 - one fictional “城市通勤双肩包” sufficient-input acceptance path;
 - honest insufficient-input behavior;
-- one opt-in direct DeepSeek official `deepseek-v4-pro` smoke after deterministic acceptance and independent adapter review.
+- a retained opt-in direct DeepSeek official `deepseek-v4-pro` seam plus terminal evidence from the two controlled runs; neither is live acceptance and no further run is authorized.
 
-No further Persona, RFC, general architecture, retrieval or enterprise-security planning is required for the deterministic Fast Lane release. Issue #281 separately authorizes one second bounded DeepSeek v2 smoke as `AUTHORIZED_NOT_EXECUTED` under its exact one-Task/five-call/zero-retry-or-recovery fence, after #274 Phase B review/checks/merge; execution is outside #274 and requires ORCHESTRATOR exact-commit GO, with no further user confirmation. Later deferred capabilities retain their separate gates.
+No further Persona, RFC, general architecture, retrieval or enterprise-security planning is required for the deterministic Fast Lane release. The two controlled DeepSeek runs are terminal failure evidence, not live acceptance; #281 is closed and no further Provider run is authorized. Later deferred capabilities retain their separate gates.
 
 ## 2. Implemented foundation at the current Fast Lane baseline
 
@@ -53,7 +53,7 @@ FL-1 is complete on the deterministic scripted path:
 - current Task/input/result state survives reload and stable deep-link return;
 - real-backend Chromium evidence is deterministic and provider-free.
 
-The superseded OpenAI and Qwen provider-specific offline seams, direct tests and live handoffs are removed by the bounded cleanup; `openai==2.53.0` remains because the current DeepSeek adapter consumes it. PR #271 adds the current direct DeepSeek official `deepseek-v4-pro` private adapter and opt-in Task-to-export smoke seam. One DeepSeek Secret-backed run was separately authorized and executed at exact reviewed `main@1c7c2107ead332235d492ed063b67101784d35f1`: it used one fictional Task, completed exactly five calls and recorded `retry_count=0` / `recovery_count=0`, but the HTTP generation result failed safely before `awaiting_review`. The fifth call's safe metadata records 12,288 output tokens, exactly its frozen ceiling, and 136,622 ms latency against a configured 120 s timeout. Because the evidence deliberately excludes raw content, reasoning, traceback, finish reason and internal error category, those values are diagnostic leads rather than a proven root cause. The credential was cleared from launchctl, the smoke schema was removed, and the scoped PostgreSQL container was stopped. No live acceptance result is claimed. Issue #281 separately authorizes one second bounded DeepSeek v2 smoke as `AUTHORIZED_NOT_EXECUTED` under the exact one fictional Task/five ordered calls/zero retry-or-recovery fence, only after #274 Phase B review/checks/merge; execution is outside #274 and requires ORCHESTRATOR exact-commit GO, with no further user confirmation. Goal remains `GOAL_BLOCKED` until qualifying result and human judgment.
+The superseded OpenAI and Qwen provider-specific offline seams, direct tests and live handoffs are removed by the bounded cleanup; `openai==2.53.0` remains because the current DeepSeek adapter consumes it. PR #271 adds the current direct DeepSeek official `deepseek-v4-pro` private adapter and opt-in Task-to-export smoke seam. The first authorized run at `main@1c7c2107ead332235d492ed063b67101784d35f1` completed five calls with `retry_count=0` / `recovery_count=0` and failed safely before `awaiting_review`; its fifth Xiaohongshu-v1 call recorded 12,288 output tokens and 136,622 ms latency against the historical 120 s timeout. The second authorized run under #281 at exact `main@ac4edfed6e8e216e9938affdc734298c8630d2de` stopped after one `product_intake_v1 / v1` call with fixed safe HTTP 500 before `awaiting_review`; safe metadata records input 2,353 / output 8,192 / total 10,545 tokens and 106,434 ms latency, retry/recovery 0/0, all behavior gates false and no stage 2～5 call. The 8,192 output equals the accepted first-stage ceiling, but this is only a diagnostic lead because evidence excludes raw content, reasoning, traceback, finish reason and internal error category. Cleanup completed after both bounded executions. No live acceptance is claimed; #281 authorization is consumed and closed, no further Provider run is authorized, and Goal remains `GOAL_BLOCKED`.
 
 ## 4. FL-3 release reconciliation
 
@@ -94,7 +94,7 @@ FL-1 uses them proportionally:
 - no new private-module AST scanner, exact file inventory or recursive every-field matrix without a reproduced risk;
 - real PostgreSQL only when the vertical changes persistence;
 - deterministic model substitute for ordinary PRs;
-- one real-provider smoke only at FL-2.
+- bounded real-provider evidence only at FL-2; the two authorized runs are terminal failures and no further run is currently authorized.
 
 See the concise [Testing Strategy](../development/testing-strategy.md).
 
@@ -124,9 +124,9 @@ FL-0 Planning rebaseline: COMPLETE
 FL-1 Deterministic vertical loop: COMPLETE (merged PRs #250/#252/#254)
 FL-2 DeepSeek provider amendment: ACCEPTED (Issue #268 / PR #269)
 FL-2 DeepSeek adapter/smoke seam: IMPLEMENTED_OFFLINE_NOT_LIVE_VERIFIED (Issue #270 / PR #271)
-FL-2 DeepSeek live proof: TERMINAL GOAL_BLOCKED (one authorized five-call run failed before awaiting_review; no retry authorized)
+FL-2 DeepSeek live proof: TERMINAL GOAL_BLOCKED (first run failed after five calls; second #281 run failed after one Product Intake call; no further Provider run authorized)
 FL-2 bounded repair: MERGED_OFFLINE (PR #280 / Issue #277 / DEC-080)
 FL-3 one-command local demo rehearsal: COMPLETE (Issue #257)
-Post-FL-2 bounded legacy cleanup: PHASE_B_DELIVERED_ON_MERGE (Issue #274; the single allowed cleanup Issue; Goal remains GOAL_BLOCKED)
+Post-FL-2 bounded legacy cleanup: COMPLETE (Issue #274; Goal remains GOAL_BLOCKED)
 Qwen Token Plan supplemental live: BLOCKED_BY_PROVIDER_TERMS (Issue #264)
 ```
