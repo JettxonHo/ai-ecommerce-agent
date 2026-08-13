@@ -120,6 +120,7 @@ ChatGPT 单方面输出的「建议」「推荐」「Proposed Decision」一律�
 
 ### 8.1 任务合同与线程隔离
 
+- 用户已向主开发 / 操作 Session 提供普通、可逆且合同内本地操作的长期预授权，包括只读诊断、fresh isolated clone / worktree、测试 / build / static checks、临时文件 / cache、有界本地 Docker / PostgreSQL / API lifecycle、evidence path setup 与合同要求的 cleanup；应合并并尽量减少重复的语义审批请求，但平台强制 approval card 仍可能需要一次机械点击。此预授权绝不扩大 Issue / Task Contract，也不授权额外或已消耗的 Provider run、付费调用、Secret / raw provider material 访问、广泛或破坏性数据操作、公共契约 / migration / 产品方向变更、模型角色回退或绕过 stop condition。
 - 一个实现线程原则上只处理一个边界清晰的 Issue，或一组高度相关且写入边界不冲突的 Issues。
 - Fast Lane Issue 必须交付用户可观察的纵向结果。没有同一纵向或紧邻下一纵向真实消费者的 DTO、Protocol、Facade、Repository、Schema 或架构守卫不得成为独立 Issue。
 - 任务合同保持短而完整：目标、范围/非范围、真实边界、验收、相关测试、停止条件、文件所有权与 Reviewer。不得把精确 SHA 链、人工 LOC 算术、重复模型状态口号或穷举变体矩阵作为常规接受条件。
