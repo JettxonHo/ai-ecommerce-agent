@@ -15,7 +15,7 @@ dependencies = [
     "openai==2.53.0",
     "psycopg[binary]==3.2.9",
     "referencing==0.37.0",
-    "sqlalchemy==2.0.43",
+    "sqlalchemy==2.0.51",
     "uvicorn==0.52.1",
 ]
 
