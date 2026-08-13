@@ -164,6 +164,10 @@ def test_profile_catalog_preserves_deepseek_order_and_exact_bounds() -> None:
         "marketing_brief_v1",
         "xiaohongshu_mapping_v1",
     ]
+    assert [
+        item.execution_profile.execution_profile_version
+        for item in DEEPSEEK_PROFILE_CATALOG
+    ] == ["v1", "v1", "v1", "v1", "v2"]
     assert [item.reasoning_effort.value for item in DEEPSEEK_PROFILE_CATALOG] == [
         "high",
         "high",
@@ -176,12 +180,12 @@ def test_profile_catalog_preserves_deepseek_order_and_exact_bounds() -> None:
         12288,
         16384,
         16384,
-        12288,
+        16384,
     ]
     assert [item.timeout_seconds for item in DEEPSEEK_PROFILE_CATALOG] == [
         120,
         180,
         240,
         180,
-        120,
+        240,
     ]

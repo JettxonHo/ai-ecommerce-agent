@@ -55,6 +55,13 @@ _STAGE_PROFILE_IDS: Final[tuple[str, ...]] = (
     "marketing_brief_v1",
     "xiaohongshu_mapping_v1",
 )
+_STAGE_PROFILE_VERSIONS: Final[tuple[str, ...]] = (
+    "v1",
+    "v1",
+    "v1",
+    "v1",
+    "v2",
+)
 _STAGE_INSTRUCTIONS: Final[tuple[str, ...]] = (
     "Extract only provider-neutral Product Intake fact candidates from the "
     "supplied input. "
@@ -536,7 +543,9 @@ def _request(
     upstream: StructuredContent | None,
 ) -> ModelCallRequest:
     call_id = ModelCallId(f"deterministic-stage-{index}")
-    profile = ModelExecutionProfile(_STAGE_PROFILE_IDS[index - 1], "v1")
+    profile = ModelExecutionProfile(
+        _STAGE_PROFILE_IDS[index - 1], _STAGE_PROFILE_VERSIONS[index - 1]
+    )
     return ModelCallRequest(
         identity=ModelCallIdentity(call_id),
         instructions=_STAGE_INSTRUCTIONS[index - 1],

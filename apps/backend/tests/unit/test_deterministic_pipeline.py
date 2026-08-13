@@ -103,6 +103,10 @@ def test_sufficient_anchor_runs_five_ordered_validated_stages_and_carries_contex
         "xiaohongshu_mapping_v1",
     ]
     assert [
+        request.execution_profile.execution_profile_version
+        for request in recorder.requests
+    ] == ["v1", "v1", "v1", "v1", "v2"]
+    assert [
         request.structured_output.output_schema_id for request in recorder.requests
     ] == [
         "product_intake_fact_candidate",

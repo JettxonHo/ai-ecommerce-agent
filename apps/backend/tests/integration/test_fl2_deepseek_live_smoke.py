@@ -406,6 +406,9 @@ def test_one_deepseek_task_to_export_smoke(postgres_engine: Engine) -> None:
                 "marketing_brief_v1",
                 "xiaohongshu_mapping_v1",
             ]
+            assert [
+                item.version_tuple.execution_profile_version for item in metadata
+            ] == ["v1", "v1", "v1", "v1", "v2"]
         _write_evidence(
             started_at=started_at,
             started_clock=started_clock,
