@@ -296,7 +296,7 @@ def test_one_qwen_supplemental_task_to_export_smoke(postgres_engine: Engine) -> 
             assert saved.status_code == 200, saved.text
             generated = client.post(
                 f"/api/v1/tasks/{task_id}/commands/generate-result",
-                headers={"Idempotency-Key": "fl2-qwen-live-result"},
+                headers={"Idempotency-Key": "fl2-qwen-result"},
                 json={"expectedInputRevision": 0},
             )
             assert generated.status_code == 201, generated.text
