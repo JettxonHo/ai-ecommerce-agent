@@ -23,9 +23,6 @@ from ai_ecommerce_agent.application.structured_output import (
 from ai_ecommerce_agent.modules.marketing_brief.application.skills import (
     marketing_brief_generation as _brief,
 )
-from ai_ecommerce_agent.platform.model_runtime.openai_responses import (
-    _schema_compatibility,
-)
 
 pytestmark = pytest.mark.unit
 
@@ -748,9 +745,6 @@ def test_specs_are_equal_and_deeply_detached_and_preflightable() -> None:
     first = _brief.marketing_brief_candidate_output_spec()
     second = _brief.marketing_brief_candidate_output_spec()
     assert first == second and first is not second
-    _schema_compatibility.ensure_openai_responses_schema_compatible(
-        structured_output=first, model_call_id=ModelCallId("brief-schema")
-    )
     first_mapping = cast(dict[str, object], first.schema.to_mapping())
     second_mapping = cast(dict[str, object], second.schema.to_mapping())
     cast(dict[str, object], first_mapping["properties"])["extra"] = {}

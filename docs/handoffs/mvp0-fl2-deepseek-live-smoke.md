@@ -1,26 +1,33 @@
 # MVP-0 FL-2 DeepSeek V4 Pro live-smoke handoff
 
-STATUS: GOAL_BLOCKED_REPAIR_AUTHORIZED_OFFLINE_NO_SECOND_LIVE
+STATUS: GOAL_BLOCKED_REPAIR_MERGED_OFFLINE_CLEANUP_DELIVERED_ON_MERGE_SECOND_V2_AUTHORIZED_NOT_EXECUTED
 
 The opt-in seam was delivered by Issue #270. One separately authorized run at
 exact reviewed `main@1c7c2107ead332235d492ed063b67101784d35f1` later executed
 one fictional Task and exactly five calls with zero retries and zero recovery
 calls. It failed safely before `awaiting_review`, so the current Goal result is
-`GOAL_BLOCKED`, not live verified.
+`GOAL_BLOCKED`, not live verified. The DEC-080 v2 deadline-fence repair was
+implemented offline and merged as PR #280; the bounded legacy cleanup in Issue
+#274 is delivered on merge. Issue #281 separately records one second bounded
+DeepSeek v2 smoke as `AUTHORIZED_NOT_EXECUTED`: exactly one fictional Task,
+five ordered calls and zero retry/recovery, only after #274 Phase B is
+independently reviewed, checks pass and merges. Execution is outside #274 and
+requires ORCHESTRATOR exact-commit GO, with no further user confirmation.
 
 The fifth call recorded 12,288 output tokens and 136,622 ms latency against the
 historical `xiaohongshu_mapping_v1 / v1` limit of 12,288 / 120 s. Sanitized
 evidence does not retain the raw finish reason or error category; this is a
-bounded repair lead, not a proven root cause. DEC-080 authorizes only an
-offline `v2` implementation at 16,384 / 240 s plus a post-return deadline
-fence. It does not authorize a second live run.
+bounded repair lead, not a proven root cause. PR #280 merged the offline `v2`
+implementation at 16,384 / 240 s plus a post-return deadline fence. It does
+not change the first run's `GOAL_BLOCKED` result.
 
 ## Authorization gate
 
-Do not run again without new explicit user authorization after the DEC-080
-implementation PR has passed its Required Checks and independent review. A
-future authorized run must use one exact reviewed commit and one fictional
-`fixture-sufficient-v1` Anchor SKU Task only.
+The separately authorized #281 run remains outside this Issue and is not
+executed by Phase B. It may run only after #274 Phase B has passed Required
+Checks and independent review and has merged, with ORCHESTRATOR exact-commit
+GO. It uses one exact reviewed commit and one fictional `fixture-sufficient-v1`
+Anchor SKU Task only; no further user confirmation is required.
 
 The live test is selected only when all of these are explicit:
 

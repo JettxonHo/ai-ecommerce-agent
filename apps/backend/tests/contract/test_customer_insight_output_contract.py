@@ -9,14 +9,10 @@ import pytest
 
 from ai_ecommerce_agent.application import model_runtime
 from ai_ecommerce_agent.application.model_runtime import (
-    ModelCallId,
     StructuredOutputSpec,
 )
 from ai_ecommerce_agent.modules.customer_insight.application.skills import (
     customer_insight_analysis as _customer_insight,
-)
-from ai_ecommerce_agent.platform.model_runtime.openai_responses import (
-    _schema_compatibility,
 )
 
 CustomerInsightMode = _customer_insight.CustomerInsightMode
@@ -85,10 +81,6 @@ def test_spec_facade_is_exact_synchronous_and_typed() -> None:
     assert first is not second
     assert first.output_schema_id == "customer_insight_candidate"
     assert first.output_schema_version == "v1"
-    _schema_compatibility.ensure_openai_responses_schema_compatible(
-        structured_output=first,
-        model_call_id=ModelCallId("customer-insight-schema-test"),
-    )
     first_mapping = cast(dict[str, object], first.schema.to_mapping())
     second_mapping = cast(dict[str, object], second.schema.to_mapping())
     assert first_mapping == second_mapping

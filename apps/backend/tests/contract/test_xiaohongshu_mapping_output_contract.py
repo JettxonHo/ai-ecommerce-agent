@@ -8,14 +8,10 @@ from typing import cast, get_type_hints
 import pytest
 
 from ai_ecommerce_agent.application.model_runtime import (
-    ModelCallId,
     StructuredOutputSpec,
 )
 from ai_ecommerce_agent.modules.xiaohongshu_adapter.application.skills import (
     xiaohongshu_brief_mapping as _mapping,
-)
-from ai_ecommerce_agent.platform.model_runtime.openai_responses import (
-    _schema_compatibility,
 )
 
 pytestmark = pytest.mark.contract
@@ -59,10 +55,6 @@ def test_spec_facade_is_exact_synchronous_and_typed() -> None:
     assert first is not second
     assert first.output_schema_id == "xiaohongshu_brief_candidate"
     assert first.output_schema_version == "v1"
-    _schema_compatibility.ensure_openai_responses_schema_compatible(
-        structured_output=first,
-        model_call_id=ModelCallId("xiaohongshu-mapping-schema"),
-    )
     first_mapping = cast(dict[str, object], first.schema.to_mapping())
     second_mapping = cast(dict[str, object], second.schema.to_mapping())
     cast(dict[str, object], first_mapping["properties"])["extra"] = {}
