@@ -53,5 +53,7 @@ complete local stack from the repository root with `./scripts/mvp0/demo`, or
 run `npm run dev` here when an API is already listening. The contract tests
 use an injected transport and the Chromium tests fail on page or console
 errors. The reviewed direct DeepSeek adapter and opt-in smoke seam are backend
-offline capabilities; the one-Task/five-call live proof remains a separate
-human-authorized FL-2 gate and has not run.
+capabilities. The one authorized one-Task/five-call proof ran at exact reviewed
+`main@1c7c2107ead332235d492ed063b67101784d35f1`, completed five calls with zero
+retries, and failed safely before `awaiting_review`; FL-2 is `GOAL_BLOCKED`, not
+live verified. Any second paid run requires new explicit authorization.

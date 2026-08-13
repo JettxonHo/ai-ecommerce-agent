@@ -1,6 +1,6 @@
 # MVP-0 Fast Lane Goal
 
-> **Status: ACTIVE**
+> **Status: ACTIVE — FL-2 TERMINAL RESULT `GOAL_BLOCKED`**
 >
 > **Accepted baseline:** `main@371ea0c15546b91ee10fcde8622553b164e5740c`
 >
@@ -11,6 +11,8 @@
 > **Accepted cleanup amendment on 2026-08-13:** legacy code and tests are simplified immediately only when they block the current vertical. Other non-blocking legacy work stays frozen until one bounded cleanup reconciliation after the Fast Lane execution result is known and before the final Goal decision.
 >
 > **Accepted Provider amendment on 2026-08-13:** [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) replaces the remaining OpenAI live Gate with one direct DeepSeek official API proof using `deepseek-v4-pro`. The deterministic loop, text-only input, project Schema / Domain authority, Secret boundary, one Task / five calls limit and post-FL-2 cleanup sequencing remain mandatory.
+>
+> **FL-2 terminal result on 2026-08-13:** the one explicitly authorized run at exact reviewed `main@1c7c2107ead332235d492ed063b67101784d35f1` completed one fictional Task's five calls with `retry_count=0` and `recovery_count=0`, then failed safely before `awaiting_review`. Live verification is not claimed. The fifth call reached its frozen 12,288 output-token ceiling and recorded 136,622 ms latency against a configured 120 s timeout; the sanitized evidence does not retain the raw finish reason or error category, so this is a bounded diagnostic lead rather than a proven root cause. [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) is the single post-FL-2 cleanup Issue. Any Profile change or second paid run requires a new contract, and the second run also requires new explicit user authorization.
 
 ## 1. Outcome
 
