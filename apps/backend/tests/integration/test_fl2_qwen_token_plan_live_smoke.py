@@ -18,6 +18,7 @@ from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 from time import monotonic
+from uuid import UUID
 
 import pytest
 from alembic import command
@@ -186,6 +187,12 @@ def _fixture_input() -> str:
     )
 
 
+def _idempotency_key(seed: int) -> str:
+    """Return a deterministic UUID for each mutation in this one-task smoke."""
+
+    return str(UUID(int=seed))
+
+
 def _result_client(
     engine: Engine,
     runtimes: list[QwenTokenPlanModelRuntime],
@@ -276,7 +283,7 @@ def test_one_qwen_supplemental_task_to_export_smoke(postgres_engine: Engine) -> 
         with client:
             created = client.post(
                 "/api/v1/tasks",
-                headers={"Idempotency-Key": "fl2-qwen-live-task-create"},
+                headers={"Idempotency-Key": _idempotency_key(1)},
                 json={
                     "taskName": "FL-2 Qwen supplemental smoke",
                     "productCategory": "Backpack",
@@ -296,7 +303,7 @@ def test_one_qwen_supplemental_task_to_export_smoke(postgres_engine: Engine) -> 
             assert saved.status_code == 200, saved.text
             generated = client.post(
                 f"/api/v1/tasks/{task_id}/commands/generate-result",
-                headers={"Idempotency-Key": "fl2-qwen-result"},
+                headers={"Idempotency-Key": _idempotency_key(2)},
                 json={"expectedInputRevision": 0},
             )
             assert generated.status_code == 201, generated.text
@@ -317,7 +324,7 @@ def test_one_qwen_supplemental_task_to_export_smoke(postgres_engine: Engine) -> 
             gates["validated_candidates"] = True
             confirmed = client.post(
                 f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
-                headers={"Idempotency-Key": "fl2-qwen-live-confirm"},
+                headers={"Idempotency-Key": _idempotency_key(3)},
                 json={
                     "expectedResultRevision": 0,
                     "marketingCoreMessage": (
@@ -342,7 +349,9 @@ def test_one_qwen_supplemental_task_to_export_smoke(postgres_engine: Engine) -> 
                 assert preview.status_code == 200, preview.text
                 snapshot = client.post(
                     "/api/v1/export-snapshots",
-                    headers={"Idempotency-Key": f"fl2-qwen-live-export-{brief_kind}"},
+                    headers={
+                        "Idempotency-Key": _idempotency_key(4 + len(snapshot_ids))
+                    },
                     json={"basis": preview.json()["basis"]},
                 )
                 assert snapshot.status_code == 201, snapshot.text
