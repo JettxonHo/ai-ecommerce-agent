@@ -8,6 +8,7 @@
 - **Source:** [Session-005](../sessions/session-005-deepseek-v4-pro-provider-amendment.md)；用户明确确认使用 DeepSeek 官方 API
 - **Issue:** [#268](https://github.com/JettxonHo/ai-ecommerce-agent/issues/268)
 - **Amends:** [DEC-052](dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md)、[DEC-053](dec-053-bounded-model-recovery-readable-versioning-and-deterministic-skill-profiles.md)、[DEC-054](dec-054-adapter-secret-payload-boundary-and-deterministic-model-verification.md)、[DEC-078](dec-078-mvp0-fast-lane-execution-rebaseline.md) 与 [RFC-006](../rfcs/rfc-006-llm-runtime-and-structured-output.md) 的 MVP-0 Provider-specific 条款
+- **Amended by:** [DEC-080](dec-080-fl2-xiaohongshu-profile-v2-and-deadline-fence.md) 只把 Xiaohongshu execution profile 提升为 `v2` 并增加同步调用返回后的 deadline fence；本文件的 `v1` 表保留为首次 live 的历史合同
 
 ## Context
 
