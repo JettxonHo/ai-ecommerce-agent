@@ -9,6 +9,7 @@ import openai
 import pytest
 
 import ai_ecommerce_agent.platform.model_runtime as _runtime_package
+import ai_ecommerce_agent.platform.model_runtime.deepseek._runtime as _deepseek_runtime
 from ai_ecommerce_agent.application.model_runtime import (
     ModelCallContractVersions,
     ModelCallId,
@@ -141,6 +142,56 @@ def test_transient_provider_error_is_one_attempt_without_runtime_retry() -> None
         assert calls == 1
         assert runtime.retry_count == 0
         assert "provider marker" not in str(caught.value)
+    finally:
+        runtime.close()
+
+
+def test_response_returned_at_application_deadline_is_discarded_before_mapping(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(200, json=_response_payload())
+
+    clock_values = iter((0.0, 1.0, 2.0, 120.0))
+    monkeypatch.setattr(
+        _deepseek_runtime,
+        "_monotonic",
+        lambda: next(clock_values),
+    )
+
+    def fail_mapping(**_kwargs: object) -> object:
+        pytest.fail("late response must be discarded before response mapping")
+
+    monkeypatch.setattr(_deepseek_runtime, "map_deepseek_response", fail_mapping)
+    client = openai.OpenAI(
+        api_key="test-key",
+        base_url=DEEPSEEK_BASE_URL,
+        max_retries=0,
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+    runtime = DeepSeekModelRuntime(client=client)
+    try:
+        with pytest.raises(ModelRuntimeError) as caught:
+            runtime.execute(_request())
+        assert (
+            caught.value.category
+            is ModelRuntimeErrorCategory.TRANSIENT_PROVIDER_FAILURE
+        )
+        assert str(caught.value) == "DeepSeek provider transport failed"
+        assert calls == 1
+        assert runtime.retry_count == 0
+        assert len(runtime.metadata_records) == 1
+        metadata = runtime.metadata_records[0]
+        assert metadata.provider_attempt_ids[0].value == ("deepseek-call-1-attempt-1")
+        assert metadata.version_tuple.execution_profile_version == "v1"
+        assert metadata.latency_ms == 118000
+        assert metadata.provider_response_id is None
+        assert metadata.provider_request_id is None
+        assert metadata.usage is None
     finally:
         runtime.close()
 

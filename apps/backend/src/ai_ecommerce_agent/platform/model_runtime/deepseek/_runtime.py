@@ -54,10 +54,10 @@ DEEPSEEK_PROFILE_CATALOG: tuple[DeepSeekCallParameters, ...] = (
         180,
     ),
     DeepSeekCallParameters(
-        _contracts.ModelExecutionProfile("xiaohongshu_mapping_v1", "v1"),
+        _contracts.ModelExecutionProfile("xiaohongshu_mapping_v1", "v2"),
         DeepSeekReasoningEffort.HIGH,
-        12288,
-        120,
+        16384,
+        240,
     ),
 )
 
@@ -197,7 +197,23 @@ def _execute_one_attempt(
         )
         del error
         raise mapped from None
-    latency_ms = max(0, int((_monotonic() - start) * 1000))
+    finished_at = _monotonic()
+    latency_ms = max(0, int((finished_at - start) * 1000))
+    if finished_at >= overall_deadline_monotonic:
+        del response
+        late_metadata = _failure_metadata(
+            request=request,
+            provider_attempt_ids=provider_attempt_ids,
+            provider_request_id=None,
+            latency_ms=latency_ms,
+        )
+        raise _contracts.ModelRuntimeError(
+            category=_contracts.ModelRuntimeErrorCategory.TRANSIENT_PROVIDER_FAILURE,
+            message=_TRANSIENT_MESSAGE,
+            retryability=True,
+            model_call_id=request.identity.model_call_id,
+            provider_metadata=late_metadata,
+        )
     if type(response) is not _ChatCompletion:
         del response
         raise _contracts.ModelRuntimeError(
