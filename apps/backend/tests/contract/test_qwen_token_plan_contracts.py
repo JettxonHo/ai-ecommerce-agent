@@ -8,6 +8,7 @@ from typing import get_type_hints
 
 import pytest
 
+import ai_ecommerce_agent.platform.model_runtime as _runtime_package
 from ai_ecommerce_agent.application.model_runtime import (
     ModelCallRequest,
     ModelCallResult,
@@ -17,6 +18,8 @@ from ai_ecommerce_agent.platform.model_runtime.qwen_token_plan import (
     _request_preparation,
     _response_mapping,
 )
+
+_runtime_package.__dict__.pop("qwen_token_plan", None)
 
 pytestmark = pytest.mark.contract
 
