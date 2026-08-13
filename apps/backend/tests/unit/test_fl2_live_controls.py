@@ -22,6 +22,16 @@ def test_live_smoke_never_reads_provider_secret_directly() -> None:
     assert "OPENAI_API_KEY" not in source
 
 
+def test_qwen_supplemental_smoke_never_reads_provider_secret_directly() -> None:
+    source = (
+        Path(__file__).parents[1]
+        / "integration"
+        / "test_fl2_qwen_token_plan_live_smoke.py"
+    ).read_text(encoding="utf-8")
+    assert "QWEN_TOKEN_PLAN_API_KEY" not in source
+    assert "RUN_QWEN_SUPPLEMENTAL_SMOKE" in source
+
+
 def test_live_evidence_has_only_the_operator_allowlist() -> None:
     evidence = serialize_live_smoke_evidence(
         commit="fa02d1f4e8172948ad1a909ac4ebf7fb9bdfb5a5",
