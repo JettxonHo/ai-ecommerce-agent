@@ -1,8 +1,10 @@
 # DEC-053：采用有界模型恢复、可读版本身份与确定性 Skill Profile
 
+> **DEC-079 Amendment（2026-08-13）：** Provider-neutral Version Tuple 与有界 Recovery 设计继续有效；MVP-0 DeepSeek FL-2 的五个 Profile 全部显式使用 `reasoning_effort=high`，且首次人工付费 Gate 严格限于五个初始 calls，不授权 transport retry 或 model-assisted recovery。见 [DEC-079](dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)。
+
 ## Metadata
 
-- **Status:** Accepted
+- **Status:** Accepted — MVP-0 Provider/profile/live-budget portions amended by [DEC-079](dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)
 - **Date:** 2026-08-06
 - **Decision Type:** LLM Runtime / Failure Recovery / Versioning / Invocation Profile
 - **Source:** Session-003；用户明确接受 P-31A、P-32A、P-33A

@@ -2,7 +2,7 @@
 
 > **Status: ACCEPTED VIA DEC-078**
 >
-> **Authority:** [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md)
+> **Authority:** [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) · [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) · [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)
 >
 > This document supersedes the prior Testing Strategy for remaining MVP-0 work. Historical suites stay in the repository; Fast Lane does not require deleting them unless they block delivery.
 
@@ -136,7 +136,7 @@ Ordinary PRs use the scripted substitute and no network.
 
 The deterministic pipeline verifies required output groups, evidence/limitation honesty and downstream mapping. It does not freeze complete prose or score model style mechanically.
 
-At Release Candidate time, run one explicitly opted-in OpenAI sufficient-input path. Record:
+At Release Candidate time, run one explicitly opted-in direct DeepSeek V4 Pro sufficient-input path. It is exactly one fictional Anchor Task and five initial Provider calls; automatic transport retry, repair, regeneration and a second Task are not part of this paid Gate. Record:
 
 - pass/fail;
 - model/profile/version tuple;
@@ -144,7 +144,7 @@ At Release Candidate time, run one explicitly opted-in OpenAI sufficient-input p
 - user-visible result and limitations;
 - safe correlation/error reference if it fails.
 
-Do not store the Secret or raw provider payload, and do not create a live edge-case matrix.
+Do not store the Secret, raw provider payload or reasoning content, and do not create a live edge-case matrix. JSON syntax from `response_format=json_object` is not sufficient acceptance: every stage must pass the existing project Schema / Pydantic and Domain Validator before its result can become downstream context.
 
 ## 7. CI policy
 
@@ -202,7 +202,7 @@ MVP-0 Fast Lane exits only with:
 - relevant PostgreSQL integration and idempotency evidence green;
 - safe Markdown export verified;
 - one fresh-environment rehearsal;
-- one real OpenAI happy-path smoke;
+- one real direct DeepSeek V4 Pro happy-path smoke;
 - Critical/Blocking findings at zero;
 - a short list of known limitations and deferred capabilities.
 

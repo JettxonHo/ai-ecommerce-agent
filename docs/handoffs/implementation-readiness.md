@@ -1,10 +1,10 @@
 # Implementation Readiness
 
-> **Status: FL-1 COMPLETE · FL-2 LIVE PROOF PENDING · FL-3 RECONCILIATION**
+> **Status: FL-1 COMPLETE · FL-3 COMPLETE · FL-2 DEEPSEEK IMPLEMENTATION/PROOF PENDING**
 >
-> **Authority:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [MVP-0 Fast Lane Goal](../goals/mvp0-fast-lane-goal.md)
+> **Authority:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) · [MVP-0 Fast Lane Goal](../goals/mvp0-fast-lane-goal.md)
 >
-> **Current release boundary:** the deterministic local loop is implemented. Issue #257 reconciles the one-command local demo and current-status surfaces; Issue #255 remains the independent real OpenAI acceptance gate.
+> **Current release boundary:** the deterministic local loop and one-command demo are implemented. Issue #268 owns the documentation-first provider amendment; the subsequent implementation Issue must add the private DeepSeek seam before a separately authorized one-Task/five-call smoke. Issue #255 is superseded after this amendment merges. Issue #264 is `BLOCKED_BY_PROVIDER_TERMS` and must not run.
 
 ## 1. Product readiness
 
@@ -18,7 +18,7 @@ The following are accepted and sufficient for the minimal demo:
 - Marketing Brief, Xiaohongshu Brief and Markdown export;
 - one fictional “城市通勤双肩包” sufficient-input acceptance path;
 - honest insufficient-input behavior;
-- one opt-in real OpenAI smoke after deterministic acceptance.
+- one opt-in direct DeepSeek official `deepseek-v4-pro` smoke after deterministic acceptance and independent adapter review.
 
 No further Persona, RFC, general architecture, retrieval or enterprise-security planning is required for the deterministic Fast Lane release; FL-2 live proof and later deferred capabilities retain their separate gates.
 
@@ -30,7 +30,7 @@ Implemented or physically present:
 - local PostgreSQL lifecycle and compatibility evidence;
 - Task / Run / Stage and Source persistence components;
 - bounded Durable Dispatch, checkpoint and runtime diagnostic seams;
-- provider-neutral Model Runtime, scripted substitute and OpenAI Responses transport pieces;
+- provider-neutral Model Runtime, scripted substitute, OpenAI Responses transport pieces and an offline-only Qwen Token Plan adapter;
 - private output contracts for Facts, Insight, Positioning, Marketing Brief and Xiaohongshu mapping;
 - Marketing / Xiaohongshu domain snapshots and safe Markdown renderer;
 - authored OpenAPI and generated TypeScript client;
@@ -41,7 +41,7 @@ Implemented or physically present:
 - representative real-backend Chromium coverage for sufficient/insufficient input, review, Markdown downloads and reload persistence;
 - private local-demo composition plus `scripts/mvp0/demo` foreground API/Web lifecycle and non-destructive PostgreSQL stale-container repair.
 
-The current reconciliation baseline is `main@fca7345639cbab8ce0767f1e264e5e1a26f9414f` before Issue #257 changes. The release path still uses loopback only, keeps PostgreSQL separate from API/Web child cleanup, and does not select the OpenAI runtime.
+The current provider-amendment baseline is `main@1469eefe6db75ceee949b2c7431df5ac06a25f40`. The release path still uses loopback only, keeps PostgreSQL separate from API/Web child cleanup, and does not select any live Provider runtime.
 
 ## 3. FL-1 and FL-2 status
 
@@ -53,18 +53,18 @@ FL-1 is complete on the deterministic scripted path:
 - current Task/input/result state survives reload and stable deep-link return;
 - real-backend Chromium evidence is deterministic and provider-free.
 
-FL-2 runtime/smoke seam is merged, but no real OpenAI call, Secret-backed run or live acceptance result is claimed. Issue #255 remains pending for that separate gate.
+The former OpenAI FL-2 runtime/smoke seam and the supplemental Qwen offline seam are merged, but no OpenAI, Qwen or DeepSeek call, Secret-backed run or live acceptance result is claimed. DEC-079 replaces the remaining OpenAI Gate with direct DeepSeek official `deepseek-v4-pro`. The DeepSeek adapter/smoke seam is not yet implemented; the live Gate remains separately blocked on exact-head review and user authorization.
 
 ## 4. FL-3 release reconciliation
 
-Issue #257 owns the smallest release/operator reconciliation:
+Issue #257 completed the smallest release/operator reconciliation:
 
 - `./scripts/mvp0/demo` starts/reconciles only the fixed local PostgreSQL service, applies the existing Business Alembic head, and starts API/Web on `127.0.0.1:8000`/`127.0.0.1:5173`;
 - Ctrl-C/TERM reaps only API/Web children; `./scripts/mvp0/down` stops PostgreSQL while preserving its named volume;
 - current README, Web README, AGENTS and this handoff describe implemented code without claiming live-provider success;
 - fresh-clone rehearsal records lockfile installs, host preflight, browser normal/insufficient/review/download/reload evidence and cleanup.
 
-No public HTTP/OpenAPI/Web behavior, migration/schema/dependency/Compose topology, Worker, provider or deployment boundary is expanded by FL-3.
+No public HTTP/OpenAPI/Web behavior, migration/schema/dependency/Compose topology, Worker, Provider or deployment boundary was expanded by FL-3.
 
 ## 5. Deferred and non-blocking
 
@@ -112,7 +112,7 @@ Stop and request user direction only for:
 - destructive migration or existing-data rewrite;
 - public deployment, real user data, additional paid provider or irreversible external action;
 - credible Secret exposure or loss of Task/scope/atomic-result guarantees;
-- replacement of accepted PostgreSQL, OpenAI, React/Vite, FastAPI or `luna-worker` boundaries;
+- replacement of accepted PostgreSQL, current DeepSeek FL-2 Provider, React/Vite, FastAPI or `luna-worker` boundaries;
 - an allegedly necessary infrastructure slice with no concrete Fast Lane consumer.
 
 Reversible local implementation choices do not require a new Decision. Record them in the Issue or PR.
@@ -120,8 +120,10 @@ Reversible local implementation choices do not require a new Decision. Record th
 ## 9. Execution status
 
 ```text
-FL-0 Planning rebaseline: COMPLETE ON THIS DOCUMENTATION PR MERGE
+FL-0 Planning rebaseline: COMPLETE
 FL-1 Deterministic vertical loop: COMPLETE (merged PRs #250/#252/#254)
-FL-2 Runtime/smoke seam: MERGED; real OpenAI proof PENDING (Issue #255)
-FL-3 Release reconciliation: ACTIVE (Issue #257)
+FL-2 DeepSeek provider amendment: ACCEPTED; documentation sync ACTIVE (Issue #268)
+FL-2 DeepSeek adapter/smoke seam: NOT STARTED; live proof PENDING SEPARATE HUMAN GATE
+FL-3 Release reconciliation: COMPLETE (Issue #257)
+Qwen Token Plan supplemental live: BLOCKED_BY_PROVIDER_TERMS (Issue #264)
 ```

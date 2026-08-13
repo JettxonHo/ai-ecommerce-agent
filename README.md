@@ -1,6 +1,6 @@
 # AI Ecommerce Agent
 
-> **Status: MVP-0 Fast Lane · FL-1 COMPLETE · FL-3 RELEASE RECONCILIATION**
+> **Status: MVP-0 Fast Lane · FL-1/FL-3 COMPLETE · FL-2 DEEPSEEK PROOF PENDING**
 >
 > The current execution authority is the [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md). The original [end-to-end MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) remains historical traceability, not the default remaining backlog.
 
@@ -34,7 +34,7 @@ The repository already contains:
 - React `/tasks` list, Task creation, stable deep links, Workbench projection and TaskWorkbench review/results UI;
 - a real-backend Chromium path covering sufficient and insufficient input, review, download and reload persistence.
 
-The deterministic browser-to-backend loop is implemented and locally verifiable. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. The real OpenAI acceptance remains a separate FL-2 smoke (Issue #255) and has not been claimed here.
+The deterministic browser-to-backend loop is implemented and locally verifiable. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) changes the remaining FL-2 proof to direct DeepSeek official `deepseek-v4-pro`; no OpenAI, Qwen or DeepSeek live acceptance is claimed yet. The merged Qwen Token Plan code is offline-only and its live path is blocked by Provider Terms.
 
 Advanced retrieval, distributed recovery and other deferred capabilities remain intentionally out of this release slice.
 
@@ -47,7 +47,7 @@ The remaining MVP-0 proves one user path:
 3. run Facts → Insight → Positioning → Marketing Brief → Xiaohongshu Brief;
 4. inspect, make a bounded correction and confirm once;
 5. download the current result as Markdown;
-6. run the sufficient-input path once with the real OpenAI provider after deterministic E2E passes.
+6. run the sufficient-input path once with direct DeepSeek official `deepseek-v4-pro` after deterministic E2E passes, using exactly one Task and five initial calls.
 
 The first implementation uses no more than three vertical Issues: input/backend routes, pipeline/current results, and review/export.
 
@@ -75,9 +75,10 @@ Read in this order:
 
 1. [AGENTS.md](AGENTS.md)
 2. [DEC-078](docs/decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md)
-3. [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md)
-4. [Implementation Readiness](docs/handoffs/implementation-readiness.md)
-5. the current Issue and the actual code/tests it changes
+3. [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) when work touches FL-2 or a Provider boundary
+4. [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md)
+5. [Implementation Readiness](docs/handoffs/implementation-readiness.md)
+6. the current Issue and the actual code/tests it changes
 
 Historical RFCs and Decisions are consulted only when the current vertical changes their public or irreversible boundary.
 
@@ -100,7 +101,7 @@ cp .env.example .env
 ./scripts/mvp0/down       # stop PostgreSQL; named volume is preserved
 ```
 
-`./scripts/mvp0/up` and `./scripts/mvp0/verify` remain database-only lifecycle checks. `scripts/mvp0/demo` never starts a Worker or selects the OpenAI runtime. JSON/CSV/PDF/image/OCR intake, retrieval, distributed Worker/checkpoint recovery, advanced Review/Diff, auth/multi-tenant/public deployment and automatic publishing remain deferred.
+`./scripts/mvp0/up` and `./scripts/mvp0/verify` remain database-only lifecycle checks. `scripts/mvp0/demo` never starts a Worker or selects a live Provider runtime. JSON/CSV/PDF/image/OCR intake, retrieval, distributed Worker/checkpoint recovery, advanced Review/Diff, auth/multi-tenant/public deployment and automatic publishing remain deferred.
 
 ## Governance
 
@@ -109,6 +110,6 @@ cp .env.example .env
 - The exact custom `luna-worker` implements code Issues; it is not silently replaced by Terra.
 - Completed sub-agents are closed promptly unless an immediate bounded follow-up is required.
 - One Issue must deliver one observable vertical outcome; speculative contract-only work is not accepted.
-- Destructive migrations, public deployment, real user data and additional paid providers remain human gates.
+- Destructive migrations, public deployment, real user data, Provider Secrets and paid live calls remain human gates.
 
-See [Decision Log](docs/decisions/decision-log.md) for historical traceability. Current execution is governed by DEC-078 rather than by reading all prior planning documents.
+See [Decision Log](docs/decisions/decision-log.md) for historical traceability. Current execution is governed by DEC-078 plus the FL-2 Provider amendment in DEC-079 rather than by reading all prior planning documents.

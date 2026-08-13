@@ -2,9 +2,13 @@
 
 ## Status
 
-Implementation handoff for the opt-in supplemental adapter and one live smoke
-seam. This document does not claim a live result. It does not replace the
-accepted OpenAI Responses provider, and it does not close Issue #255.
+**BLOCKED_BY_PROVIDER_TERMS — DO NOT RUN.** The Token Plan Personal terms
+prohibit using the plan for an automated script or custom application backend,
+which includes this pytest / FastAPI / PostgreSQL smoke. The merged adapter is
+offline-only and frozen pending the post-FL-2 bounded cleanup classification.
+This document does not claim a live result and does not authorize Secret
+injection, a Qwen call or Token Plan consumption. Current FL-2 authority is
+[DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md).
 
 ## Frozen lane
 
@@ -32,11 +36,10 @@ project schema validation, private package boundaries, and zero default live
 I/O. The integration module is marked `live` and is skipped unless both
 explicit opt-in flags are set.
 
-## One-run operator procedure
+## Historical operator procedure — prohibited under current terms
 
-After an independently reviewed exact commit is available, the operator must
-inject the Token Plan Secret outside source control and select a new evidence
-path. The smoke must be run once:
+The following shape is retained only to explain the merged offline seam. Do not
+inject the Token Plan Secret and do not execute this smoke:
 
 ```text
 RUN_QWEN_SUPPLEMENTAL_SMOKE=1
@@ -60,16 +63,15 @@ version tuples, token usage, latency, retry count, behavior gates, commit and
 timing. It must not contain the Secret, prompts, context, raw responses,
 fixtures, candidates, Markdown bytes, tracebacks or account identifiers.
 
-Record the human-observed outcome separately as **Qwen supplemental live
-verified** only after the automated gates and sanitized evidence have been
-independently reviewed. OpenAI remains **live unverified** unless its own
-authorized smoke has passed.
+No Qwen live result may be recorded from Token Plan Personal. The remaining
+accepted Provider proof is direct DeepSeek official API and requires its own
+implementation, exact-head review and separate paid authorization.
 
-## Stop and rollback
+## Frozen disposition
 
-Stop before or after a paid/ambiguous failure if the subscription, model,
-endpoint, strict schema compatibility or evidence boundary is not satisfied;
-do not retry without new explicit authorization. Rollback is deleting the
-private adapter package, its tests, integration seam and this handoff from the
-feature branch; no production/default bootstrap or database migration is
-involved.
+No live attempt is permitted, so there is no paid failure or retry path to
+operate. Do not revert or delete the merged adapter opportunistically. After
+FL-2 reaches a terminal result, the single bounded legacy cleanup Issue must use
+real consumer and dependency evidence to classify the Qwen package and tests as
+`retain`, `freeze for later` or `remove now` without weakening Secret, payload or
+traceback isolation.

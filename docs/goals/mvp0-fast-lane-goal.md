@@ -9,6 +9,8 @@
 > **Activation:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) records acceptance. PR #248 merged on 2026-08-12 and made this the sole active remaining MVP-0 Goal.
 >
 > **Accepted cleanup amendment on 2026-08-13:** legacy code and tests are simplified immediately only when they block the current vertical. Other non-blocking legacy work stays frozen until one bounded cleanup reconciliation after the Fast Lane execution result is known and before the final Goal decision.
+>
+> **Accepted Provider amendment on 2026-08-13:** [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) replaces the remaining OpenAI live Gate with one direct DeepSeek official API proof using `deepseek-v4-pro`. The deterministic loop, text-only input, project Schema / Domain authority, Secret boundary, one Task / five calls limit and post-FL-2 cleanup sequencing remain mandatory.
 
 ## 1. Outcome
 
@@ -20,7 +22,7 @@ Deliver the smallest local AI Ecommerce Agent demo that proves one complete user
 4. review and confirm the result once;
 5. view a Marketing Brief and Xiaohongshu Brief;
 6. export the current result as Markdown;
-7. repeat the same sufficient-input path once with the real OpenAI provider at Release Candidate time.
+7. repeat the same sufficient-input path once with DeepSeek official `deepseek-v4-pro` at Release Candidate time.
 
 The Goal optimizes for the first working browser-to-backend-to-output loop. It does not optimize for the completeness of previously designed infrastructure.
 
@@ -51,7 +53,7 @@ An implementation task reads only the smallest relevant set:
 3. [DEC-001](../decisions/dec-001-business-value-before-agent-complexity.md), [DEC-003](../decisions/dec-003-product-launch-positioning-and-marketing-brief.md) and [DEC-004](../decisions/dec-004-platform-neutral-core-xiaohongshu-demo.md);
 4. [DEC-011](../decisions/dec-011-deterministic-workflow-with-constrained-llm-reasoning.md) and [DEC-020](../decisions/dec-020-mvp-four-core-skills-and-xiaohongshu-adapter.md);
 5. [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) and [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md);
-6. [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md), [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md), [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) and [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md);
+6. [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md), [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md), [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) and [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md);
 7. [DEC-071](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md) and [DEC-072](../decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md);
 8. the current Issue and the actual code/tests it changes.
 
@@ -73,7 +75,7 @@ Other Decisions and RFCs remain historical or future authority. They are read on
 - A single review screen where the user can inspect, make a bounded text correction and confirm the result.
 - Current Marketing Brief, current Xiaohongshu Brief and UTF-8 Markdown export.
 - Existing PostgreSQL components where they reduce work; the implementation may use one minimal additive persistence participant rather than completing the whole designed persistence graph.
-- One opt-in OpenAI Responses happy-path smoke after the deterministic loop passes.
+- One opt-in DeepSeek official `deepseek-v4-pro` happy-path smoke after the deterministic loop passes.
 
 ### Explicitly deferred to MVP-1 or a later Goal
 
@@ -156,11 +158,13 @@ Exit:
 
 ### FL-2 — Real-provider proof
 
-Outcome: prove the same completed path once with the accepted OpenAI provider.
+Outcome: prove the same completed path once with the accepted DeepSeek official provider.
 
-- use the already-defined narrow runtime boundary and explicit opt-in Secret loading;
+- use the already-defined narrow runtime boundary and explicit opt-in `DEEPSEEK_API_KEY` loading;
+- use `deepseek-v4-pro` Chat Completions JSON Mode, then require project Schema / Domain validation;
 - run one sufficient-input Anchor SKU path;
 - record pass/fail, model/version tuple, duration and known limitations without storing raw sensitive provider data;
+- stop after any ambiguous or invalid result; the paid Gate is exactly one Task and five initial calls with no automatic retry or repair;
 - do not build a live edge-case matrix.
 
 Exit: one successful human-observed Task-to-export run, or `GOAL_BLOCKED` with the exact failing boundary.
@@ -243,7 +247,7 @@ This Goal is complete only when all are true:
 - insufficient input produces an honest limitation or blocking request;
 - current result persistence survives page reload and stable deep-link return;
 - the fixed-workspace, SQL, XSS/Markdown, idempotency and Secret boundaries above pass representative tests;
-- one real OpenAI happy-path smoke succeeds;
+- one real DeepSeek V4 Pro direct happy-path smoke succeeds;
 - the bounded legacy cleanup reconciliation is reviewed and merged, with retained deferred capability listed as frozen;
 - no Critical or Blocking defect remains;
 - deferred capabilities are documented without being represented as implemented;

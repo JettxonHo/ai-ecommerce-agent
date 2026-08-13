@@ -1,12 +1,14 @@
 # DEC-052：采用 OpenAI Responses、窄型 Model Runtime Port 与项目权威 Structured Output 契约
 
+> **DEC-079 Amendment（2026-08-13）：** 本文的 OpenAI / Responses / `gpt-5.6-terra` / Provider-native strict JSON Schema 条款作为历史基线保留；MVP-0 FL-2 的当前单一真实 Provider 已改为 DeepSeek 官方 `deepseek-v4-pro` Chat Completions + JSON Mode + 项目本地 Schema / Domain validation。Application-owned sync Port、无 router / fallback、确定性流程与本地校验权威继续有效。见 [DEC-079](dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)。
+
 ## Type
 
 LLM Runtime / Provider Architecture / Structured Output / Dependency Injection
 
 ## Status
 
-Accepted
+Accepted — Provider-specific portions amended by [DEC-079](dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)
 
 ## Date
 

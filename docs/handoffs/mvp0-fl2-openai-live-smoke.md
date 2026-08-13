@@ -1,12 +1,13 @@
 # MVP-0 FL-2 OpenAI live smoke
 
+> **Status: SUPERSEDED — DO NOT RUN.** [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) replaces the remaining OpenAI FL-2 Gate with direct DeepSeek official `deepseek-v4-pro`. This file preserves the already-merged historical seam only; it is not a current operator instruction and does not authorize `OPENAI_API_KEY` injection or an OpenAI call.
+
 The smoke is opt-in and runs exactly one sufficient `fixture-sufficient-v1`
 Task through the real FastAPI/PostgreSQL path: five Responses calls, one
 bounded confirmation, and immutable Markdown exports for Marketing and
 Xiaohongshu.
 
-Run it from `apps/backend/` only after the local PostgreSQL service is ready
-and the operator has supplied `OPENAI_API_KEY` in the process environment:
+Historical command shape (retained for traceability; **do not execute under the current Goal**):
 
 ```sh
 GIT_COMMIT="$(git rev-parse HEAD)" \
