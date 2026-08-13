@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import json as _json
-from collections.abc import Mapping as _Mapping
 from dataclasses import dataclass as _dataclass
 from enum import StrEnum as _StrEnum
-from typing import cast as _cast
 
 from ai_ecommerce_agent.application.model_runtime import (
     ModelCallId as _ModelCallId,
@@ -82,57 +80,6 @@ def _validate(
         raise _profile_mismatch(request.identity.model_call_id)
 
 
-def _schema_type(value: object) -> str:
-    if isinstance(value, _Mapping):
-        mapping = _cast(_Mapping[str, object], value)
-        schema_type: object = mapping.get("type")
-        if type(schema_type) is str and schema_type.strip():
-            return schema_type
-        if type(schema_type) is list and schema_type:
-            items = _cast(list[object], schema_type)
-            values: list[str] = [item for item in items if type(item) is str]
-            if len(values) == len(items):
-                return "|".join(values)
-    return "unknown"
-
-
-def _field_shape(spec: object) -> str:
-    if type(spec) is not _StructuredContent:
-        raise TypeError("structured output schema must be StructuredContent")
-    schema = spec.to_mapping()
-    properties_value = schema.get("properties")
-    properties = (
-        _cast(_Mapping[str, object], properties_value)
-        if isinstance(properties_value, _Mapping)
-        else None
-    )
-    if not isinstance(properties, _Mapping):
-        return "{}"
-    required_value = schema.get("required")
-    required_names = (
-        frozenset(
-            item for item in _cast(list[object], required_value) if type(item) is str
-        )
-        if type(required_value) is list
-        else frozenset[str]()
-    )
-    shape = {
-        str(name): {
-            "required": name in required_names,
-            "type": _schema_type(value),
-        }
-        for name, value in properties.items()
-        if type(name) is str
-    }
-    return _json.dumps(
-        shape,
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    )
-
-
 def prepare_deepseek_call(
     *,
     request: _ModelCallRequest,
@@ -148,10 +95,15 @@ def prepare_deepseek_call(
         sort_keys=True,
         separators=(",", ":"),
     )
-    instruction = (
-        f"{request.instructions}\nField shape (JSON): "
-        f"{_field_shape(request.structured_output.schema)}"
+    schema = request.structured_output.schema.to_mapping()
+    schema_json = _json.dumps(
+        schema,
+        ensure_ascii=False,
+        allow_nan=False,
+        sort_keys=True,
+        separators=(",", ":"),
     )
+    instruction = f"{request.instructions}\nRequired output JSON Schema: {schema_json}"
     body = _StructuredContent.from_mapping(
         {
             "model": _MODEL_ID,

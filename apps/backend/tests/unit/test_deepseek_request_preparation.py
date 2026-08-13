@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import cast
 
 import pytest
 
@@ -29,6 +30,25 @@ _runtime_package.__dict__.pop("deepseek", None)
 
 pytestmark = pytest.mark.unit
 
+_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "value": {"type": "string"},
+        "nested": {
+            "type": "object",
+            "properties": {
+                "flag": {"type": "boolean"},
+                "kind": {"type": "string", "enum": ["alpha", "beta"]},
+                "tags": {"type": "array", "items": {"type": "string"}},
+            },
+            "required": ["flag", "kind", "tags"],
+            "additionalProperties": False,
+        },
+    },
+    "required": ["value", "nested"],
+    "additionalProperties": False,
+}
+
 
 def _request(profile_id: str = "product_intake_v1") -> ModelCallRequest:
     return ModelCallRequest(
@@ -40,22 +60,7 @@ def _request(profile_id: str = "product_intake_v1") -> ModelCallRequest:
         structured_output=StructuredOutputSpec(
             output_schema_id="fixture_schema",
             output_schema_version="v1",
-            schema=StructuredContent.from_mapping(
-                {
-                    "type": "object",
-                    "properties": {
-                        "value": {"type": "string"},
-                        "nested": {
-                            "type": "object",
-                            "properties": {"flag": {"type": "boolean"}},
-                            "required": ["flag"],
-                            "additionalProperties": False,
-                        },
-                    },
-                    "required": ["value", "nested"],
-                    "additionalProperties": False,
-                }
-            ),
+            schema=StructuredContent.from_mapping(_SCHEMA),
         ),
         execution_profile=ModelExecutionProfile(profile_id, "v1"),
         contract_versions=ModelCallContractVersions(
@@ -86,6 +91,13 @@ def test_request_projection_is_exact_deepseek_chat_json_mode() -> None:
         separators=(",", ":"),
     )
     body = prepared.request_body.to_mapping()
+    schema_json = json.dumps(
+        _SCHEMA,
+        ensure_ascii=False,
+        allow_nan=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
     assert body == {
         "model": "deepseek-v4-pro",
         "messages": [
@@ -93,8 +105,7 @@ def test_request_projection_is_exact_deepseek_chat_json_mode() -> None:
                 "role": "system",
                 "content": (
                     "Return JSON matching the project schema.\n"
-                    'Field shape (JSON): {"nested":{"required":true,"type":"object"},'
-                    '"value":{"required":true,"type":"string"}}'
+                    f"Required output JSON Schema: {schema_json}"
                 ),
             },
             {"role": "user", "content": context_json},
@@ -106,6 +117,12 @@ def test_request_projection_is_exact_deepseek_chat_json_mode() -> None:
         "max_tokens": 8192,
     }
     assert prepared.timeout_seconds == 120
+    messages = cast(list[dict[str, object]], body["messages"])
+    system_instruction = cast(str, messages[0]["content"])
+    assert '"enum":["alpha","beta"]' in system_instruction
+    assert '"items":{"type":"string"}' in system_instruction
+    assert '"required":["flag","kind","tags"]' in system_instruction
+    assert '"additionalProperties":false' in system_instruction
     assert "json_schema" not in json.dumps(body, ensure_ascii=False)
     assert "strict" not in json.dumps(body, ensure_ascii=False)
 
