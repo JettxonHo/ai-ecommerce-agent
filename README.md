@@ -1,6 +1,6 @@
 # AI Ecommerce Agent
 
-> **Status: MVP-0 Fast Lane · FL-1/FL-3 COMPLETE · FL-2 DEEPSEEK PROOF PENDING**
+> **Status: MVP-0 Fast Lane · FL-1/LOCAL DEMO COMPLETE · FL-2 TERMINAL GOAL_BLOCKED · CLEANUP PENDING**
 >
 > The current execution authority is the [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md). The original [end-to-end MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) remains historical traceability, not the default remaining backlog.
 
@@ -34,7 +34,7 @@ The repository already contains:
 - React `/tasks` list, Task creation, stable deep links, Workbench projection and TaskWorkbench review/results UI;
 - a real-backend Chromium path covering sufficient and insufficient input, review, download and reload persistence.
 
-The deterministic browser-to-backend loop is implemented and locally verifiable. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) implements the private direct DeepSeek `deepseek-v4-pro` runtime and opt-in smoke seam required by [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), but no OpenAI, Qwen or DeepSeek live acceptance is claimed yet. Status remains `IMPLEMENTED_OFFLINE_NOT_LIVE_VERIFIED`; the merged Qwen Token Plan code is offline-only and its live path is blocked by Provider Terms.
+The deterministic browser-to-backend loop is implemented and locally verifiable. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) implements the private direct DeepSeek `deepseek-v4-pro` runtime and opt-in smoke seam required by [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md). The one authorized smoke at `main@1c7c2107ead332235d492ed063b67101784d35f1` completed exactly five calls with zero retries but failed safely before `awaiting_review`; no OpenAI, Qwen or DeepSeek live acceptance is claimed. FL-2 is terminal `GOAL_BLOCKED`, [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) owns the single bounded post-FL-2 cleanup, and any second paid run requires new explicit authorization. The merged Qwen Token Plan code is offline-only and its live path is blocked by Provider Terms.
 
 Advanced retrieval, distributed recovery and other deferred capabilities remain intentionally out of this release slice.
 
@@ -47,7 +47,7 @@ The remaining MVP-0 proves one user path:
 3. run Facts → Insight → Positioning → Marketing Brief → Xiaohongshu Brief;
 4. inspect, make a bounded correction and confirm once;
 5. download the current result as Markdown;
-6. run the sufficient-input path once with direct DeepSeek official `deepseek-v4-pro` after deterministic E2E passes, using exactly one Task and five initial calls.
+6. reconcile the failed one-Task/five-call direct DeepSeek official `deepseek-v4-pro` proof without claiming live success or retrying without new authorization.
 
 The first implementation uses no more than three vertical Issues: input/backend routes, pipeline/current results, and review/export.
 
