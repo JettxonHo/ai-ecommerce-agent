@@ -12,6 +12,7 @@ pytestmark = pytest.mark.architecture
 _BACKEND = Path(__file__).resolve().parents[2]
 _SOURCE = _BACKEND / "src"
 _PACKAGE = _SOURCE / "ai_ecommerce_agent/platform/model_runtime/openai_responses"
+_QWEN_PACKAGE = _SOURCE / "ai_ecommerce_agent/platform/model_runtime/qwen_token_plan"
 _FILES = [
     _PACKAGE / "__init__.py",
     _PACKAGE / "_schema_compatibility.py",
@@ -374,6 +375,20 @@ def test_private_mapper_has_exact_path_specific_imports_and_no_public_reexport()
     ]
 
 
+def _expected_sdk_consumers() -> set[Path]:
+    return {
+        _PACKAGE / "_response_mapping.py",
+        _PACKAGE / "_execution.py",
+        _PACKAGE / "_runtime.py",
+        _QWEN_PACKAGE / "_response_mapping.py",
+        _QWEN_PACKAGE / "_runtime.py",
+    }
+
+
+def _assert_exact_sdk_consumers(consumers: set[Path]) -> None:
+    assert consumers == _expected_sdk_consumers()
+
+
 def test_only_private_mapper_imports_openai_and_no_unauthorized_consumers_exist() -> (
     None
 ):
@@ -386,15 +401,17 @@ def test_only_private_mapper_imports_openai_and_no_unauthorized_consumers_exist(
                 module == "openai" or module.startswith("openai.")
             ):
                 consumers.add(path)
-    assert consumers == {
-        _PACKAGE / "_response_mapping.py",
-        _PACKAGE / "_execution.py",
-        _PACKAGE / "_runtime.py",
-    }
+    _assert_exact_sdk_consumers(consumers)
     mapper_text = (_PACKAGE / "_response_mapping.py").read_text(encoding="utf-8")
     assert "Client" not in mapper_text
     assert "AsyncOpenAI" not in mapper_text
     assert ".responses.create" not in mapper_text
+
+
+def test_sdk_consumer_inventory_rejects_one_synthetic_extra_consumer() -> None:
+    synthetic = _QWEN_PACKAGE / "_synthetic_provider_consumer.py"
+    with pytest.raises(AssertionError):
+        _assert_exact_sdk_consumers(_expected_sdk_consumers() | {synthetic})
 
 
 def test_import_time_effects_and_mutable_globals_are_absent() -> None:
