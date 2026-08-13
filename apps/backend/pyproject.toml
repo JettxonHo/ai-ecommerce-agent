@@ -9,7 +9,7 @@ description = "AI E-commerce Agent backend production package."
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "alembic==1.16.4",
+    "alembic==1.19.1",
     "fastapi==0.141.1",
     "jsonschema==4.26.0",
     "openai==2.53.0",
