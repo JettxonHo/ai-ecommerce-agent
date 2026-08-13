@@ -1,19 +1,18 @@
 # MVP-0 FL-2 DeepSeek V4 Pro live-smoke handoff
 
-STATUS: GOAL_BLOCKED_REPAIR_MERGED_OFFLINE_CLEANUP_DELIVERED_ON_MERGE_SECOND_V2_AUTHORIZED_NOT_EXECUTED
+STATUS: GOAL_BLOCKED_TWO_TERMINAL_FAILS_AUTHORIZATION_CONSUMED
 
-The opt-in seam was delivered by Issue #270. The single previously authorized run at
+The opt-in seam was delivered by Issue #270. The first authorized run at
 exact reviewed `main@1c7c2107ead332235d492ed063b67101784d35f1` later executed
 one fictional Task and exactly five calls with zero retries and zero recovery
 calls. It failed safely before `awaiting_review`, so the current Goal result is
 `GOAL_BLOCKED`, not live verified. The DEC-080 v2 deadline-fence repair was
 implemented offline and merged as PR #280; the bounded legacy cleanup in Issue
-#274 is delivered on merge. Issue #281 supplies explicit user authorization and
-the exact second-run contract, currently `AUTHORIZED_NOT_EXECUTED`: exactly one
-fictional Task, five ordered calls and zero retry/recovery, only after #274
-Phase B is independently reviewed, checks pass and merges. Execution is
-outside #274 and requires ORCHESTRATOR exact-commit GO, with no further user
-confirmation.
+#274 then completed. Issue #281 subsequently executed the second bounded smoke
+at exact `main@ac4edfed6e8e216e9938affdc734298c8630d2de`. It made exactly one
+`product_intake_v1 / v1` call and stopped on a fixed safe HTTP 500 during
+generate-result, before `awaiting_review`. Its authorization is consumed and
+the Issue is closed. No further Provider run is authorized.
 
 The fifth call recorded 12,288 output tokens and 136,622 ms latency against the
 historical `xiaohongshu_mapping_v1 / v1` limit of 12,288 / 120 s. Sanitized
@@ -22,17 +21,26 @@ bounded repair lead, not a proven root cause. PR #280 merged the offline `v2`
 implementation at 16,384 / 240 s plus a post-return deadline fence. It does
 not change the first run's `GOAL_BLOCKED` result.
 
-## Authorization gate
+## Issue #281 terminal result
 
-The #281-authorized run remains outside this Issue and is not executed by Phase
-B. It may run only after #274 Phase B has passed Required Checks and independent
-review and has merged, with ORCHESTRATOR exact-commit GO. It uses one exact
-reviewed commit and one fictional `fixture-sufficient-v1` Anchor SKU Task only;
-no further user confirmation is required. Any run or Provider action outside
-this exact one-Task/five-ordered-calls/zero-retry-or-recovery boundary requires
-a new contract and explicit user authorization.
+The second run passed all fail-closed preflight gates and used the reviewed
+smoke unchanged. Sanitized evidence records provider/model/API family
+`deepseek / deepseek-v4-pro / chat_completions`, SDK 2.53.0, input 2,353 /
+output 8,192 / total 10,545 tokens and 106,434 ms latency. Retry/recovery are
+0/0, all five behavior gates are false, and stages 2～5 did not run.
 
-The live test is selected only when all of these are explicit:
+The accepted `product_intake_v1 / v1` ceiling is 8,192 output tokens / 120 s.
+Output equality with that ceiling is a diagnostic lead only, not a proven root
+cause: evidence intentionally excludes finish reason, raw response/reasoning,
+candidate content, traceback and internal error category. The call remained
+below the configured timeout.
+
+No rerun, repair, substitution, top-up or raw-material inspection occurred.
+Credential, bounded PostgreSQL and temporary checkout/cache cleanup completed;
+the exclusive sanitized evidence remains outside the repository.
+
+The historical #281 execution selected the retained live test only when all of
+these were explicit:
 
 - `RUN_DEEPSEEK_LIVE_SMOKE=1`;
 - `MVP0_RUN_TASK_HTTP_POSTGRES=1`;
@@ -43,27 +51,15 @@ The live test is selected only when all of these are explicit:
   tracked source.
 
 Missing controls skip or fail before client construction and PostgreSQL setup
-as appropriate. Secret presence alone never selects the test.
+as appropriate. Secret presence alone never selects the test. These retained
+controls describe the seam; they do not authorize another execution.
 
-## #281 bounded run (authorized, not executed)
+## Current authorization boundary
 
-The smoke would make five ordered, synchronous DeepSeek Chat Completions calls
-through the existing deterministic pipeline, then performs one bounded review
-and two immutable Markdown export/download checks. The runtime uses
-`deepseek-v4-pro`, JSON Mode, enabled thinking, `reasoning_effort=high`, the
-fixed versioned per-stage token/time ceilings and SDK `max_retries=0`.
+The #281 authorization is consumed and no third run or extra Provider call is
+authorized. The retained opt-in seam is historical/testable code, not current
+execution authority. Any repair, Profile/prompt change, Provider action or new
+product direction requires a new user Decision and separate contract.
 
-Any timeout, ambiguous transport failure, access/balance/model failure, empty
-or invalid output, schema failure or Fast Lane domain-admission failure stops
-the run. There is no transport retry, repair, regeneration, second Task,
-second model/provider, or top-up.
-
-Evidence is append-only and provider-neutral. It records only the reviewed
-commit, timing, disposition, safe call metadata, retry/recovery counts and the
-fixed behavior-gate booleans. It excludes the Secret, account/balance data,
-fixture text, prompt/context, raw response, reasoning, candidate, Markdown
-content and traceback.
-
-The #281-authorized run may be reported as `DeepSeek V4 Pro direct live
-verified` only if it passes and a human records the result. The first run
-remains `GOAL_BLOCKED`; the offline repair itself cannot change that status.
+Neither controlled run establishes `DeepSeek V4 Pro direct live verified`.
+The MVP-0 Fast Lane Goal remains `GOAL_BLOCKED`.
