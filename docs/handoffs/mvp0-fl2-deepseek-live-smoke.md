@@ -1,12 +1,12 @@
 # MVP-0 FL-2 DeepSeek V4 Pro live-smoke handoff
 
-STATUS: GOAL_BLOCKED_TWO_TERMINAL_FAILS_AUTHORIZATION_CONSUMED
+STATUS: GOAL_BLOCKED_OFFLINE_DIAGNOSIS_AUTHORIZED_NOT_YET_DIAGNOSED_OR_REPAIRED
 
 The opt-in seam was delivered by Issue #270. The first authorized run at
 exact reviewed `main@1c7c2107ead332235d492ed063b67101784d35f1` later executed
 one fictional Task and exactly five calls with zero retries and zero recovery
 calls. It failed safely before `awaiting_review`, so the current Goal result is
-`GOAL_BLOCKED`, not live verified. The DEC-080 v2 deadline-fence repair was
+`GOAL_BLOCKED`, with no Provider acceptance. The DEC-080 v2 deadline-fence repair was
 implemented offline and merged as PR #280; the bounded legacy cleanup in Issue
 #274 then completed. Issue #281 subsequently executed the second bounded smoke
 at exact `main@ac4edfed6e8e216e9938affdc734298c8630d2de`. It made exactly one
@@ -54,12 +54,33 @@ Missing controls skip or fail before client construction and PostgreSQL setup
 as appropriate. Secret presence alone never selects the test. These retained
 controls describe the seam; they do not authorize another execution.
 
+## DEC-081 offline recovery boundary
+
+[DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md)
+keeps the canonical status as **MVP-0 Fast Lane `GOAL_BLOCKED`; bounded offline
+diagnosis authorized, not yet diagnosed or repaired.** FL-1 deterministic
+completion is an accepted foundation only.
+
+Phase A may build a fast, deterministic, red-capable offline loop around the
+exact `product_intake_v1 / v1` first-stage boundary. It must rank and falsify
+the existing safe failure hypotheses and reproduce/minimize the boundary
+before any production repair. The 8,192-token ceiling equality remains only a
+diagnostic lead. If sanitized evidence cannot distinguish hypotheses without
+raw Provider material or another call, Phase A returns
+`INSUFFICIENT_SANITIZED_EVIDENCE` and stops.
+
+Phase B is unavailable until `ORCHESTRATOR_REVIEWER` independently reviews
+Phase A and freezes a new exact bounded repair contract from reproduced
+evidence. Neither phase authorizes a Provider, Secret, PostgreSQL/live, raw
+material, migration, dependency, public contract or product-direction action.
+
 ## Current authorization boundary
 
-The #281 authorization is consumed and no third run or extra Provider call is
+The #281 authorization is consumed and no additional Provider call is
 authorized. The retained opt-in seam is historical/testable code, not current
-execution authority. Any repair, Profile/prompt change, Provider action or new
-product direction requires a new user Decision and separate contract.
+execution authority. DEC-081 authorizes Phase A offline diagnosis only. Any
+future real Provider run requires a separate exact-commit contract and fresh
+explicit user authorization.
 
-Neither controlled run establishes `DeepSeek V4 Pro direct live verified`.
-The MVP-0 Fast Lane Goal remains `GOAL_BLOCKED`.
+Neither controlled run establishes DeepSeek Provider acceptance. The MVP-0
+Fast Lane Goal remains `GOAL_BLOCKED`.

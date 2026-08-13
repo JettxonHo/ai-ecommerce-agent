@@ -15,6 +15,8 @@
 > **FL-2 terminal results on 2026-08-13:** the first authorized run at exact reviewed `main@1c7c2107ead332235d492ed063b67101784d35f1` completed five calls with `retry_count=0` and `recovery_count=0`, then failed safely before `awaiting_review`; its fifth Xiaohongshu-v1 call reached 12,288 output tokens and recorded 136,622 ms latency against the historical 120 s timeout. After the DEC-080 offline repair and post-FL-2 cleanup, [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) executed a second smoke at exact `main@ac4edfed6e8e216e9938affdc734298c8630d2de`: one `product_intake_v1 / v1` call returned safe metadata with input 2,353 / output 8,192 / total 10,545 tokens and 106,434 ms latency, then generate-result failed with fixed safe HTTP 500 before `awaiting_review`. Retry/recovery remained 0/0, all behavior gates were false and stages 2～5 did not run. The 8,192 output equals the first-stage ceiling but is only a diagnostic lead, not a proven root cause, because evidence excludes finish reason, raw response and internal error category. #281 authorization is consumed and closed; no further Provider run is authorized. Live verification is not claimed and Goal remains `GOAL_BLOCKED`.
 >
 > **Accepted bounded repair on 2026-08-13:** [DEC-080](../decisions/dec-080-fl2-xiaohongshu-profile-v2-and-deadline-fence.md) authorized an offline-only `xiaohongshu_mapping_v1 / v2` repair at 16,384 `max_tokens` / 240 s plus a post-return application deadline fence. The other four profiles and all provider/security/retry boundaries remained unchanged. The repair was merged as [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280), and [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) completed the bounded legacy cleanup. The subsequent #281 run stopped at the unchanged first-stage v1 boundary, so it did not exercise stages 2～5 or establish live acceptance. Goal status remains `GOAL_BLOCKED`; any new repair, Provider call or product direction requires a new user Decision and separate contract.
+>
+> **Accepted offline recovery path on 2026-08-14:** [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) records the user's Option B. Canonical status remains **MVP-0 Fast Lane `GOAL_BLOCKED`; bounded offline diagnosis authorized, not yet diagnosed or repaired.** FL-1 deterministic completion is an accepted foundation only. Phase A must reproduce and minimize the exact first-stage failure boundary with a deterministic red-capable offline loop before any production repair; insufficient safe evidence returns `INSUFFICIENT_SANITIZED_EVIDENCE`. Phase B waits for independent Phase A review and a new exact bounded repair contract. No Provider run is authorized.
 
 ## 1. Outcome
 
@@ -57,7 +59,7 @@ An implementation task reads only the smallest relevant set:
 3. [DEC-001](../decisions/dec-001-business-value-before-agent-complexity.md), [DEC-003](../decisions/dec-003-product-launch-positioning-and-marketing-brief.md) and [DEC-004](../decisions/dec-004-platform-neutral-core-xiaohongshu-demo.md);
 4. [DEC-011](../decisions/dec-011-deterministic-workflow-with-constrained-llm-reasoning.md) and [DEC-020](../decisions/dec-020-mvp-four-core-skills-and-xiaohongshu-adapter.md);
 5. [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) and [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md);
-6. [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md), [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md), [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) and [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md);
+6. [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md), [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md), [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md), [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) and [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md);
 7. [DEC-071](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md) and [DEC-072](../decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md);
 8. the current Issue and the actual code/tests it changes.
 
@@ -79,7 +81,8 @@ Other Decisions and RFCs remain historical or future authority. They are read on
 - A single review screen where the user can inspect, make a bounded text correction and confirm the result.
 - Current Marketing Brief, current Xiaohongshu Brief and UTF-8 Markdown export.
 - Existing PostgreSQL components where they reduce work; the implementation may use one minimal additive persistence participant rather than completing the whole designed persistence graph.
-- One opt-in DeepSeek official `deepseek-v4-pro` happy-path smoke after the deterministic loop passes.
+- The retained DeepSeek smoke seam and both terminal sanitized evidence records; neither authorizes another Provider call.
+- One bounded Phase A offline diagnosis at the exact `product_intake_v1 / v1` first-stage boundary, with no production repair before a red-capable repro is reviewed.
 
 ### Explicitly deferred to MVP-1 or a later Goal
 
@@ -162,16 +165,25 @@ Exit:
 
 ### FL-2 — Real-provider proof
 
-Outcome: prove the same completed path once with the accepted DeepSeek official provider.
+Outcome: terminal `GOAL_BLOCKED` with two preserved sanitized failure records.
 
-- use the already-defined narrow runtime boundary and explicit opt-in `DEEPSEEK_API_KEY` loading;
-- use `deepseek-v4-pro` Chat Completions JSON Mode, then require project Schema / Domain validation;
-- run one sufficient-input Anchor SKU path;
-- record pass/fail, model/version tuple, duration and known limitations without storing raw sensitive provider data;
-- stop after any ambiguous or invalid result; the paid Gate is exactly one Task and five initial calls with no automatic retry or repair;
-- do not build a live edge-case matrix.
+- the first run completed five calls and stopped before `awaiting_review`;
+- the second run stopped after one `product_intake_v1 / v1` call with fixed safe HTTP 500;
+- both runs used zero retry/recovery and neither established Provider acceptance;
+- the second run's 8,192-token ceiling equality is a diagnostic lead only because evidence excludes finish reason, raw output and internal error category;
+- authorization for both runs is consumed; no additional Provider call is authorized.
 
-Exit: one successful human-observed Task-to-export run, or `GOAL_BLOCKED` with the exact failing boundary.
+Exit: `GOAL_BLOCKED` with the exact failing boundary and safe metadata retained.
+
+### Post-FL-2 — bounded offline diagnosis and repair sequencing
+
+Outcome: learn from the first-stage boundary without guessing or reopening a paid Gate.
+
+- Phase A builds a fast, deterministic, red-capable offline feedback loop and ranks multiple falsifiable adapter / validation hypotheses;
+- no production repair occurs before the observed boundary is reproduced and minimized;
+- Phase A returns `INSUFFICIENT_SANITIZED_EVIDENCE` and stops if safe metadata cannot distinguish hypotheses without raw material or a new Provider call;
+- Phase B exists only after `ORCHESTRATOR_REVIEWER` independently reviews Phase A and freezes an exact bounded repair contract;
+- an evidence-backed ordinary offline Phase B repair may then be authorized by the orchestrator within DEC-081, but any scope expansion or future real call remains a user Gate.
 
 ### FL-3 — Release reconciliation
 
@@ -211,7 +223,7 @@ Exit: the demo remains reproducible, confirmed dead or obstructive legacy work i
 - deterministic browser normal path;
 - representative insufficient-input behavior;
 - backend/frontend build and relevant contract checks;
-- one opt-in real-provider smoke;
+- the two terminal sanitized Provider records plus reviewed offline diagnosis evidence; no additional live matrix;
 - a short human usability result and a list of known limitations.
 
 ## 8. Issue policy
@@ -257,7 +269,7 @@ This Goal is complete only when all are true:
 - deferred capabilities are documented without being represented as implemented;
 - current project status matches actual code.
 
-The completion decision is `GOAL_APPROVED`, `GOAL_APPROVED_WITH_FOLLOW_UPS`, `GOAL_BLOCKED` or `GOAL_REJECTED`.
+The current completion decision remains `GOAL_BLOCKED`. Any later final Goal decision is a separate user judgment after the accepted criteria and evidence are reviewed.
 
 ## 11. Authorized activation changes
 
