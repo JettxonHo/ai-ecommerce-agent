@@ -1,10 +1,10 @@
 # Implementation Readiness
 
-> **Status: FL-1 COMPLETE · FL-3 COMPLETE · FL-2 DEEPSEEK IMPLEMENTATION/PROOF PENDING**
+> **Status: FL-1 COMPLETE · FL-3 COMPLETE · FL-2 DEEPSEEK OFFLINE IMPLEMENTATION COMPLETE / LIVE PROOF PENDING**
 >
 > **Authority:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) · [MVP-0 Fast Lane Goal](../goals/mvp0-fast-lane-goal.md)
 >
-> **Current release boundary:** the deterministic local loop and one-command demo are implemented. Issue #268 owns the documentation-first provider amendment; the subsequent implementation Issue must add the private DeepSeek seam before a separately authorized one-Task/five-call smoke. Issue #255 is superseded after this amendment merges. Issue #264 is `BLOCKED_BY_PROVIDER_TERMS` and must not run.
+> **Current release boundary:** the deterministic local loop and one-command demo are implemented. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) completed the private DeepSeek adapter, local Schema / bounded Domain admission and opt-in smoke seam at merge commit `c12a9ab285eefee35c78342fd01180c1e47a83f0`. Status is `IMPLEMENTED_OFFLINE_NOT_LIVE_VERIFIED`; the one-Task/five-call smoke remains a separate human Gate. Issue #255 is superseded, and Issue #264 is `BLOCKED_BY_PROVIDER_TERMS` and must not run.
 
 ## 1. Product readiness
 
@@ -30,7 +30,7 @@ Implemented or physically present:
 - local PostgreSQL lifecycle and compatibility evidence;
 - Task / Run / Stage and Source persistence components;
 - bounded Durable Dispatch, checkpoint and runtime diagnostic seams;
-- provider-neutral Model Runtime, scripted substitute, OpenAI Responses transport pieces and an offline-only Qwen Token Plan adapter;
+- provider-neutral Model Runtime, scripted substitute, historical OpenAI/Qwen adapters and the reviewed offline direct DeepSeek adapter;
 - private output contracts for Facts, Insight, Positioning, Marketing Brief and Xiaohongshu mapping;
 - Marketing / Xiaohongshu domain snapshots and safe Markdown renderer;
 - authored OpenAPI and generated TypeScript client;
@@ -41,7 +41,7 @@ Implemented or physically present:
 - representative real-backend Chromium coverage for sufficient/insufficient input, review, Markdown downloads and reload persistence;
 - private local-demo composition plus `scripts/mvp0/demo` foreground API/Web lifecycle and non-destructive PostgreSQL stale-container repair.
 
-The current provider-amendment baseline is `main@1469eefe6db75ceee949b2c7431df5ac06a25f40`. The release path still uses loopback only, keeps PostgreSQL separate from API/Web child cleanup, and does not select any live Provider runtime.
+The DeepSeek offline implementation landed at `main@c12a9ab285eefee35c78342fd01180c1e47a83f0`. The release path still uses loopback only, keeps PostgreSQL separate from API/Web child cleanup, and does not select any live Provider runtime.
 
 ## 3. FL-1 and FL-2 status
 
@@ -53,7 +53,7 @@ FL-1 is complete on the deterministic scripted path:
 - current Task/input/result state survives reload and stable deep-link return;
 - real-backend Chromium evidence is deterministic and provider-free.
 
-The former OpenAI FL-2 runtime/smoke seam and the supplemental Qwen offline seam are merged, but no OpenAI, Qwen or DeepSeek call, Secret-backed run or live acceptance result is claimed. DEC-079 replaces the remaining OpenAI Gate with direct DeepSeek official `deepseek-v4-pro`. The DeepSeek adapter/smoke seam is not yet implemented; the live Gate remains separately blocked on exact-head review and user authorization.
+The historical OpenAI and Qwen offline seams remain merged, and PR #271 adds the current direct DeepSeek official `deepseek-v4-pro` private adapter and opt-in Task-to-export smoke seam. No OpenAI, Qwen or DeepSeek call, Secret-backed run or live acceptance result is claimed. The DeepSeek seam passed independent exact-head five-axis Review and Required Checks; the live Gate remains blocked on a fresh exact-main preflight, explicit user authorization and operator-supplied Secret.
 
 ## 4. FL-3 release reconciliation
 
@@ -122,8 +122,9 @@ Reversible local implementation choices do not require a new Decision. Record th
 ```text
 FL-0 Planning rebaseline: COMPLETE
 FL-1 Deterministic vertical loop: COMPLETE (merged PRs #250/#252/#254)
-FL-2 DeepSeek provider amendment: ACCEPTED; documentation sync ACTIVE (Issue #268)
-FL-2 DeepSeek adapter/smoke seam: NOT STARTED; live proof PENDING SEPARATE HUMAN GATE
+FL-2 DeepSeek provider amendment: ACCEPTED (Issue #268 / PR #269)
+FL-2 DeepSeek adapter/smoke seam: IMPLEMENTED_OFFLINE_NOT_LIVE_VERIFIED (Issue #270 / PR #271)
+FL-2 DeepSeek live proof: PENDING SEPARATE HUMAN GATE
 FL-3 Release reconciliation: COMPLETE (Issue #257)
 Qwen Token Plan supplemental live: BLOCKED_BY_PROVIDER_TERMS (Issue #264)
 ```
