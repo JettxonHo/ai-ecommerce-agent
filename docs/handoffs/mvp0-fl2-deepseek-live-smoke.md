@@ -1,6 +1,6 @@
 # MVP-0 FL-2 DeepSeek V4 Pro live-smoke handoff
 
-STATUS: GOAL_BLOCKED_OFFLINE_DIAGNOSIS_AUTHORIZED_NOT_YET_DIAGNOSED_OR_REPAIRED
+STATUS: GOAL_BLOCKED_PHASE_A_TERMINAL_INSUFFICIENT_SANITIZED_EVIDENCE_NO_PRODUCTION_REPAIR_NO_PHASE_B_CONTRACT
 
 The opt-in seam was delivered by Issue #270. The first authorized run at
 exact reviewed `main@1c7c2107ead332235d492ed063b67101784d35f1` later executed
@@ -57,30 +57,33 @@ controls describe the seam; they do not authorize another execution.
 ## DEC-081 offline recovery boundary
 
 [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md)
-keeps the canonical status as **MVP-0 Fast Lane `GOAL_BLOCKED`; bounded offline
-diagnosis authorized, not yet diagnosed or repaired.** FL-1 deterministic
-completion is an accepted foundation only.
+keeps the canonical status as **MVP-0 Fast Lane `GOAL_BLOCKED`; Phase A is
+complete with terminal disposition `INSUFFICIENT_SANITIZED_EVIDENCE`.** FL-1
+deterministic completion is an accepted foundation only.
 
-Phase A may build a fast, deterministic, red-capable offline loop around the
-exact `product_intake_v1 / v1` first-stage boundary. It must rank and falsify
-the existing safe failure hypotheses and reproduce/minimize the boundary
-before any production repair. The 8,192-token ceiling equality remains only a
-diagnostic lead. If sanitized evidence cannot distinguish hypotheses without
-raw Provider material or another call, Phase A returns
-`INSUFFICIENT_SANITIZED_EVIDENCE` and stops.
+Phase A completed a fast, deterministic, red-capable offline loop around the
+exact `product_intake_v1 / v1` first-stage boundary. The same retained safe
+signature reached multiple actual mapper, project-schema and domain-admission
+rejection boundaries, so the result is observational ambiguity only and does
+not identify the historical cause. The 8,192-token ceiling equality remains
+only a diagnostic lead. The terminal disposition is
+`INSUFFICIENT_SANITIZED_EVIDENCE`.
 
-Phase B is unavailable until `ORCHESTRATOR_REVIEWER` independently reviews
-Phase A and freezes a new exact bounded repair contract from reproduced
-evidence. Neither phase authorizes a Provider, Secret, PostgreSQL/live, raw
-material, migration, dependency, public contract or product-direction action.
+No production repair was made and no Phase B contract exists. Any future Phase
+B would require independent `ORCHESTRATOR_REVIEWER` review and a new exact
+bounded repair contract from reproduced evidence. `rejection_disposition`
+remains a Proposal only, not an Accepted Decision or current truth. Neither
+phase authorizes a Provider, Secret, PostgreSQL/live, raw material, migration,
+dependency, public contract or product-direction action.
 
 ## Current authorization boundary
 
 The #281 authorization is consumed and no additional Provider call is
 authorized. The retained opt-in seam is historical/testable code, not current
-execution authority. DEC-081 authorizes Phase A offline diagnosis only. Any
-future real Provider run requires a separate exact-commit contract and fresh
-explicit user authorization.
+execution authority. DEC-081 Phase A is complete with terminal
+`INSUFFICIENT_SANITIZED_EVIDENCE`; no production repair or Phase B contract
+exists. Any future real Provider run requires a separate exact-commit contract
+and fresh explicit user authorization.
 
 Neither controlled run establishes DeepSeek Provider acceptance. The MVP-0
 Fast Lane Goal remains `GOAL_BLOCKED`.
