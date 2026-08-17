@@ -16,7 +16,7 @@
 >
 > **Accepted bounded repair on 2026-08-13:** [DEC-080](../decisions/dec-080-fl2-xiaohongshu-profile-v2-and-deadline-fence.md) authorized an offline-only `xiaohongshu_mapping_v1 / v2` repair at 16,384 `max_tokens` / 240 s plus a post-return application deadline fence. The other four profiles and all provider/security/retry boundaries remained unchanged. The repair was merged as [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280), and [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) completed the bounded legacy cleanup. The subsequent #281 run stopped at the unchanged first-stage v1 boundary, so it did not exercise stages 2～5 or establish live acceptance. Goal status remains `GOAL_BLOCKED`; any new repair, Provider call or product direction requires a new user Decision and separate contract.
 >
-> **Accepted offline recovery path on 2026-08-14:** [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) records the user's Option B. Canonical status remains **MVP-0 Fast Lane `GOAL_BLOCKED`; bounded offline diagnosis authorized, not yet diagnosed or repaired.** FL-1 deterministic completion is an accepted foundation only. Phase A must reproduce and minimize the exact first-stage failure boundary with a deterministic red-capable offline loop before any production repair; insufficient safe evidence returns `INSUFFICIENT_SANITIZED_EVIDENCE`. Phase B waits for independent Phase A review and a new exact bounded repair contract. No Provider run is authorized.
+> **Accepted offline recovery path on 2026-08-14:** [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) records the user's Option B. Canonical status remains **MVP-0 Fast Lane `GOAL_BLOCKED`; Phase A completed with terminal disposition `INSUFFICIENT_SANITIZED_EVIDENCE`.** FL-1 deterministic completion is an accepted foundation only. The reviewed offline seam establishes observational ambiguity across actual mapper/schema/domain-admission boundaries and does not identify the historical cause. No production repair was made and no Phase B contract exists. `rejection_disposition` remains a Proposal only, not Accepted/current truth. No Provider run is authorized.
 
 ## 1. Outcome
 
@@ -82,7 +82,7 @@ Other Decisions and RFCs remain historical or future authority. They are read on
 - Current Marketing Brief, current Xiaohongshu Brief and UTF-8 Markdown export.
 - Existing PostgreSQL components where they reduce work; the implementation may use one minimal additive persistence participant rather than completing the whole designed persistence graph.
 - The retained DeepSeek smoke seam and both terminal sanitized evidence records; neither authorizes another Provider call.
-- One bounded Phase A offline diagnosis at the exact `product_intake_v1 / v1` first-stage boundary, with no production repair before a red-capable repro is reviewed.
+- The completed bounded Phase A offline diagnosis at the exact `product_intake_v1 / v1` first-stage boundary, with terminal disposition `INSUFFICIENT_SANITIZED_EVIDENCE`; no production repair was made and no Phase B contract exists.
 
 ### Explicitly deferred to MVP-1 or a later Goal
 
@@ -177,13 +177,13 @@ Exit: `GOAL_BLOCKED` with the exact failing boundary and safe metadata retained.
 
 ### Post-FL-2 — bounded offline diagnosis and repair sequencing
 
-Outcome: learn from the first-stage boundary without guessing or reopening a paid Gate.
+Outcome: terminal `INSUFFICIENT_SANITIZED_EVIDENCE`; learnings are bounded to observational ambiguity without guessing or reopening a paid Gate.
 
-- Phase A builds a fast, deterministic, red-capable offline feedback loop and ranks multiple falsifiable adapter / validation hypotheses;
-- no production repair occurs before the observed boundary is reproduced and minimized;
-- Phase A returns `INSUFFICIENT_SANITIZED_EVIDENCE` and stops if safe metadata cannot distinguish hypotheses without raw material or a new Provider call;
-- Phase B exists only after `ORCHESTRATOR_REVIEWER` independently reviews Phase A and freezes an exact bounded repair contract;
-- an evidence-backed ordinary offline Phase B repair may then be authorized by the orchestrator within DEC-081, but any scope expansion or future real call remains a user Gate.
+- Phase A completed a fast, deterministic, red-capable offline feedback loop and ranked multiple falsifiable adapter / validation hypotheses;
+- the same retained safe signature reached multiple actual mapper, project-schema and domain-admission rejection boundaries, so the historical cause remains unidentified;
+- no production repair occurred and no Phase B contract exists;
+- any future Phase B would require independent `ORCHESTRATOR_REVIEWER` review and a new exact bounded repair contract;
+- `rejection_disposition` is a Proposal only, not an Accepted Decision or current truth; any scope expansion or future real call remains a user Gate.
 
 ### FL-3 — Release reconciliation
 
