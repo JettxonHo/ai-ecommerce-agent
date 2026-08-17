@@ -115,6 +115,5 @@ DEC-081 要求在 `ORCHESTRATOR_REVIEWER` 独立审阅此离线证据并冻结�
 - `uv run --project apps/backend --offline pytest apps/backend/tests/integration/test_fl2_deepseek_offline_diagnosis.py apps/backend/tests/unit/test_deepseek_runtime.py apps/backend/tests/unit/test_deepseek_response_mapping.py apps/backend/tests/unit/test_deterministic_pipeline.py apps/backend/tests/unit/test_structured_output_validation.py apps/backend/tests/unit/test_product_intake_output_schema.py -q` — `207 passed`。
 - `uv run --project apps/backend --offline ruff format --check apps/backend/tests/integration/test_fl2_deepseek_offline_diagnosis.py` — pass。
 - `uv run --project apps/backend --offline ruff check apps/backend/tests/integration/test_fl2_deepseek_offline_diagnosis.py` — pass。
-- `uv run --project apps/backend --offline pyright apps/backend/tests/integration/test_fl2_deepseek_offline_diagnosis.py` — `0 errors`。
-- 完整 backend `pyright` 仍报告 108 个既有、两文件范围外的问题（migrations、fixtures、contracts 与 spikes）；本 Issue 未修改其任何文件。
+- Canonical backend type check, from `apps/backend`: `uv run pyright` — `0 errors, 0 warnings, 0 informations`。
 - `git diff --check` 与 exact two-path scope audit 均通过。
