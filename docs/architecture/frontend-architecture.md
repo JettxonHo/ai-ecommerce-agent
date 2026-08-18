@@ -1,9 +1,9 @@
 # Frontend Architecture
 
-> **Status: ACCEPTED PRE-DEVELOPMENT CURRENT TRUTH — P-36～P-41 accepted; Final Consistency Review passed; Frontend Architecture overall accepted; public HTTP contract and implementation pending**
-> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · product inputs [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) · API inputs [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) · [DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md) · [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md) · [DEC-066](../decisions/dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md)
+> **Status: ACCEPTED CURRENT TRUTH — implemented FL-1 foundation; DEC-082 Action Workbench direction accepted; next design Issue pending**
+> **Authority:** [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) · [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) · [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) · product inputs [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) · [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) · [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) · [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) · API inputs [DEC-063](../decisions/dec-063-contract-first-semantic-concurrency-and-durable-api-acceptance.md) · [DEC-064](../decisions/dec-064-task-recovery-and-human-review-public-protocol.md) · [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md) · [DEC-066](../decisions/dec-066-openapi-contract-catalog-compatibility-and-generated-client-adoption.md)
 
-本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。RFC-004 DQ-01～10 已由 DEC-063～066 冻结 Contract-first Resource / typed Command、语义 revision / Idempotency、耐久 Run Monitor、窄 Task / Recovery / Review、不可变 Brief / Export、有限 Problem action、fixed-workspace same-origin transport，以及最终 Operation / Schema / state catalog、有界窗口、兼容、Generated Client adoption 与 Contract Tests；RFC-004 Final Consistency Review = PASS，用户已于 2026-08-07 明确接受 RFC-004 整体，精确依赖版本与运行证据仍未完成。整体接受不授权依赖安装或实现。
+本文记录已整体接受的 Frontend Architecture；P-36～P-41 已逐项接受，Final Consistency Review 已通过，用户于 2026-08-07 明确接受整体。RFC-004 DQ-01～10 已由 DEC-063～066 冻结 Contract-first Resource / typed Command、语义 revision / Idempotency、耐久 Run Monitor、窄 Task / Recovery / Review、不可变 Brief / Export、有限 Problem action、fixed-workspace same-origin transport，以及最终 Operation / Schema / state catalog、有界窗口、兼容、Generated Client adoption 与 Contract Tests。FL-1 已实现并验证既有前端纵向；DEC-082 只为下一轮本地单用户产品化补充布局、视觉与前端执行路由，不表示该新方向已设计或实现。
 
 ## 1. Application Shape
 
@@ -52,12 +52,26 @@
 
 ## 5. TaskWorkbench Module and Visual Boundary
 
+DEC-082 concretizes the local single-user product shell without changing the module or contract seams above:
+
+- `/tasks` is an action home, not an analytics or operations Dashboard. Task creation is primary; one resume item is selected from Needs Input → Review → Failed / Recoverable → most recently active. Recent Tasks show name, category, user-facing state, next action and last update.
+- The Task header shows Task / product name, category, user-facing state, saved / updated state and a truthful local / offline runtime label.
+- The Task route presents one Chinese five-stage rail: 资料整理 → 用户洞察 → 商品定位 → 营销 Brief → 小红书 Brief. Each stage distinguishes completed / current / needs-input / blocked without promoting internal enum, profile or version identifiers to primary copy.
+- One Active Workspace owns the primary action. A collapsible Context Rail is `320–360px` when expanded and carries evidence, source, limitation, risk, version / time, safe execution status and technical-detail context.
+- Review is structured around semantic decisions and bounded corrections. Results first summarize positioning, audience, proof points, risks and next action, then separate Marketing Brief from Xiaohongshu Brief with version / limitation context, Markdown preview and export actions.
+- Raw JSON is hidden behind explicitly labeled technical details. It is not the default Review or Results representation.
+- AI appears as contextual progress, status, evidence and next-action explanation; no chat-first or chat-bubble primary interface is introduced.
+
+The accepted visual language is Chinese-first “运营编辑部 / 策略桌”: warm neutral surfaces, ink / deep navy structure and text, plus one muted pine / teal accent; amber / red are reserved for semantic states. Avoid purple AI gradients, equal white-card grids, Inter-everywhere styling, decorative metrics and generic chat bubbles. Important frontend design uses applicable taste skills. This direction does not authorize a component or styling implementation in this document.
+
 - `app` 层只负责 Composition、Provider、`/tasks` 最小 Task Index、`/tasks/new` 与稳定 Task Route 的匹配和 Task Identity 提取。
 - Task Index 只显示 RFC-004 提供的名称 / 临时名称、品类、当前阶段或等待状态、最近更新时间和主要下一步 Capability；不通过 Cache 残留或文案猜测终态，不增加搜索、批量、归档、统计或 Dashboard Module。
 - 一个深 `TaskWorkbench Module` 负责 Task 内 Stage / Panel 位置的校验 / 规范化与 Active Workspace 投影；Router 不学习 Upload、Start、Resume、Review、Rerun 或 Export 的逐动作回调。
 - Workbench 私有 Module 固定为 Intake、Progress / Recovery、Review、Results / Export、Evidence / Context；它们消费私有 `WorkbenchProjection`、产生语义化 `WorkbenchIntent`，不直接消费 HTTP DTO 或互相导入 Implementation。
 - Remote Seam 只有生成 Client 驱动的 Typed HTTP Adapter 与固定资料包 / 变更脚本驱动的 Deterministic Test Adapter；TanStack Query 包装该 Seam。
 - 首个 Goal 不建设 Contribution Registry、动态插件、任意 Slot / Hook / Middleware 或每 Stage 独立数据架构。
+- 首个产品化切片也不建设图表、全局搜索、高级筛选、批量操作、mega-nav、手机专用产品，或销售 / 订单 / 物流 / 支付模块。
+- Desktop grid uses `minmax(0, 1fr)` for the Active Workspace. Around `1024px` the Context Rail may collapse; narrower reflow uses an accessible disclosure / sheet and does not become a mobile product.
 
 UI 与 Styling：
 
@@ -133,7 +147,8 @@ UI 与 Styling：
 - RFC-005：Source / Evidence Pagination 与 Retrieval Contract。
 - Development Plan：精确依赖版本、本地进程编排、CI Job 分组和一键启动。
 - Testing Strategy：Fixture 实例、最终浏览器 E2E 步骤 / 证据格式与 RC 运行手册。
+- DEC-082 follow-up：单独设计 Issue 使用适用 taste skills 交付 Action Home 与 TaskWorkbench 关键状态、设计系统约束和代表性视觉验收；接受后再建立实现 Issue。
 
 ## Authorization Boundary
 
-本规格不表示前端已经实现，也不授权依赖安装、脚手架、组件、样式、Client、测试、CI、RFC 实现、Technical Spike 或 Goal 激活。
+现有 FL-1 Frontend foundation 已实现并可离线验证；DEC-082 的新产品化方向仍未设计或实现。本规格不授权依赖、脚手架、组件、样式、Client、测试、CI、Kimi model call、Technical Spike、Goal closure 或任何后端 / Provider 边界扩展。

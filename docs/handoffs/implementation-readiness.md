@@ -2,7 +2,7 @@
 
 > **Status: MVP-0 Fast Lane `GOAL_BLOCKED` · FL-1 FOUNDATION COMPLETE · PHASE A TERMINAL `INSUFFICIENT_SANITIZED_EVIDENCE` · NO PRODUCTION REPAIR OR PHASE B CONTRACT**
 >
-> **Authority:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) · [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) · [MVP-0 Fast Lane Goal](../goals/mvp0-fast-lane-goal.md)
+> **Authority:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) · [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) · [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) · [MVP-0 Fast Lane Goal](../goals/mvp0-fast-lane-goal.md)
 >
 > **Current release boundary:** the deterministic local loop and one-command demo are implemented as the accepted FL-1 foundation, not the complete Fast Lane MVP. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) completed the private DeepSeek adapter, local Schema / bounded Domain admission and opt-in smoke seam at merge commit `c12a9ab285eefee35c78342fd01180c1e47a83f0`; [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280) merged the DEC-080 Xiaohongshu v2 deadline-fence repair offline; [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) completed the single bounded post-FL-2 cleanup. The first smoke at `main@1c7c2107ead332235d492ed063b67101784d35f1` failed after five calls. The second smoke under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) ran at exact `main@ac4edfed6e8e216e9938affdc734298c8630d2de` and failed safely after one `product_intake_v1 / v1` call, before `awaiting_review`; retry/recovery were 0/0, all behavior gates were false and no stage 2～5 call occurred. FL-2 is terminal `GOAL_BLOCKED`; #281 authorization is consumed and closed, with no further Provider run authorized. DEC-081 Phase A is complete with terminal disposition `INSUFFICIENT_SANITIZED_EVIDENCE`; its offline seam establishes observational ambiguity across actual mapper/schema/domain-admission boundaries and does not identify the historical cause. No production repair was made and no Phase B contract exists. `rejection_disposition` remains a Proposal only, not Accepted/current truth.
 
@@ -20,6 +20,7 @@ The following are accepted and sufficient for the minimal demo:
 - honest insufficient-input behavior;
 - a retained opt-in direct DeepSeek official `deepseek-v4-pro` seam plus terminal evidence from the two controlled runs; neither is Provider acceptance and no further run is authorized;
 - the completed bounded offline Phase A diagnosis at the exact first-stage boundary with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`; no production repair was made and no Phase B contract exists.
+- an accepted next productization direction: fixed local single-user Action Workbench with `/tasks` action home, a Chinese five-stage rail, one Active Workspace, a collapsible `320–360px` Context Rail, structured Review and action-oriented Marketing / Xiaohongshu Results.
 
 No further Persona, RFC, general architecture, retrieval or enterprise-security planning is required for the deterministic foundation. The two controlled DeepSeek runs are terminal failure evidence, not Provider acceptance; #281 is closed and no further Provider run is authorized. Phase A is complete with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`, establishing observational ambiguity only; no production repair or Phase B contract exists, and `rejection_disposition` remains a Proposal only. Later deferred capabilities retain their separate gates.
 
@@ -84,6 +85,8 @@ The following do not block Fast Lane readiness:
 - Login, RBAC, multi-tenancy, public deployment, generic compliance and telemetry platforms.
 
 Accepted future designs remain available for a later Goal. They are not implementation prerequisites for this one.
+
+DEC-082 is now the frontend productization handoff. The next authorized step is a separate design Issue using applicable taste skills to produce reviewable Action Home / TaskWorkbench states and representative visual evidence. No component implementation or Kimi model call is authorized by this handoff. Under a later user-accepted exact frontend contract, local Kimi Code + Kimi K3 may be used only for frontend design / implementation; requested configuration evidence and runtime identity remain separate, the route is not a Luna / Terra fallback, and Sol independently reviews all resulting changes.
 
 ## 6. Quality readiness
 

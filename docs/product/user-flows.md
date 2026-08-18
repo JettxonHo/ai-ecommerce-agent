@@ -1,6 +1,6 @@
 # User Flows（用户流程）
 
-> **Status: READY FOR USER OVERALL ACCEPTANCE — P-42～P-47 已接受；Product Specification Final Consistency Review = PASS**
+> **Status: ACCEPTED CURRENT TRUTH — Product Specification accepted; DEC-082 Action Workbench direction synchronized**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
 > 当前已确认：MVP 核心任务的高层级流程（DEC-003）、首个演示场景映射（DEC-004）、输入分层（DEC-005）、四层输出（DEC-006）、单一关键审核节点 + 异常暂停（DEC-007）、证据与可追溯（DEC-008）、阶段级失效（DEC-009）、单任务工作台与确认式局部重跑（DEC-044）、最小输入 / 文件限制 / 冲突分级（DEC-045）、审核 / Brief 产品语义、版本 / revision / 导出行为（DEC-046）、渐进式证据、编辑意图、阶段进度、恢复与导出确认（DEC-047）、代表性验收包和 Markdown-first 用户导出（DEC-048）、产品 / 技术权威边界（DEC-057）、虚构 Anchor SKU 验收策略（DEC-058）、有限结构化 Needs Input 行动请求（DEC-059）、证据约束声明完整性（DEC-060）、Task 范围资料与可逆移除（DEC-061）、最小最近任务入口与稳定深链（DEC-062），以及 Frontend Architecture（DEC-055 / 056）。公共 Schema / 状态与工作流技术实现由下游 RFC 冻结。
 > **DEC-041 同步：** 交互形态为引导式任务工作台；允许结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV。不提供图片 / OCR、链接抓取、主动联网研究、完整小红书正文生成或自动发布流程。
@@ -11,6 +11,7 @@
 > **DEC-048 同步：** 当前有效 Marketing Brief 与 Xiaohongshu Brief 分别导出 UTF-8 Markdown；文件保留 Task、版本、必要上游、产品语义组、假设 / 限制 / 风险、证据与导出时间上下文。首个 Goal 不提供用户侧 PDF / JSON 文件导出。
 > **DEC-060～062 同步：** 无依据高风险声明优先只阻断进入 Current Brief；用户资料默认 Task-scoped，可逆移除 / 替换先显示影响，不承诺永久清除；`/tasks` 提供最小最近任务入口并保留稳定深链，不建设运营 Dashboard。
 > **DEC-055 / 056 同步：** 一个深 TaskWorkbench 在稳定 Task Route 内投影 Active Workspace；私有 WorkbenchProjection 不复制后端 FSM。Review Draft 采用 latest-buffer 串行 Save 和成功 revision 链，Save / Flush / Conflict / 未确认编辑意图阻止 Submit；正式支持 Desktop Chrome，并对关键路径做代表性 WCAG / Reflow / Performance 验证。
+> **DEC-082 同步：** `/tasks` 是本地单用户行动首页而非 Dashboard；稳定 Task 深链显示中文五阶段轨道、一个 Active Workspace 与可折叠 `320–360px` Context Rail。Review 结构化，Results 行动导向并分为 Marketing / Xiaohongshu 视图，raw JSON 只在技术细节后出现；AI 表达上下文进度 / 状态，不采用 chat-first。
 
 ---
 
@@ -18,7 +19,7 @@
 
 > 来源：[DEC-003](../decisions/dec-003-product-launch-positioning-and-marketing-brief.md) + [DEC-004](../decisions/dec-004-platform-neutral-core-xiaohongshu-demo.md) + [DEC-005](../decisions/dec-005-layered-mvp-inputs.md) + [DEC-006](../decisions/dec-006-four-layer-structured-marketing-brief.md) + [DEC-007](../decisions/dec-007-single-review-node-and-exception-pauses.md) + [DEC-008](../decisions/dec-008-tiered-evidence-and-traceable-conclusions.md) + [DEC-009](../decisions/dec-009-stage-level-invalidation-and-partial-rerun.md) + [DEC-041](../decisions/dec-041-end-to-end-demo-mvp-delivery-envelope.md) + [DEC-042](../decisions/dec-042-evidence-driven-launch-strategy-workbench-positioning-and-demo-success.md) + [DEC-044](../decisions/dec-044-guided-task-workbench-input-gates-and-confirmed-partial-rerun.md) + [DEC-045](../decisions/dec-045-minimum-input-file-limits-and-conflict-handling.md) + [DEC-046](../decisions/dec-046-review-brief-and-export-product-contract.md) + [DEC-047](../decisions/dec-047-progressive-evidence-edit-intent-and-actionable-recovery-interactions.md) + [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md) + [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md) + [DEC-056](../decisions/dec-056-deep-task-workbench-revision-safe-interaction-and-proportional-web-quality.md) + [DEC-057](../decisions/dec-057-product-semantics-and-technical-contract-authority-boundary.md) + [DEC-058](../decisions/dec-058-fictional-anchor-sku-acceptance-fixture-strategy.md) + [DEC-059](../decisions/dec-059-targeted-needs-input-action-request-model.md) + [DEC-060](../decisions/dec-060-evidence-bound-claim-integrity-and-proportional-compliance-boundary.md) + [DEC-061](../decisions/dec-061-task-scoped-private-material-and-reversible-removal.md) + [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md)
 
-- **跨会话进入（DEC-062）：** 用户可从 `/tasks` 创建新任务或查看最近任务；任务摘要显示名称 / 临时名称、品类、当前阶段或等待状态、最近更新时间和主要下一步动作。选择后进入稳定 Task 深链，并继续使用同一个 TaskWorkbench。首个 Goal 不提供搜索、高级筛选、批量操作、归档或 Dashboard。
+- **跨会话进入与行动首页（DEC-062 / 082）：** `/tasks` 的主要动作是创建商品上新 Task，并只突出一个恢复项：Needs Input → Review → Failed / Recoverable → 最近活跃。少量最近 Task 显示商品 / Task 名称、品类、用户可见状态、下一步动作和最近更新时间；选择后进入稳定 Task 深链并继续使用同一个 TaskWorkbench。`/tasks` 不提供图表、KPI、搜索、高级筛选、批量、归档或 Dashboard 模块。
 
 - **高层级流程（已确认）：**
 
@@ -124,6 +125,8 @@
 
 > 该流程通过一个深 TaskWorkbench 承载：外层 Router 提供 `/tasks` 最小最近任务入口、`/tasks/new` 与稳定 Task Route，并提取 Task Identity；Workbench 内部的 Intake、Progress / Recovery、Review、Results / Export 与 Evidence / Context 私有 Module 投影当前工作区。最近任务入口与聊天记录都不成为第二套业务状态。每次突出一个主要动作，Needs Input / Review / Invalidation 是正常 Workspace。Native / 按需 Radix + CSS Modules、语义化 Text Rendering 与可访问性边界由 DEC-056 / 062 冻结；最终公共 Resource、字段、状态、错误和传输由 RFC-004 / 005 冻结。
 
+> **DEC-082 具体布局：** Header 显示 Task / 商品名、品类、用户可见状态、最近保存 / 更新时间与真实 local / offline runtime 标签。Task 深链使用“资料整理 → 用户洞察 → 商品定位 → 营销 Brief → 小红书 Brief”五阶段中文轨道，区分 completed / current / needs-input / blocked；一个 Active Workspace 展示当前主要动作，证据 / 来源 / 限制 / 风险 / 版本时间 / 安全执行状态进入展开宽度 `320–360px` 的可折叠 Context Rail。Review 默认呈现结构化语义组和确认动作；Results 先呈现定位、受众、Proof Points、风险与下一步摘要，再分别呈现 Marketing / Xiaohongshu 结果、版本 / 限制、Markdown 预览与导出动作；raw JSON 仅在“技术细节”后按需查看。约 `1024px` 时 Rail 可折叠，更窄 reflow 使用可访问 disclosure / sheet，不构成手机产品。AI 以当前阶段、处理状态、依据和下一步表达，不提供聊天式主流程。
+
 > **Review Draft 自动保存（DEC-056）：** 实施起始 Debounce 为 1 秒，同时最多一个 Save；In-flight Save 后只排队最新缓冲，并用前次成功返回的新 revision 继续保存。歧义文本先确认编辑意图；Submit 必须等待最新 Flush，Save / Flush 失败、Conflict 或意图未确认均阻止提交。Stale / Superseded 保留本地缓冲并由用户重新应用或放弃，不自动 Merge / 覆盖。
 
 > **阶段进度与恢复（DEC-047）：** 长任务显示当前 / 已完成 / 待处理阶段、最近更新时间、当前等待原因和下一项动作，不显示虚构百分比。暂停或错误说明原因、受影响阶段以及最近有效结果，并按情形提供补料继续、恢复、重试当前阶段、查看失效预览并确认重跑、刷新比较陈旧 Draft、取消或返回最后有效结果。返回旧结果不改变其有效性；失效或部分提交结果不得标成 Current Truth。技术详情按需展开，最终公共错误 / 状态 / 动作映射由 RFC-004 冻结，运行可观测字段由 RFC-007 冻结。
@@ -169,8 +172,8 @@
 
 ## 当前状态
 
-- 项目处于 **Pre-development Planning（正式开发前策划）阶段**；业务实现与长期 Goal 均未启动。
-- 已确认高层任务流程、平台映射、输入分层、四层输出、Human Review、证据追溯、工作台、输入与冲突、审核 / Brief 产品语义、版本 / revision / 导出、证据 / 编辑 / 进度 / 恢复交互、Anchor SKU 验收、Markdown-first 用户导出、声明完整性、Task 范围资料生命周期、最近任务入口与 Frontend Architecture（DEC-003～009 / DEC-042 / DEC-044～062）；产品层已无未接受 Proposal，公共 Schema / 状态与工作流实现属于 RFC / Goal。
+- 项目处于 MVP-0 Fast Lane `GOAL_BLOCKED`；FL-1 deterministic 产品纵向已实现，DEC-082 的 Action Workbench 产品方向已接受但尚未进入独立设计 / 实现 Issue。
+- 已确认高层任务流程、平台映射、输入分层、四层输出、Human Review、证据追溯、工作台、输入与冲突、审核 / Brief 产品语义、版本 / revision / 导出、证据 / 编辑 / 进度 / 恢复交互、Anchor SKU 验收、Markdown-first 用户导出、声明完整性、Task 范围资料生命周期、行动首页与 Frontend Architecture（DEC-003～009 / DEC-042 / DEC-044～062 / DEC-082）；产品层已无未接受 Proposal，公共 Schema / 状态与后端 Current Truth 继续由既有 RFC / Goal 约束。
 - 后续若改变已确认流程或扩大产品范围，必须通过新的 Accepted Decision 明确 Amend / Supersede；公共传输与技术实现继续遵守下游 RFC 权威边界。
 
 ---
