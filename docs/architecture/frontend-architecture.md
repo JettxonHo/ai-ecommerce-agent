@@ -54,14 +54,15 @@
 
 DEC-082 concretizes the local single-user product shell without changing the module or contract seams above:
 
-- `/tasks` is an action home, not an analytics or operations Dashboard. It prioritizes one resume action, Task creation and a small recent-Task path into stable deep links.
-- The Task route presents one Chinese five-stage rail: 资料整理 → 用户洞察 → 商品定位 → 营销 Brief → 小红书 Brief.
-- One Active Workspace owns the primary action. A collapsible Context Rail is `320–360px` when expanded and carries evidence, source, limitation, risk and technical-detail context.
-- Review is structured around semantic decisions and bounded corrections. Results are action-oriented and separate Marketing Brief from Xiaohongshu Brief, including version / limitation context and export actions.
+- `/tasks` is an action home, not an analytics or operations Dashboard. Task creation is primary; one resume item is selected from Needs Input → Review → Failed / Recoverable → most recently active. Recent Tasks show name, category, user-facing state, next action and last update.
+- The Task header shows Task / product name, category, user-facing state, saved / updated state and a truthful local / offline runtime label.
+- The Task route presents one Chinese five-stage rail: 资料整理 → 用户洞察 → 商品定位 → 营销 Brief → 小红书 Brief. Each stage distinguishes completed / current / needs-input / blocked without promoting internal enum, profile or version identifiers to primary copy.
+- One Active Workspace owns the primary action. A collapsible Context Rail is `320–360px` when expanded and carries evidence, source, limitation, risk, version / time, safe execution status and technical-detail context.
+- Review is structured around semantic decisions and bounded corrections. Results first summarize positioning, audience, proof points, risks and next action, then separate Marketing Brief from Xiaohongshu Brief with version / limitation context, Markdown preview and export actions.
 - Raw JSON is hidden behind explicitly labeled technical details. It is not the default Review or Results representation.
 - AI appears as contextual progress, status, evidence and next-action explanation; no chat-first or chat-bubble primary interface is introduced.
 
-The accepted visual language is Chinese-first “运营编辑部 / 策略桌”: warm neutral surfaces, ink / deep navy structure and text, plus one muted pine / teal accent. Important frontend design uses applicable taste skills. This direction does not authorize a component or styling implementation in this document.
+The accepted visual language is Chinese-first “运营编辑部 / 策略桌”: warm neutral surfaces, ink / deep navy structure and text, plus one muted pine / teal accent; amber / red are reserved for semantic states. Avoid purple AI gradients, equal white-card grids, Inter-everywhere styling, decorative metrics and generic chat bubbles. Important frontend design uses applicable taste skills. This direction does not authorize a component or styling implementation in this document.
 
 - `app` 层只负责 Composition、Provider、`/tasks` 最小 Task Index、`/tasks/new` 与稳定 Task Route 的匹配和 Task Identity 提取。
 - Task Index 只显示 RFC-004 提供的名称 / 临时名称、品类、当前阶段或等待状态、最近更新时间和主要下一步 Capability；不通过 Cache 残留或文案猜测终态，不增加搜索、批量、归档、统计或 Dashboard Module。
@@ -70,6 +71,7 @@ The accepted visual language is Chinese-first “运营编辑部 / 策略桌”:
 - Remote Seam 只有生成 Client 驱动的 Typed HTTP Adapter 与固定资料包 / 变更脚本驱动的 Deterministic Test Adapter；TanStack Query 包装该 Seam。
 - 首个 Goal 不建设 Contribution Registry、动态插件、任意 Slot / Hook / Middleware 或每 Stage 独立数据架构。
 - 首个产品化切片也不建设图表、全局搜索、高级筛选、批量操作、mega-nav、手机专用产品，或销售 / 订单 / 物流 / 支付模块。
+- Desktop grid uses `minmax(0, 1fr)` for the Active Workspace. Around `1024px` the Context Rail may collapse; narrower reflow uses an accessible disclosure / sheet and does not become a mobile product.
 
 UI 与 Styling：
 

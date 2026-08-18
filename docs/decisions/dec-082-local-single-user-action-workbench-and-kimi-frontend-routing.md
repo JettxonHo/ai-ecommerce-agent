@@ -25,26 +25,29 @@ DEC-055 / 056 已冻结 React / Vite、状态所有权、深 TaskWorkbench、CSS
 
 首个产品化目标是**固定本地工作区中的单用户产品**：无登录、无租户切换、无公开部署。后端 Current Truth、现有 Task / revision / idempotency / same-origin / safe Markdown 边界继续有效。
 
-`/tasks` 是行动首页，不是 Dashboard。它优先回答“现在应该处理哪件事”，提供创建 Task、恢复一个主要进行中 Task、查看少量最近 Task 与进入稳定深链的路径。首个产品化切片不加入图表、全局搜索、高级筛选、批量操作、巨型导航、销售 / 订单 / 物流 / 支付模块。
+`/tasks` 是行动首页，不是 Dashboard。主要动作是创建商品上新 Task；页面只突出一个最高优先级恢复项，优先顺序覆盖 Needs Input、Review、Failed / Recoverable，最后才是最近活跃 Task。少量最近 Task 显示商品 / Task 名称、品类、用户可见状态、下一步动作与最近更新时间，并进入稳定深链。首个产品化切片不加入图表、KPI Dashboard、全局搜索、高级筛选、批量操作、归档、巨型导航、销售 / 订单 / 物流 / 支付模块。
 
 ### 2. Action Workbench 布局
 
 稳定 Task 深链中的工作台采用：
 
-- 中文五阶段进度轨道：资料整理 → 用户洞察 → 商品定位 → 营销 Brief → 小红书 Brief；
+- Header 显示 Task / 商品名、品类、用户可见状态、最近保存 / 更新时间与真实的 local / offline runtime 标签；
+- 中文五阶段进度轨道：资料整理 → 用户洞察 → 商品定位 → 营销 Brief → 小红书 Brief；每阶段区分 completed / current / needs-input / blocked，内部 enum、profile 或 version identifier 不作为主文案；
 - 一个当前 Active Workspace，任何时刻突出一个主要动作；
-- 一个可折叠的 Context Rail，展开宽度为 `320–360px`，承载证据、来源、限制、风险与技术细节；
+- 一个可折叠的 Context Rail，展开宽度为 `320–360px`，承载证据、来源、限制、风险、版本 / 时间、安全执行状态与技术细节；
 - 结构化 Review，以可决定的语义组、证据 / 限制、修改与确认操作为中心；
-- 行动导向 Results，分别提供 Marketing Brief 与 Xiaohongshu Brief 视图、版本 / 限制摘要和 Markdown 导出；
+- 行动导向 Results，先显示定位、受众、Proof Points、风险与下一步摘要，再分别提供 Marketing Brief 与 Xiaohongshu Brief 视图、版本 / 限制摘要、Markdown 预览与导出；
 - 原始 JSON 只位于明确标记的“技术细节”之后，不作为默认产品界面。
 
 AI 以阶段进度、正在处理的上下文、结果来源、限制和下一步动作出现，不采用 chat-first 或聊天气泡主界面。
 
+Desktop 使用 `minmax(0, 1fr)` Active Workspace + Context Rail。约 `1024px` 时 Rail 可折叠；更窄 reflow 使用可访问的 disclosure / sheet，不因此创建手机产品。任何时刻只有一个主要动作在视觉上占主导。
+
 ### 3. 视觉语言
 
-视觉方向固定为中文优先的“运营编辑部 / 策略桌”：温暖中性色作为主要页面底色，墨色 / 深海军蓝用于文字与结构层级，只使用一个低饱和松绿 / 青绿色作为行动和状态强调色。界面依靠排版、间距、分组、语义状态与稳定工作区建立层级，不使用装饰性图表、泛化卡片墙、渐变式 AI 光效或伪造百分比。
+视觉方向固定为中文优先的“运营编辑部 / 策略桌”：温暖中性色作为主要页面底色，墨色 / 深海军蓝用于文字与结构层级，只使用一个低饱和松绿 / 青绿色作为行动和普通状态强调色；琥珀 / 红色只用于对应语义状态。界面依靠排版、间距、分组、语义状态与稳定工作区建立层级，不使用紫色 AI 渐变、等权白卡网格、Inter-everywhere 风格、装饰性指标、泛化聊天气泡或伪造百分比。
 
-重要前端设计必须使用适用的 taste skills，并在实施 Issue 中保留设计方向、约束、状态与代表性视觉验收证据。该要求不改变既有 React 19 + TypeScript + Vite 8、CSS Modules、原生语义 HTML / 按需 Radix、generated client、same-origin 和安全 Markdown 技术边界。
+重要前端设计必须使用适用的 taste skills，并在实施 Issue 中保留设计方向、约束、状态与代表性视觉验收证据。该要求不改变既有 React 19 + TypeScript + Vite 8、CSS Modules、原生语义 HTML / 按需 Radix、generated client、same-origin 和安全 Markdown 技术边界。可见 Focus、键盘导航、非颜色唯一状态、loading / empty / error、skip link、helpful 404 与顶层错误恢复继续是设计基线。
 
 ### 4. Kimi 前端专用例外
 
@@ -87,6 +90,17 @@ Fast Lane Goal 继续保持 `GOAL_BLOCKED`。本决定不创建 DEC-081 Phase B�
 - Marketing / Xiaohongshu、Review、Results、Evidence / Context 继续使用既有后端和公共契约；视觉设计不得发明新的业务状态或写权限。
 - Kimi 可以在后续精确前端合同中参与，但它的调用、身份和 Diff 仍受显式证据及独立 Review 约束。
 - 本决定不包含线框、组件实现、样式代码或 Kimi 调用；这些属于后续独立设计 / 实现 Issue。
+
+## Pattern References
+
+以下官方资料只提供模式证据，不授权复制其功能范围：
+
+- [Shopify Home](https://help.shopify.com/en/manual/shopify-admin/shopify-home)：先展示下一动作和紧急工作；
+- [Google Merchant Center](https://support.google.com/merchants/answer/12488712?hl=en)：状态与“下一步做什么”；
+- [Airtable Record Review](https://support.airtable.com/articles/4384405105-airtable-interface-layout-record-review)：聚焦内容审核与上下文详情；
+- [Linear Projects](https://linear.app/docs/projects) 与 [Notion Workspaces](https://www.notion.com/help/intro-to-workspaces)：渐进披露与宽阔主要工作区；
+- [Microsoft Copilot Studio flow designer](https://learn.microsoft.com/en-us/microsoft-copilot-studio/workflows-experience/flow-designer) 与 [飞书多维表格 AI](https://www.feishu.cn/hc/zh-CN/articles/519714421437-%E5%A4%9A%E7%BB%B4%E8%A1%A8%E6%A0%BC-ai-%E5%8A%9F%E8%83%BD%E4%BB%8B%E7%BB%8D)：AI 执行 / 状态位于上下文面板，而非主聊天表面；
+- [抖店参考](https://lf3-cdn-tos.draftstatic.com/obj/ies-hotsoon-draft/doudian_app/2f4ea150-f275-4f44-899d-c744397604d0.html)：只参考电商运营语言，不复制 mega-navigation 或经营范围。
 
 ## Authorization Boundary
 
