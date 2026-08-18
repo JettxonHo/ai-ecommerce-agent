@@ -17,6 +17,8 @@
 > **Accepted bounded repair on 2026-08-13:** [DEC-080](../decisions/dec-080-fl2-xiaohongshu-profile-v2-and-deadline-fence.md) authorized an offline-only `xiaohongshu_mapping_v1 / v2` repair at 16,384 `max_tokens` / 240 s plus a post-return application deadline fence. The other four profiles and all provider/security/retry boundaries remained unchanged. The repair was merged as [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280), and [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) completed the bounded legacy cleanup. The subsequent #281 run stopped at the unchanged first-stage v1 boundary, so it did not exercise stages 2～5 or establish live acceptance. Goal status remains `GOAL_BLOCKED`; any new repair, Provider call or product direction requires a new user Decision and separate contract.
 >
 > **Accepted offline recovery path on 2026-08-14:** [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) records the user's Option B. Canonical status remains **MVP-0 Fast Lane `GOAL_BLOCKED`; Phase A completed with terminal disposition `INSUFFICIENT_SANITIZED_EVIDENCE`.** FL-1 deterministic completion is an accepted foundation only. The reviewed offline seam establishes observational ambiguity across actual mapper/schema/domain-admission boundaries and does not identify the historical cause. No production repair was made and no Phase B contract exists. `rejection_disposition` remains a Proposal only, not Accepted/current truth. No Provider run is authorized.
+>
+> **Accepted frontend product direction on 2026-08-19:** [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) fixes the next productization baseline as a local single-user Action Workbench. `/tasks` is an action home, stable Tasks use a Chinese five-stage rail, one Active Workspace and a collapsible `320–360px` Context Rail, with structured Review and action-oriented Marketing / Xiaohongshu Results. This is an accepted design direction only: the next step is a separate design Issue using applicable taste skills. It does not close this Goal, create Phase B, repair Provider behavior or authorize a Kimi / Provider call.
 
 ## 1. Outcome
 
@@ -59,7 +61,7 @@ An implementation task reads only the smallest relevant set:
 3. [DEC-001](../decisions/dec-001-business-value-before-agent-complexity.md), [DEC-003](../decisions/dec-003-product-launch-positioning-and-marketing-brief.md) and [DEC-004](../decisions/dec-004-platform-neutral-core-xiaohongshu-demo.md);
 4. [DEC-011](../decisions/dec-011-deterministic-workflow-with-constrained-llm-reasoning.md) and [DEC-020](../decisions/dec-020-mvp-four-core-skills-and-xiaohongshu-adapter.md);
 5. [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md) and [DEC-048](../decisions/dec-048-small-acceptance-pack-behavior-gates-and-markdown-export.md);
-6. [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md), [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md), [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md), [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md) and [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md);
+6. [DEC-052](../decisions/dec-052-openai-responses-narrow-model-runtime-port-and-structured-output-authority.md), [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md), [DEC-055](../decisions/dec-055-frontend-application-state-and-verification-foundation.md), [DEC-062](../decisions/dec-062-minimal-recent-task-index-and-stable-deep-links.md), [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) and [DEC-065](../decisions/dec-065-immutable-brief-export-problem-and-fixed-workspace-api-boundary.md);
 7. [DEC-071](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md) and [DEC-072](../decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md);
 8. the current Issue and the actual code/tests it changes.
 
@@ -70,7 +72,7 @@ Other Decisions and RFCs remain historical or future authority. They are read on
 ### In scope
 
 - One fixed local workspace with no login or tenant selector.
-- Existing `/tasks` list, Task creation and stable Task deep link.
+- A local single-user Action Workbench: `/tasks` action home, Task creation, stable Task deep link, Chinese five-stage rail, one Active Workspace and a collapsible `320–360px` Context Rail. The accepted direction awaits a separate design Issue before implementation.
 - One primary Task-scoped product input:
   - pasted nonblank text; or
   - one UTF-8 `.txt` or `.md` file;
@@ -97,6 +99,7 @@ Other Decisions and RFCs remain historical or future authority. They are read on
 - Multi-provider, multi-agent, model routing, automatic publication, public deployment and platform operations.
 - Login, RBAC, tenant management, internet exposure and enterprise security controls.
 - General-purpose compliance, telemetry, analytics or performance platforms.
+- Dashboard charts, global search/filter/bulk operations, mega-navigation, a mobile-specific product, sales/order/logistics/payment modules and a chat-first primary interface.
 
 Deferred code already in the repository is not deleted merely because it is outside the Fast Lane. It is frozen unless the Fast Lane path must call it, it blocks a valid current vertical, or the bounded cleanup reconciliation below proves that it is safe and useful to remove.
 

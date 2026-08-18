@@ -17,6 +17,8 @@ AI Ecommerce Agent is a local, fixed-workspace product-launch strategy workbench
 
 The core is platform-neutral. Xiaohongshu is the first demonstration adapter. The main workflow is deterministic; constrained model calls perform semantic analysis, and one human review remains the final decision point.
 
+[DEC-082](docs/decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) fixes the next productization direction as a local single-user Action Workbench. `/tasks` is the action home rather than a dashboard; a stable Task opens one Chinese five-stage progress rail, one active workspace and a collapsible `320–360px` context rail. Review is structured, Results are action-oriented with separate Marketing / Xiaohongshu views, and raw JSON stays behind technical details. The Chinese-first visual language is an “运营编辑部 / 策略桌” using warm neutrals, ink / deep navy and one muted pine / teal accent. This accepted direction does not authorize implementation and does not change `GOAL_BLOCKED`.
+
 ## Current repository truth
 
 The repository already contains:
@@ -81,6 +83,8 @@ Read in this order:
 6. [Implementation Readiness](docs/handoffs/implementation-readiness.md)
 7. the current Issue and the actual code/tests it changes
 
+For an important frontend design or implementation slice, also read [DEC-082](docs/decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md). Applicable taste skills are mandatory for important design work. A user-accepted exact frontend contract may explicitly route work to local Kimi Code + Kimi K3; that narrow exception is not a Luna / Terra fallback, does not extend to backend or Provider boundaries, keeps requested configuration evidence separate from runtime identity, and still requires independent Sol review.
+
 Historical RFCs and Decisions are consulted only when the current vertical changes their public or irreversible boundary.
 
 ## Local development
@@ -109,6 +113,7 @@ cp .env.example .env
 - The user accepts product/architecture Decisions, Goal activation and high-risk changes.
 - Sol orchestrates and independently reviews.
 - The exact custom `luna-worker` implements code Issues; it is not silently replaced by Terra.
+- Local Kimi Code + Kimi K3 may handle only an explicitly contracted frontend design / implementation slice under DEC-082. Kimi does not self-approve or merge, and Issue #291 authorizes no model call.
 - Completed sub-agents are closed promptly unless an immediate bounded follow-up is required.
 - One Issue must deliver one observable vertical outcome; speculative contract-only work is not accepted.
 - Destructive migrations, public deployment, real user data, Provider Secrets and paid live calls remain human gates.

@@ -1,6 +1,6 @@
 # MVP Scope（最小可行产品范围）
 
-> **Status: READY FOR USER OVERALL ACCEPTANCE — P-42～P-47 已接受；Product Specification Final Consistency Review = PASS**
+> **Status: ACCEPTED CURRENT TRUTH — Product Specification accepted; DEC-082 local Action Workbench direction synchronized**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
 > 当前已确认：MVP 核心任务与交付物（DEC-003）、平台与输入输出边界（DEC-004～006）、Human Review / 证据 / 失效重跑（DEC-007～009）、三维评价（DEC-010）、本地演示包络（DEC-041）、行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制与冲突分级（DEC-045）、审核 / Brief / 版本 / 导出产品契约（DEC-046）、证据披露、编辑意图、阶段进度和恢复交互（DEC-047）、代表性验收包、行为门禁、人工验收与 Markdown-first 用户导出（DEC-048）、产品 / 技术契约权威边界（DEC-057）、虚构 Anchor SKU 验收策略（DEC-058）、有限结构化 Needs Input 行动请求（DEC-059）、证据约束声明完整性（DEC-060）、Task 范围资料与可逆移除（DEC-061）、最小最近任务入口与稳定深链（DEC-062），以及 Frontend Architecture（DEC-055 / 056）。公共 Schema、Fixture 物理文件与 E2E 证据格式属于下游 RFC / Testing Strategy，不得在产品文档擅自补全。
 > **DEC-041 同步：** 首个本地演示只接收结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV；不做 OCR、图片理解或扫描文档。下文 DEC-005 的旧“图片或文字”示例按此最新边界修订。
@@ -13,6 +13,7 @@
 > **DEC-057～059 同步：** 产品层只冻结稳定语义与行为；验收包共享虚构“城市通勤双肩包”Anchor SKU；Needs Input 只显示当前真实阻断派生的有限结构化行动请求。
 > **DEC-060～062 同步：** 无依据高风险声明优先只阻断进入 Current Brief，有诚实替代时 Task 继续；用户资料默认 Task-scoped，可逆移除 / 替换不等于物理永久删除；固定工作区提供最小最近任务入口与稳定深链，不建设完整运营 Dashboard。
 > **DEC-055 / 056 同步：** Frontend 使用 `apps/web/` React / Vite SPA、显式状态所有权与 OpenAPI 生成；一个深 TaskWorkbench 使用 Native / 按需 Radix + CSS Modules、私有 WorkbenchProjection、revision-safe 串行 Autosave / 语义组 Diff，以及 WCAG / Desktop Chrome / Reflow 与 Evidence-driven Performance。最终公共 Resource、字段、状态、错误、Conflict、Pagination 与下载协议仍待 RFC-004 / 005。
+> **DEC-082 同步：** 产品化先服务固定本地单用户；`/tasks` 为行动首页，Task 深链采用中文五阶段轨道、一个 Active Workspace 与可折叠 `320–360px` Context Rail。Review / Results 使用产品语义视图，AI 是上下文进度 / 状态而非 chat-first。图表、搜索、筛选、批量、mega-nav、手机产品及销售 / 订单 / 物流 / 支付扩展不进入该切片。
 
 ---
 
@@ -43,6 +44,7 @@
 - **审核与输出产品契约（DEC-046）：** Review Package / Approved Strategy 使用决策导向语义组；平台中立 Marketing Brief 与 Xiaohongshu Brief 各使用六个稳定产品语义组。Review Package 是不可变输入快照；三个正式业务结果采用不可变 Domain Version；Review Draft 使用单调递增 revision；Task 用 Current Truth Pointer；导出冻结对象版本、上游引用、限制与导出时间。最终公共 Schema 与并发实现不在本决定中冻结。
 - **证据、编辑与恢复交互（DEC-047）：** 决策相关条目显示五类标记并从当前上下文展开证据卡片 / 面板；无真实定位时不伪造，不显示未经校准数字置信度。差异按语义组表达，明确业务修改触发既有阶段级失效，展示性润色不触发上游重跑，歧义修改由用户确认一次编辑意图。进度使用阶段时间线和下一步动作，不显示虚构百分比；错误提供补料、恢复、重试、刷新比较、取消或返回最后有效结果等匹配动作；导出前确认当前版本和限制摘要。
 - **Frontend 工作台与交互实现边界（DEC-055 / 056）：** 一个深 TaskWorkbench 集中承载 Intake、Progress / Recovery、Review、Results / Export 与 Evidence / Context；使用私有 WorkbenchProjection 和 Capability / Intent，不复制后端 FSM。Review Draft 串行保存最新缓冲，Submit 只使用成功 Flush 的最新 revision；可访问性、Desktop Chrome、Reflow 与性能采用代表性证据验证，不建设多浏览器 / 手机 / 机械评分矩阵。
+- **本地 Action Workbench（DEC-082）：** `/tasks` 只组织当前主要行动、创建入口和少量最近 Task；稳定 Task 内用中文五阶段进度、一个 Active Workspace 与 `320–360px` 可折叠 Context Rail 呈现结构化 Review、Marketing / Xiaohongshu Results 和技术细节。视觉为中文优先“运营编辑部 / 策略桌”，不采用 Dashboard 或 chat-first 产品形态。
 - **评价框架（DEC-010）：** MVP 用**任务质量 / 结果可靠性 / 用户效率**三维评价，**不**把流畅度或销量作为唯一标准。优先六项指标：事实来源可追溯率、无依据事实数量、四层 Brief 完整率、关键结论人工接受率、生成可用 Brief 任务完成时间、下游失效正确率。销量 / 点击 / 转化 / 互动为未来真实试点业务指标，**非** MVP 唯一验收依据。
 - **演示成功边界（DEC-042）：** 新环境可启动、允许资料可提交、端到端闭环可完成、证据 / 假设 / 不足 / 冲突可理解和审核、中断可恢复、失效结果不再有效、结果可导出且从目标用户视角可用。
 - **验收包与 Markdown 导出（DEC-048 / 058）：** 虚构“城市通勤双肩包”作为唯一 Anchor SKU，三个资料变体覆盖正常、资料不足但可运行、阻断冲突恢复，一个变更脚本覆盖 Source 更新、业务编辑、陈旧 Review 和确认式局部重跑；行为硬门禁全部通过后仍需人工 `PASS / FAIL`。当前有效 Marketing Brief / Xiaohongshu Brief 分别导出 UTF-8 Markdown；用户侧 PDF / JSON 文件导出不进入首个 Goal。
@@ -70,6 +72,7 @@
 - **证据约束的声明完整性：** Claim / Fact / Proof Point 边界 + 声明级阻断优先 + 无诚实替代时 Needs Input；不建设合规引擎（DEC-060）。
 - **Task 范围资料纠错：** 用户资料不默认跨任务共享；可逆移除 / 替换 + 影响预览，不承诺用户侧永久清除（DEC-061）。
 - **跨会话返回：** 最小最近任务入口 + 稳定深链，不建设运营 Dashboard（DEC-062）。
+- **固定本地单用户产品化：** `/tasks` 行动首页 + 一个 Active Workspace + 可折叠 Context Rail；重要前端设计使用适用 taste skills，先完成独立设计 Issue，再授权实现（DEC-082）。
 - **三维评价（方向）：** 任务质量 / 可靠性 / 用户效率 + 六项优先指标；不以流畅度或销量为唯一标准（DEC-010）。
 - **行为型演示成功（方向）：** 本地启动、完整闭环、可理解 / 审核 / 追溯 / 恢复 / 导出与人工可用性（DEC-042）。
 - 平台适配层（方向）：将通用 Brief 映射为平台表达。
@@ -93,10 +96,14 @@
 - 库存分析；
 - 客服；
 - 完整店铺经营诊断。
+- 图表型运营 Dashboard、全局搜索 / 高级筛选、批量操作或 mega-nav；
+- 手机专用产品；
+- 销售、订单、物流或支付模块；
+- chat-first Agent 主界面。
 
 > **已关闭的范围问题：** DEC-041 已确认只接收结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV，不接收图片 / OCR，不抓取网页、评论或平台内容，不进行主动联网研究；DEC-023 已确认 LangGraph StateGraph；RFC-002 已确认生产数据库与事务栈；DEC-009 / DEC-044 已确认阶段级失效与用户确认后局部重跑；DEC-014 / DEC-032 已确认按需混合检索及证据运行边界；DEC-020 / DEC-031 / DEC-041 已确认首个演示只交付小红书 Brief 映射，不生成完整小红书正文，也不扩展其他平台。
 >
-> **已关闭的产品策划项：** DEC-060 已冻结声明完整性与高风险表达的最小边界；DEC-061 已冻结受控本地演示的数据生命周期体验；DEC-062 已冻结跨会话返回持久 Task 的最小入口。产品层已无未接受 Proposal，Final Consistency Review 已通过，当前等待用户整体接受。
+> **已关闭的产品策划项：** DEC-060 已冻结声明完整性与高风险表达的最小边界；DEC-061 已冻结受控本地演示的数据生命周期体验；DEC-062 已冻结跨会话返回持久 Task 的最小入口；DEC-082 已冻结固定本地单用户 Action Workbench 方向。产品层当前无未接受 Proposal；下一步是独立前端设计 Issue，不是本文件中的实现授权。
 >
 > 根据 DEC-057，公共字段、传输、状态 / 错误、并发、Markdown 模板和下载协议分别由 RFC-004 / 005 作为下游权威，不再列为产品开放问题。
 > - 技术实现：RFC-003～007 与 Frontend Architecture 覆盖的 Checkpointer、API、Retrieval、LLM Provider、Observability 和前端方案。
@@ -117,9 +124,9 @@
 
 ## 当前状态
 
-- 项目处于 **Pre-development Planning（正式开发前策划）阶段**；业务实现与长期 Goal 均未启动。
-- 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、输入门禁、确认式局部重跑、审核 / Brief / 版本、证据 / 编辑 / 进度 / 恢复交互、Anchor SKU 验收策略、Markdown-first 用户导出、产品 / 技术权威边界、声明完整性、Task 范围资料生命周期、最近任务入口与 Frontend Architecture（DEC-003～010 / DEC-041 / DEC-042 / DEC-044～062）；P-42～P-47 已全部接受且 Product Final Consistency Review 已通过，当前等待用户整体接受。
-- 其余具体内容，必须等到对应 Proposed Decision 被用户明确接受并记为 Accepted Decision（见 [../decisions/](../decisions/)）后，才能写入。
+- 项目处于 MVP-0 Fast Lane `GOAL_BLOCKED`；FL-1 deterministic foundation 已实现，DEC-082 的本地单用户 Action Workbench 方向已接受，具体视觉设计与实现尚未授权。
+- 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、输入门禁、确认式局部重跑、审核 / Brief / 版本、证据 / 编辑 / 进度 / 恢复交互、Anchor SKU 验收策略、Markdown-first 用户导出、产品 / 技术权威边界、声明完整性、Task 范围资料生命周期、行动首页与 Frontend Architecture（DEC-003～010 / DEC-041 / DEC-042 / DEC-044～062 / DEC-082）。
+- 后续具体设计、实现或范围扩展必须位于独立 Issue / Task Contract；未接受内容不得写成 Current Truth。
 
 ---
 
