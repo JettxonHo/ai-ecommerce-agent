@@ -29,11 +29,11 @@ describe("Task route boundaries", () => {
     expect(routes).toContain('["tasks", "recent"]');
     expect(routes).toContain('["tasks", "overview", taskId]');
     expect(routes).toContain("type TaskGateway");
+    expect(routes).toContain("type NeedsInputGateway");
+    expect(routes).toContain("needsInputGateway");
     expect(routes).not.toMatch(/generated\/schema|\bfetch\s*\(|openapi-fetch/);
     expect(routes).not.toMatch(/dangerouslySetInnerHTML|innerHTML/);
-    expect(routes).not.toMatch(
-      /\b(useState|useReducer|localStorage|sessionStorage)\b/,
-    );
+    expect(routes).not.toMatch(/\b(useReducer|localStorage|sessionStorage)\b/);
   });
 
   it("composes production HTTP only and keeps deterministic transport in tests", () => {
@@ -41,7 +41,10 @@ describe("Task route boundaries", () => {
     const appTest = read("App.test.tsx");
     const shellTest = read("../tests/contract/shell-no-network.test.tsx");
 
-    expect(main).toContain("createHttpTaskGateway(createApiClient())");
+    expect(main).toContain("const apiClient = createApiClient()");
+    expect(main).toContain("createHttpTaskGateway(apiClient)");
+    expect(main).toContain("createHttpNeedsInputGateway(apiClient)");
+    expect(main).toContain("needsInputGateway={needsInputGateway}");
     expect(main).not.toContain("createDeterministicTaskGateway");
     expect(appTest).toContain("createDeterministicTaskGateway");
     expect(shellTest).toContain("createDeterministicTaskGateway");

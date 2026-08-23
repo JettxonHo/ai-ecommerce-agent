@@ -4,11 +4,14 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import App from "./App";
 import { createApiClient } from "./api/client";
+import { createHttpNeedsInputGateway } from "./needsInput/httpGateway";
 import "./styles/global.css";
 import { createHttpTaskGateway } from "./tasks/httpGateway";
 
 const queryClient = new QueryClient();
-const taskGateway = createHttpTaskGateway(createApiClient());
+const apiClient = createApiClient();
+const taskGateway = createHttpTaskGateway(apiClient);
+const needsInputGateway = createHttpNeedsInputGateway(apiClient);
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
@@ -19,7 +22,7 @@ createRoot(rootElement).render(
   <StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <App taskGateway={taskGateway} />
+        <App taskGateway={taskGateway} needsInputGateway={needsInputGateway} />
       </QueryClientProvider>
     </BrowserRouter>
   </StrictMode>,

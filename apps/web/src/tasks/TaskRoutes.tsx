@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Link,
   Navigate,
@@ -10,17 +10,30 @@ import {
 import styles from "./TaskRoutes.module.css";
 import { TaskWorkbench } from "./workbench/TaskWorkbench";
 import {
+  mapNeedsInputResolution,
+  NeedsInputGatewayError,
+  resolutionIdentity,
+  type NeedsInputActionRequest,
+  type NeedsInputGateway,
+  type NeedsInputResolution,
+  type NeedsInputResolutionResult,
+} from "../needsInput/gateway";
+import {
   TaskGatewayError,
   type TaskGateway,
   type TaskPrimaryInputDraft,
   type TaskPrimaryAction,
   type TaskCurrentResult,
+  type TaskOverview,
   type TaskSummary,
   type ExportBriefKind,
   type ExportDownload,
 } from "./gateway";
 
-type TaskRoutesProps = Readonly<{ taskGateway: TaskGateway }>;
+type TaskRoutesProps = Readonly<{
+  taskGateway: TaskGateway;
+  needsInputGateway?: NeedsInputGateway;
+}>;
 
 const recentTasksKey = ["tasks", "recent"] as const;
 const overviewKey = (taskId: string) => ["tasks", "overview", taskId] as const;
@@ -28,6 +41,34 @@ const primaryInputKey = (taskId: string) =>
   ["tasks", "primary-input", taskId] as const;
 const currentResultKey = (taskId: string) =>
   ["tasks", "current-result", taskId] as const;
+const needsInputKey = (
+  taskId: string,
+  actionRequestId: string,
+  revision: number,
+) => ["tasks", "needs-input", taskId, actionRequestId, revision] as const;
+
+const needsInputAuthorityMatches = (
+  task: TaskOverview,
+  request: NeedsInputActionRequest | undefined,
+): request is NeedsInputActionRequest =>
+  request !== undefined &&
+  task.needsInputRequest !== null &&
+  task.needsInputRequest.resourceId === request.actionRequestId &&
+  task.needsInputRequest.revision === request.revision &&
+  request.taskId === task.taskId &&
+  request.status === "open" &&
+  request.supersededBy === null;
+
+const needsInputErrorMessage = (error: unknown): string => {
+  if (error instanceof NeedsInputGatewayError) {
+    if (error.kind === "missing") return "该补充请求已不存在，请刷新任务事实。";
+    if (error.kind === "stale")
+      return "补充请求已变化，请刷新任务事实后再提交。";
+    if (error.kind === "invalid")
+      return "当前补充动作无法提交，请检查允许动作。";
+  }
+  return "补充请求暂时不可用，请手动重试。";
+};
 
 const makeRetryKey = (taskId: string, inputRevision: number): string => {
   const random =
@@ -259,10 +300,12 @@ function RecentTasks({ taskGateway }: TaskRoutesProps) {
 function TaskOverviewRoute({
   taskGateway,
   taskId,
+  needsInputGateway,
 }: TaskRoutesProps & Readonly<{ taskId: string }>) {
   const queryClient = useQueryClient();
   const location = useLocation();
   const navigate = useNavigate();
+  const [needsInputCompletion, setNeedsInputCompletion] = useState(false);
   const query = useQuery({
     queryKey: overviewKey(taskId),
     queryFn: () => taskGateway.getTaskOverview(taskId),
@@ -287,6 +330,32 @@ function TaskOverviewRoute({
     queryFn: async () => (await taskGateway.getCurrentResult(taskId)) ?? null,
     retry: false,
   });
+  const authoritativeRequestReference = query.data?.needsInputRequest ?? null;
+  const needsInputReadEnabled =
+    needsInputGateway !== undefined && authoritativeRequestReference !== null;
+  const needsInputQuery = useQuery({
+    queryKey:
+      authoritativeRequestReference === null
+        ? (["tasks", "needs-input", taskId, "none", 0] as const)
+        : needsInputKey(
+            taskId,
+            authoritativeRequestReference.resourceId,
+            authoritativeRequestReference.revision,
+          ),
+    enabled: needsInputReadEnabled,
+    queryFn: async () => {
+      if (
+        needsInputGateway === undefined ||
+        authoritativeRequestReference === null
+      ) {
+        throw new NeedsInputGatewayError("invalid", "补充请求读取不可用。");
+      }
+      return needsInputGateway.getNeedsInputActionRequest(
+        authoritativeRequestReference.resourceId,
+      );
+    },
+    retry: false,
+  });
   const resultRetryKey = useRef<{ inputRevision: number; key: string } | null>(
     null,
   );
@@ -297,6 +366,66 @@ function TaskOverviewRoute({
     title: string;
   } | null>(null);
   const exportRetryKeys = useRef(new Map<string, string>());
+  const needsInputRetryKey = useRef<{
+    requestKey: string;
+    resolutionKey: string;
+    key: string;
+  } | null>(null);
+
+  const needsInputRequest = needsInputQuery.data;
+  const needsInputAuthorityMatch = needsInputAuthorityMatches(
+    query.data ?? ({} as TaskOverview),
+    needsInputRequest,
+  );
+
+  const resolveNeedsInput = async (
+    resolution: NeedsInputResolution,
+  ): Promise<NeedsInputResolutionResult> => {
+    if (
+      needsInputGateway === undefined ||
+      authoritativeRequestReference === null ||
+      needsInputRequest === undefined ||
+      !needsInputAuthorityMatch
+    ) {
+      throw new NeedsInputGatewayError(
+        "stale",
+        "当前补充请求已变化，请先刷新任务事实。",
+      );
+    }
+    const normalized = mapNeedsInputResolution(resolution);
+    const normalizedKey = resolutionIdentity(normalized);
+    const requestKey = `${taskId}:${needsInputRequest.actionRequestId}:${needsInputRequest.revision}`;
+    const previous = needsInputRetryKey.current;
+    const key =
+      previous !== null &&
+      previous.requestKey === requestKey &&
+      previous.resolutionKey === normalizedKey
+        ? previous.key
+        : `needs-input:${requestKey}:${normalizedKey}`;
+    needsInputRetryKey.current = {
+      requestKey,
+      resolutionKey: normalizedKey,
+      key,
+    };
+    const resolved = await needsInputGateway.resolveNeedsInput(
+      needsInputRequest.actionRequestId,
+      needsInputRequest.revision,
+      normalized,
+      key,
+    );
+    queryClient.setQueryData(
+      needsInputKey(
+        taskId,
+        needsInputRequest.actionRequestId,
+        needsInputRequest.revision,
+      ),
+      resolved.actionRequest,
+    );
+    await queryClient.invalidateQueries({ queryKey: overviewKey(taskId) });
+    await queryClient.invalidateQueries({ queryKey: recentTasksKey });
+    setNeedsInputCompletion(true);
+    return resolved;
+  };
   const savePrimaryInput = async (input: TaskPrimaryInputDraft) => {
     const saved = await taskGateway.savePrimaryInput(taskId, input);
     await queryClient.invalidateQueries({ queryKey: primaryInputKey(taskId) });
@@ -489,15 +618,40 @@ function TaskOverviewRoute({
           ? undefined
           : exportBrief
       }
+      needsInputRequest={needsInputRequest}
+      needsInputLoading={needsInputReadEnabled && needsInputQuery.isPending}
+      needsInputError={
+        needsInputQuery.isError
+          ? needsInputErrorMessage(needsInputQuery.error)
+          : null
+      }
+      needsInputAuthorityMatch={needsInputAuthorityMatch}
+      retryNeedsInput={
+        needsInputReadEnabled ? () => void needsInputQuery.refetch() : undefined
+      }
+      resolveNeedsInput={needsInputReadEnabled ? resolveNeedsInput : undefined}
+      refreshTask={() => void query.refetch()}
+      hasCurrentResult={
+        query.data.marketingBrief !== null ||
+        query.data.xiaohongshuBrief !== null
+      }
+      needsInputCompletion={needsInputCompletion}
     />
   );
 }
 
-export function TaskRoutes({ taskGateway }: TaskRoutesProps) {
+export function TaskRoutes({
+  taskGateway,
+  needsInputGateway,
+}: TaskRoutesProps) {
   const { taskId } = useParams();
   if (taskId === "new") return <Navigate replace to="/tasks" />;
   return taskId ? (
-    <TaskOverviewRoute taskGateway={taskGateway} taskId={taskId} />
+    <TaskOverviewRoute
+      taskGateway={taskGateway}
+      needsInputGateway={needsInputGateway}
+      taskId={taskId}
+    />
   ) : (
     <RecentTasks taskGateway={taskGateway} />
   );

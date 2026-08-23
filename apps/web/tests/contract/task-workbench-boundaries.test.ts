@@ -26,6 +26,9 @@ describe("TaskWorkbench boundaries", () => {
     const styles = read("workbench/TaskWorkbench.module.css");
 
     expect(workbench).toContain('from "../gateway"');
+    expect(workbench).toContain("NeedsInputActionRequest");
+    expect(workbench).toContain("resolveNeedsInput");
+    expect(workbench).toContain("allowedResolutionTypes");
     expect(workbench).not.toMatch(/TaskGateway|taskGateway|createTask/);
     expect(workbench).not.toMatch(
       /\b(fetch|localStorage|sessionStorage|window|document|setInterval|setTimeout)\b/,
