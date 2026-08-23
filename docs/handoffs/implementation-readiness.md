@@ -1,10 +1,10 @@
 # Implementation Readiness
 
-> **Status: MVP-0 Fast Lane `GOAL_BLOCKED` · FL-1 FOUNDATION COMPLETE · PHASE A TERMINAL `INSUFFICIENT_SANITIZED_EVIDENCE` · NO PRODUCTION REPAIR OR PHASE B CONTRACT**
+> **Status: MVP-0P Local Action Workbench Productization Goal ACTIVE after Issue #301 merge · P0 DOCS-ONLY ACTIVATION · OLD FAST LANE TERMINAL `GOAL_BLOCKED`**
 >
-> **Authority:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-079](../decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) · [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) · [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) · [MVP-0 Fast Lane Goal](../goals/mvp0-fast-lane-goal.md)
+> **Authority:** [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) · [MVP-0P Local Action Workbench Productization Goal](../goals/mvp0-local-action-workbench-productization-goal.md) · [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) · [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md)
 >
-> **Current release boundary:** the deterministic local loop and one-command demo are implemented as the accepted FL-1 foundation, not the complete Fast Lane MVP. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) completed the private DeepSeek adapter, local Schema / bounded Domain admission and opt-in smoke seam at merge commit `c12a9ab285eefee35c78342fd01180c1e47a83f0`; [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280) merged the DEC-080 Xiaohongshu v2 deadline-fence repair offline; [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) completed the single bounded post-FL-2 cleanup. The first smoke at `main@1c7c2107ead332235d492ed063b67101784d35f1` failed after five calls. The second smoke under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) ran at exact `main@ac4edfed6e8e216e9938affdc734298c8630d2de` and failed safely after one `product_intake_v1 / v1` call, before `awaiting_review`; retry/recovery were 0/0, all behavior gates were false and no stage 2～5 call occurred. FL-2 is terminal `GOAL_BLOCKED`; #281 authorization is consumed and closed, with no further Provider run authorized. DEC-081 Phase A is complete with terminal disposition `INSUFFICIENT_SANITIZED_EVIDENCE`; its offline seam establishes observational ambiguity across actual mapper/schema/domain-admission boundaries and does not identify the historical cause. No production repair was made and no Phase B contract exists. `rejection_disposition` remains a Proposal only, not Accepted/current truth.
+> **Current release boundary:** the deterministic local loop and one-command demo are accepted foundation input to the successor Goal, not live Provider acceptance. The old Fast Lane record remains terminal `GOAL_BLOCKED`: its first authorized smoke completed five calls and failed before `awaiting_review`; the second under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) failed safely after one `product_intake_v1 / v1` call before `awaiting_review`. Both authorizations are consumed; no further Provider run is authorized. [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) Phase A ended with `INSUFFICIENT_SANITIZED_EVIDENCE`, observational ambiguity across mapper/schema/domain-admission boundaries, no production repair and no Phase B contract. `rejection_disposition` remains a Proposal only. P0 is docs-only; exact Stage order is P0 → P1 → P2 → P3 → P4 → P5, with P1 the only next implementation Stage after merge.
 
 ## 1. Product readiness
 
@@ -21,10 +21,12 @@ The following are accepted and sufficient for the minimal demo:
 - a retained opt-in direct DeepSeek official `deepseek-v4-pro` seam plus terminal evidence from the two controlled runs; neither is Provider acceptance and no further run is authorized;
 - the completed bounded offline Phase A diagnosis at the exact first-stage boundary with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`; no production repair was made and no Phase B contract exists.
 - an accepted next productization direction: fixed local single-user Action Workbench with `/tasks` action home, a Chinese five-stage rail, one Active Workspace, a collapsible `320–360px` Context Rail, structured Review and action-oriented Marketing / Xiaohongshu Results.
+- the accepted successor Goal's serial order P0 → P1 → P2 → P3 → P4 → P5; P1 is the only next implementation Stage after P0 merge.
+- the human A+C verdict `HUMAN_SELECTED_AC_BASELINE`; this is a design baseline only, while PR #299 remains open / unmerged and production implementation remains a later Stage contract.
 
 No further Persona, RFC, general architecture, retrieval or enterprise-security planning is required for the deterministic foundation. The two controlled DeepSeek runs are terminal failure evidence, not Provider acceptance; #281 is closed and no further Provider run is authorized. Phase A is complete with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`, establishing observational ambiguity only; no production repair or Phase B contract exists, and `rejection_disposition` remains a Proposal only. Later deferred capabilities retain their separate gates.
 
-## 2. Implemented foundation at the current Fast Lane baseline
+## 2. Implemented foundation inherited by the productization Goal
 
 Implemented or physically present:
 
@@ -72,7 +74,7 @@ No public HTTP/OpenAPI/Web behavior, migration/schema/dependency/Compose topolog
 
 ## 5. Deferred and non-blocking
 
-The following do not block Fast Lane readiness:
+The following are outside the current productization Stage unless a later Stage contract gives them a real consumer:
 
 - unresolved old tracking parents or proposals that only govern deferred Source/Review lifecycle;
 - Issue #190 completion participant and the complete distributed Commit Fence;
@@ -81,12 +83,12 @@ The following do not block Fast Lane readiness:
 - Embedding, semantic/hybrid retrieval and retrieval evaluation;
 - Source remove/replace, partial rerun and full cancellation/recovery UX;
 - autosave/diff/stale-draft recovery and multiple Review outcomes;
-- complete OpenAPI operation catalog when no Fast Lane UI consumes the operation;
+- complete OpenAPI operation catalog when no productization UI consumes the operation;
 - Login, RBAC, multi-tenancy, public deployment, generic compliance and telemetry platforms.
 
 Accepted future designs remain available for a later Goal. They are not implementation prerequisites for this one.
 
-DEC-082 is now the frontend productization handoff. The next authorized step is a separate design Issue using applicable taste skills to produce reviewable Action Home / TaskWorkbench states and representative visual evidence. No component implementation or Kimi model call is authorized by this handoff. Under a later user-accepted exact frontend contract, local Kimi Code + Kimi K3 may be used only for frontend design / implementation; requested configuration evidence and runtime identity remain separate, the route is not a Luna / Terra fallback, and Sol independently reviews all resulting changes.
+DEC-082 supplies the accepted product and frontend baseline. DEC-083 now sequences its execution: P0 is docs-only, P1 is the only next implementation Stage after merge, and later P2–P5 require their own contract and independent Review. Important frontend work uses applicable taste skills; local Kimi Code + Kimi K3 remains a narrow later exact-contract exception, not a P0 call or Luna / Terra fallback. PR #299 is open / unmerged and is not production evidence.
 
 ## 6. Quality readiness
 
@@ -115,12 +117,13 @@ No authentication, RBAC, tenant or public-internet threat model is required for 
 
 Stop and request user direction only for:
 
-- a new user-visible product behavior outside the Fast Lane Goal;
+- a new user-visible product behavior outside the active Productization Goal;
 - destructive migration or existing-data rewrite;
 - public deployment, real user data, any future Provider call or irreversible external action;
 - credible Secret exposure or loss of Task/scope/atomic-result guarantees;
 - replacement of accepted PostgreSQL, current DeepSeek FL-2 Provider, React/Vite, FastAPI or `luna-worker` boundaries;
-- an allegedly necessary infrastructure slice with no concrete Fast Lane consumer.
+- an allegedly necessary infrastructure slice with no concrete Stage consumer;
+- any Spider_XHS reuse, clone, install, Cookie/login, proxy, signature, platform request or publishing behavior before a positive P5 feasibility Gate;
 
 Reversible local implementation choices do not require a new Decision. Record them in the Issue or PR.
 
@@ -137,4 +140,10 @@ FL-2 first-stage offline diagnosis: COMPLETED_INSUFFICIENT_SANITIZED_EVIDENCE (D
 FL-3 one-command local demo rehearsal: COMPLETE (Issue #257)
 Post-FL-2 bounded legacy cleanup: COMPLETE (Issue #274; Goal remains GOAL_BLOCKED)
 Qwen Token Plan supplemental live: BLOCKED_BY_PROVIDER_TERMS (Issue #264)
+P0 Goal activation/current-truth reconciliation: DOCS_ONLY (Issue #301; exact eight-file allowlist)
+P1 Action Home and A+C production shell: NEXT ONLY AFTER P0 MERGE
+P2 Core TaskWorkbench states: GATED_ON_P1_MERGE
+P3 Needs Input and essential recovery: GATED_ON_P2_MERGE; reconcile Issue #247
+P4 Deterministic local release acceptance: GATED_ON_P3_MERGE; provider-free
+P5 Spider_XHS feasibility Gate: CONDITIONAL_DOCS_RESEARCH_ONLY; no reuse/platform/publishing authority
 ```
