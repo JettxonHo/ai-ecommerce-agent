@@ -49,7 +49,7 @@ Material frontend work uses the applicable taste skills and carries representati
 
 ### P2 — Core TaskWorkbench states
 
-Productize the current backend behavior into four product states: Running, Needs Input, Review and Results. Use structured business groups and one dominant action; keep Marketing and Xiaohongshu Results as separate views; provide safe Markdown preview / export and progressive technical disclosure for raw JSON. Preserve focus, reduced motion and 1280 / 1024 / 320 reflow boundaries.
+Productize the current backend behavior into three product states: Running, Review and Results. Use structured business groups and one dominant action; keep Marketing and Xiaohongshu Results as separate views; provide safe Markdown preview / export and progressive technical disclosure for raw JSON. Preserve focus, reduced motion and 1280 / 1024 / 320 reflow boundaries.
 
 ### P3 — Needs Input and essential recovery
 
