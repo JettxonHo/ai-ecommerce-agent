@@ -5,7 +5,7 @@
 - **Status:** Accepted
 - **Date:** 2026-08-24
 - **Decision Type:** Product Delivery / Goal Governance / Local Runtime Boundary / Stage Sequencing
-- **Source:** 用户在 [Issue #316](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316) 明确接受的 successor direction
+- **Source:** 用户在 Codex conversation/session 中明确接受 successor direction；主控 `ORCHESTRATOR_REVIEWER` 将该方向持久记录于 [Issue #316](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316)
 - **Amends:** [DEC-083](dec-083-local-action-workbench-productization-goal.md) 的已完成 Goal 入口与 Stage 结论
 - **Preserves:** [DEC-039](dec-039-proportional-validation-and-review-governance.md)、[DEC-071](dec-071-luna-worker-exclusive-implementation-routing.md)、[DEC-072](dec-072-long-running-autonomy-and-agent-identity-governance.md)、[DEC-079](dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)、[DEC-081](dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) 与 `P5_REUSE_FROZEN`
 
@@ -19,9 +19,9 @@
 
 ### Accepted Decision
 
-The owner explicitly accepted the following successor direction in Issue #316:
+The owner explicitly accepted the following successor direction in the Codex conversation/session; the `ORCHESTRATOR_REVIEWER` durably recorded that direction in Issue #316:
 
-- first release supports Apple Silicon Macs only; Intel Mac is Out of Scope;
+- first release supports Apple Silicon Macs only; Intel support is Deferred; excluded from the first release;
 - Docker Desktop is a user-installed prerequisite;
 - the product is a local Web App opened in the system default browser;
 - native macOS App/WebView, signing and notarization are Deferred;
@@ -46,7 +46,7 @@ The exact serial order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**. Only
 1. **L0 — Governance activation:** this docs-only Issue and its exact nine-file allowlist.
 2. **L1 — Real Needs Input backend:** implement the real FastAPI Needs Input read/resolve boundary and bounded Recovery. The current `needsInputRequest: null` gap remains explicit until independently accepted.
 3. **L2 — Minimum Source/Brief persistence:** reconcile open tracking parents [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) and [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82), then create only immediately required bounded child Issues; neither parent is a one-PR contract.
-4. **L3 — Local Web lifecycle:** on Apple Silicon with user-installed Docker Desktop, provide one reliable command, preflight/health/stop behavior and system-default-browser opening. Native App/WebView, Intel, signing and notarization remain Deferred.
+4. **L3 — Local Web lifecycle:** on Apple Silicon with user-installed Docker Desktop, provide one reliable command, preflight/health/stop behavior and system-default-browser opening. Native App/WebView, signing and notarization remain Deferred; Intel support is Deferred; excluded from the first release.
 5. **L4 — DeepSeek offline diagnosis/repair:** preserve the official base/model contract and the local `.env` boundary; no paid or live call is allowed in this Stage.
 6. **L5 — Real DeepSeek acceptance:** after L4, run exactly one separately reviewed, exact-commit paid acceptance contract. No previous smoke authorization carries forward.
 7. **L6 — Clean-Mac acceptance and final Goal Review:** validate the reviewed result on another clean Apple Silicon Mac, then independently decide Goal completion.
@@ -54,18 +54,18 @@ The exact serial order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**. Only
 ### 3. Local product boundary
 
 - **In Scope:** Apple Silicon Mac, Docker Desktop installed by the user, local Web App, system default browser, fictional/sanitized inputs, the staged local lifecycle, and eventual real DeepSeek `deepseek-v4-pro` generation behind the accepted boundary.
-- **Deferred:** native macOS App/WebView, signing, notarization, Intel support, login, RBAC, multi-user behavior, public deployment, macOS Keychain and Secret UI.
+- **Deferred:** native macOS App/WebView, signing, notarization, login, RBAC, multi-user behavior, public deployment, macOS Keychain and Secret UI. Intel support is Deferred; excluded from the first release.
 - **Out of Scope:** real customer/product material, Spider_XHS reuse or platform behavior, automatic publishing, any unapproved Provider/model, and any action that widens the frozen Stage contracts.
 
 ### 4. Secret and Provider boundary
 
 The project-root `.env` convention is accepted for a later implementation Stage only. It must be Git-ignored, contain only the operator's `DEEPSEEK_API_KEY` value locally, never enter images, builds, PostgreSQL, browser storage, logs, errors or evidence, and be checked only for presence by a later preflight. L0 must not create, read, inspect, print, hash or otherwise access `.env`, environment variables or Secret values. The L5 paid call is a separate human Gate even when the file exists.
 
-The official DeepSeek API and `deepseek-v4-pro` remain the sole future real-AI contract. L0 performs no Provider/model call, no network or PostgreSQL launch, and no live or platform action.
+The official DeepSeek API and `deepseek-v4-pro` remain the sole future real-AI contract. L0 performs no Provider/model call, no product-runtime, Provider/API or platform network activity, no PostgreSQL launch, and no live or platform action. Ordinary Git/GitHub branch, push, PR and CI transport is part of the docs workflow and is not product-runtime activity.
 
 ### 5. Human gates and stop conditions
 
-Stop and request the owner for any real paid Provider call or Secret value access, new migration, destructive/broad data action, public-contract or product-direction change, expansion to Intel/native App/signing/login/multi-user/public deployment/real data/Spider_XHS behavior, inability to use exact `luna-worker`, or unresolved Accepted Decision conflict. No inherited live authorization exists.
+Stop and request the owner for any real paid Provider call or Secret value access, new migration, destructive/broad data action, public-contract or product-direction change, expansion to Intel support (Deferred; excluded from the first release), native App/signing/login/multi-user/public deployment/real data/Spider_XHS behavior, inability to use exact `luna-worker`, or unresolved Accepted Decision conflict. No inherited live authorization exists.
 
 ## Alternatives Considered
 
@@ -75,7 +75,7 @@ Deferred by the owner's explicit direction. The first release remains a local We
 
 ### Intel and Apple Silicon together
 
-Rejected for this Goal. The first release is Apple Silicon only; Intel support is Out of Scope rather than an implicit compatibility promise.
+Rejected for this Goal. The first release is Apple Silicon only; Intel support is Deferred; excluded from the first release rather than an implicit compatibility promise.
 
 ### Cloud/public multi-user delivery
 
@@ -102,4 +102,4 @@ Rejected. L0 is docs-only; L4 must complete offline diagnosis/repair first, and 
 
 ## Authorization Boundary
 
-This Decision records the owner's explicit successor direction and authorizes only the L0 docs-only activation contract. It does not authorize code, tests, configuration, dependencies, lockfiles, migrations, OpenAPI/generated-client changes, Web implementation, Docker action, API/PostgreSQL launch, environment or Secret inspection, Provider/model/live calls, Kimi/Terra use, native App work, public deployment, or Spider_XHS action. Each later Stage requires its own Issue/PR contract, independent review, and applicable human Gate.
+This Decision records the owner's explicit successor direction from the Codex conversation/session, durably recorded by the `ORCHESTRATOR_REVIEWER` in Issue #316, and authorizes only the L0 docs-only activation contract. It does not authorize code, tests, configuration, dependencies, lockfiles, migrations, OpenAPI/generated-client changes, Web implementation, Docker action, API/PostgreSQL launch, environment or Secret inspection, Provider/model/live calls, Kimi/Terra use, native App work, public deployment, or Spider_XHS action. Ordinary Git/GitHub branch, push, PR and CI transport remains allowed for this docs workflow and is not product-runtime activity. Each later Stage requires its own Issue/PR contract, independent review, and applicable human Gate.

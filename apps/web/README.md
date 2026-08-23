@@ -21,8 +21,9 @@ L0 is docs-only; no Provider acceptance or authorization is created here. The
 eventual real-AI contract is official DeepSeek `deepseek-v4-pro` for fictional
 or sanitized acceptance material. Apple Silicon is the first-release boundary;
 Docker Desktop is user-installed; the product remains a local Web App opened in
-the system default browser. Native App/WebView, signing/notarization, Intel,
+the system default browser. Native App/WebView, signing/notarization,
 login/RBAC/multi-user/public deployment and Keychain/Secret UI are Deferred.
+Intel support is Deferred; excluded from the first release.
 
 The completed deterministic loop consumes the real local API: create a Task,
 save pasted/TXT/Markdown input, run the scripted Facts → Insight → Positioning

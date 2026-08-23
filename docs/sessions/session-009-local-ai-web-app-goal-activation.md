@@ -9,8 +9,7 @@
 - **Decision:** [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md)
 - **Successor Goal:** [MVP-0L Local AI Web App Delivery Goal](../goals/mvp0-local-ai-web-app-delivery-goal.md)
 - **Predecessor Goal:** [MVP-0P Local Action Workbench Productization Goal](../goals/mvp0-local-action-workbench-productization-goal.md)
-- **Configuration evidence:** `CONFIG_VERIFIED` — `luna-worker` / `gpt-5.6-luna` / `max` from `/Users/ketchup/.codex/agents/luna-worker.toml` parsed with Python 3.12
-- **Runtime identity:** `UNVERIFIED_RUNTIME_MODEL` — the runtime instance did not independently expose model metadata
+- **Configuration evidence:** `CONFIG_VERIFIED` — `luna-worker` / `gpt-5.6-luna` / `max` from `/Users/ketchup/.codex/agents/luna-worker.toml` parsed with Python 3.12; runtime metadata was not exposed, so no separate runtime status is claimed (per DEC-072)
 
 ## 1. Context and facts
 
@@ -19,9 +18,9 @@
 - The independently reviewed P5 result remains `P5_REUSE_FROZEN`; Spider_XHS reuse and platform behavior are frozen and unauthorized.
 - The current FastAPI task resource still projects `needsInputRequest: null`; a real Needs Input read/resolve resource and bounded Recovery are not yet accepted.
 
-## 2. Owner-accepted direction
+## 2. Owner-accepted direction (Codex conversation/session)
 
-The owner explicitly accepted the successor direction in Issue #316:
+The owner explicitly accepted the successor direction in the Codex conversation/session. The `ORCHESTRATOR_REVIEWER` durably recorded that accepted direction in [Issue #316](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316):
 
 - first release: Apple Silicon Mac only;
 - Docker Desktop: user-installed prerequisite;
@@ -37,7 +36,7 @@ These are `Accepted Decision` inputs to DEC-084. They are not inferred from exis
 
 ## 3. Activation record
 
-DEC-084 is recorded as `Accepted` solely from the owner's explicit Issue #316 direction. The predecessor Goal is historical `MVP0P_GOAL_COMPLETE`. The successor Goal is `ACTIVATION_PENDING` on this branch and becomes `ACTIVE` only when the L0 PR reaches `main`; neither this branch nor this Session may claim merge-effective `ACTIVE` earlier.
+DEC-084 is recorded as `Accepted` solely from the owner's explicit direction in the Codex conversation/session; the `ORCHESTRATOR_REVIEWER` durably recorded it in Issue #316. The predecessor Goal is historical `MVP0P_GOAL_COMPLETE`. The successor Goal is `ACTIVATION_PENDING` on this branch and becomes `ACTIVE` only when the L0 PR reaches `main`; neither this branch nor this Session may claim merge-effective `ACTIVE` earlier.
 
 The exact successor Stage order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**, with only one active Stage at a time:
 
@@ -65,7 +64,7 @@ The exact tracked allowlist is:
 8. `docs/handoffs/implementation-readiness.md`
 9. `docs/sessions/session-009-local-ai-web-app-goal-activation.md`
 
-L0 creates no code, tests, configuration, dependencies, lockfiles, migrations, OpenAPI/generated clients, Web implementation, Docker/API/PostgreSQL runtime, environment or Secret access, Provider/model/live call, Kimi/Terra action, native App, public deployment or Spider_XHS action. Stop before a tenth tracked path.
+L0 creates no code, tests, configuration, dependencies, lockfiles, migrations, OpenAPI/generated clients, Web implementation, Docker/API/PostgreSQL runtime, product-runtime/Provider/API/platform network activity, environment or Secret access, Provider/model/live call, Kimi/Terra action, native App, public deployment or Spider_XHS action. Ordinary Git/GitHub branch, push, PR and CI transport is part of the docs workflow and is not product-runtime activity. Stop before a tenth tracked path.
 
 The later `.env` convention is a `Deferred` implementation boundary: L0 must not create, read, inspect, print, measure, hash or load `.env`, environment variables or Secret values. The L5 live call remains a separate human Gate.
 
@@ -75,10 +74,11 @@ L0 validation is documentation-only and proportional under [DEC-039](../decision
 
 ### Archive Result
 
-- **Accepted Decision:** DEC-084 is recorded as Accepted from the owner's explicit Issue #316 direction only.
+- **Accepted Decision:** DEC-084 is recorded as Accepted from the owner's explicit Codex conversation/session direction only; the `ORCHESTRATOR_REVIEWER` durably recorded it in Issue #316.
 - **Historical predecessor:** MVP0P is `MVP0P_GOAL_COMPLETE`; Fast Lane is terminal `GOAL_BLOCKED`; `P5_REUSE_FROZEN` and `needsInputRequest: null` remain explicit.
 - **Successor state:** MVP-0L is `ACTIVATION_PENDING` on the branch and merge-effective `ACTIVE` only after the L0 PR reaches `main`.
-- **Deferred / Out of Scope:** Intel, native App/WebView/signing/notarization, login/RBAC/multi-user/public deployment, Keychain/Secret UI, real acceptance material, Spider_XHS behavior and all L0 runtime/provider actions remain excluded.
+- **Deferred:** Intel support is Deferred; excluded from the first release; native App/WebView/signing/notarization, login/RBAC/multi-user/public deployment and Keychain/Secret UI.
+- **Out of Scope:** real acceptance material, Spider_XHS behavior and all L0 runtime/provider actions remain excluded.
 
 ## 6. Relationships
 

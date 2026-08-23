@@ -12,7 +12,7 @@
 
 Deliver a real-AI local Web App for a single operator on Apple Silicon Mac. The first release runs locally with user-installed Docker Desktop and opens in the system default browser. It builds on the completed deterministic Action Workbench, then closes the explicitly staged Needs Input, persistence, lifecycle, offline DeepSeek diagnosis, paid DeepSeek acceptance and clean-Mac review gates.
 
-The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0 itself is governance-only: it performs no code, test, environment, Secret, Provider, model, network, PostgreSQL or platform action. The current FastAPI task resource still projects `needsInputRequest: null`; L1 starts from that real backend gap.
+The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0 itself is governance-only: it performs no code, test, environment, Secret, Provider, model, product-runtime/API/platform network activity, PostgreSQL or platform action. Ordinary Git/GitHub branch, push, PR and CI transport is part of the docs workflow and is not product-runtime activity. The current FastAPI task resource still projects `needsInputRequest: null`; L1 starts from that real backend gap.
 
 ## 2. Activation and operating rule
 
@@ -49,7 +49,7 @@ The exact order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**.
 
 **Result:** on Apple Silicon with Docker Desktop installed by the user, provide one reliable local command plus preflight, health, stop behavior and opening in the system default browser.
 
-**Deferred:** native macOS App/WebView, Intel support, signing and notarization.
+**Deferred:** native macOS App/WebView, signing and notarization. Intel support is Deferred; excluded from the first release.
 
 ### L4 — DeepSeek offline diagnosis/repair
 
@@ -84,7 +84,7 @@ The exact order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**.
 ### Deferred
 
 - Native macOS App/WebView, signing and notarization.
-- Intel Mac support.
+- Intel support is Deferred; excluded from the first release.
 - Login, RBAC, multi-user behavior, tenant management and public deployment.
 - macOS Keychain and Secret UI.
 - Any capability not assigned to an active L Stage with an independently reviewed consumer.
@@ -109,7 +109,7 @@ Use proportional evidence under [DEC-039](../decisions/dec-039-proportional-vali
 L0 acceptance requires:
 
 - exactly the nine allowlisted tracked paths and no tenth tracked path;
-- DEC-084 marked Accepted solely from the owner's explicit Issue #316 direction;
+- DEC-084 marked Accepted solely from the owner's explicit Codex conversation/session direction; the `ORCHESTRATOR_REVIEWER` durably recorded it in Issue #316;
 - bidirectional relative links among DEC-084, this Goal, Session-009 and the predecessor Goal;
 - predecessor `MVP0P_GOAL_COMPLETE` historical truth and successor branch `ACTIVATION_PENDING` truth;
 - preserved terminal Fast Lane / `P5_REUSE_FROZEN` language and current `needsInputRequest: null` gap;
@@ -118,11 +118,11 @@ L0 acceptance requires:
 
 ## 7. Human gates and stop conditions
 
-Stop and request the owner for any real paid Provider call or Secret value access, new migration, destructive/broad data operation, public contract or product-direction change, expansion to Intel/native App/signing/login/multi-user/public deployment/real data/Spider_XHS behavior, inability to use exact `luna-worker`, or unresolved Accepted Decision conflict. Ordinary reversible in-contract local repository/branch/test/PR work remains governed by the active Stage and independent review.
+Stop and request the owner for any real paid Provider call or Secret value access, new migration, destructive/broad data operation, public contract or product-direction change, expansion to Intel support (Deferred; excluded from the first release), native App/signing/login/multi-user/public deployment/real data/Spider_XHS behavior, inability to use exact `luna-worker`, or unresolved Accepted Decision conflict. Ordinary reversible in-contract local repository/branch/test/PR work remains governed by the active Stage and independent review.
 
 ## 8. Agent routing
 
-Executable implementation in later Stages is routed to exact custom `luna-worker` per [DEC-071](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md) and [DEC-072](../decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md). The configuration evidence is `CONFIG_VERIFIED` for `luna-worker` / `gpt-5.6-luna` / `max`; runtime identity must be recorded separately and is not inferred from configuration. Terra and Kimi are not fallbacks or L0 participants. Implementers do not approve or merge their own PRs.
+Executable implementation in later Stages is routed to exact custom `luna-worker` per [DEC-071](../decisions/dec-071-luna-worker-exclusive-implementation-routing.md) and [DEC-072](../decisions/dec-072-long-running-autonomy-and-agent-identity-governance.md). The configuration evidence is `CONFIG_VERIFIED` for `luna-worker` / `gpt-5.6-luna` / `max`; runtime metadata is not exposed, so no separate runtime status is claimed. Terra and Kimi are not fallbacks or L0 participants. Implementers do not approve or merge their own PRs.
 
 ## 9. Relationships
 
