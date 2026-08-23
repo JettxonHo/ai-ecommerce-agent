@@ -1,8 +1,34 @@
-# MVP-0 P4A local-release acceptance review
+# MVP-0 P4B local-release acceptance review
 
-> **Status: P4A merge-conditional — `P4_ACCEPTANCE_PENDING_REVIEWED_MAIN`**
+> **Status: P4B execution PASS — `P4_LOCAL_RELEASE_ACCEPTED`; independent ORCHESTRATOR_REVIEWER review and final Goal Review remain pending**
 >
-> **Issue:** [#308](https://github.com/JettxonHo/ai-ecommerce-agent/issues/308) · **Amendment:** [comment 5387405359](https://github.com/JettxonHo/ai-ecommerce-agent/issues/308#issuecomment-5387405359)
+> **Issue:** [#310](https://github.com/JettxonHo/ai-ecommerce-agent/issues/310) · **Predecessor:** [#308](https://github.com/JettxonHo/ai-ecommerce-agent/issues/308)
+
+## P4B reviewed-main execution result
+
+P4B ran once from fresh isolated clone `/private/tmp/ai-ecommerce-agent-p4b-I5B2dV` at exact reviewed main `218808040953e8fb0c51eafde23a2266febd7944`. The checkout was detached and clean with local `origin/main` equal to that SHA before execution; branch `codex/mvp0-p4b-reviewed-main-acceptance` was created only after the terminal evidence existed. No code, test, script, Compose, configuration, dependency, lockfile, migration, backend, Web implementation or public contract path changed.
+
+Agent evidence was separated as required: Python 3.12 TOML parsing of `/Users/ketchup/.codex/agents/luna-worker.toml` verified exact `name=luna-worker`, `model=gpt-5.6-luna`, `model_reasoning_effort=max` (`CONFIG_VERIFIED`); runtime instance model metadata was not exposed (`UNVERIFIED_RUNTIME_MODEL`). The tool tuple was Node `v24.18.0`, npm `11.16.0`, Python `3.13.14`, uv `0.12.0`, Docker `28.3.2`, Docker Compose `v2.39.1-desktop.1`, and pre-existing `postgres:16.14-bookworm`.
+
+Read-only preflight found the exact checkout clean, ports `8000`, `5173` and `55432` free, no concurrent repository demo/API/Vite/real-backend Playwright runner, and no scoped acceptance resources. Existing caches hydrated Web and backend dependencies offline only (`npm ci --offline --no-audit --no-fund`; `uv sync --locked --offline`); `apps/web/package-lock.json` and `apps/backend/uv.lock` remained byte-identical. `./scripts/mvp0/preflight --host-processes`, `./scripts/mvp0/test-lifecycle`, `./scripts/mvp0/test-static`, backend non-provider Task HTTP/PostgreSQL contracts (29 tests) and Web contract tests (50 tests) all passed without the acceptance stack. The protected default volume identity was recorded read-only and its data was never read: `ai-ecommerce-agent-mvp0-postgres-data`, project `ai-ecommerce-agent-mvp0`, Compose volume `postgres-data`, created `2026-08-08T13:19:22Z`.
+
+The single retained foreground command was:
+
+```text
+PATH=/opt/homebrew/opt/node@24/bin:$PATH ./scripts/mvp0/demo --ephemeral
+```
+
+It generated the exact paired scope `ai-ecommerce-agent-mvp0-ephemeral-260823181423-18281-16046` / `ai-ecommerce-agent-mvp0-ephemeral-260823181423-18281-16046-pg` and reached `http://127.0.0.1:5173/tasks`. From `apps/web`, the exact real-backend command ran once:
+
+```text
+PATH=/opt/homebrew/opt/node@24/bin:$PATH MVP0_RUN_REAL_BACKEND_E2E=1 npm run test:e2e -- tests/e2e/real-backend.spec.ts
+```
+
+It passed all 3 tests with 1 worker: sufficient Task creation, primary-input persistence, deterministic result, reload and stable `/tasks/:taskId`; current-result confirmation, both immutable UTF-8 Markdown exports and reload persistence; and a separate insufficient Task with Review/export actions unavailable. Existing fictional fixtures were used only. No Needs Input backend state was manufactured; real FastAPI still projects `needsInputRequest: null` and has no public Needs Input read/resolve resource.
+
+Exactly one Ctrl-C was sent to the retained demo session, which exited `130`. Cleanup proof showed the exact ephemeral containers, network and paired volume absent; API/Web processes were gone; ports `8000`, `5173` and `55432` were free; and the protected default volume metadata was unchanged. Therefore the truthful P4B disposition is `P4_LOCAL_RELEASE_ACCEPTED`. This is provider-free local release evidence only: the Productization Goal remains `ACTIVE`, the old Fast Lane remains `GOAL_BLOCKED`, no Provider acceptance or authorization was created, and independent five-axis ORCHESTRATOR review plus final Goal Review and P5 remain pending.
+
+## Historical P4A record (preserved)
 
 ## Scope and current truth
 
@@ -109,4 +135,4 @@ Lockfile-only hydration used existing caches (`npm ci --offline --no-audit --no-
 
 ## Gate and limitations
 
-`P4_ACCEPTANCE_PENDING_REVIEWED_MAIN` is the current result. The old Fast Lane Goal remains terminal `GOAL_BLOCKED`; no Provider acceptance exists and no Provider run is authorized. P3 is merged/current. P5 remains a gated docs/research feasibility candidate with no Spider_XHS reuse or platform action. The Productization Goal is not complete: P4B and final independent ORCHESTRATOR Goal Review remain pending.
+The historical P4A result was `P4_ACCEPTANCE_PENDING_REVIEWED_MAIN`. The old Fast Lane Goal remains terminal `GOAL_BLOCKED`; no Provider acceptance exists and no Provider run is authorized. P3 is merged/current. P5 remains a gated docs/research feasibility candidate with no Spider_XHS reuse or platform action. Current P4B execution is recorded above as `P4_LOCAL_RELEASE_ACCEPTED`; the Productization Goal remains `ACTIVE` because independent ORCHESTRATOR review, final Goal Review and P5 remain pending.
