@@ -8,24 +8,29 @@ type AppProps = Readonly<{ taskGateway: TaskGateway }>;
 
 export function App({ taskGateway }: AppProps) {
   return (
-    <main className={styles.shell}>
-      <Routes>
-        <Route path="/" element={<Navigate replace to="/tasks" />} />
-        <Route
-          path="/tasks"
-          element={<TaskRoutes taskGateway={taskGateway} />}
-        />
-        <Route
-          path="/tasks/new"
-          element={<NewTaskRoute taskGateway={taskGateway} />}
-        />
-        <Route
-          path="/tasks/:taskId"
-          element={<TaskRoutes taskGateway={taskGateway} />}
-        />
-        <Route path="*" element={<Navigate replace to="/tasks" />} />
-      </Routes>
-    </main>
+    <>
+      <a className={styles.skipLink} href="#main-content">
+        跳到主要内容
+      </a>
+      <main id="main-content" className={styles.shell}>
+        <Routes>
+          <Route path="/" element={<Navigate replace to="/tasks" />} />
+          <Route
+            path="/tasks"
+            element={<TaskRoutes taskGateway={taskGateway} />}
+          />
+          <Route
+            path="/tasks/new"
+            element={<NewTaskRoute taskGateway={taskGateway} />}
+          />
+          <Route
+            path="/tasks/:taskId"
+            element={<TaskRoutes taskGateway={taskGateway} />}
+          />
+          <Route path="*" element={<Navigate replace to="/tasks" />} />
+        </Routes>
+      </main>
+    </>
   );
 }
 

@@ -98,13 +98,68 @@ const gatewayFor = (
 });
 
 describe("TaskRoutes", () => {
+  it("presents a Chinese Action Home with one deterministic priority resume item", async () => {
+    const needsInput = overview({
+      taskId: "needs-input",
+      taskName: "补资料任务",
+      productCategory: "城市通勤包",
+      taskStatus: "waiting_for_input",
+      currentStage: null,
+      waitingReason: "需要补充商品资料",
+      primaryAction: { kind: "navigate", target: "needs_input" },
+      updatedAt: "2026-08-09T00:00:00Z",
+    });
+    const review = overview({
+      taskId: "review",
+      taskName: "待审核任务",
+      productCategory: "旅行包",
+      taskStatus: "waiting_for_review",
+      currentStage: "human_review",
+      primaryAction: { kind: "navigate", target: "review" },
+      updatedAt: "2026-08-12T00:00:00Z",
+    });
+    const failed = overview({
+      taskId: "failed",
+      taskName: "可恢复任务",
+      productCategory: "配件",
+      taskStatus: "failed",
+      currentStage: null,
+      primaryAction: { kind: "navigate", target: "recovery" },
+      updatedAt: "2026-08-13T00:00:00Z",
+    });
+
+    renderRoutes("/tasks", gatewayFor([failed, review, needsInput]));
+
+    expect(
+      await screen.findByRole("heading", { name: "行动首页" }),
+    ).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", { name: "新建商品上新任务" })
+        .getAttribute("href"),
+    ).toBe("/tasks/new");
+
+    const resume = await screen.findByRole("region", { name: "继续处理" });
+    expect(
+      within(resume).getByRole("link", { name: "补资料任务" }),
+    ).toBeTruthy();
+    expect(within(resume).getAllByRole("link")).toHaveLength(1);
+    const resumeTime = resume.querySelector("time");
+    expect(resumeTime).not.toBeNull();
+    expect(resumeTime?.getAttribute("dateTime")).toBe("2026-08-09T00:00:00Z");
+    expect(resumeTime?.textContent).toContain("2026年8月9日 00:00");
+
+    const recent = screen.getByRole("region", { name: "最近任务" });
+    expect(within(recent).getAllByRole("article")).toHaveLength(3);
+  });
+
   it("renders the normal empty recent-task state", async () => {
     renderRoutes();
 
     expect(
-      await screen.findByRole("heading", { name: "Recent tasks" }),
+      await screen.findByRole("heading", { name: "行动首页" }),
     ).toBeTruthy();
-    expect(await screen.findByText("No tasks yet.")).toBeTruthy();
+    expect(await screen.findByText("还没有商品上新任务。")).toBeTruthy();
   });
 
   it("loads a stable deep-link overview and preserves stage order", async () => {
@@ -120,29 +175,27 @@ describe("TaskRoutes", () => {
     });
     expect(within(overviewRegion).getByText("Task ID: task/7")).toBeTruthy();
     expect(within(overviewRegion).getByText("Backpack")).toBeTruthy();
-    const definitions = within(overviewRegion).getAllByRole("definition");
-    expect(within(definitions[1]!).getByText("running")).toBeTruthy();
-    expect(
-      within(definitions[2]!).getByText("product_positioning"),
-    ).toBeTruthy();
-    expect(
-      within(definitions[3]!).getByText("2026-08-12T00:00:00Z"),
-    ).toBeTruthy();
-    const stages = screen.getAllByRole("listitem");
+    const context = screen.getByRole("complementary", {
+      name: "上下文与执行信息",
+    });
+    const taskDetails = context.querySelector("dl");
+    expect(taskDetails).not.toBeNull();
+    expect(within(taskDetails!).getByText("处理中")).toBeTruthy();
+    expect(within(taskDetails!).getByText("商品定位")).toBeTruthy();
+    expect(within(taskDetails!).getByText("2026年8月12日 00:00")).toBeTruthy();
+    const stages = within(
+      screen.getByRole("list", { name: "Stage summaries" }),
+    ).getAllByRole("listitem");
     expect(stages).toHaveLength(2);
-    expect(
-      within(stages[0]!).getByText("product_intake_and_fact_extraction"),
-    ).toBeTruthy();
-    expect(within(stages[0]!).getByText("valid")).toBeTruthy();
+    expect(within(stages[0]!).getByText("资料整理")).toBeTruthy();
+    expect(within(stages[0]!).getByText("已完成")).toBeTruthy();
     expect(within(stages[0]!).getByText("Source accepted")).toBeTruthy();
-    expect(within(stages[0]!).getByText("2026-08-11T00:00:00Z")).toBeTruthy();
-    expect(within(stages[1]!).getByText("product_positioning")).toBeTruthy();
-    expect(within(stages[1]!).getByText("running")).toBeTruthy();
-    expect(within(stages[1]!).getByText("2026-08-12T00:00:00Z")).toBeTruthy();
+    expect(within(stages[0]!).getByText("2026年8月11日 00:00")).toBeTruthy();
+    expect(within(stages[1]!).getByText("商品定位")).toBeTruthy();
+    expect(within(stages[1]!).getByText("处理中")).toBeTruthy();
+    expect(within(stages[1]!).getByText("2026年8月12日 00:00")).toBeTruthy();
     expect(
-      screen
-        .getByRole("link", { name: "Back to recent tasks" })
-        .getAttribute("href"),
+      screen.getByRole("link", { name: "返回最近任务" }).getAttribute("href"),
     ).toBe("/tasks");
   });
 
@@ -151,7 +204,7 @@ describe("TaskRoutes", () => {
     renderRoutes("/tasks", gatewayFor([], listTasks));
 
     expect(screen.getByRole("status").textContent).toContain(
-      "Loading recent tasks",
+      "正在读取最近任务…",
     );
   });
 
@@ -163,7 +216,7 @@ describe("TaskRoutes", () => {
     );
 
     expect(screen.getByRole("status").textContent).toContain(
-      "Loading task overview",
+      "Loading task overview…",
     );
   });
 
@@ -182,9 +235,12 @@ describe("TaskRoutes", () => {
     expect(await screen.findByRole("alert")).toBeTruthy();
     await userEvent
       .setup()
-      .click(screen.getByRole("button", { name: "Retry" }));
+      .click(screen.getByRole("button", { name: "重试读取任务" }));
     expect(
-      await screen.findByRole("link", { name: "Retry launch" }),
+      await within(screen.getByRole("region", { name: "最近任务" })).findByRole(
+        "link",
+        { name: "Retry launch" },
+      ),
     ).toBeTruthy();
     expect(attempts).toBe(2);
   });
@@ -224,39 +280,41 @@ describe("TaskRoutes", () => {
     gateway.createTask = createTask;
     renderRoutes("/tasks", gateway);
 
-    expect(screen.getByRole("link", { name: "Create a task" })).toBeTruthy();
-    await screen.findByRole("link", { name: first.taskName });
-    const links = screen.getAllByRole("link");
-    const taskLinks = links.filter(
-      (link) => link.textContent !== "Create a task",
-    );
+    expect(screen.getByRole("link", { name: "新建商品上新任务" })).toBeTruthy();
+    await screen.findByRole("heading", { name: "最近任务" });
+    const recent = screen.getByRole("region", { name: "最近任务" });
+    await within(recent).findByRole("link", { name: first.taskName });
+    const taskLinks = within(recent)
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("href")?.startsWith("/tasks/"));
+    expect(
+      screen.getByRole("link", { name: "跳到主要内容" }).getAttribute("href"),
+    ).toBe("#main-content");
     expect(taskLinks.map((link) => link.textContent)).toEqual([
       first.taskName,
       second.taskName,
       third.taskName,
     ]);
     expect(taskLinks[0]?.getAttribute("href")).toBe("/tasks/task%2Ffirst%20id");
-    const cards = screen.getAllByRole("article");
+    const cards = within(recent).getAllByRole("article");
     expect(cards).toHaveLength(3);
     expect(within(cards[0]!).getByText("Outdoor packs")).toBeTruthy();
     expect(within(cards[0]!).getByText("Needs a source")).toBeTruthy();
-    expect(within(cards[0]!).getByText("2026-08-10T00:00:00Z")).toBeTruthy();
-    expect(within(cards[0]!).getByText("Continue in needs_input")).toBeTruthy();
+    expect(within(cards[0]!).getByText("2026年8月10日 00:00")).toBeTruthy();
+    expect(within(cards[0]!).getByText("补充资料")).toBeTruthy();
     expect(within(cards[1]!).getByText("Travel bags")).toBeTruthy();
-    expect(
-      within(cards[1]!).getByText("customer_insight_analysis"),
-    ).toBeTruthy();
-    expect(within(cards[1]!).getByText("2026-08-11T00:00:00Z")).toBeTruthy();
-    expect(within(cards[1]!).getByText("Next action: start")).toBeTruthy();
+    expect(within(cards[1]!).getByText("待审核")).toBeTruthy();
+    expect(within(cards[1]!).getByText("2026年8月11日 00:00")).toBeTruthy();
+    expect(within(cards[1]!).getByText("开始处理")).toBeTruthy();
     expect(within(cards[2]!).getByText("Accessories")).toBeTruthy();
-    expect(within(cards[2]!).getByText("completed")).toBeTruthy();
-    expect(within(cards[2]!).getByText("2026-08-12T00:00:00Z")).toBeTruthy();
-    expect(within(cards[2]!).getByText("Next action unavailable")).toBeTruthy();
+    expect(within(cards[2]!).getByText("已完成")).toBeTruthy();
+    expect(within(cards[2]!).getByText("2026年8月12日 00:00")).toBeTruthy();
+    expect(within(cards[2]!).getByText("下一步暂不可用")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "start" })).toBeNull();
     expect(screen.queryByRole("button", { name: /next action/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: /create/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /新建/i })).toBeNull();
     expect(createTask).not.toHaveBeenCalled();
-    expect(screen.queryByText(first.taskName)).toBeTruthy();
+    expect(within(recent).getAllByText(first.taskName)).toHaveLength(1);
     expect(document.querySelector("script")).toBeNull();
   });
 
@@ -297,7 +355,11 @@ describe("TaskRoutes", () => {
     });
     expect(within(region).getByText("Needs a source")).toBeTruthy();
     expect(within(region).queryByText("Not started")).toBeNull();
-    expect(within(region).getByText("waiting_for_input")).toBeTruthy();
+    expect(
+      within(
+        screen.getByRole("complementary", { name: "上下文与执行信息" }),
+      ).getByText("待补充资料"),
+    ).toBeTruthy();
   });
 
   it("offers overview retry and then renders the URL-selected task", async () => {
@@ -347,14 +409,16 @@ describe("TaskRoutes", () => {
     renderRoutes("/tasks/task-1", gateway);
 
     expect(
-      await screen.findByRole("heading", { name: "Primary input" }),
+      await screen.findByRole("heading", { name: "商品资料" }),
     ).toBeTruthy();
-    expect(screen.getByLabelText("Pasted text").hasAttribute("disabled")).toBe(
-      false,
-    );
     expect(
       screen
-        .getByRole("button", { name: "Save primary input" })
+        .getByRole("textbox", { name: "粘贴文本" })
+        .hasAttribute("disabled"),
+    ).toBe(false);
+    expect(
+      screen
+        .getByRole("button", { name: "保存商品资料" })
         .hasAttribute("disabled"),
     ).toBe(false);
     expect(screen.queryByRole("alert")).toBeNull();
@@ -384,20 +448,18 @@ describe("TaskRoutes", () => {
       await screen.findByText("Saved input is unavailable. Retry to continue."),
     ).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: "Retry primary input" }),
+      screen.getByRole("button", { name: "重试读取商品资料" }),
     ).toBeTruthy();
-    expect(screen.queryByLabelText("Pasted text")).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: "Save primary input" }),
-    ).toBeNull();
+    expect(screen.queryByRole("textbox", { name: "粘贴文本" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "保存商品资料" })).toBeNull();
     expect(savePrimaryInput).not.toHaveBeenCalled();
 
     await userEvent
       .setup()
-      .click(screen.getByRole("button", { name: "Retry primary input" }));
-    const content = await screen.findByLabelText("Pasted text");
+      .click(screen.getByRole("button", { name: "重试读取商品资料" }));
+    const content = await screen.findByRole("textbox", { name: "粘贴文本" });
     expect(content.hasAttribute("disabled")).toBe(false);
-    const save = screen.getByRole("button", { name: "Save primary input" });
+    const save = screen.getByRole("button", { name: "保存商品资料" });
     expect(save.hasAttribute("disabled")).toBe(false);
     await userEvent.setup().click(save);
     expect(savePrimaryInput).toHaveBeenCalledWith("task-1", {
@@ -426,7 +488,7 @@ describe("TaskRoutes", () => {
 
     await userEvent
       .setup()
-      .click(await screen.findByRole("button", { name: "Generate result" }));
+      .click(await screen.findByRole("button", { name: "生成结果" }));
     expect(
       await screen.findByRole("heading", { name: "Current result" }),
     ).toBeTruthy();
@@ -436,33 +498,39 @@ describe("TaskRoutes", () => {
     ).toBeTruthy();
     expect(generateResult).toHaveBeenCalledTimes(1);
 
-    await userEvent.setup().click(screen.getByRole("link", { name: "Intake" }));
     await userEvent
       .setup()
-      .click(await screen.findByRole("button", { name: "Save primary input" }));
+      .click(screen.getByRole("link", { name: "资料输入" }));
     await userEvent
       .setup()
-      .click(await screen.findByRole("button", { name: "Generate result" }));
+      .click(await screen.findByRole("button", { name: "保存商品资料" }));
+    await userEvent
+      .setup()
+      .click(await screen.findByRole("button", { name: "生成结果" }));
     expect(generateResult).toHaveBeenCalledTimes(2);
     expect(generateResult.mock.calls[0]?.[1]).toBe(
       generateResult.mock.calls[1]?.[1],
     );
     expect(generateResult.mock.calls[0]?.[2]).toBe(0);
 
-    await userEvent.setup().click(screen.getByRole("link", { name: "Intake" }));
-    await userEvent.setup().clear(await screen.findByLabelText("Pasted text"));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("link", { name: "资料输入" }));
+    await userEvent
+      .setup()
+      .clear(await screen.findByRole("textbox", { name: "粘贴文本" }));
     await userEvent
       .setup()
       .type(
-        screen.getByLabelText("Pasted text"),
+        screen.getByRole("textbox", { name: "粘贴文本" }),
         "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包，约 18 升，可放入 14 英寸设备。changed",
       );
     await userEvent
       .setup()
-      .click(screen.getByRole("button", { name: "Save primary input" }));
+      .click(screen.getByRole("button", { name: "保存商品资料" }));
     await userEvent
       .setup()
-      .click(await screen.findByRole("button", { name: "Generate result" }));
+      .click(await screen.findByRole("button", { name: "生成结果" }));
     expect(generateResult).toHaveBeenCalledTimes(3);
     expect(generateResult.mock.calls[2]?.[1]).not.toBe(
       generateResult.mock.calls[0]?.[1],
@@ -486,7 +554,7 @@ describe("TaskRoutes", () => {
 
     await userEvent
       .setup()
-      .click(await screen.findByRole("button", { name: "Generate result" }));
+      .click(await screen.findByRole("button", { name: "生成结果" }));
     expect(
       await screen.findByRole("heading", { name: "Current result" }),
     ).toBeTruthy();

@@ -13,7 +13,9 @@ describe("TaskWorkbench boundaries", () => {
     expect(routes).toContain(
       'import { TaskWorkbench } from "./workbench/TaskWorkbench"',
     );
-    expect(routes).toContain("return <TaskWorkbench task={query.data} />;");
+    const workbenchConsumers = routes.match(/<TaskWorkbench\b/g) ?? [];
+    expect(workbenchConsumers).toHaveLength(1);
+    expect(routes).toContain("task={query.data}");
     expect(routes).not.toMatch(/deriveWorkbenchMode|deriveWorkbenchLocation/);
     expect(workbench).toContain("deriveWorkbenchMode");
     expect(workbench).toContain("deriveWorkbenchLocation");

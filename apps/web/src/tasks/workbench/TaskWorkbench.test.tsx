@@ -1,4 +1,5 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useContext, useMemo, type ReactNode } from "react";
 import {
@@ -11,6 +12,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { TaskRoutes } from "../TaskRoutes";
 import type { TaskGateway, TaskOverview } from "../gateway";
+import type { TaskCurrentResult, TaskPrimaryInput } from "../gateway";
 import { WORKBENCH_PANELS, WORKBENCH_STAGES } from "./projection";
 import { TaskWorkbench } from "./TaskWorkbench";
 
@@ -101,6 +103,218 @@ const renderWorkbench = (
 };
 
 describe("TaskWorkbench", () => {
+  it("shows exactly five Chinese business stages while retaining the six-value internal catalog and deep links", () => {
+    renderWorkbench(
+      task({
+        stages: WORKBENCH_STAGES.map((stage) => ({
+          stage,
+          status: "ready",
+          waitingReason: null,
+          updatedAt: "2026-08-12T00:00:00Z",
+        })),
+      }),
+      "?panel=review&stage=human_review",
+    );
+
+    const stageNavigation = screen.getByRole("navigation", {
+      name: "业务阶段",
+    });
+    expect(within(stageNavigation).getAllByRole("link")).toHaveLength(5);
+    for (const label of [
+      "资料整理",
+      "用户洞察",
+      "商品定位",
+      "营销 Brief",
+      "小红书 Brief",
+    ]) {
+      expect(
+        within(stageNavigation).getByRole("link", {
+          name: new RegExp(`^${label}`),
+        }),
+      ).toBeTruthy();
+    }
+    expect(WORKBENCH_STAGES).toHaveLength(6);
+    expect(screen.getByTestId("location").textContent).toContain(
+      "stage=human_review",
+    );
+  });
+
+  it("keeps authoritative stage statuses distinct in the rail and summary", () => {
+    renderWorkbench(
+      task({
+        currentStage: "product_positioning",
+        stages: [
+          {
+            stage: "product_intake_and_fact_extraction",
+            status: "ready",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+          {
+            stage: "customer_insight_analysis",
+            status: "waiting_input",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+          {
+            stage: "product_positioning",
+            status: "invalid",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+          {
+            stage: "marketing_brief_generation",
+            status: "skipped",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+        ],
+      }),
+      "?panel=progress&stage=product_positioning",
+    );
+
+    const summaries = screen.getByRole("list", { name: "Stage summaries" });
+    expect(within(summaries).getByText("可开始")).toBeTruthy();
+    expect(within(summaries).getByText("需补资料")).toBeTruthy();
+    expect(within(summaries).getByText("已失效/需重新处理")).toBeTruthy();
+    expect(within(summaries).getByText("已跳过")).toBeTruthy();
+    expect(within(summaries).queryByText("已完成")).toBeNull();
+
+    const stageNavigation = screen.getByRole("navigation", {
+      name: "业务阶段",
+    });
+    expect(
+      within(stageNavigation).getByRole("link", {
+        name: /资料整理.*可开始/,
+      }),
+    ).toBeTruthy();
+    expect(
+      within(stageNavigation).getByRole("link", {
+        name: /用户洞察.*需补资料/,
+      }),
+    ).toBeTruthy();
+    expect(
+      within(stageNavigation).getByRole("link", {
+        name: /商品定位.*当前.*已失效\/需重新处理/,
+      }),
+    ).toBeTruthy();
+    expect(
+      within(stageNavigation).getByRole("link", {
+        name: /营销 Brief.*已跳过/,
+      }),
+    ).toBeTruthy();
+  });
+
+  it("provides one active workspace and an in-flow Context Rail disclosure", () => {
+    renderWorkbench(task(), "?panel=review&stage=product_positioning");
+
+    expect(screen.getAllByRole("heading", { name: "当前工作区" })).toHaveLength(
+      1,
+    );
+    expect(screen.getByRole("region", { name: "当前工作区" })).toBeTruthy();
+
+    const context = screen.getByRole("complementary", {
+      name: "上下文与执行信息",
+    });
+    const rail = context.querySelector("details");
+    expect(rail).not.toBeNull();
+    expect(rail?.querySelector("summary")?.textContent).toContain(
+      "上下文与执行信息",
+    );
+  });
+
+  it("keeps visible Context Rail summaries business-readable with stable timestamps", () => {
+    renderWorkbench(
+      task({
+        stages: WORKBENCH_STAGES.map((stage) => ({
+          stage,
+          status: stage === "product_positioning" ? "running" : "ready",
+          waitingReason: null,
+          updatedAt: "2026-08-12T00:00:00Z",
+        })),
+      }),
+      "?panel=progress&stage=product_positioning",
+    );
+
+    const context = screen.getByRole("complementary", {
+      name: "上下文与执行信息",
+    });
+    const summaries = within(context).getByRole("list", {
+      name: "Stage summaries",
+    });
+    expect(within(summaries).getByText("资料整理")).toBeTruthy();
+    expect(within(summaries).getByText("商品定位")).toBeTruthy();
+    expect(within(summaries).getAllByText("可开始").length).toBeGreaterThan(0);
+    expect(within(summaries).getByText("处理中")).toBeTruthy();
+    expect(within(summaries).queryByText("valid")).toBeNull();
+    expect(within(summaries).queryByText("running")).toBeNull();
+    expect(
+      within(summaries).queryByText("product_intake_and_fact_extraction"),
+    ).toBeNull();
+    const timestamp = context.querySelector(
+      'time[dateTime="2026-08-12T00:00:00Z"]',
+    );
+    expect(timestamp).not.toBeNull();
+    expect(timestamp?.textContent).toContain("2026年8月12日 00:00");
+    const headerTimestamp = screen
+      .getByRole("banner")
+      .querySelector('time[dateTime="2026-08-12T00:00:00Z"]');
+    expect(headerTimestamp).not.toBeNull();
+    expect(headerTimestamp?.textContent).toContain("2026年8月12日 00:00");
+  });
+
+  it("keeps TaskGateway actions and canonical query semantics behind the shell", async () => {
+    const primaryInput: TaskPrimaryInput = {
+      taskId: taskBaseline.taskId,
+      inputRevision: 0,
+      inputKind: "pasted_text",
+      fileName: null,
+      content: "城市通勤双肩包 CBP-SYN-001",
+      byteCount: 37,
+      updatedAt: "2026-08-12T00:00:00Z",
+    };
+    const generatedResult = {
+      taskId: taskBaseline.taskId,
+      resultRevision: 1,
+      inputRevision: 0,
+      status: "insufficient_input",
+      generatedAt: "2026-08-12T00:00:00Z",
+      missingInformation: ["需要更多资料"],
+      productIntake: null,
+      customerInsight: null,
+      productPositioning: null,
+      marketingBrief: null,
+      xiaohongshuBrief: null,
+      confirmation: null,
+    } satisfies TaskCurrentResult;
+    const generateResult = vi.fn().mockResolvedValue(generatedResult);
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?keep=one&panel=intake&stage=product_positioning`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task()}
+          primaryInput={primaryInput}
+          savePrimaryInput={vi.fn(async () => primaryInput)}
+          generateResult={generateResult}
+        />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    const generate = await screen.findByRole("button", { name: "生成结果" });
+    await userEvent.setup().click(generate);
+    expect(generateResult).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(screen.getByTestId("location").textContent).toContain(
+        "?keep=one&panel=results&stage=product_positioning",
+      ),
+    );
+  });
+
   it("renders authoritative task metadata, mode, selection, and stage order", () => {
     renderWorkbench(
       task({
@@ -135,18 +349,30 @@ describe("TaskWorkbench", () => {
     expect(screen.getByText("Backpack")).toBeTruthy();
     expect(screen.getByText("waiting_for_input")).toBeTruthy();
     expect(screen.getByText("Needs a source")).toBeTruthy();
-    expect(screen.getByText("Current workspace: needs_input")).toBeTruthy();
-    expect(screen.getByText("Current panel:")).toBeTruthy();
+    expect(
+      within(
+        screen.getByRole("complementary", { name: "上下文与执行信息" }),
+      ).getByText("待补充资料"),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Review" }).getAttribute("aria-current"),
+    ).toBe("page");
     expect(screen.getByText("human_review")).toBeTruthy();
 
     const summaries = screen.getByRole("list", { name: "Stage summaries" });
     expect(within(summaries).getAllByRole("listitem")).toHaveLength(2);
     expect(
       within(summaries).getAllByRole("listitem")[0]?.textContent,
-    ).toContain("product_positioning");
+    ).toContain("资料整理");
+    expect(
+      within(summaries).getAllByRole("listitem")[0]?.textContent,
+    ).toContain("已完成");
     expect(
       within(summaries).getAllByRole("listitem")[1]?.textContent,
-    ).toContain("product_intake_and_fact_extraction");
+    ).toContain("商品定位");
+    expect(
+      within(summaries).getAllByRole("listitem")[1]?.textContent,
+    ).toContain("处理中");
 
     expect(screen.getByText("run-active")).toBeTruthy();
     expect(screen.getByText("run-latest")).toBeTruthy();
@@ -165,9 +391,9 @@ describe("TaskWorkbench", () => {
     ).toBeNull();
     expect(screen.queryByText(/Active Run/)).toBeNull();
     expect(screen.queryByRole("button")).toBeNull();
-    expect(
-      screen.getByText(/Intake resources and actions are not implemented/),
-    ).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe(
+      "在这里粘贴或保存商品资料。",
+    );
   });
 
   it.each(WORKBENCH_PANELS)(
@@ -175,9 +401,14 @@ describe("TaskWorkbench", () => {
     (panel) => {
       renderWorkbench(task(), `?panel=${panel}&stage=product_positioning`);
       const status = screen.getByRole("status");
-      expect(status.textContent).toMatch(/not implemented in this slice/i);
-      expect(status.textContent).not.toMatch(
-        /upload|start|run|review content|results content|evidence content/i,
+      expect(status.textContent).toBe(
+        {
+          intake: "在这里粘贴或保存商品资料。",
+          progress: "任务正在处理，状态会在本地工作区更新。",
+          review: "审核材料会在需要人工判断时出现在这里。",
+          results: "结果与导出会在任务完成后出现在这里。",
+          evidence: "证据、来源与限制会在上下文栏中保留。",
+        }[panel],
       );
     },
   );
@@ -198,26 +429,31 @@ describe("TaskWorkbench", () => {
       "?keep=one&panel=results&stage=human_review",
     );
 
-    const panelNav = screen.getByRole("navigation", { name: "Task panels" });
+    const panelNav = screen.getByRole("navigation", { name: "工作区面板" });
     expect(
       within(panelNav)
         .getAllByRole("link")
         .map((link) => link.textContent),
-    ).toEqual(["Intake", "Progress", "Review", "Results", "Evidence"]);
+    ).toEqual(["资料输入", "进度", "Review", "结果", "证据"]);
     expect(
       within(panelNav)
-        .getByRole("link", { name: "Results" })
+        .getByRole("link", { name: "结果" })
         .getAttribute("aria-current"),
     ).toBe("page");
 
-    const stageNav = screen.getByRole("navigation", { name: "Task stages" });
+    const stageNav = screen.getByRole("navigation", { name: "业务阶段" });
+    expect(within(stageNav).getAllByRole("link")).toHaveLength(5);
     expect(
       within(stageNav)
-        .getAllByRole("link")
-        .map((link) => link.textContent),
-    ).toEqual([...WORKBENCH_STAGES]);
+        .getByRole("link", { name: /商品定位/ })
+        .getAttribute("aria-current"),
+    ).toBeNull();
+    const internalStageNav = screen.getByRole("navigation", {
+      name: "内部阶段深链",
+    });
+    expect(within(internalStageNav).getAllByRole("link")).toHaveLength(6);
     expect(
-      within(stageNav)
+      within(internalStageNav)
         .getByRole("link", { name: "human_review" })
         .getAttribute("aria-current"),
     ).toBe("step");
@@ -241,14 +477,12 @@ describe("TaskWorkbench", () => {
     );
 
     expect(
-      screen.getByRole("link", { name: "Evidence" }).getAttribute("href"),
+      screen.getByRole("link", { name: "证据" }).getAttribute("href"),
     ).toBe(
       "/tasks/task%2Fwith%20spaces?filter=mine&filter=all&panel=evidence&stage=human_review",
     );
     expect(
-      screen
-        .getByRole("link", { name: "product_positioning" })
-        .getAttribute("href"),
+      screen.getByRole("link", { name: /商品定位/ }).getAttribute("href"),
     ).toBe(
       "/tasks/task%2Fwith%20spaces?filter=mine&filter=all&panel=review&stage=product_positioning",
     );
@@ -264,7 +498,9 @@ describe("TaskWorkbench", () => {
       "/tasks/task%2Fwith%20spaces?filter=mine&panel=intake&stage=product_positioning",
     );
     expect(
-      screen.getByRole("link", { name: "Intake" }).getAttribute("aria-current"),
+      screen
+        .getByRole("link", { name: "资料输入" })
+        .getAttribute("aria-current"),
     ).toBe("page");
   });
 
