@@ -663,16 +663,52 @@ function ResultPanel({
 
   const projection = projectResult(result);
   const markdown = renderMarkdownProjection(result, activeBrief);
-  const activeTitle =
-    activeBrief === "marketing" ? "营销 Brief" : "小红书 Brief";
-  const activeContent =
-    activeBrief === "marketing"
-      ? projection.marketing.coreMessage
-      : projection.xiaohongshu.titleDirection;
   const briefKinds: readonly ExportBriefKind[] = ["marketing", "xiaohongshu"];
   const selectBrief = (briefKind: ExportBriefKind) => {
     setActiveBrief(briefKind);
     setShowPreview(false);
+  };
+  const renderBriefPanel = (kind: ExportBriefKind) => {
+    const selected = activeBrief === kind;
+    const title = kind === "marketing" ? "营销 Brief" : "小红书 Brief";
+    const content =
+      kind === "marketing"
+        ? projection.marketing.coreMessage
+        : projection.xiaohongshu.titleDirection;
+    const primaryMessage =
+      kind === "marketing" ? projection.marketing.primaryMessage : null;
+    const secondaryBenefits =
+      kind === "marketing"
+        ? projection.marketing.secondaryBenefits
+        : projection.xiaohongshu.messagePriority;
+    return (
+      <section
+        key={kind}
+        id={`${kind}-brief-panel`}
+        role="tabpanel"
+        aria-labelledby={`${kind}-brief-tab`}
+        aria-hidden={!selected}
+        hidden={!selected}
+        className={styles.briefPanel}
+      >
+        <div className={styles.briefPanelHeading}>
+          <h3>{title}</h3>
+          {content !== null ? (
+            <p>{content}</p>
+          ) : (
+            <p>当前结果没有该 Brief 的核心信息。</p>
+          )}
+        </div>
+        {primaryMessage !== null ? <p>{primaryMessage}</p> : null}
+        {secondaryBenefits.length > 0 ? (
+          <ul>
+            {secondaryBenefits.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
+    );
   };
 
   return (
@@ -837,38 +873,7 @@ function ResultPanel({
             })}
           </div>
         </div>
-        <section
-          id={`${activeBrief}-brief-panel`}
-          role="tabpanel"
-          aria-labelledby={`${activeBrief}-brief-tab`}
-          className={styles.briefPanel}
-        >
-          <div className={styles.briefPanelHeading}>
-            <h3>{activeTitle}</h3>
-            {activeContent !== null ? (
-              <p>{activeContent}</p>
-            ) : (
-              <p>当前结果没有该 Brief 的核心信息。</p>
-            )}
-          </div>
-          {activeBrief === "marketing" &&
-          projection.marketing.primaryMessage !== null ? (
-            <p>{projection.marketing.primaryMessage}</p>
-          ) : null}
-          {(activeBrief === "marketing"
-            ? projection.marketing.secondaryBenefits
-            : projection.xiaohongshu.messagePriority
-          ).length > 0 ? (
-            <ul>
-              {(activeBrief === "marketing"
-                ? projection.marketing.secondaryBenefits
-                : projection.xiaohongshu.messagePriority
-              ).map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          ) : null}
-        </section>
+        {briefKinds.map(renderBriefPanel)}
         <div className={styles.resultActions}>
           <button type="button" onClick={() => setShowPreview((open) => !open)}>
             {showPreview ? "收起 Markdown 预览" : "预览 Markdown"}

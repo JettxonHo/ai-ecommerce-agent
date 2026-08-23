@@ -337,27 +337,51 @@ describe("TaskWorkbench", () => {
     expect(screen.getByRole("heading", { name: "风险与限制" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "下一步" })).toBeTruthy();
     const tabs = screen.getByRole("tablist", { name: "结果视图" });
-    expect(within(tabs).getByRole("tab", { name: "营销 Brief" })).toBeTruthy();
-    expect(
-      within(tabs).getByRole("tab", { name: "小红书 Brief" }),
-    ).toBeTruthy();
+    const user = userEvent.setup();
+    const marketingTab = within(tabs).getByRole("tab", {
+      name: "营销 Brief",
+    });
+    const xiaohongshuTab = within(tabs).getByRole("tab", {
+      name: "小红书 Brief",
+    });
+    for (const tab of [marketingTab, xiaohongshuTab]) {
+      const panelId = tab.getAttribute("aria-controls");
+      expect(panelId).not.toBeNull();
+      expect(document.getElementById(panelId ?? "")).not.toBeNull();
+    }
+    expect(marketingTab.getAttribute("aria-selected")).toBe("true");
+    expect(xiaohongshuTab.getAttribute("aria-selected")).toBe("false");
+    await user.click(marketingTab);
+    await user.keyboard("{ArrowRight}");
+    expect(xiaohongshuTab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(xiaohongshuTab);
+    await user.keyboard("{Home}");
+    expect(marketingTab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(marketingTab);
+    await user.keyboard("{End}");
+    expect(xiaohongshuTab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(xiaohongshuTab);
+    for (const tab of [marketingTab, xiaohongshuTab]) {
+      const panelId = tab.getAttribute("aria-controls");
+      expect(document.getElementById(panelId ?? "")).not.toBeNull();
+    }
     expect(screen.getByRole("button", { name: "预览 Markdown" })).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "导出营销 Markdown" }),
     ).toBeTruthy();
-    await userEvent
-      .setup()
-      .click(screen.getByRole("button", { name: "预览 Markdown" }));
+    await user.click(screen.getByRole("button", { name: "预览 Markdown" }));
     expect(screen.getByRole("region", { name: "Markdown 预览" })).toBeTruthy();
     expect(
       screen.getAllByText(/<strong>字面内容<\/strong>/u).length,
     ).toBeGreaterThan(0);
     expect(document.querySelector("script")).toBeNull();
-    await userEvent
-      .setup()
-      .click(screen.getByRole("tab", { name: "小红书 Brief" }));
-    expect(screen.getByText("通勤收纳路径")).toBeTruthy();
-    expect(screen.queryByText("收纳清晰，通勤取用更从容")).toBeNull();
+    await user.click(screen.getByRole("tab", { name: "小红书 Brief" }));
+    expect(
+      document.getElementById("xiaohongshu-brief-panel")?.textContent,
+    ).toContain("通勤收纳路径");
+    expect(
+      document.getElementById("marketing-brief-panel")?.hasAttribute("hidden"),
+    ).toBe(true);
   });
 
   it("shows exactly five Chinese business stages while retaining the six-value internal catalog and deep links", () => {
