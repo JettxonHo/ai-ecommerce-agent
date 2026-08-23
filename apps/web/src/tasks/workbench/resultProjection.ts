@@ -120,7 +120,6 @@ const projectionFor = (result: TaskCurrentResult): ResultProjection => {
     ...stringList(positioning?.proof_points),
     ...stringList(marketingEvidence?.proof_points),
     ...stringList(marketingHierarchy?.supporting_proof_points),
-    ...stringList(marketingBenefitHierarchy?.supporting_features),
     ...stringList(xhsEvidence?.proof_points),
     ...stringList(xhsAngle?.proof_points),
   ]);
@@ -138,16 +137,9 @@ const projectionFor = (result: TaskCurrentResult): ResultProjection => {
     ...stringList(xhsAngle?.risk_notes),
     ...stringList(xhsCta?.risk_notes),
   ]);
-  const nextSteps = dedupe([
-    ...stringList(
-      marketing?.execution_direction
-        ? record(marketing.execution_direction)?.call_to_action_objective
-        : null,
-    ),
-    ...stringList(xhsCta?.cta_direction),
-    ...stringList(marketingConstraints?.hypotheses_to_test),
-    ...stringList(marketingConstraints?.mandatory_messages),
-  ]);
+  const nextSteps = dedupe(
+    stringList(marketingConstraints?.hypotheses_to_test),
+  );
 
   const positioningSummary =
     firstString(positioning, ["value_proposition", "job_or_core_need"]) ??
