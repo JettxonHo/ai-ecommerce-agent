@@ -1,10 +1,12 @@
 # Implementation Readiness
 
-> **Status: MVP-0P Local Action Workbench Productization Goal ACTIVE after Issue #301 merge · P0 DOCS-ONLY ACTIVATION · ISSUE #303 P1 SHELL MERGE-CONDITIONAL · P2 GATED · OLD FAST LANE TERMINAL `GOAL_BLOCKED`**
+> **Status: MVP-0P Local Action Workbench Productization Goal ACTIVE · P0 COMPLETE · ISSUE #303 / PR #304 P1 SHELL MERGED AND CURRENT · ISSUE #305 / PR #306 P2 IN REVIEW · P3 GATED · OLD FAST LANE TERMINAL `GOAL_BLOCKED`**
 >
 > **Authority:** [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) · [MVP-0P Local Action Workbench Productization Goal](../goals/mvp0-local-action-workbench-productization-goal.md) · [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) · [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md)
 >
-> **Current release boundary:** the deterministic local loop and one-command demo are accepted foundation input to the successor Goal, not live Provider acceptance. The old Fast Lane record remains terminal `GOAL_BLOCKED`: its first authorized smoke completed five calls and failed before `awaiting_review`; the second under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) failed safely after one `product_intake_v1 / v1` call before `awaiting_review`. Both authorizations are consumed; no further Provider run is authorized. [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) Phase A ended with `INSUFFICIENT_SANITIZED_EVIDENCE`, observational ambiguity across mapper/schema/domain-admission boundaries, no production repair and no Phase B contract. `rejection_disposition` remains a Proposal only. P0 docs-only reconciliation is complete; Issue #303 carries the bounded P1 shell and becomes current only after independent review and merge. P2 remains gated on that merge; exact Stage order remains P0 → P1 → P2 → P3 → P4 → P5.
+> **Current release boundary:** the deterministic local loop and one-command demo are accepted foundation input to the successor Goal, not live Provider acceptance. The old Fast Lane record remains terminal `GOAL_BLOCKED`: its first authorized smoke completed five calls and failed before `awaiting_review`; the second under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) failed safely after one `product_intake_v1 / v1` call before `awaiting_review`. Both authorizations are consumed; no further Provider run is authorized. [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) Phase A ended with `INSUFFICIENT_SANITIZED_EVIDENCE`, observational ambiguity across mapper/schema/domain-admission boundaries, no production repair and no Phase B contract. `rejection_disposition` remains a Proposal only. P0 docs-only reconciliation is complete. Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304) is the merged/current P1 shell. Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306) carries the P2 Running, Review and Results implementation and becomes current only after independent review and merge. P3 remains gated, and [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247) has not started or been reconciled. Exact Stage order remains P0 → P1 → P2 → P3 → P4 → P5.
+
+P2's bounded surface is Running, Review and Results with structured business groups, separate Marketing / Xiaohongshu views, safe Markdown preview/export, raw JSON behind technical disclosure, and responsive keyboard / focus / reduced-motion boundaries. It does not claim Provider acceptance.
 
 ## 1. Product readiness
 
@@ -21,8 +23,8 @@ The following are accepted and sufficient for the minimal demo:
 - a retained opt-in direct DeepSeek official `deepseek-v4-pro` seam plus terminal evidence from the two controlled runs; neither is Provider acceptance and no further run is authorized;
 - the completed bounded offline Phase A diagnosis at the exact first-stage boundary with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`; no production repair was made and no Phase B contract exists.
 - an accepted next productization direction: fixed local single-user Action Workbench with `/tasks` action home, a Chinese five-stage rail, one Active Workspace, a collapsible `320–360px` Context Rail, structured Review and action-oriented Marketing / Xiaohongshu Results.
-- the accepted successor Goal's serial order P0 → P1 → P2 → P3 → P4 → P5; Issue #303 carries the P1 shell and becomes current only after independent review and merge, while P2 remains gated.
-- the human A+C verdict `HUMAN_SELECTED_AC_BASELINE`; PR #299 remains open / unmerged, while Issue #303 is the bounded P1 implementation and becomes production-current only after independent review and merge.
+- the accepted successor Goal's serial order P0 → P1 → P2 → P3 → P4 → P5; Issue #303 / PR #304 is the merged/current P1 shell, while Issue #305 / PR #306 carries the P2 implementation and becomes current only after independent review and merge. P3 remains gated and Issue #247 has not started or been reconciled.
+- the human A+C verdict `HUMAN_SELECTED_AC_BASELINE`; PR #299 remains open / unmerged, while Issue #303 / PR #304 is the merged/current P1 implementation.
 
 No further Persona, RFC, general architecture, retrieval or enterprise-security planning is required for the deterministic foundation. The two controlled DeepSeek runs are terminal failure evidence, not Provider acceptance; #281 is closed and no further Provider run is authorized. Phase A is complete with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`, establishing observational ambiguity only; no production repair or Phase B contract exists, and `rejection_disposition` remains a Proposal only. Later deferred capabilities retain their separate gates.
 
@@ -42,7 +44,8 @@ Implemented or physically present:
 - Task gateway, recent/create/read routes, Task-scoped input/result/review/export routes and stable deep links;
 - deterministic scripted Facts → Insight → Positioning → Marketing Brief → Xiaohongshu pipeline;
 - Workbench projection and TaskWorkbench intake/progress/review/results/export UI;
-- Issue #303's P1 Action Home / five-stage rail / Active Workspace / Context Rail shell, merge-conditional;
+- Issue #303 / PR #304's P1 Action Home / five-stage rail / Active Workspace / Context Rail shell, merged/current;
+- Issue #305 / PR #306's P2 Running / Review / Results implementation, in review and not yet repository-current;
 - representative real-backend Chromium coverage for sufficient/insufficient input, review, Markdown downloads and reload persistence;
 - private local-demo composition plus `scripts/mvp0/demo` foreground API/Web lifecycle and non-destructive PostgreSQL stale-container repair.
 
@@ -89,7 +92,7 @@ The following are outside the current productization Stage unless a later Stage 
 
 Accepted future designs remain available for a later Goal. They are not implementation prerequisites for this one.
 
-DEC-082 supplies the accepted product and frontend baseline. DEC-083 now sequences its execution: P0 is docs-only, Issue #303 carries the merge-conditional P1 shell, and later P2–P5 require their own contract and independent Review. Important frontend work uses applicable taste skills; local Kimi Code + Kimi K3 remains a narrow later exact-contract exception, not a P0 call or Luna / Terra fallback. PR #299 is open / unmerged and is not production evidence.
+DEC-082 supplies the accepted product and frontend baseline. DEC-083 sequences its execution: P0 is complete, Issue #303 / PR #304 is the merged/current P1 shell, and Issue #305 / PR #306 carries the P2 Running / Review / Results implementation until independent Review and merge. P3–P5 require their own contract and independent Review; P3 also remains gated on P2 and must reconcile Issue #247. Important frontend work uses applicable taste skills; local Kimi Code + Kimi K3 remains a narrow later exact-contract exception, not a P0 call or Luna / Terra fallback. PR #299 is open / unmerged and is not production evidence.
 
 ## 6. Quality readiness
 
@@ -142,9 +145,9 @@ FL-3 one-command local demo rehearsal: COMPLETE (Issue #257)
 Post-FL-2 bounded legacy cleanup: COMPLETE (Issue #274; Goal remains GOAL_BLOCKED)
 Qwen Token Plan supplemental live: BLOCKED_BY_PROVIDER_TERMS (Issue #264)
 P0 Goal activation/current-truth reconciliation: COMPLETE (Issue #301; exact eight-file allowlist)
-P1 Action Home and A+C production shell: ISSUE_303_DELIVERY_MERGE_CONDITIONAL
-P2 Core TaskWorkbench states: GATED_ON_P1_MERGE (not active)
-P3 Needs Input and essential recovery: GATED_ON_P2_MERGE; reconcile Issue #247
+P1 Action Home and A+C production shell: MERGED_CURRENT (Issue #303 / PR #304)
+P2 Core TaskWorkbench states: ACTIVE_IMPLEMENTATION_REVIEW (Issue #305 / PR #306; not current until independent review and merge)
+P3 Needs Input and essential recovery: GATED_ON_P2_MERGE; Issue #247 not started or reconciled
 P4 Deterministic local release acceptance: GATED_ON_P3_MERGE; provider-free
 P5 Spider_XHS feasibility Gate: CONDITIONAL_DOCS_RESEARCH_ONLY; no reuse/platform/publishing authority
 ```
