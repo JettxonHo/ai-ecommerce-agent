@@ -1,16 +1,34 @@
 .shell {
-  width: min(100% - 2rem, 48rem);
+  width: min(100% - 2rem, 88rem);
   margin: 0 auto;
-  padding: 4rem 0;
+  padding: 1.25rem 0 4rem;
+}
+
+.skipLink {
+  position: fixed;
+  z-index: 10;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-180%);
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--color-accent-strong);
+  border-radius: 0.35rem;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.skipLink:focus-visible {
+  transform: translateY(0);
 }
 
 .eyebrow {
   margin: 0 0 0.75rem;
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .shell h1 {

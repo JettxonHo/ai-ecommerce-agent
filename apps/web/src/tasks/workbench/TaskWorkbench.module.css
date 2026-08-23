@@ -1,8 +1,8 @@
 .page {
   min-width: 0;
-  width: min(100% - 2rem, 56rem);
+  width: min(100%, 78rem);
   margin: 0 auto;
-  padding: 3rem 0;
+  padding: 2rem clamp(0.75rem, 3vw, 2.25rem) 4rem;
 }
 
 .eyebrow {
@@ -11,7 +11,7 @@
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .page h1 {
@@ -70,18 +70,18 @@
   min-width: 0;
   margin: 2rem 0;
   padding: 1rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.75rem;
-  background: #fff;
+  border: 1px solid var(--color-rule);
+  border-radius: 0.35rem;
+  background: var(--color-paper);
 }
 
 .primaryInput {
   min-width: 0;
   margin: 2rem 0;
   padding: 1rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.75rem;
-  background: #fff;
+  border: 1px solid var(--color-rule);
+  border-radius: 0.35rem;
+  background: var(--color-paper);
 }
 
 .reviewPanel,
@@ -89,9 +89,9 @@
   min-width: 0;
   margin: 2rem 0;
   padding: 1rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.75rem;
-  background: #fff;
+  border: 1px solid var(--color-rule);
+  border-radius: 0.35rem;
+  background: var(--color-paper);
 }
 
 .reviewPanel pre,
@@ -273,5 +273,424 @@
   .details,
   .referenceList {
     grid-template-columns: 1fr;
+  }
+}
+
+.header {
+  padding: 0.75rem 0 1.5rem;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.headerTopline,
+.headerRow,
+.stageRailHeading,
+.workspaceHeader {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.headerTopline {
+  align-items: center;
+}
+
+.headerTopline .backLink {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.headerRow {
+  align-items: end;
+  gap: 2rem;
+}
+
+.headerIdentity,
+.headerStatus {
+  min-width: 0;
+}
+
+.headerIdentity h1 {
+  margin-top: 0.3rem;
+}
+
+.headerStatus {
+  flex: 0 1 18rem;
+  text-align: right;
+}
+
+.statusBadge,
+.modeLabel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.8rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.status-needs_input,
+.status-review {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.status-recovery {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.saveTruth {
+  margin: 0.55rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.technicalIdentity,
+.technicalDetails {
+  margin-top: 0.7rem;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+
+.technicalIdentity summary,
+.technicalDetails summary,
+.contextRail summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.technicalIdentity p {
+  margin: 0.4rem 0 0;
+}
+
+.technicalIdentity code {
+  overflow-wrap: anywhere;
+}
+
+.stageRail {
+  min-width: 0;
+  margin: 1.5rem 0;
+  padding: 1rem 0 1.25rem;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.stageRailHeading {
+  align-items: end;
+  margin-bottom: 0.9rem;
+}
+
+.stageRailHeading h2,
+.workspaceHeader h2 {
+  margin: 0.2rem 0 0;
+  color: var(--color-ink);
+  font-size: 1.28rem;
+}
+
+.stageCurrentLabel {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.stageRailList {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stageRailItem {
+  min-width: 0;
+  border-top: 3px solid var(--color-rule);
+}
+
+.stageRailItem a {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "icon label"
+    "icon state";
+  gap: 0.15rem 0.45rem;
+  padding: 0.7rem 0.5rem 0.25rem;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.stageRailItem a[aria-current="step"] {
+  background: color-mix(in srgb, var(--color-warm) 48%, transparent);
+}
+
+.stageIcon {
+  grid-area: icon;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  line-height: 1.25rem;
+  text-align: center;
+}
+
+.stageLabel {
+  grid-area: label;
+  min-width: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.stageState {
+  grid-area: state;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.stage-completed {
+  border-color: var(--color-accent);
+}
+
+.stage-completed .stageIcon {
+  color: var(--color-accent-strong);
+}
+
+.stage-current {
+  border-color: var(--color-accent-strong);
+}
+
+.stage-current .stageIcon,
+.stage-current .stageState {
+  color: var(--color-accent-strong);
+}
+
+.stage-needsInput {
+  border-color: var(--color-warning);
+}
+
+.stage-needsInput .stageIcon,
+.stage-needsInput .stageState {
+  color: var(--color-warning);
+}
+
+.stage-blocked {
+  border-color: var(--color-danger);
+}
+
+.stage-blocked .stageIcon,
+.stage-blocked .stageState {
+  color: var(--color-danger);
+}
+
+.workbenchGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  align-items: start;
+  gap: 1rem;
+}
+
+.workspace {
+  min-width: 0;
+  margin: 0;
+  padding: clamp(1rem, 2.2vw, 1.5rem);
+  border-top: 3px solid var(--color-accent-strong);
+}
+
+.workspaceHeader {
+  align-items: center;
+}
+
+.workspaceAction {
+  margin: 1rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-rule);
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.workspaceAction strong {
+  color: var(--color-ink);
+}
+
+.workspace .navigation {
+  margin: 1rem 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.workspace .navigation h3 {
+  margin: 0 0 0.45rem;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.workspace .neutral {
+  margin: 1rem 0;
+  padding: 0.8rem 0.9rem;
+  background: var(--color-warm);
+}
+
+.modeLabel {
+  border-color: var(--color-rule);
+}
+
+.contextRail {
+  min-width: 0;
+  margin: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--color-rule);
+  background: var(--color-paper);
+}
+
+.contextRail > details > summary {
+  color: var(--color-ink);
+}
+
+.contextRailBody {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  margin-top: 1rem;
+}
+
+.contextBlock {
+  min-width: 0;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.contextBlock h2,
+.references h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 0.95rem;
+}
+
+.contextBlock .details {
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin: 0.8rem 0 0;
+}
+
+.contextBlock .details div {
+  padding: 0.55rem 0.65rem;
+  border-left-width: 2px;
+  background: var(--color-warm);
+}
+
+.contextRail .references {
+  margin: 0;
+  padding: 0 0 0.9rem;
+  border: 0;
+  border-bottom: 1px solid var(--color-rule);
+  border-radius: 0;
+  background: transparent;
+}
+
+.contextRail .referenceList {
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin: 0.8rem 0 0;
+}
+
+.contextRail .referenceList div {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.contextRail .referenceList dd {
+  max-width: 100%;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.technicalDetails {
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.technicalDetails .linkColumn {
+  margin-top: 0.7rem;
+  gap: 0.4rem;
+}
+
+.contextRail .stages {
+  margin-top: 0.8rem;
+  padding-left: 1.2rem;
+}
+
+.contextRail .stages li {
+  padding: 0.55rem;
+  border-color: var(--color-rule);
+  border-radius: 0.2rem;
+  background: var(--color-warm);
+}
+
+@media (max-width: 64rem) {
+  .workbenchGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .contextRail {
+    order: -1;
+  }
+
+  .contextRailBody {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 44rem) {
+  .headerRow,
+  .stageRailHeading,
+  .workspaceHeader {
+    display: grid;
+  }
+
+  .headerStatus {
+    text-align: left;
+  }
+
+  .stageRailList {
+    grid-template-columns: repeat(5, minmax(9rem, 1fr));
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+  }
+
+  .stageRailList::-webkit-scrollbar {
+    height: 0.4rem;
+  }
+
+  .contextRailBody {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 22.5rem) {
+  .page {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .stageRailList {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .stageRailItem a {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "icon label state";
+    align-items: center;
   }
 }

@@ -1,6 +1,6 @@
 # MVP-0P Local Action Workbench Productization Goal
 
-> **Status: ACTIVE after Issue #301 merge — P0 Goal activation and current-truth reconciliation**
+> **Status: ACTIVE after Issue #301 merge — P0 Goal activation and current-truth reconciliation; Issue #303 carries the merge-conditional P1 shell**
 >
 > **Decision authority:** [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) · [Session-008](../sessions/session-008-local-productization-goal-activation.md) · [Issue #301](https://github.com/JettxonHo/ai-ecommerce-agent/issues/301)
 >
@@ -10,14 +10,14 @@
 
 Turn the accepted deterministic local foundation into one understandable, recoverable and exportable single-user Action Workbench for a small ecommerce operator. The product remains a fixed local workspace with no login, tenant selector or public deployment. The productization Goal does not require Provider acceptance and does not reopen the terminal DeepSeek Gate.
 
-The accepted human A+C selection is the design baseline, not production code. `HUMAN_SELECTED_AC_BASELINE` means that the product should expose Chinese task identity and stable business/status reading order, a wide-desktop horizontal five-stage rail, one dominant current action, progressive disclosure and a Context Rail, while retaining the four business states, 1024/320 reflow, focus/reduced-motion behavior and raw JSON behind technical details. [PR #299](https://github.com/JettxonHo/ai-ecommerce-agent/pull/299) remains open and unmerged; no ignored prototype is promoted by this Goal.
+The accepted human A+C selection is the design baseline. `HUMAN_SELECTED_AC_BASELINE` means that the product should expose Chinese task identity and stable business/status reading order, a wide-desktop horizontal five-stage rail, one dominant current action, progressive disclosure and a Context Rail, while retaining the four business states, 1024/320 reflow, focus/reduced-motion behavior and raw JSON behind technical details. [PR #299](https://github.com/JettxonHo/ai-ecommerce-agent/pull/299) remains open and unmerged; Issue #303 is the bounded P1 implementation and becomes production-current only after its PR is independently reviewed and merged. No ignored prototype is promoted by this Goal.
 
 ## 2. Frozen Stage order and operating rule
 
 The exact Stage order is **P0 → P1 → P2 → P3 → P4 → P5**.
 
 - Only one implementation Stage may be active at a time.
-- P1 is the only next implementation Stage after P0's documentation PR merges.
+- P1 is the only next implementation Stage after P0's documentation PR merges; Issue #303 carries that bounded shell, while P2 remains gated until P1 is independently reviewed and merged.
 - Create the next implementation Issue only after the previous Stage's PR is independently reviewed and merged.
 - Do not create all implementation Issues up front; each Issue must have a real, immediately observable consumer.
 - Ordinary reversible local repository, test, branch and PR work is standing-authorized inside the active Issue contract. That access does not override Secret / Provider / platform gates, destructive-action controls, public-contract or migration gates, independent Review, or the exact implementation-agent rule.
@@ -104,7 +104,7 @@ The DEC-082 Kimi Code + Kimi K3 exception remains limited to a later user-accept
 ## 7. Current limitations and risks
 
 - The deterministic foundation is useful local evidence, not live Provider acceptance.
-- Human selection of A+C is a design baseline; PR #299 being open / unmerged means production implementation still requires P1 work and review.
+- Human selection of A+C is a design baseline; Issue #303 carries the P1 implementation, whose production-current status begins only after independent review and merge. P2 is not active.
 - Spider_XHS licensing and platform behavior are unresolved and intentionally isolated to P5.
 - Staged execution may leave later work pending; that is preferable to manufacturing parallel Issues without a consumer or bypassing a gate.
 

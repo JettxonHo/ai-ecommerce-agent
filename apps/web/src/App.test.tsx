@@ -22,7 +22,7 @@ describe("application routes", () => {
     renderAt("/tasks");
     expect(screen.getByRole("main")).toBeTruthy();
     expect(
-      await screen.findByRole("heading", { name: "Recent tasks" }),
+      await screen.findByRole("heading", { name: "行动首页" }),
     ).toBeTruthy();
   });
 
@@ -31,9 +31,11 @@ describe("application routes", () => {
     async (path) => {
       renderAt(path);
       expect(
-        await screen.findByRole("heading", { name: "Recent tasks" }),
+        await screen.findByRole("heading", { name: "行动首页" }),
       ).toBeTruthy();
-      expect(screen.getByRole("link", { name: "Create a task" })).toBeTruthy();
+      expect(
+        screen.getByRole("link", { name: "新建商品上新任务" }),
+      ).toBeTruthy();
     },
   );
 

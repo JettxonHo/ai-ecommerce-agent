@@ -42,22 +42,111 @@ type TaskWorkbenchProps = Readonly<{
 }>;
 
 const panelLabels: Readonly<Record<WorkbenchPanel, string>> = {
-  intake: "Intake",
-  progress: "Progress",
+  intake: "资料输入",
+  progress: "进度",
   review: "Review",
-  results: "Results",
-  evidence: "Evidence",
+  results: "结果",
+  evidence: "证据",
 };
 
 const neutralPanelMessage: Readonly<Record<WorkbenchPanel, string>> = {
-  intake: "Intake resources and actions are not implemented in this slice.",
-  progress:
-    "Progress and recovery resources and actions are not implemented in this slice.",
-  review: "Review resources and actions are not implemented in this slice.",
-  results:
-    "Results and export resources and actions are not implemented in this slice.",
-  evidence:
-    "Evidence and context resources and actions are not implemented in this slice.",
+  intake: "在这里粘贴或保存商品资料。",
+  progress: "任务正在处理，状态会在本地工作区更新。",
+  review: "审核材料会在需要人工判断时出现在这里。",
+  results: "结果与导出会在任务完成后出现在这里。",
+  evidence: "证据、来源与限制会在上下文栏中保留。",
+};
+
+const businessStages: Readonly<
+  Readonly<{ stage: WorkbenchStage; label: string }>[]
+> = [
+  { stage: "product_intake_and_fact_extraction", label: "资料整理" },
+  { stage: "customer_insight_analysis", label: "用户洞察" },
+  { stage: "product_positioning", label: "商品定位" },
+  { stage: "marketing_brief_generation", label: "营销 Brief" },
+  { stage: "xiaohongshu_brief_mapping", label: "小红书 Brief" },
+];
+
+const internalStageLabels: Readonly<Record<WorkbenchStage, string>> = {
+  product_intake_and_fact_extraction: "product_intake_and_fact_extraction",
+  customer_insight_analysis: "customer_insight_analysis",
+  product_positioning: "product_positioning",
+  human_review: "human_review",
+  marketing_brief_generation: "marketing_brief_generation",
+  xiaohongshu_brief_mapping: "xiaohongshu_brief_mapping",
+};
+
+// Display timestamps in UTC so presentation does not infer the operator's local timezone.
+const formatTimestamp = (value: string): string => {
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) return value;
+  const date = new Date(parsed);
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getUTCFullYear()}年${date.getUTCMonth() + 1}月${date.getUTCDate()}日 ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
+};
+
+const modeLabels: Readonly<Record<string, string>> = {
+  intake: "资料整理",
+  running: "处理中",
+  needs_input: "待补充资料",
+  review: "待审核",
+  results: "结果已就绪",
+  recovery: "需要恢复",
+  unavailable: "暂时不可用",
+};
+
+const taskStatusLabels: Readonly<Record<string, string>> = {
+  draft: "待开始",
+  running: "处理中",
+  waiting_for_input: "待补充资料",
+  waiting_for_review: "待审核",
+  paused: "已暂停",
+  completed: "已完成",
+  failed: "需要恢复",
+  cancelled: "已取消",
+};
+
+const stageStatusLabels: Readonly<Record<string, string>> = {
+  valid: "已完成",
+  ready: "已完成",
+  completed: "已完成",
+  running: "处理中",
+  blocked: "受阻",
+  failed: "失败",
+  waiting_for_input: "需补资料",
+  needs_input: "需补资料",
+  pending: "待处理",
+};
+
+const visibleStageStatus = (status: string): string =>
+  stageStatusLabels[status] ?? "待处理";
+
+const userVisibleTaskStatus = (task: TaskOverview): string =>
+  taskStatusLabels[task.taskStatus] ?? "等待处理";
+
+const businessStageLabel = (stage: WorkbenchStage): string =>
+  businessStages.find((item) => item.stage === stage)?.label ??
+  (stage === "human_review" ? "人工审核" : internalStageLabels[stage]);
+
+const stateForStage = (
+  task: TaskOverview,
+  stage: WorkbenchStage,
+): Readonly<{ label: string; icon: string; tone: string }> => {
+  const summary = task.stages.find((item) => item.stage === stage);
+  const status = summary?.status ?? "";
+  if (summary?.waitingReason !== null && summary?.waitingReason !== undefined) {
+    return { label: "需补资料", icon: "!", tone: "needsInput" };
+  }
+  if (status === "failed" || status === "blocked") {
+    return { label: "受阻", icon: "×", tone: "blocked" };
+  }
+  if (task.currentStage === stage || status === "running") {
+    return { label: "当前", icon: "●", tone: "current" };
+  }
+  if (status === "valid" || status === "ready" || status === "completed") {
+    return { label: "已完成", icon: "✓", tone: "completed" };
+  }
+  return { label: "待处理", icon: "○", tone: "upcoming" };
 };
 
 const linkSearch = (
@@ -191,17 +280,17 @@ function PrimaryInputPanel({
         className={styles.primaryInput}
         aria-labelledby="primary-input-heading"
       >
-        <h2 id="primary-input-heading">Primary input</h2>
+        <h2 id="primary-input-heading">商品资料</h2>
         <p className={styles.inputHint}>
-          Paste product context or choose one UTF-8 .txt/.md file. The saved
-          input is scoped to this Task.
+          粘贴商品上下文，或选择一个 UTF-8 .txt/.md
+          文件。资料只保存在当前任务中。
         </p>
         <p role="alert" aria-live="polite">
           {primaryInputError}
         </p>
         {retryPrimaryInput !== undefined ? (
           <button type="button" onClick={retryPrimaryInput}>
-            Retry primary input
+            重试读取商品资料
           </button>
         ) : null}
       </section>
@@ -289,10 +378,9 @@ function PrimaryInputPanel({
       className={styles.primaryInput}
       aria-labelledby="primary-input-heading"
     >
-      <h2 id="primary-input-heading">Primary input</h2>
+      <h2 id="primary-input-heading">商品资料</h2>
       <p className={styles.inputHint}>
-        Paste product context or choose one UTF-8 .txt/.md file. The saved input
-        is scoped to this Task.
+        粘贴商品上下文，或选择一个 UTF-8 .txt/.md 文件。资料只保存在当前任务中。
       </p>
       {primaryInputLoading ? (
         <p role="status" aria-live="polite">
@@ -300,7 +388,7 @@ function PrimaryInputPanel({
         </p>
       ) : null}
       <fieldset className={styles.inputChoices}>
-        <legend>Input source</legend>
+        <legend>资料来源</legend>
         <label>
           <input
             type="radio"
@@ -312,7 +400,7 @@ function PrimaryInputPanel({
               setFileName(null);
             }}
           />
-          Paste text
+          粘贴文本
         </label>
         <label>
           <input
@@ -320,12 +408,12 @@ function PrimaryInputPanel({
             disabled={inputBlocked || saving}
             accept=".txt,.md,text/plain,text/markdown"
             onChange={onFileChange}
-            aria-label="Choose a text or markdown file"
+            aria-label="选择文本或 Markdown 文件"
           />
         </label>
       </fieldset>
       <label className={styles.inputField} htmlFor="primary-input-content">
-        {fileName === null ? "Pasted text" : `File: ${fileName}`}
+        {fileName === null ? "粘贴文本" : `文件：${fileName}`}
         <textarea
           id="primary-input-content"
           value={content}
@@ -340,7 +428,7 @@ function PrimaryInputPanel({
         onClick={() => void save()}
         disabled={inputBlocked || saving}
       >
-        {saving ? "Saving…" : "Save primary input"}
+        {saving ? "保存中…" : "保存商品资料"}
       </button>
       {generateResult !== undefined && savedPreview !== null ? (
         <button
@@ -348,7 +436,7 @@ function PrimaryInputPanel({
           onClick={() => void generate()}
           disabled={inputBlocked || saving || generating}
         >
-          {generating ? "Generating…" : "Generate result"}
+          {generating ? "生成中…" : "生成结果"}
         </button>
       ) : null}
       {message !== null ? (
@@ -361,14 +449,14 @@ function PrimaryInputPanel({
           className={styles.preview}
           aria-labelledby="saved-input-heading"
         >
-          <h3 id="saved-input-heading">Saved input preview</h3>
+          <h3 id="saved-input-heading">已保存资料预览</h3>
           <p>
             Revision {savedPreview.inputRevision} · {savedPreview.inputKind} ·{" "}
             {savedPreview.byteCount} bytes
           </p>
           <pre>{savedPreview.content}</pre>
           <time dateTime={savedPreview.updatedAt}>
-            Updated {savedPreview.updatedAt}
+            更新于 {savedPreview.updatedAt}
           </time>
         </section>
       ) : null}
@@ -763,137 +851,246 @@ export function TaskWorkbench({
     return result;
   };
 
+  const selectedStageLabel = businessStageLabel(selectedStage);
+  const modeLabel = modeLabels[mode] ?? mode;
+  const activeAction =
+    selectedPanel === "intake" && savePrimaryInput !== undefined
+      ? "保存或更新商品资料"
+      : neutralPanelMessage[selectedPanel];
+
   return (
     <section className={styles.page} aria-labelledby="task-workbench-heading">
-      <p className={styles.eyebrow}>Task workbench</p>
-      <p className={styles.backLink}>
-        <Link to="/tasks">Back to recent tasks</Link>
-      </p>
-      <h1 id="task-workbench-heading">{task.taskName}</h1>
-      <p className={styles.identity}>Task ID: {task.taskId}</p>
-
-      <dl className={styles.details}>
-        <div>
-          <dt>Category</dt>
-          <dd>{task.productCategory}</dd>
+      <header className={styles.header}>
+        <div className={styles.headerTopline}>
+          <p className={styles.eyebrow}>任务工作台</p>
+          <Link className={styles.backLink} to="/tasks">
+            返回最近任务
+          </Link>
         </div>
-        <div>
-          <dt>Status</dt>
-          <dd>{task.taskStatus}</dd>
-        </div>
-        <div>
-          <dt>Current stage or waiting reason</dt>
-          <dd>{task.currentStage ?? task.waitingReason ?? "Not started"}</dd>
-        </div>
-        <div>
-          <dt>Updated</dt>
-          <dd>
-            <time dateTime={task.updatedAt}>{task.updatedAt}</time>
-          </dd>
-        </div>
-      </dl>
-
-      <section className={styles.workspace}>
-        <h2 id="workspace-heading">Current workspace: {mode}</h2>
-        <p>
-          Current panel: <strong>{selectedPanel}</strong>
-        </p>
-        <p>
-          Current stage: <strong>{selectedStage}</strong>
-        </p>
-      </section>
-
-      <nav className={styles.navigation} aria-label="Task panels">
-        <h2>Panels</h2>
-        <div className={styles.linkRow}>
-          {panelCatalog.map((panel) => (
-            <Link
-              key={panel}
-              aria-current={panel === selectedPanel ? "page" : undefined}
-              to={{
-                pathname: routerLocation.pathname,
-                search: selectedSearch(panel),
-              }}
+        <div className={styles.headerRow}>
+          <div className={styles.headerIdentity}>
+            <p className={styles.kicker}>商品上新任务</p>
+            <h1 id="task-workbench-heading">{task.taskName}</h1>
+            <p className={styles.identity}>{task.productCategory}</p>
+          </div>
+          <div className={styles.headerStatus}>
+            <span
+              className={`${styles.statusBadge} ${styles[`status-${mode}`]}`}
             >
-              {panelLabels[panel]}
-            </Link>
-          ))}
+              {userVisibleTaskStatus(task)}
+            </span>
+            <p className={styles.saveTruth}>
+              本地工作区 · 更新于{" "}
+              <time dateTime={task.updatedAt}>
+                {formatTimestamp(task.updatedAt)}
+              </time>
+            </p>
+          </div>
         </div>
-      </nav>
+        <details className={styles.technicalIdentity}>
+          <summary>技术详情</summary>
+          <p>{`Task ID: ${task.taskId}`}</p>
+          <p>
+            内部状态：<code>{task.taskStatus}</code>
+          </p>
+        </details>
+      </header>
 
-      <nav className={styles.navigation} aria-label="Task stages">
-        <h2>Stages</h2>
-        <div className={styles.linkColumn}>
-          {stageCatalog.map((stage) => (
-            <Link
-              key={stage}
-              aria-current={stage === selectedStage ? "step" : undefined}
-              to={{
-                pathname: routerLocation.pathname,
-                search: selectedSearch(selectedPanel, stage),
-              }}
-            >
-              {stage}
-            </Link>
-          ))}
+      <nav className={styles.stageRail} aria-label="业务阶段">
+        <div className={styles.stageRailHeading}>
+          <div>
+            <p className={styles.sectionLabel}>一条可回看的进度线</p>
+            <h2>五个业务阶段</h2>
+          </div>
+          <p className={styles.stageCurrentLabel}>
+            当前：<strong>{selectedStageLabel}</strong>
+          </p>
         </div>
-      </nav>
-
-      <p className={styles.neutral} role="status" aria-live="polite">
-        {selectedPanel === "intake" && savePrimaryInput !== undefined
-          ? "Intake input is ready to save."
-          : neutralPanelMessage[selectedPanel]}
-      </p>
-
-      {selectedPanel === "intake" ? (
-        <PrimaryInputPanel
-          primaryInput={primaryInput}
-          primaryInputLoading={primaryInputLoading}
-          primaryInputError={primaryInputError}
-          retryPrimaryInput={retryPrimaryInput}
-          savePrimaryInput={savePrimaryInput}
-          generateResult={
-            generateResult === undefined ? undefined : generateAndShowResults
-          }
-        />
-      ) : null}
-
-      {selectedPanel === "results" &&
-      (currentResult !== undefined ||
-        currentResultLoading !== undefined ||
-        currentResultError !== undefined ||
-        retryCurrentResult !== undefined) ? (
-        <ResultPanel
-          result={currentResult}
-          loading={currentResultLoading}
-          error={currentResultError}
-          retry={retryCurrentResult}
-          exportBrief={exportBrief}
-        />
-      ) : null}
-
-      {selectedPanel === "review" ? (
-        <ReviewPanel
-          result={currentResult}
-          confirmCurrentResult={confirmCurrentResult}
-        />
-      ) : null}
-
-      <section>
-        <h2 id="stage-summaries-heading">Stage summaries</h2>
-        <ol className={styles.stages} aria-label="Stage summaries">
-          {task.stages.map((stage) => (
-            <li key={stage.stage}>
-              <strong>{stage.stage}</strong>
-              <span>{stage.status}</span>
-              {stage.waitingReason ? <span>{stage.waitingReason}</span> : null}
-              <time dateTime={stage.updatedAt}>{stage.updatedAt}</time>
-            </li>
-          ))}
+        <ol className={styles.stageRailList}>
+          {businessStages.map(({ stage, label }) => {
+            const state = stateForStage(task, stage);
+            return (
+              <li
+                className={`${styles.stageRailItem} ${styles[`stage-${state.tone}`]}`}
+                key={stage}
+              >
+                <Link
+                  aria-label={label}
+                  aria-current={stage === selectedStage ? "step" : undefined}
+                  to={{
+                    pathname: routerLocation.pathname,
+                    search: selectedSearch(selectedPanel, stage),
+                  }}
+                >
+                  <span className={styles.stageIcon} aria-hidden="true">
+                    {state.icon}
+                  </span>
+                  <span className={styles.stageLabel}>{label}</span>
+                  <span className={styles.stageState}>{state.label}</span>
+                </Link>
+              </li>
+            );
+          })}
         </ol>
-      </section>
+      </nav>
 
-      <ReferenceDetails task={task} />
+      <div className={styles.workbenchGrid}>
+        <section
+          className={styles.workspace}
+          aria-labelledby="active-workspace-heading"
+        >
+          <div className={styles.workspaceHeader}>
+            <div>
+              <p className={styles.sectionLabel}>当前工作面</p>
+              <h2 id="active-workspace-heading">当前工作区</h2>
+            </div>
+            <span className={styles.modeLabel}>{modeLabel}</span>
+          </div>
+          <p className={styles.workspaceAction}>
+            当前动作：<strong>{activeAction}</strong>
+          </p>
+
+          <nav className={styles.navigation} aria-label="工作区面板">
+            <h3>工作区</h3>
+            <div className={styles.linkRow}>
+              {panelCatalog.map((panel) => (
+                <Link
+                  key={panel}
+                  aria-current={panel === selectedPanel ? "page" : undefined}
+                  to={{
+                    pathname: routerLocation.pathname,
+                    search: selectedSearch(panel),
+                  }}
+                >
+                  {panelLabels[panel]}
+                </Link>
+              ))}
+            </div>
+          </nav>
+
+          <p className={styles.neutral} role="status" aria-live="polite">
+            {selectedPanel === "intake" && savePrimaryInput !== undefined
+              ? "资料已准备好，可以保存。"
+              : neutralPanelMessage[selectedPanel]}
+          </p>
+
+          {selectedPanel === "intake" ? (
+            <PrimaryInputPanel
+              primaryInput={primaryInput}
+              primaryInputLoading={primaryInputLoading}
+              primaryInputError={primaryInputError}
+              retryPrimaryInput={retryPrimaryInput}
+              savePrimaryInput={savePrimaryInput}
+              generateResult={
+                generateResult === undefined
+                  ? undefined
+                  : generateAndShowResults
+              }
+            />
+          ) : null}
+
+          {selectedPanel === "results" &&
+          (currentResult !== undefined ||
+            currentResultLoading !== undefined ||
+            currentResultError !== undefined ||
+            retryCurrentResult !== undefined) ? (
+            <ResultPanel
+              result={currentResult}
+              loading={currentResultLoading}
+              error={currentResultError}
+              retry={retryCurrentResult}
+              exportBrief={exportBrief}
+            />
+          ) : null}
+
+          {selectedPanel === "review" ? (
+            <ReviewPanel
+              result={currentResult}
+              confirmCurrentResult={confirmCurrentResult}
+            />
+          ) : null}
+        </section>
+
+        <aside className={styles.contextRail} aria-label="上下文与执行信息">
+          <details open>
+            <summary>上下文与执行信息</summary>
+            <div className={styles.contextRailBody}>
+              <section className={styles.contextBlock}>
+                <h2>当前任务</h2>
+                <dl className={styles.details}>
+                  <div>
+                    <dt>状态</dt>
+                    <dd>{userVisibleTaskStatus(task)}</dd>
+                  </div>
+                  <div>
+                    <dt>阶段</dt>
+                    <dd>{selectedStageLabel}</dd>
+                  </div>
+                  <div>
+                    <dt>更新时间</dt>
+                    <dd>
+                      <time dateTime={task.updatedAt}>
+                        {formatTimestamp(task.updatedAt)}
+                      </time>
+                    </dd>
+                  </div>
+                  {task.waitingReason !== null ? (
+                    <div>
+                      <dt>等待原因</dt>
+                      <dd>{task.waitingReason}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </section>
+              <ReferenceDetails task={task} />
+              <details className={styles.technicalDetails}>
+                <summary>内部阶段深链</summary>
+                <nav aria-label="内部阶段深链">
+                  <div className={styles.linkColumn}>
+                    {stageCatalog.map((stage) => (
+                      <Link
+                        key={stage}
+                        aria-current={
+                          stage === selectedStage ? "step" : undefined
+                        }
+                        to={{
+                          pathname: routerLocation.pathname,
+                          search: selectedSearch(selectedPanel, stage),
+                        }}
+                      >
+                        {internalStageLabels[stage]}
+                      </Link>
+                    ))}
+                  </div>
+                </nav>
+              </details>
+              <section className={styles.contextBlock}>
+                <h2>业务阶段摘要</h2>
+                <ol className={styles.stages} aria-label="Stage summaries">
+                  {businessStages.map(({ stage, label }) => {
+                    const summary = task.stages.find(
+                      (item) => item.stage === stage,
+                    );
+                    if (summary === undefined) return null;
+                    return (
+                      <li key={stage}>
+                        <strong>{label}</strong>
+                        <span>{visibleStageStatus(summary.status)}</span>
+                        {summary.waitingReason ? (
+                          <span>{summary.waitingReason}</span>
+                        ) : null}
+                        <time dateTime={summary.updatedAt}>
+                          {formatTimestamp(summary.updatedAt)}
+                        </time>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </section>
+            </div>
+          </details>
+        </aside>
+      </div>
     </section>
   );
 }
