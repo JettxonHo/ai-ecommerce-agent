@@ -714,13 +714,93 @@ test("captures Running Review Results visual evidence with reflow and keyboard p
       confirmedAt: "2026-08-12T00:00:00Z",
     },
   };
+  const stageSummary = (
+    stage: string,
+    status: string,
+    options: Readonly<{
+      lastRun?: string;
+      waitingReason?: string;
+    }> = {},
+  ) => ({
+    stage,
+    status,
+    currentVersion: null,
+    lastValidVersion: null,
+    lastRun: options.lastRun === undefined ? null : { runId: options.lastRun },
+    waitingReason: options.waitingReason ?? null,
+    updatedAt: "2026-08-12T00:00:00Z",
+  });
+  const runningStages = [
+    stageSummary("product_intake_and_fact_extraction", "valid", {
+      lastRun: "run-visual",
+    }),
+    stageSummary("customer_insight_analysis", "valid", {
+      lastRun: "run-visual",
+    }),
+    stageSummary("product_positioning", "running", {
+      lastRun: "run-visual",
+    }),
+    stageSummary("human_review", "not_started"),
+    stageSummary("marketing_brief_generation", "not_started"),
+    stageSummary("xiaohongshu_brief_mapping", "not_started"),
+  ];
+  const reviewStages = [
+    stageSummary("product_intake_and_fact_extraction", "valid", {
+      lastRun: "run-visual-review",
+    }),
+    stageSummary("customer_insight_analysis", "valid", {
+      lastRun: "run-visual-review",
+    }),
+    stageSummary("product_positioning", "valid", {
+      lastRun: "run-visual-review",
+    }),
+    stageSummary("human_review", "waiting_review", {
+      lastRun: "run-visual-review",
+      waitingReason: "候选结果等待人工审核",
+    }),
+    stageSummary("marketing_brief_generation", "not_started"),
+    stageSummary("xiaohongshu_brief_mapping", "not_started"),
+  ];
+  const resultStages = [
+    stageSummary("product_intake_and_fact_extraction", "valid", {
+      lastRun: "run-visual-results",
+    }),
+    stageSummary("customer_insight_analysis", "valid", {
+      lastRun: "run-visual-results",
+    }),
+    stageSummary("product_positioning", "valid", {
+      lastRun: "run-visual-results",
+    }),
+    stageSummary("human_review", "valid", {
+      lastRun: "run-visual-results",
+    }),
+    stageSummary("marketing_brief_generation", "valid", {
+      lastRun: "run-visual-results",
+    }),
+    stageSummary("xiaohongshu_brief_mapping", "valid", {
+      lastRun: "run-visual-results",
+    }),
+  ];
   const visualTasks = new Map([
     [
       "task-visual-running",
       {
         ...task,
         taskId: "task-visual-running",
+        taskStatus: "running",
+        currentStage: "product_positioning",
+        waitingReason: null,
+        revision: 2,
+        primaryAction: { type: "NoPrimaryAction" },
+        capabilities: ["cancel"],
+        stages: runningStages,
         activeRun: { runId: "run-visual" },
+        latestRun: { runId: "run-visual" },
+        needsInputRequest: null,
+        reviewPackage: null,
+        approvedStrategy: null,
+        marketingBrief: null,
+        xiaohongshuBrief: null,
       },
     ],
     [
@@ -728,8 +808,20 @@ test("captures Running Review Results visual evidence with reflow and keyboard p
       {
         ...task,
         taskId: "task-visual-review",
+        taskStatus: "waiting_for_review",
+        currentStage: "human_review",
+        waitingReason: "候选结果等待人工审核",
+        revision: 4,
+        primaryAction: { type: "NavigatePrimaryAction", target: "review" },
+        capabilities: ["save_review_draft", "submit_review"],
+        stages: reviewStages,
         activeRun: null,
-        reviewPackage: { reviewPackageId: "visual-review", packageVersion: 1 },
+        latestRun: { runId: "run-visual-review" },
+        needsInputRequest: null,
+        reviewPackage: { reviewPackageId: "visual-review", packageVersion: 4 },
+        approvedStrategy: null,
+        marketingBrief: null,
+        xiaohongshuBrief: null,
       },
     ],
     [
@@ -737,8 +829,22 @@ test("captures Running Review Results visual evidence with reflow and keyboard p
       {
         ...task,
         taskId: "task-visual-results",
+        taskStatus: "completed",
+        currentStage: null,
+        waitingReason: null,
+        revision: 6,
+        primaryAction: { type: "NavigatePrimaryAction", target: "results" },
+        capabilities: ["preview_export", "confirm_export"],
+        stages: resultStages,
         activeRun: null,
+        latestRun: { runId: "run-visual-results" },
+        needsInputRequest: null,
         reviewPackage: null,
+        approvedStrategy: {
+          resourceKind: "approved_strategy",
+          resourceVersionId: "visual-strategy",
+          versionNumber: 1,
+        },
         marketingBrief: {
           resourceKind: "marketing_brief",
           resourceVersionId: "visual-marketing",
@@ -803,6 +909,8 @@ test("captures Running Review Results visual evidence with reflow and keyboard p
       panel: "progress",
       stage: "product_positioning",
       heading: "正在处理",
+      status: "处理中",
+      currentStageLabel: "商品定位",
     },
     {
       name: "review",
@@ -810,6 +918,8 @@ test("captures Running Review Results visual evidence with reflow and keyboard p
       panel: "review",
       stage: "human_review",
       heading: "审核候选结果",
+      status: "待审核",
+      currentStageLabel: "人工审核",
     },
     {
       name: "results",
@@ -817,6 +927,8 @@ test("captures Running Review Results visual evidence with reflow and keyboard p
       panel: "results",
       stage: "marketing_brief_generation",
       heading: "结果已就绪",
+      status: "已完成",
+      currentStageLabel: "营销 Brief",
     },
   ] as const;
   for (const state of states) {
@@ -827,6 +939,17 @@ test("captures Running Review Results visual evidence with reflow and keyboard p
       );
       await expect(
         page.getByRole("heading", { name: state.heading }),
+      ).toBeVisible();
+      const workbench = page.locator(
+        'section[aria-labelledby="task-workbench-heading"]',
+      );
+      await expect(
+        workbench.locator("header").getByText(state.status, { exact: true }),
+      ).toBeVisible();
+      await expect(
+        workbench.getByText(`当前：${state.currentStageLabel}`, {
+          exact: true,
+        }),
       ).toBeVisible();
       expect(
         await page.evaluate(
