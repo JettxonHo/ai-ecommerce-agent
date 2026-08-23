@@ -566,13 +566,11 @@ describe("TaskRoutes", () => {
     });
     expect(
       screen
-        .getByRole("link", { name: "结果", exact: true })
+        .getByRole("link", { name: /^结果$/u })
         .getAttribute("aria-current"),
     ).toBe("page");
     expect(
-      screen
-        .getByRole("link", { name: "结果", exact: true })
-        .getAttribute("href"),
+      screen.getByRole("link", { name: /^结果$/u }).getAttribute("href"),
     ).toBe("/tasks/task-1?filter=mine&panel=results&stage=human_review");
     expect(document.activeElement).toBe(resultsHeading);
   });
@@ -611,7 +609,7 @@ describe("TaskRoutes", () => {
     expect(screen.queryByRole("heading", { name: "结果已就绪" })).toBeNull();
     expect(
       screen
-        .getByRole("link", { name: "Review", exact: true })
+        .getByRole("link", { name: /^Review$/u })
         .getAttribute("aria-current"),
     ).toBe("page");
     expect(screen.getByText("确认失败，请重试。").textContent).toBe(
