@@ -172,7 +172,16 @@ describe("TaskWorkbench", () => {
     expect(within(needsPanel).getByText("预期恢复：继续处理")).toBeTruthy();
     expect(within(needsPanel).getByText("CBP-SYN-001")).toBeTruthy();
     expect(within(needsPanel).getByText("CBP-SYN-002")).toBeTruthy();
-    expect(within(needsPanel).queryByText("source-7")).toBeNull();
+    const sourceDetails = within(needsPanel)
+      .getByText("技术详情", { exact: true })
+      .closest("details");
+    expect(sourceDetails).not.toBeNull();
+    expect((sourceDetails as HTMLDetailsElement).open).toBe(false);
+    expect(
+      within(sourceDetails as HTMLElement).getByText("source-7", {
+        exact: true,
+      }),
+    ).toBeTruthy();
 
     const user = userEvent.setup();
     const firstValue = within(needsPanel).getByRole("radio", {
@@ -188,6 +197,85 @@ describe("TaskWorkbench", () => {
         selectedValue: "CBP-SYN-001",
       });
     });
+  });
+
+  it("keeps request source identities behind a closed native technical disclosure", async () => {
+    const sourceResourceKind = "source_version";
+    const sourceResourceId = '<img src=x onerror="window.__sourceInjected=1">';
+    const request: NeedsInputActionRequest = {
+      actionRequestId: "action-source-details",
+      taskId: taskBaseline.taskId,
+      revision: 4,
+      status: "open",
+      reasonType: "missing_source_reference",
+      reasonSummary: "当前阻断需要补充一个来源引用。",
+      affectedStages: ["product_intake_and_fact_extraction"],
+      sourceReferences: [
+        { resourceKind: sourceResourceKind, resourceId: sourceResourceId },
+      ],
+      conflictValues: [],
+      allowedResolutionTypes: ["provide_source_reference"],
+      expectedRecovery: "resume",
+      supersededBy: null,
+    };
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?panel=intake&stage=product_intake_and_fact_extraction`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task({
+            taskStatus: "waiting_for_input",
+            currentStage: "product_intake_and_fact_extraction",
+            needsInputRequest: {
+              resourceId: request.actionRequestId,
+              revision: request.revision,
+            },
+          })}
+          needsInputRequest={request}
+          needsInputAuthorityMatch
+        />
+      </MemoryRouter>,
+    );
+
+    const panel = screen.getByRole("region", { name: "需要补充信息" });
+    const summary = within(panel).getByText("技术详情", { exact: true });
+    const disclosure = summary.closest("details");
+    expect(disclosure).not.toBeNull();
+    expect((disclosure as HTMLDetailsElement).open).toBe(false);
+
+    const disclosureContents = within(disclosure as HTMLElement);
+    const kindIdentity = disclosureContents.getByText(sourceResourceKind, {
+      exact: true,
+    });
+    const idIdentity = disclosureContents.getByText(sourceResourceId, {
+      exact: true,
+    });
+    expect((kindIdentity.closest("details") as HTMLDetailsElement).open).toBe(
+      false,
+    );
+    expect((idIdentity.closest("details") as HTMLDetailsElement).open).toBe(
+      false,
+    );
+
+    await userEvent.setup().click(summary);
+    expect((disclosure as HTMLDetailsElement).open).toBe(true);
+    expect((kindIdentity.closest("details") as HTMLDetailsElement).open).toBe(
+      true,
+    );
+    expect((idIdentity.closest("details") as HTMLDetailsElement).open).toBe(
+      true,
+    );
+    expect(
+      (disclosure as HTMLElement).querySelector("img, script, [onerror]"),
+    ).toBeNull();
+    expect(
+      disclosureContents.queryByText(
+        /actionRequestId|reasonType|allowedResolutionTypes|sourceReferences|conflictValues/u,
+      ),
+    ).toBeNull();
   });
 
   it("requires explicit confirmation before resolving a known limitation", async () => {

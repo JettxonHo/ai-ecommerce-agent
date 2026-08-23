@@ -77,6 +77,13 @@ const makeRetryKey = (taskId: string, inputRevision: number): string => {
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return `result:${taskId}:${inputRevision}:${random}`;
 };
+const makeOpaqueNeedsInputKey = (): string => {
+  const random =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `needs-input:${random}`.slice(0, 200);
+};
 const makeConfirmationKey = (taskId: string, revision: number) => {
   const random =
     typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
@@ -306,6 +313,9 @@ function TaskOverviewRoute({
   const location = useLocation();
   const navigate = useNavigate();
   const [needsInputCompletion, setNeedsInputCompletion] = useState(false);
+  const [needsInputRefreshError, setNeedsInputRefreshError] = useState<
+    string | null
+  >(null);
   const query = useQuery({
     queryKey: overviewKey(taskId),
     queryFn: () => taskGateway.getTaskOverview(taskId),
@@ -371,12 +381,40 @@ function TaskOverviewRoute({
     resolutionKey: string;
     key: string;
   } | null>(null);
+  const needsInputCommandResolved = useRef(false);
 
   const needsInputRequest = needsInputQuery.data;
   const needsInputAuthorityMatch = needsInputAuthorityMatches(
     query.data ?? ({} as TaskOverview),
     needsInputRequest,
   );
+
+  const refreshTask = async (): Promise<boolean> => {
+    try {
+      const refreshedTask = await taskGateway.getTaskOverview(taskId);
+      queryClient.setQueryData(overviewKey(taskId), refreshedTask);
+      const refreshedReference = refreshedTask.needsInputRequest ?? null;
+      const sameAuthoritativeReference =
+        needsInputReadEnabled &&
+        authoritativeRequestReference !== null &&
+        refreshedReference !== null &&
+        refreshedReference.resourceId ===
+          authoritativeRequestReference.resourceId &&
+        refreshedReference.revision === authoritativeRequestReference.revision;
+      if (sameAuthoritativeReference) {
+        await needsInputQuery.refetch();
+      }
+      setNeedsInputRefreshError(null);
+      if (needsInputCommandResolved.current) {
+        setNeedsInputCompletion(true);
+      }
+      return true;
+    } catch {
+      setNeedsInputCompletion(false);
+      setNeedsInputRefreshError("任务事实暂时无法刷新，请手动重试。");
+      return false;
+    }
+  };
 
   const resolveNeedsInput = async (
     resolution: NeedsInputResolution,
@@ -401,7 +439,7 @@ function TaskOverviewRoute({
       previous.requestKey === requestKey &&
       previous.resolutionKey === normalizedKey
         ? previous.key
-        : `needs-input:${requestKey}:${normalizedKey}`;
+        : makeOpaqueNeedsInputKey();
     needsInputRetryKey.current = {
       requestKey,
       resolutionKey: normalizedKey,
@@ -413,6 +451,7 @@ function TaskOverviewRoute({
       normalized,
       key,
     );
+    needsInputCommandResolved.current = true;
     queryClient.setQueryData(
       needsInputKey(
         taskId,
@@ -421,9 +460,8 @@ function TaskOverviewRoute({
       ),
       resolved.actionRequest,
     );
-    await queryClient.invalidateQueries({ queryKey: overviewKey(taskId) });
+    await refreshTask();
     await queryClient.invalidateQueries({ queryKey: recentTasksKey });
-    setNeedsInputCompletion(true);
     return resolved;
   };
   const savePrimaryInput = async (input: TaskPrimaryInputDraft) => {
@@ -630,7 +668,8 @@ function TaskOverviewRoute({
         needsInputReadEnabled ? () => void needsInputQuery.refetch() : undefined
       }
       resolveNeedsInput={needsInputReadEnabled ? resolveNeedsInput : undefined}
-      refreshTask={() => void query.refetch()}
+      refreshTask={() => void refreshTask()}
+      needsInputRefreshError={needsInputRefreshError}
       hasCurrentResult={
         query.data.marketingBrief !== null ||
         query.data.xiaohongshuBrief !== null

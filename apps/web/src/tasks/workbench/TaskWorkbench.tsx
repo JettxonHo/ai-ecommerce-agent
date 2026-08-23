@@ -56,6 +56,7 @@ type TaskWorkbenchProps = Readonly<{
     resolution: NeedsInputResolution,
   ) => Promise<NeedsInputResolutionResult>;
   refreshTask?: () => void;
+  needsInputRefreshError?: string | null;
   hasCurrentResult?: boolean;
   needsInputCompletion?: boolean;
 }>;
@@ -594,6 +595,7 @@ function NeedsInputPanel({
   retry,
   resolveNeedsInput,
   refreshTask,
+  refreshError = null,
 }: Readonly<{
   request?: NeedsInputActionRequest;
   loading?: boolean;
@@ -604,6 +606,7 @@ function NeedsInputPanel({
     resolution: NeedsInputResolution,
   ) => Promise<NeedsInputResolutionResult>;
   refreshTask?: () => void;
+  refreshError?: string | null;
 }>) {
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
   const [limitationConfirmed, setLimitationConfirmed] = useState(false);
@@ -781,6 +784,7 @@ function NeedsInputPanel({
         </span>
       </div>
       <p>{request.reasonSummary}</p>
+      {refreshError !== null ? <p role="alert">{refreshError}</p> : null}
       <section aria-labelledby="needs-input-stages-heading">
         <h3 id="needs-input-stages-heading">受影响阶段</h3>
         <ul>
@@ -792,6 +796,25 @@ function NeedsInputPanel({
       <p>
         预期恢复：{recoveryLabel[request.expectedRecovery] ?? "按任务事实决定"}
       </p>
+      {request.sourceReferences.length > 0 ? (
+        <details className={styles.technicalDetails}>
+          <summary>技术详情</summary>
+          <dl className={styles.details}>
+            {request.sourceReferences.map((reference) => (
+              <div key={`${reference.resourceKind}:${reference.resourceId}`}>
+                <dt>来源类型</dt>
+                <dd>
+                  <code>{reference.resourceKind}</code>
+                </dd>
+                <dt>来源标识</dt>
+                <dd>
+                  <code>{reference.resourceId}</code>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      ) : null}
       {canChooseExisting ? (
         <fieldset>
           <legend>选择一个已有值</legend>
@@ -1542,6 +1565,7 @@ export function TaskWorkbench({
   retryNeedsInput,
   resolveNeedsInput,
   refreshTask,
+  needsInputRefreshError,
   hasCurrentResult,
   needsInputCompletion = false,
 }: TaskWorkbenchProps) {
@@ -1885,6 +1909,7 @@ export function TaskWorkbench({
               retry={retryNeedsInput}
               resolveNeedsInput={resolveNeedsInput}
               refreshTask={refreshTask}
+              refreshError={needsInputRefreshError}
             />
           ) : null}
 

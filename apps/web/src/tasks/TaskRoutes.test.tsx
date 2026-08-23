@@ -362,23 +362,28 @@ describe("TaskRoutes", () => {
       expectedRecovery: "resume",
       supersededBy: null,
     };
-    const getNeedsInputActionRequest = vi.fn(async () => request);
+    const matchingRequest = { ...request, revision: 2 };
+    let reads = 0;
+    const getNeedsInputActionRequest = vi.fn(async () => {
+      reads += 1;
+      return reads === 1 ? request : matchingRequest;
+    });
     const resolveNeedsInput = vi.fn();
     const needsInputGateway: NeedsInputGateway = {
       getNeedsInputActionRequest,
       resolveNeedsInput,
     };
-    const taskGateway = gatewayFor([
-      overview({
-        taskStatus: "waiting_for_input",
-        currentStage: "product_intake_and_fact_extraction",
-        needsInputRequest: {
-          resourceId: request.actionRequestId,
-          revision: 2,
-        },
-        primaryAction: { kind: "navigate", target: "needs_input" },
-      }),
-    ]);
+    const task = overview({
+      taskStatus: "waiting_for_input",
+      currentStage: "product_intake_and_fact_extraction",
+      needsInputRequest: {
+        resourceId: request.actionRequestId,
+        revision: 2,
+      },
+      primaryAction: { kind: "navigate", target: "needs_input" },
+    });
+    const getTaskOverview = vi.fn(async () => task);
+    const taskGateway = gatewayFor([task], undefined, getTaskOverview);
 
     render(
       <MemoryRouter initialEntries={["/tasks/task-1"]}>
@@ -401,6 +406,7 @@ describe("TaskRoutes", () => {
     const panel = await screen.findByRole("region", {
       name: "需要补充信息",
     });
+    const user = userEvent.setup();
     expect(getNeedsInputActionRequest).toHaveBeenCalledWith(
       request.actionRequestId,
     );
@@ -412,6 +418,22 @@ describe("TaskRoutes", () => {
       name: "确认采用此值",
     });
     expect((submit as HTMLButtonElement).disabled).toBe(true);
+    expect(resolveNeedsInput).not.toHaveBeenCalled();
+
+    await user.click(
+      within(panel).getByRole("button", { name: "刷新任务事实" }),
+    );
+    await waitFor(() => expect(getTaskOverview).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(getNeedsInputActionRequest).toHaveBeenCalledTimes(2),
+    );
+    const refreshedRadio = within(panel).getAllByRole("radio")[0];
+    expect((refreshedRadio as HTMLInputElement).disabled).toBe(false);
+    await user.click(refreshedRadio);
+    const refreshedSubmit = within(panel).getByRole("button", {
+      name: "确认采用此值",
+    });
+    expect((refreshedSubmit as HTMLButtonElement).disabled).toBe(false);
     expect(resolveNeedsInput).not.toHaveBeenCalled();
   });
 
@@ -498,6 +520,79 @@ describe("TaskRoutes", () => {
     await waitFor(() => expect(resolveNeedsInput).toHaveBeenCalledTimes(3));
     const rotatedKey = resolveNeedsInput.mock.calls[2]?.[3];
     expect(rotatedKey).not.toBe(firstKey);
+  });
+
+  it("keeps the Needs Input idempotency key opaque and bounded for long canonical values", async () => {
+    const selectedValue = `selected-${"x".repeat(256)}`;
+    const request: NeedsInputActionRequest = {
+      actionRequestId: "action-opaque-key",
+      taskId: "task-1",
+      revision: 2,
+      status: "open",
+      reasonType: "identity_conflict",
+      reasonSummary: "商品身份存在一个很长的候选值。",
+      affectedStages: ["product_intake_and_fact_extraction"],
+      sourceReferences: [],
+      conflictValues: [
+        {
+          fieldPath: "product.sku",
+          values: [JSON.stringify(selectedValue)],
+        },
+      ],
+      allowedResolutionTypes: ["choose_existing_value"],
+      expectedRecovery: "resume",
+      supersededBy: null,
+    };
+    const resolveNeedsInput = vi
+      .fn<NeedsInputGateway["resolveNeedsInput"]>()
+      .mockRejectedValue(new NeedsInputGatewayError("temporary", "temporary"));
+    const needsInputGateway: NeedsInputGateway = {
+      getNeedsInputActionRequest: vi.fn(async () => request),
+      resolveNeedsInput,
+    };
+    const taskGateway = gatewayFor([
+      overview({
+        taskStatus: "waiting_for_input",
+        currentStage: "product_intake_and_fact_extraction",
+        needsInputRequest: {
+          resourceId: request.actionRequestId,
+          revision: request.revision,
+        },
+        primaryAction: { kind: "navigate", target: "needs_input" },
+      }),
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={["/tasks/task-1"]}>
+        <QueryClientProvider client={new QueryClient()}>
+          <Routes>
+            <Route
+              path="/tasks/:taskId"
+              element={
+                <TaskRoutes
+                  taskGateway={taskGateway}
+                  needsInputGateway={needsInputGateway}
+                />
+              }
+            />
+          </Routes>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+
+    const panel = await screen.findByRole("region", {
+      name: "需要补充信息",
+    });
+    const user = userEvent.setup();
+    await user.click(within(panel).getByRole("radio"));
+    await user.click(
+      within(panel).getByRole("button", { name: "确认采用此值" }),
+    );
+    await waitFor(() => expect(resolveNeedsInput).toHaveBeenCalledTimes(1));
+
+    const key = resolveNeedsInput.mock.calls[0]?.[3] ?? "";
+    expect(key.length).toBeLessThanOrEqual(200);
+    expect(key).not.toContain(selectedValue);
   });
 
   it("rotates the failed-input key when the authoritative request revision changes", async () => {
@@ -693,6 +788,94 @@ describe("TaskRoutes", () => {
       expect(getTaskOverview.mock.calls.length).toBeGreaterThan(1),
     );
     expect(screen.getByText("补充请求已处理，任务事实已刷新。")).toBeTruthy();
+  });
+
+  it("does not claim refreshed authority when resolution succeeds but Task refresh fails", async () => {
+    const request: NeedsInputActionRequest = {
+      actionRequestId: "action-refresh-failure",
+      taskId: "task-1",
+      revision: 2,
+      status: "open",
+      reasonType: "identity_conflict",
+      reasonSummary: "商品身份存在两个候选值。",
+      affectedStages: ["product_intake_and_fact_extraction"],
+      sourceReferences: [],
+      conflictValues: [
+        {
+          fieldPath: "product.sku",
+          values: ['"CBP-SYN-001"', '"CBP-SYN-002"'],
+        },
+      ],
+      allowedResolutionTypes: ["choose_existing_value"],
+      expectedRecovery: "resume",
+      supersededBy: null,
+    };
+    const initialTask = overview({
+      taskStatus: "waiting_for_input",
+      currentStage: "product_intake_and_fact_extraction",
+      needsInputRequest: {
+        resourceId: request.actionRequestId,
+        revision: request.revision,
+      },
+      primaryAction: { kind: "navigate", target: "needs_input" },
+    });
+    const getTaskOverview = vi
+      .fn<TaskGateway["getTaskOverview"]>()
+      .mockResolvedValueOnce(initialTask)
+      .mockRejectedValue(new TaskGatewayError("temporary", "temporary"));
+    const resolveNeedsInput = vi.fn(async () => ({
+      actionRequest: {
+        ...request,
+        revision: request.revision + 1,
+        status: "resolved" as const,
+        allowedResolutionTypes: [],
+      },
+      task: { taskId: request.taskId },
+    }));
+    const taskGateway = gatewayFor([initialTask], undefined, getTaskOverview);
+    const needsInputGateway: NeedsInputGateway = {
+      getNeedsInputActionRequest: vi.fn(async () => request),
+      resolveNeedsInput,
+    };
+
+    render(
+      <MemoryRouter initialEntries={["/tasks/task-1"]}>
+        <QueryClientProvider client={new QueryClient()}>
+          <Routes>
+            <Route
+              path="/tasks/:taskId"
+              element={
+                <TaskRoutes
+                  taskGateway={taskGateway}
+                  needsInputGateway={needsInputGateway}
+                />
+              }
+            />
+          </Routes>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+
+    const panel = await screen.findByRole("region", {
+      name: "需要补充信息",
+    });
+    const user = userEvent.setup();
+    await user.click(
+      within(panel).getByRole("radio", { name: /CBP-SYN-001/u }),
+    );
+    await user.click(
+      within(panel).getByRole("button", { name: "确认采用此值" }),
+    );
+    await waitFor(() => expect(resolveNeedsInput).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(getTaskOverview.mock.calls.length).toBeGreaterThan(1),
+    );
+
+    expect(screen.queryByText("补充请求已处理，任务事实已刷新。")).toBeNull();
+    expect(screen.getByText("需刷新事实")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "刷新任务事实" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "重试提交" })).toBeNull();
+    expect(resolveNeedsInput).toHaveBeenCalledTimes(1);
   });
 
   it("presents a Chinese Action Home with one deterministic priority resume item", async () => {
