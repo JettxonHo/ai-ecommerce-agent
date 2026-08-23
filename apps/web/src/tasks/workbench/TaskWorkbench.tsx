@@ -586,6 +586,10 @@ function ResultPanel({
   const [activeBrief, setActiveBrief] = useState<ExportBriefKind>("marketing");
   const [showPreview, setShowPreview] = useState(false);
   const [showTechnical, setShowTechnical] = useState(false);
+  const resultHeadingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    resultHeadingRef.current?.focus();
+  }, [error, loading, result]);
   if (loading || result === undefined) {
     return (
       <p className={styles.neutral} role="status" aria-live="polite">
@@ -596,7 +600,9 @@ function ResultPanel({
   if (error !== null && error !== undefined) {
     return (
       <section className={styles.resultPanel} aria-labelledby="result-heading">
-        <h2 id="result-heading">结果暂时不可用</h2>
+        <h2 id="result-heading" ref={resultHeadingRef} tabIndex={-1}>
+          结果暂时不可用
+        </h2>
         <p role="alert">{error}</p>
         {retry !== undefined ? (
           <button type="button" onClick={retry}>
@@ -609,7 +615,9 @@ function ResultPanel({
   if (result === null) {
     return (
       <section className={styles.resultPanel} aria-labelledby="result-heading">
-        <h2 id="result-heading">还没有当前结果</h2>
+        <h2 id="result-heading" ref={resultHeadingRef} tabIndex={-1}>
+          还没有当前结果
+        </h2>
         <p>先保存商品资料，再生成结果。</p>
       </section>
     );
@@ -640,7 +648,9 @@ function ResultPanel({
   if (result.status === "insufficient_input") {
     return (
       <section className={styles.resultPanel} aria-labelledby="result-heading">
-        <h2 id="result-heading">需要补充资料</h2>
+        <h2 id="result-heading" ref={resultHeadingRef} tabIndex={-1}>
+          需要补充资料
+        </h2>
         <p>当前资料不足以形成可审核的 Brief。下面列出真实缺口。</p>
         <ul className={styles.resultList}>
           {result.missingInformation.map((item) => (
@@ -670,7 +680,9 @@ function ResultPanel({
       <div className={styles.stateLead}>
         <div>
           <p className={styles.sectionLabel}>结果工作区</p>
-          <h2 id="result-heading">结果已就绪</h2>
+          <h2 id="result-heading" ref={resultHeadingRef} tabIndex={-1}>
+            结果已就绪
+          </h2>
         </div>
         <span className={styles.stateMarker}>
           {result.status === "confirmed" ? "已确认" : "待审核"}
@@ -975,8 +987,8 @@ function ReviewPanel({
     try {
       await confirmCurrentResult(message.trim(), title.trim());
       setStatus("结果已确认，可以查看并导出两个 Brief。");
-    } catch (value) {
-      setStatus(value instanceof Error ? value.message : "确认失败，请重试。");
+    } catch {
+      setStatus("确认失败，请重试。");
     } finally {
       setSaving(false);
     }

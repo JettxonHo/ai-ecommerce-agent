@@ -1,6 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
-import { Link, Navigate, useParams } from "react-router";
+import {
+  Link,
+  Navigate,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router";
 import styles from "./TaskRoutes.module.css";
 import { TaskWorkbench } from "./workbench/TaskWorkbench";
 import {
@@ -255,6 +261,8 @@ function TaskOverviewRoute({
   taskId,
 }: TaskRoutesProps & Readonly<{ taskId: string }>) {
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
   const query = useQuery({
     queryKey: overviewKey(taskId),
     queryFn: () => taskGateway.getTaskOverview(taskId),
@@ -368,6 +376,12 @@ function TaskOverviewRoute({
     confirmationRetryKey.current = null;
     queryClient.setQueryData(currentResultKey(taskId), confirmed);
     await queryClient.invalidateQueries({ queryKey: overviewKey(taskId) });
+    const searchParams = new URLSearchParams(location.search);
+    searchParams.set("panel", "results");
+    navigate({
+      pathname: location.pathname,
+      search: `?${searchParams.toString()}`,
+    });
     return confirmed;
   };
   const exportBrief = async (
