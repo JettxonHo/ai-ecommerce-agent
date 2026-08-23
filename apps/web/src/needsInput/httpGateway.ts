@@ -126,9 +126,13 @@ export const createHttpNeedsInputGateway = (
         ),
       (response) => {
         const mapped = mapNeedsInputResolutionResult(response);
+        const expectedStatus =
+          resolution.type === "cancel_path" ? "cancelled" : "resolved";
         if (
           mapped.actionRequest.actionRequestId !== identityValue ||
-          mapped.actionRequest.taskId !== mapped.task.taskId
+          mapped.actionRequest.taskId !== mapped.task.taskId ||
+          mapped.actionRequest.revision <= expected ||
+          mapped.actionRequest.status !== expectedStatus
         ) {
           throw new NeedsInputGatewayError("invalid", "补充请求响应无效。");
         }

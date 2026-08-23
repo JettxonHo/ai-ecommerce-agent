@@ -790,6 +790,162 @@ describe("TaskRoutes", () => {
     expect(screen.getByText("补充请求已处理，任务事实已刷新。")).toBeTruthy();
   });
 
+  it("keeps stale authority blocked until a new current request is read", async () => {
+    const request: NeedsInputActionRequest = {
+      actionRequestId: "action-stale-success",
+      taskId: "task-1",
+      revision: 2,
+      status: "open",
+      reasonType: "identity_conflict",
+      reasonSummary: "商品身份存在两个候选值。",
+      affectedStages: ["product_intake_and_fact_extraction"],
+      sourceReferences: [],
+      conflictValues: [
+        {
+          fieldPath: "product.sku",
+          values: ['"CBP-SYN-001"', '"CBP-SYN-002"'],
+        },
+      ],
+      allowedResolutionTypes: ["choose_existing_value"],
+      expectedRecovery: "resume",
+      supersededBy: null,
+    };
+    const resolvedRequest: NeedsInputActionRequest = {
+      ...request,
+      revision: 3,
+      status: "resolved",
+      allowedResolutionTypes: ["choose_existing_value"],
+    };
+    const currentRequest: NeedsInputActionRequest = {
+      ...request,
+      actionRequestId: "action-current",
+      revision: 3,
+      reasonSummary: "新的当前阻断需要补充资料。",
+    };
+    const initialTask = overview({
+      taskStatus: "waiting_for_input",
+      currentStage: "product_intake_and_fact_extraction",
+      needsInputRequest: {
+        resourceId: request.actionRequestId,
+        revision: request.revision,
+      },
+      primaryAction: { kind: "navigate", target: "needs_input" },
+    });
+    const staleTask = overview({
+      ...initialTask,
+      revision: 3,
+      needsInputRequest: {
+        resourceId: request.actionRequestId,
+        revision: request.revision,
+      },
+    });
+    const currentTask = overview({
+      ...initialTask,
+      revision: 4,
+      needsInputRequest: {
+        resourceId: currentRequest.actionRequestId,
+        revision: currentRequest.revision,
+      },
+    });
+    const taskResponses = [initialTask, staleTask, currentTask];
+    let taskReadIndex = 0;
+    const getTaskOverview = vi.fn(
+      async () =>
+        taskResponses[Math.min(taskReadIndex++, taskResponses.length - 1)],
+    );
+    const requestResponses = [request, resolvedRequest, currentRequest];
+    let requestReadIndex = 0;
+    const getNeedsInputActionRequest = vi.fn(
+      async () =>
+        requestResponses[
+          Math.min(requestReadIndex++, requestResponses.length - 1)
+        ],
+    );
+    const resolveNeedsInput = vi.fn(async () => ({
+      actionRequest: resolvedRequest,
+      task: { taskId: request.taskId },
+    }));
+    const taskGateway = gatewayFor([initialTask], undefined, getTaskOverview);
+    const needsInputGateway: NeedsInputGateway = {
+      getNeedsInputActionRequest,
+      resolveNeedsInput,
+    };
+
+    render(
+      <MemoryRouter initialEntries={["/tasks/task-1"]}>
+        <QueryClientProvider client={new QueryClient()}>
+          <Routes>
+            <Route
+              path="/tasks/:taskId"
+              element={
+                <TaskRoutes
+                  taskGateway={taskGateway}
+                  needsInputGateway={needsInputGateway}
+                />
+              }
+            />
+          </Routes>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+
+    const panel = await screen.findByRole("region", {
+      name: "需要补充信息",
+    });
+    const user = userEvent.setup();
+    await user.click(
+      within(panel).getByRole("radio", { name: /CBP-SYN-001/u }),
+    );
+    await user.click(
+      within(panel).getByRole("button", { name: "确认采用此值" }),
+    );
+    await waitFor(() => expect(resolveNeedsInput).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(getTaskOverview).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(getNeedsInputActionRequest).toHaveBeenCalledTimes(2),
+    );
+
+    expect(screen.queryByText("补充请求已处理，任务事实已刷新。")).toBeNull();
+    const stalePanel = screen.getByRole("region", {
+      name: "需要补充信息",
+    });
+    expect(within(stalePanel).getByText("需刷新事实")).toBeTruthy();
+    expect(
+      within(stalePanel).getByRole("button", { name: "刷新任务事实" }),
+    ).toBeTruthy();
+    expect(
+      (within(stalePanel).getAllByRole("radio")[0] as HTMLInputElement)
+        .disabled,
+    ).toBe(true);
+    expect(
+      (
+        within(stalePanel).getByRole("button", {
+          name: "确认采用此值",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    expect(resolveNeedsInput).toHaveBeenCalledTimes(1);
+
+    await user.click(
+      within(stalePanel).getByRole("button", { name: "刷新任务事实" }),
+    );
+    await waitFor(() => expect(getTaskOverview).toHaveBeenCalledTimes(3));
+    await waitFor(() =>
+      expect(getNeedsInputActionRequest).toHaveBeenCalledTimes(3),
+    );
+    const currentPanel = await screen.findByRole("region", {
+      name: "需要补充信息",
+    });
+    expect(
+      within(currentPanel).getByText("新的当前阻断需要补充资料。"),
+    ).toBeTruthy();
+    expect(screen.queryByText("补充请求已处理，任务事实已刷新。")).toBeNull();
+    expect(
+      (within(currentPanel).getAllByRole("radio")[0] as HTMLInputElement)
+        .disabled,
+    ).toBe(false);
+  });
+
   it("does not claim refreshed authority when resolution succeeds but Task refresh fails", async () => {
     const request: NeedsInputActionRequest = {
       actionRequestId: "action-refresh-failure",

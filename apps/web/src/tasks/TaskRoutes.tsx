@@ -47,6 +47,11 @@ const needsInputKey = (
   revision: number,
 ) => ["tasks", "needs-input", taskId, actionRequestId, revision] as const;
 
+type ResolvedNeedsInputReference = Readonly<{
+  actionRequestId: string;
+  revision: number;
+}>;
+
 const needsInputAuthorityMatches = (
   task: TaskOverview,
   request: NeedsInputActionRequest | undefined,
@@ -381,13 +386,22 @@ function TaskOverviewRoute({
     resolutionKey: string;
     key: string;
   } | null>(null);
-  const needsInputCommandResolved = useRef(false);
+  const needsInputCommandResolved = useRef<ResolvedNeedsInputReference | null>(
+    null,
+  );
 
   const needsInputRequest = needsInputQuery.data;
-  const needsInputAuthorityMatch = needsInputAuthorityMatches(
-    query.data ?? ({} as TaskOverview),
-    needsInputRequest,
-  );
+  const resolvedReference = needsInputCommandResolved.current;
+  const needsInputAuthorityMatch =
+    resolvedReference === null ||
+    query.data?.needsInputRequest?.resourceId !==
+      resolvedReference.actionRequestId ||
+    query.data.needsInputRequest.revision !== resolvedReference.revision
+      ? needsInputAuthorityMatches(
+          query.data ?? ({} as TaskOverview),
+          needsInputRequest,
+        )
+      : false;
 
   const refreshTask = async (): Promise<boolean> => {
     try {
@@ -405,8 +419,18 @@ function TaskOverviewRoute({
         await needsInputQuery.refetch();
       }
       setNeedsInputRefreshError(null);
-      if (needsInputCommandResolved.current) {
-        setNeedsInputCompletion(true);
+      const resolvedBlocker = needsInputCommandResolved.current;
+      if (resolvedBlocker !== null) {
+        const stillReferencesResolvedBlocker =
+          refreshedReference !== null &&
+          refreshedReference.resourceId === resolvedBlocker.actionRequestId &&
+          refreshedReference.revision === resolvedBlocker.revision;
+        setNeedsInputCompletion(
+          !stillReferencesResolvedBlocker && refreshedReference === null,
+        );
+        if (!stillReferencesResolvedBlocker) {
+          needsInputCommandResolved.current = null;
+        }
       }
       return true;
     } catch {
@@ -451,7 +475,10 @@ function TaskOverviewRoute({
       normalized,
       key,
     );
-    needsInputCommandResolved.current = true;
+    needsInputCommandResolved.current = {
+      actionRequestId: needsInputRequest.actionRequestId,
+      revision: needsInputRequest.revision,
+    };
     queryClient.setQueryData(
       needsInputKey(
         taskId,

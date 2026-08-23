@@ -140,7 +140,15 @@ describe("NeedsInputGateway", () => {
     if (module === null) return;
     const client = {
       POST: vi.fn(async () => ({
-        data: { actionRequest: dto, task: { taskId: "task-1" } },
+        data: {
+          actionRequest: {
+            ...dto,
+            revision: 3,
+            status: "resolved" as const,
+            allowedResolutionTypes: [],
+          },
+          task: { taskId: "task-1" },
+        },
         response: new Response(null, { status: 200 }),
       })),
     };
@@ -171,6 +179,77 @@ describe("NeedsInputGateway", () => {
         },
       },
     );
+  });
+
+  it("requires an advanced terminal status in resolve responses", async () => {
+    const invalidClient = {
+      POST: vi.fn(async () => ({
+        data: {
+          actionRequest: { ...dto, revision: 2, status: "open" as const },
+          task: { taskId: "task-1" },
+        },
+        response: new Response(null, { status: 200 }),
+      })),
+    };
+    const invalidModule = await loadHttpGateway();
+    expect(invalidModule).not.toBeNull();
+    if (invalidModule === null) return;
+    const invalidGateway = invalidModule.createHttpNeedsInputGateway(
+      invalidClient as never,
+    );
+
+    await expect(
+      invalidGateway.resolveNeedsInput(
+        "action-1",
+        2,
+        { type: "choose_existing_value", selectedValue: "CBP-SYN-001" },
+        "key-invalid-response",
+      ),
+    ).rejects.toMatchObject({ kind: "invalid" });
+
+    const validCases = [
+      {
+        resolution: { type: "cancel_path" } as const,
+        status: "cancelled" as const,
+      },
+      {
+        resolution: {
+          type: "choose_existing_value",
+          selectedValue: "CBP-SYN-001",
+        } as const,
+        status: "resolved" as const,
+      },
+    ];
+    for (const { resolution, status } of validCases) {
+      const client = {
+        POST: vi.fn(async () => ({
+          data: {
+            actionRequest: {
+              ...dto,
+              revision: 3,
+              status,
+              allowedResolutionTypes: [],
+            },
+            task: { taskId: "task-1" },
+          },
+          response: new Response(null, { status: 200 }),
+        })),
+      };
+      const module = await loadHttpGateway();
+      expect(module).not.toBeNull();
+      if (module === null) return;
+      const gateway = module.createHttpNeedsInputGateway(client as never);
+
+      const result = await gateway.resolveNeedsInput(
+        "action-1",
+        2,
+        resolution,
+        `key-${status}`,
+      );
+
+      expect(result.actionRequest.revision).toBe(3);
+      expect(result.actionRequest.status).toBe(status);
+    }
   });
 
   it("maps HTTP failures to fixed safe error categories", async () => {
