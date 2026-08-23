@@ -1,8 +1,8 @@
 # AI Ecommerce Agent
 
-> **Status: MVP-0 Fast Lane `GOAL_BLOCKED` · FL-1 FOUNDATION COMPLETE · PHASE A TERMINAL `INSUFFICIENT_SANITIZED_EVIDENCE` · NO PRODUCTION REPAIR OR PHASE B CONTRACT**
+> **Status: MVP-0P Local Action Workbench Productization Goal ACTIVE after Issue #301 merge · P0 DOCS-ONLY ACTIVATION · OLD FAST LANE TERMINAL `GOAL_BLOCKED`**
 >
-> The current execution authority is the [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md). The original [end-to-end MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) remains historical traceability, not the default remaining backlog.
+> The current productization authority is the [MVP-0P Local Action Workbench Productization Goal](docs/goals/mvp0-local-action-workbench-productization-goal.md), activated by [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md). The [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md) is preserved as a terminal `GOAL_BLOCKED` historical execution record, and the original [end-to-end MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) remains historical traceability.
 
 ## Product
 
@@ -17,7 +17,7 @@ AI Ecommerce Agent is a local, fixed-workspace product-launch strategy workbench
 
 The core is platform-neutral. Xiaohongshu is the first demonstration adapter. The main workflow is deterministic; constrained model calls perform semantic analysis, and one human review remains the final decision point.
 
-[DEC-082](docs/decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) fixes the next productization direction as a local single-user Action Workbench. `/tasks` is the action home rather than a dashboard; a stable Task opens one Chinese five-stage progress rail, one active workspace and a collapsible `320–360px` context rail. Review is structured, Results are action-oriented with separate Marketing / Xiaohongshu views, and raw JSON stays behind technical details. The Chinese-first visual language is an “运营编辑部 / 策略桌” using warm neutrals, ink / deep navy and one muted pine / teal accent. This accepted direction does not authorize implementation and does not change `GOAL_BLOCKED`.
+[DEC-082](docs/decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) fixes the local single-user Action Workbench direction. [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md) now sequences its productization as P0 → P1 → P2 → P3 → P4 → P5; P1 is the only next implementation Stage after P0 merge. `/tasks` is the action home rather than a dashboard; a stable Task opens one Chinese five-stage progress rail, one Active Workspace and a collapsible `320–360px` Context Rail. Review is structured, Results are action-oriented with separate Marketing / Xiaohongshu views, and raw JSON stays behind technical details. The human A+C verdict is `HUMAN_SELECTED_AC_BASELINE` only: PR #299 remains open / unmerged, so this is not production implementation.
 
 ## Current repository truth
 
@@ -36,22 +36,22 @@ The repository already contains:
 - React `/tasks` list, Task creation, stable deep links, Workbench projection and TaskWorkbench review/results UI;
 - a real-backend Chromium path covering sufficient and insufficient input, review, download and reload persistence.
 
-The deterministic browser-to-backend loop is implemented and locally verifiable as the accepted FL-1 foundation; it is not the completed Fast Lane MVP. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) implements the private direct DeepSeek `deepseek-v4-pro` runtime and opt-in smoke seam required by [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), and [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280) merged the DEC-080 Xiaohongshu v2 deadline-fence repair offline. The historical first smoke at `main@1c7c2107ead332235d492ed063b67101784d35f1` completed five calls with zero retry/recovery and failed before `awaiting_review`. The second smoke under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) ran at exact `main@ac4edfed6e8e216e9938affdc734298c8630d2de` and stopped after one `product_intake_v1 / v1` call with a fixed safe HTTP 500 before `awaiting_review`; retry/recovery remained 0/0 and all behavior gates were false. Its 8,192 output tokens equal the accepted first-stage ceiling and its 106,434 ms latency is below 120 s, but the equality is only a diagnostic lead because sanitized evidence excludes finish reason, raw response and internal error category. No Provider acceptance is claimed. FL-2 remains terminal `GOAL_BLOCKED`; the bounded cleanup in [Issue #274](https://github.com/JettxonHo/ai-ecommerce-agent/issues/274) is complete, #281 authorization is consumed and closed, and no further Provider run is authorized. [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) Phase A is complete with terminal disposition `INSUFFICIENT_SANITIZED_EVIDENCE`; its real offline seam establishes observational ambiguity across mapper/schema/domain-admission boundaries only, not the historical cause. No production repair was made and no Phase B contract exists. `rejection_disposition` remains a Proposal only, not Accepted/current truth. The OpenAI/Qwen provider-specific legacy adapters, direct tests and live handoffs are removed; `openai==2.53.0` remains because DeepSeek consumes it.
+The deterministic browser-to-backend loop is implemented and locally verifiable as the accepted foundation input; it is not live Provider acceptance. The one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) implements the private direct DeepSeek `deepseek-v4-pro` runtime and opt-in smoke seam required by [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), and [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280) merged the DEC-080 Xiaohongshu v2 deadline-fence repair offline. The historical first smoke completed five calls and failed before `awaiting_review`; the second under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) stopped after one `product_intake_v1 / v1` call with fixed safe HTTP 500 before `awaiting_review`. Neither is Provider acceptance; both authorizations are consumed and no further run is authorized. [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) Phase A ended with `INSUFFICIENT_SANITIZED_EVIDENCE` and observational ambiguity across mapper/schema/domain-admission boundaries only. No production repair or Phase B contract exists, and `rejection_disposition` remains a Proposal only. The OpenAI/Qwen provider-specific legacy adapters, direct tests and live handoffs are removed; `openai==2.53.0` remains because DeepSeek consumes it.
 
 Advanced retrieval, distributed recovery and other deferred capabilities remain intentionally out of this release slice.
 
-## Fast Lane scope
+## Productization stages
 
-The remaining MVP-0 proves one user path:
+The successor Goal is serial and bounded:
 
-1. create a Task;
-2. provide pasted text or one UTF-8 TXT / Markdown file up to 1 MiB;
-3. run Facts → Insight → Positioning → Marketing Brief → Xiaohongshu Brief;
-4. inspect, make a bounded correction and confirm once;
-5. download the current result as Markdown;
-6. preserve the two terminal direct DeepSeek failure records and retain the completed DEC-081 Phase A result (`INSUFFICIENT_SANITIZED_EVIDENCE`); no production repair or Phase B contract exists, and any future Provider run requires a new exact-commit contract and user authorization.
+1. **P0 — Goal activation and current-truth reconciliation:** this docs-only Issue; exactly eight allowlisted files, no code or live action.
+2. **P1 — Action Home and A+C production shell:** Chinese-first `/tasks`, Task identity/header, horizontal five-stage rail, Active Workspace and Context Rail; preserve current generated client/gateway/data behavior and do not change backend/public contracts.
+3. **P2 — Core TaskWorkbench states:** Running, Needs Input, Review and Results with structured Marketing / Xiaohongshu views, safe Markdown preview/export and progressive technical disclosure.
+4. **P3 — Needs Input and essential recovery:** reconcile [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247), no duplicate; smallest bounded action/recovery path.
+5. **P4 — Deterministic local release acceptance:** fictional-data browser → FastAPI → PostgreSQL path, one-command demo, exports and representative recovery; no live Provider/platform call.
+6. **P5 — Spider_XHS feasibility Gate:** docs/research only first; exact upstream, license/commercial permission, platform risk, Cookie/Secret, dependencies/security and read-only seam. No reuse, code copy, clone, install, Cookie/login, proxy, signature, platform request, scraping or publishing without a positive Gate.
 
-The first implementation uses no more than three vertical Issues: input/backend routes, pipeline/current results, and review/export.
+Only P1 follows P0 merge. Each next Stage starts only after the previous PR is independently reviewed and merged. Open Dependabot work and unrelated old Issues remain outside this staged path.
 
 ## Deferred from this Goal
 
@@ -63,24 +63,24 @@ The first implementation uses no more than three vertical Issues: input/backend 
 - unused public operations, login, RBAC, multi-tenancy and public deployment;
 - multi-agent runtime, multi-provider routing, automatic publishing and generic compliance or telemetry platforms.
 
-Existing code for deferred capabilities is preserved but frozen unless the Fast Lane path directly needs it.
+Existing code for deferred capabilities is preserved but frozen unless a productization Stage directly needs it.
 
 ## Security and quality
 
 Required protections remain: external-input limits, fixed-workspace scope, parameterized SQL, atomic current-result persistence, React/Markdown safety, loopback same-origin transport, mutation idempotency, Secret/provider-payload isolation and safe errors.
 
-Fast Lane does not add a new AST scanner, exact private-directory inventory, exhaustive every-field mutation matrix, login/RBAC or public-internet threat model for each module. Tests cover representative behavior and real boundaries in accordance with [DEC-039](docs/decisions/dec-039-proportional-validation-and-review-governance.md) and the concise [Testing Strategy](docs/development/testing-strategy.md).
+Productization does not add a new AST scanner, exact private-directory inventory, exhaustive every-field mutation matrix, login/RBAC or public-internet threat model for each module. Tests cover representative behavior and real boundaries in accordance with [DEC-039](docs/decisions/dec-039-proportional-validation-and-review-governance.md) and the concise [Testing Strategy](docs/development/testing-strategy.md).
 
 ## Execution entry points
 
 Read in this order:
 
 1. [AGENTS.md](AGENTS.md)
-2. [DEC-078](docs/decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md)
-3. [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md) when work touches FL-2 or a Provider boundary
-4. [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) for any post-terminal diagnosis or repair work
-5. [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md)
-6. [Implementation Readiness](docs/handoffs/implementation-readiness.md)
+2. [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md)
+3. [MVP-0P Local Action Workbench Productization Goal](docs/goals/mvp0-local-action-workbench-productization-goal.md)
+4. [Implementation Readiness](docs/handoffs/implementation-readiness.md)
+5. [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) for historical terminal diagnosis boundaries
+6. [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md) as preserved terminal history
 7. the current Issue and the actual code/tests it changes
 
 For an important frontend design or implementation slice, also read [DEC-082](docs/decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md). Applicable taste skills are mandatory for important design work. A user-accepted exact frontend contract may explicitly route work to local Kimi Code + Kimi K3; that narrow exception is not a Luna / Terra fallback, does not extend to backend or Provider boundaries, keeps requested configuration evidence separate from runtime identity, and still requires independent Sol review.
@@ -118,5 +118,7 @@ cp .env.example .env
 - One Issue must deliver one observable vertical outcome; speculative contract-only work is not accepted.
 - Destructive migrations, public deployment, real user data, Provider Secrets and paid live calls remain human gates.
 - DEC-081 Phase A is complete with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`; it established observational ambiguity only, made no production repair and created no Phase B contract. `rejection_disposition` remains a Proposal only, and no future Provider call inherits authorization from either phase.
+- P0 is docs-only and makes no Kimi, Terra, Provider or model call; the local full-access grant does not override independent Review, Secret/provider/platform, destructive-action, public-contract/migration or exact implementation-agent gates.
+- Spider_XHS is a conditional P5 feasibility candidate only; no code reuse, clone, install, Cookie/login, proxy, signature, platform request, scraping or publishing is authorized before a positive feasibility Gate.
 
-See [Decision Log](docs/decisions/decision-log.md) for historical traceability. Current execution is governed by DEC-078, the FL-2 Provider amendment in DEC-079 and the post-terminal offline recovery sequence in DEC-081 rather than by reading all prior planning documents.
+See [Decision Log](docs/decisions/decision-log.md) for historical traceability. Current execution is governed by [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md) and the staged Goal; [DEC-078](docs/decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md), DEC-079 and [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) remain historical / boundary authority for the terminal Fast Lane record.

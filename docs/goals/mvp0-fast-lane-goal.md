@@ -1,12 +1,14 @@
 # MVP-0 Fast Lane Goal
 
-> **Status: ACTIVE — FL-2 TERMINAL RESULT `GOAL_BLOCKED`**
+> **Status: TERMINAL `GOAL_BLOCKED` — historical execution record; no longer the active productization entry**
+>
+> **Successor:** [MVP-0P Local Action Workbench Productization Goal](mvp0-local-action-workbench-productization-goal.md), activated by [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) after the Issue #301 documentation PR merges. This record is preserved; it is not reopened or represented as successful.
 >
 > **Accepted baseline:** `main@371ea0c15546b91ee10fcde8622553b164e5740c`
 >
 > **Accepted by the user on 2026-08-12:** adopt the vertical Fast Lane approach; narrow first-phase inputs to pasted text, TXT and Markdown; rebaseline planning before further implementation; accept the detailed Goal.
 >
-> **Activation:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) records acceptance. PR #248 merged on 2026-08-12 and made this the sole active remaining MVP-0 Goal.
+> **Historical activation:** [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) records the 2026-08-12 acceptance and PR #248 activation. [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) later changes the remaining productization entry to the successor Goal while preserving this execution history.
 >
 > **Accepted cleanup amendment on 2026-08-13:** legacy code and tests are simplified immediately only when they block the current vertical. Other non-blocking legacy work stays frozen until one bounded cleanup reconciliation after the Fast Lane execution result is known and before the final Goal decision.
 >
@@ -18,7 +20,7 @@
 >
 > **Accepted offline recovery path on 2026-08-14:** [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) records the user's Option B. Canonical status remains **MVP-0 Fast Lane `GOAL_BLOCKED`; Phase A completed with terminal disposition `INSUFFICIENT_SANITIZED_EVIDENCE`.** FL-1 deterministic completion is an accepted foundation only. The reviewed offline seam establishes observational ambiguity across actual mapper/schema/domain-admission boundaries and does not identify the historical cause. No production repair was made and no Phase B contract exists. `rejection_disposition` remains a Proposal only, not Accepted/current truth. No Provider run is authorized.
 >
-> **Accepted frontend product direction on 2026-08-19:** [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) fixes the next productization baseline as a local single-user Action Workbench. `/tasks` is an action home, stable Tasks use a Chinese five-stage rail, one Active Workspace and a collapsible `320–360px` Context Rail, with structured Review and action-oriented Marketing / Xiaohongshu Results. This is an accepted design direction only: the next step is a separate design Issue using applicable taste skills. It does not close this Goal, create Phase B, repair Provider behavior or authorize a Kimi / Provider call.
+> **Accepted frontend product direction on 2026-08-19 (historical handoff):** [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) fixes the local single-user Action Workbench baseline. `/tasks` is an action home, stable Tasks use a Chinese five-stage rail, one Active Workspace and a collapsible `320–360px` Context Rail, with structured Review and action-oriented Marketing / Xiaohongshu Results. The A+C selection remains a design baseline only; [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) now carries the successor Goal and exact P1 production contract / review sequence. This historical Goal does not close, create Phase B, repair Provider behavior or authorize a Kimi / Provider call.
 
 ## 1. Outcome
 
@@ -276,6 +278,8 @@ The current completion decision remains `GOAL_BLOCKED`. Any later final Goal dec
 
 ## 11. Authorized activation changes
 
+> **Historical section:** the following instructions describe the Fast Lane activation that was completed by DEC-078. Remaining productization execution is governed by [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) and the successor Goal.
+
 Acceptance of this detailed Goal authorizes this documentation-only rebaseline before implementation:
 
 1. create DEC-078 to amend DEC-075 for the remaining MVP-0 execution;
@@ -286,3 +290,9 @@ Acceptance of this detailed Goal authorizes this documentation-only rebaseline b
 6. create only the first FL-1 vertical Issue and resume autonomous execution under DEC-072.
 
 The documentation PR performs items 1～3. Issue reconciliation and FL-1 implementation begin only after that PR merges.
+
+## 12. Terminal transition
+
+This Goal is a historical `GOAL_BLOCKED` record after the two authorized DeepSeek failures. Both sanitized smoke records remain preserved: the first completed five calls and failed before `awaiting_review`; the second stopped at `product_intake_v1 / v1` with safe HTTP 500 before `awaiting_review`. Neither is Provider acceptance. [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) Phase A ended with `INSUFFICIENT_SANITIZED_EVIDENCE` and observational ambiguity across mapper / schema / domain-admission boundaries; no production repair or Phase B contract exists.
+
+[DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) establishes [MVP-0P Local Action Workbench Productization Goal](mvp0-local-action-workbench-productization-goal.md) as the successor active productization entry after the Issue #301 docs PR merges. This historical Goal is not reopened, and no Provider call or repair authority transfers to the successor. The new Goal's exact serial order is P0 → P1 → P2 → P3 → P4 → P5; only P1 follows P0 merge.
