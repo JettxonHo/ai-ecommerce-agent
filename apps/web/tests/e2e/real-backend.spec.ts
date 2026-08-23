@@ -18,29 +18,27 @@ test("creates a Task and persists primary input through the real backend", async
     "表面有防泼水处理。source-sufficient-product-v1 product.json direct_source。";
 
   await page.goto("/tasks");
-  await page.getByRole("link", { name: "Create a task" }).click();
+  await page.getByRole("link", { name: "新建商品上新任务" }).click();
   await page.getByLabel("Task name").fill("Chromium persisted intake");
   await page.getByLabel("Product category").fill("Backpack");
   await page.getByLabel("Promotion goal").fill("Urban commuter positioning");
   await page.getByRole("button", { name: "Create task" }).click();
 
   await expect(page).toHaveURL(/\/tasks\/[^/]+$/);
-  await expect(
-    page.getByRole("heading", { name: "Current workspace: intake" }),
-  ).toBeVisible();
-  await page.getByLabel("Pasted text").fill(input);
-  await page.getByRole("button", { name: "Save primary input" }).click();
+  await expect(page.getByRole("heading", { name: "当前工作区" })).toBeVisible();
+  await page.getByRole("textbox", { name: "粘贴文本" }).fill(input);
+  await page.getByRole("button", { name: "保存商品资料" }).click();
   await expect(
     page.getByText("Saved revision 0.", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Saved input preview" }),
+    page.getByRole("heading", { name: "已保存资料预览" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("region", { name: "Saved input preview" }).getByText(input),
+    page.getByRole("region", { name: "已保存资料预览" }).getByText(input),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Generate result" }).click();
+  await page.getByRole("button", { name: "生成结果" }).click();
   await expect(page.getByRole("heading", { name: "结果已就绪" })).toBeVisible();
   await expect(page.getByText("待审核", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "营销 Brief" })).toBeVisible();
@@ -49,14 +47,14 @@ test("creates a Task and persists primary input through the real backend", async
   await expect(
     page.getByRole("heading", { name: "Chromium persisted intake" }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Intake", exact: true }).click();
+  await page.getByRole("link", { name: "资料输入", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Saved input preview" }),
+    page.getByRole("heading", { name: "已保存资料预览" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("region", { name: "Saved input preview" }).getByText(input),
+    page.getByRole("region", { name: "已保存资料预览" }).getByText(input),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Results", exact: true }).click();
+  await page.getByRole("link", { name: "结果", exact: true }).click();
   await expect(page.getByRole("heading", { name: "结果已就绪" })).toBeVisible();
   await expect(page.getByText("待审核", { exact: true })).toBeVisible();
 });
@@ -71,14 +69,14 @@ test("confirms current result and downloads both immutable Markdown exports", as
     "表面有防泼水处理。source-sufficient-product-v1 product.json direct_source。";
 
   await page.goto("/tasks");
-  await page.getByRole("link", { name: "Create a task" }).click();
+  await page.getByRole("link", { name: "新建商品上新任务" }).click();
   await page.getByLabel("Task name").fill("Chromium review export");
   await page.getByLabel("Product category").fill("Backpack");
   await page.getByLabel("Promotion goal").fill("Review export");
   await page.getByRole("button", { name: "Create task" }).click();
-  await page.getByLabel("Pasted text").fill(input);
-  await page.getByRole("button", { name: "Save primary input" }).click();
-  await page.getByRole("button", { name: "Generate result" }).click();
+  await page.getByRole("textbox", { name: "粘贴文本" }).fill(input);
+  await page.getByRole("button", { name: "保存商品资料" }).click();
+  await page.getByRole("button", { name: "生成结果" }).click();
   await expect(page.getByText("待审核", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Review", exact: true }).click();
   await expect(page).toHaveURL(/panel=review/);
@@ -158,14 +156,16 @@ test("does not expose review or export actions for an insufficient result", asyn
   page,
 }) => {
   await page.goto("/tasks");
-  await page.getByRole("link", { name: "Create a task" }).click();
+  await page.getByRole("link", { name: "新建商品上新任务" }).click();
   await page.getByLabel("Task name").fill("Chromium insufficient result");
   await page.getByLabel("Product category").fill("Backpack");
   await page.getByLabel("Promotion goal").fill("Insufficient fixture");
   await page.getByRole("button", { name: "Create task" }).click();
-  await page.getByLabel("Pasted text").fill("fixture-insufficient-v1 only");
-  await page.getByRole("button", { name: "Save primary input" }).click();
-  await page.getByRole("button", { name: "Generate result" }).click();
+  await page
+    .getByRole("textbox", { name: "粘贴文本" })
+    .fill("fixture-insufficient-v1 only");
+  await page.getByRole("button", { name: "保存商品资料" }).click();
+  await page.getByRole("button", { name: "生成结果" }).click();
 
   await expect(
     page.getByRole("heading", { name: "需要补充资料" }),

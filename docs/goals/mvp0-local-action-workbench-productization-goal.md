@@ -1,6 +1,6 @@
 # MVP-0P Local Action Workbench Productization Goal
 
-> **Status: ACTIVE — P0 complete; Issue #303 / PR #304 P1 shell merged/current; Issue #305 / PR #306 P2 merged/current; reconciled Issue #247 P3 implementation active and merge-conditional; P4 gated**
+> **Status: ACTIVE — P0 complete; Issue #303 / PR #304 P1 shell merged/current; Issue #305 / PR #306 P2 merged/current; reconciled Issue #247 P3 merged/current; Issue #308 P4A `P4_ACCEPTANCE_PENDING_REVIEWED_MAIN`; reviewed-main P4B pending**
 >
 > **Decision authority:** [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) · [Session-008](../sessions/session-008-local-productization-goal-activation.md) · [Issue #301](https://github.com/JettxonHo/ai-ecommerce-agent/issues/301)
 >
@@ -10,7 +10,7 @@
 
 Turn the accepted deterministic local foundation into one understandable, recoverable and exportable single-user Action Workbench for a small ecommerce operator. The product remains a fixed local workspace with no login, tenant selector or public deployment. The productization Goal does not require Provider acceptance and does not reopen the terminal DeepSeek Gate.
 
-The accepted human A+C selection is the design baseline. `HUMAN_SELECTED_AC_BASELINE` means that the product should expose Chinese task identity and stable business/status reading order, a wide-desktop horizontal five-stage rail, one dominant current action, progressive disclosure and a Context Rail, while retaining the four business states, 1024/320 reflow, focus/reduced-motion behavior and raw JSON behind technical details. [PR #299](https://github.com/JettxonHo/ai-ecommerce-agent/pull/299) remains open and unmerged; Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304) is the merged/current P1 shell. Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306) is the merged/current P2 implementation. Reconciled Issue #247 carries the P3 implementation and is repository-current only with its eventual merge commit. No ignored prototype is promoted by this Goal.
+The accepted human A+C selection is the design baseline. `HUMAN_SELECTED_AC_BASELINE` means that the product should expose Chinese task identity and stable business/status reading order, a wide-desktop horizontal five-stage rail, one dominant current action, progressive disclosure and a Context Rail, while retaining the four business states, 1024/320 reflow, focus/reduced-motion behavior and raw JSON behind technical details. [PR #299](https://github.com/JettxonHo/ai-ecommerce-agent/pull/299) remains open and unmerged; Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304) is the merged/current P1 shell. Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306) is the merged/current P2 implementation. Reconciled Issue #247 carries the merged/current P3 implementation. Issue #308 is the merge-conditional P4A lifecycle and Web-harness reconciliation; its current result is `P4_ACCEPTANCE_PENDING_REVIEWED_MAIN`, and a separate reviewed-main P4B acceptance remains pending. No ignored prototype is promoted by this Goal.
 
 ## 2. Frozen Stage order and operating rule
 
@@ -18,8 +18,8 @@ The exact Stage order is **P0 → P1 → P2 → P3 → P4 → P5**.
 
 - Only one implementation Stage may be active at a time.
 - P1 became current when Issue #303 / PR #304 was independently reviewed and merged. Issue #305 / PR #306 is independently reviewed and merged/current as P2.
-- Reconciled [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247) is the single P3 implementation record; its product result is repository-current only in a checkout containing the eventual merge commit.
-- P4 remains gated until P3 is independently reviewed and merged; no P4 implementation or real-backend Needs Input claim is authorized by this record.
+- Reconciled [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247) is the single P3 implementation record and is merged/current.
+- Issue #308 is the merge-conditional P4A implementation record. It is limited to the protected `demo --ephemeral` lifecycle, source-level Web locator reconciliation and current-truth documentation; it preserves the terminal real-rehearsal strict-mode failure and does not claim P4 acceptance. A separate reviewed-main P4B Issue must run the single contracted fictional-data rehearsal.
 - Create the next implementation Issue only after the previous Stage's PR is independently reviewed and merged.
 - Do not create all implementation Issues up front; each Issue must have a real, immediately observable consumer.
 - Ordinary reversible local repository, test, branch and PR work is standing-authorized inside the active Issue contract. That access does not override Secret / Provider / platform gates, destructive-action controls, public-contract or migration gates, independent Review, or the exact implementation-agent rule.
@@ -55,11 +55,11 @@ Productize the current backend behavior into three product states: Running, Revi
 
 ### P3 — Needs Input and essential recovery
 
-Reconcile and reuse [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247); do not create a duplicate Needs Input Issue. The reconciled delivery is one private generated-client/deterministic gateway, one Chinese-first bounded action workspace and one bounded failed/paused Recovery workspace. P3 is repository-current only with the eventual independently reviewed merge commit. The current FastAPI task resource still projects `needsInputRequest: null` and does not implement the Needs Input read/resolve resource, so this P3 frontend/deterministic evidence does not claim real browser-to-FastAPI completion. Public-contract, persistence or migration changes remain stop conditions unless separately accepted.
+Reconcile and reuse [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247); do not create a duplicate Needs Input Issue. The reconciled delivery is one private generated-client/deterministic gateway, one Chinese-first bounded action workspace and one bounded failed/paused Recovery workspace and is merged/current. The current FastAPI task resource still projects `needsInputRequest: null` and does not implement the Needs Input read/resolve resource, so this P3 frontend/deterministic evidence does not claim real browser-to-FastAPI completion. Public-contract, persistence or migration changes remain stop conditions unless separately accepted.
 
 ### P4 — Deterministic local release acceptance
 
-Run the real browser → FastAPI → PostgreSQL deterministic path with fictional data, the one-command local demo, current exports and representative recovery. Complete the independent correctness / readability / architecture / security / performance Review and Goal Review. P4 does not call a live model, Provider, Xiaohongshu platform or external publishing service; the accepted scripted substitute and existing local evidence remain the boundary.
+Issue #308 P4A delivers the bounded `scripts/mvp0/demo --ephemeral` lifecycle and reconciles the real-backend locators with the merged Chinese single-page TaskWorkbench without changing production or public contracts. The one authorized terminal rehearsal remains `BLOCKED_REAL_REHEARSAL_LOCATOR_STRICT_MODE`; its owned resources were cleaned up and the protected default volume was unchanged. P4A does not rerun Vite, a stack or the real-backend spec. A separate reviewed-main P4B must run the single real browser → FastAPI → PostgreSQL deterministic path with fictional data, the one-command local demo, current exports and representative recovery, then complete the independent correctness / readability / architecture / security / performance Review and Goal Review. P4 does not call a live model, Provider, Xiaohongshu platform or external publishing service; the accepted scripted substitute and existing local evidence remain the boundary.
 
 ### P5 — Spider_XHS conditional feasibility Gate
 
@@ -93,7 +93,7 @@ The Goal is complete only when:
 
 - P0 has merged and the repository has one active productization entry plus one terminal Fast Lane history;
 - P1–P3 have independently reviewed and merged their observable local product results;
-- P4 demonstrates the deterministic local browser-to-export path and completes Goal Review without any live Provider call;
+- P4A is reviewed and merged with its terminal rehearsal evidence preserved, then reviewed-main P4B demonstrates the deterministic local browser-to-export path and completes Goal Review without any live Provider call;
 - P5 has an explicit feasibility disposition (accepted narrow research seam, or rejected / frozen with reasons and no reuse); and
 - no Critical or Blocking defect remains within the accepted local scope, while Provider acceptance is still not claimed.
 
@@ -106,7 +106,7 @@ The DEC-082 Kimi Code + Kimi K3 exception remains limited to a later user-accept
 ## 7. Current limitations and risks
 
 - The deterministic foundation is useful local evidence, not live Provider acceptance.
-- Human selection of A+C is a design baseline; Issue #303 / PR #304 is the merged/current P1 implementation. Issue #305 / PR #306 is the merged/current P2 implementation. Issue #247 is the reconciled P3 implementation record and is merge-conditional; P4 remains gated on independent P3 review/merge.
+- Human selection of A+C is a design baseline; Issue #303 / PR #304 is the merged/current P1 implementation. Issue #305 / PR #306 is the merged/current P2 implementation. Issue #247 is the reconciled merged/current P3 implementation. Issue #308 P4A is merge-conditional with `P4_ACCEPTANCE_PENDING_REVIEWED_MAIN`; the reviewed-main P4B rehearsal and final Goal Review remain pending.
 - Spider_XHS licensing and platform behavior are unresolved and intentionally isolated to P5.
 - Staged execution may leave later work pending; that is preferable to manufacturing parallel Issues without a consumer or bypassing a gate.
 
