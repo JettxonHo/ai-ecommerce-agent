@@ -1,8 +1,8 @@
 # AI Ecommerce Agent
 
-> **Status: [`FINAL_GOAL_REVIEW_PASS`](docs/reviews/mvp0-local-action-workbench-final-goal-review.md) recorded on the closure branch · `MVP0P_GOAL_COMPLETE` becomes current when this record reaches `main` · P0 COMPLETE · ISSUE #303 / PR #304 P1 SHELL MERGED AND CURRENT · ISSUE #305 / PR #306 P2 MERGED AND CURRENT · ISSUE #247 P3 MERGED AND CURRENT · ISSUE #308 P4A MERGED/CURRENT · ISSUE #310 P4B `P4_LOCAL_RELEASE_ACCEPTED` INDEPENDENTLY REVIEWED / P4 COMPLETE · P5 `P5_REUSE_FROZEN` INDEPENDENTLY REVIEWED / P5 COMPLETE · OLD FAST LANE TERMINAL `GOAL_BLOCKED`**
+> **Status: predecessor `MVP0P_GOAL_COMPLETE` is historical merge-effective truth · successor [MVP-0L Local AI Web App Delivery Goal](docs/goals/mvp0-local-ai-web-app-delivery-goal.md) is `ACTIVATION_PENDING` on the Issue #316 branch and becomes `ACTIVE` only when its L0 PR reaches `main` · historical Fast Lane terminal `GOAL_BLOCKED` · `P5_REUSE_FROZEN` preserved**
 >
-> The current productization authority is the [MVP-0P Local Action Workbench Productization Goal](docs/goals/mvp0-local-action-workbench-productization-goal.md), activated by [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md). The [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md) is preserved as a terminal `GOAL_BLOCKED` historical execution record, and the original [end-to-end MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) remains historical traceability.
+> The current L0 activation authority is [DEC-084](docs/decisions/dec-084-apple-silicon-local-ai-web-app-goal.md), [Session-009](docs/sessions/session-009-local-ai-web-app-goal-activation.md) and the successor Goal. The completed [MVP-0P Local Action Workbench Productization Goal](docs/goals/mvp0-local-action-workbench-productization-goal.md) is its historical predecessor. The [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md) remains a terminal `GOAL_BLOCKED` historical execution record, and the original [end-to-end MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) remains historical traceability.
 
 ## Product
 
@@ -17,7 +17,7 @@ AI Ecommerce Agent is a local, fixed-workspace product-launch strategy workbench
 
 The core is platform-neutral. Xiaohongshu is the first demonstration adapter. The main workflow is deterministic; constrained model calls perform semantic analysis, and one human review remains the final decision point.
 
-[DEC-082](docs/decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) fixes the local single-user Action Workbench direction. [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md) sequences its productization as P0 → P1 → P2 → P3 → P4 → P5. Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304) carries the bounded P1 shell and is merged/current. Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306) carries the P2 Running, Review and Results implementation and is merged/current. Reconciled [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247) carries the P3 Needs Input and bounded Recovery implementation and is merged/current. Issue #308 carries the merged/current P4A lifecycle and Web-harness reconciliation. Issue #310 records the provider-free reviewed-main P4B rehearsal as `P4_LOCAL_RELEASE_ACCEPTED`; the accepted P4 local scope is complete and independently reviewed. P5 docs/research is complete and independently reviewed as `P5_REUSE_FROZEN`; direct Spider_XHS reuse and platform behavior remain frozen and unauthorized. The independent closure record is `FINAL_GOAL_REVIEW_PASS`; `MVP0P_GOAL_COMPLETE` becomes current when this record reaches `main`, and no successor Goal or next implementation Stage is authorized. `/tasks` is the action home rather than a dashboard; a stable Task opens one Chinese five-stage progress rail, one Active Workspace and a collapsible `320–360px` Context Rail. Review is structured, Results are action-oriented with separate Marketing / Xiaohongshu views, and raw JSON stays behind technical details. The human A+C verdict is `HUMAN_SELECTED_AC_BASELINE` only: PR #299 remains open / unmerged.
+[DEC-082](docs/decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) and [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md) describe the completed local Action Workbench predecessor: `/tasks`, the Chinese five-stage rail, Active Workspace, Context Rail, structured Review and separate Marketing / Xiaohongshu Results. Its final review merged in PR #315, making `MVP0P_GOAL_COMPLETE` historical current truth. The successor [DEC-084](docs/decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) freezes the next order as L0 → L1 → L2 → L3 → L4 → L5 → L6. The successor is `ACTIVATION_PENDING` on the Issue #316 branch and is not `ACTIVE` until its L0 PR reaches `main`. The human A+C verdict remains `HUMAN_SELECTED_AC_BASELINE` only; PR #299 remains open / unmerged.
 
 ## Current repository truth
 
@@ -37,22 +37,23 @@ The repository already contains:
 - a private Needs Input gateway with generated-client and deterministic adapters, plus bounded Needs Input and Recovery workspaces;
 - a real-backend Chromium harness covering sufficient and insufficient input, review, download and reload persistence; P4B ran it once against the merged Chinese single-page UI and all three fictional-data cases passed with exact ephemeral cleanup.
 
-The deterministic browser-to-backend loop is implemented and locally verifiable as the accepted foundation input; it is not live Provider acceptance. P3 Needs Input UI and adapters remain frontend/deterministic evidence only: the current FastAPI task resource still projects `needsInputRequest: null` and does not implement the Needs Input read/resolve operations, so no real browser-to-FastAPI Needs Input completion is claimed. Issue #308 P4A added a bounded `scripts/mvp0/demo --ephemeral` path while preserving the exact default project and persistent volume, and reconciled the real-backend locators against the merged UI. Issue #310 P4B then ran exactly one retained foreground demo and one real-backend command: all three fictional-data cases passed, cleanup removed only the generated scope, ports were free and the protected default volume was unchanged. This is `P4_LOCAL_RELEASE_ACCEPTED`; the accepted provider-free P4 local scope is complete and independently reviewed. P5 docs/research is complete and independently reviewed as `P5_REUSE_FROZEN`; direct Spider_XHS reuse and platform behavior remain frozen and unauthorized. The independent closure record is `FINAL_GOAL_REVIEW_PASS`; `MVP0P_GOAL_COMPLETE` becomes current when this record reaches `main`, and no successor Goal or next implementation Stage is authorized. No Provider acceptance or authorization was created. The ordinary one-command release path is `scripts/mvp0/demo`; it starts the fixed PostgreSQL service, applies the Business Alembic head, runs the API and Vite Web process on loopback, and keeps those host processes in the foreground. [PR #271](https://github.com/JettxonHo/ai-ecommerce-agent/pull/271) implements the private direct DeepSeek `deepseek-v4-pro` runtime and opt-in smoke seam required by [DEC-079](docs/decisions/dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md), and [PR #280](https://github.com/JettxonHo/ai-ecommerce-agent/pull/280) merged the DEC-080 Xiaohongshu v2 deadline-fence repair offline. The historical first smoke completed five calls and failed before `awaiting_review`; the second under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) stopped after one `product_intake_v1 / v1` call with fixed safe HTTP 500 before `awaiting_review`. Neither is Provider acceptance; both authorizations are consumed and no further run is authorized. [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) Phase A ended with `INSUFFICIENT_SANITIZED_EVIDENCE` and observational ambiguity across mapper/schema/domain-admission boundaries only. No production repair or Phase B contract exists, and `rejection_disposition` remains a Proposal only. The OpenAI/Qwen provider-specific legacy adapters, direct tests and live handoffs are removed; `openai==2.53.0` remains because DeepSeek consumes it.
+The deterministic browser-to-backend loop is implemented and locally verifiable as the completed predecessor foundation; it is not live Provider acceptance. The current FastAPI task resource still projects `needsInputRequest: null` and does not implement the Needs Input read/resolve operations, so L1 starts from an explicit real-backend gap. The predecessor's P4B fictional-data rehearsal and exact cleanup remain `P4_LOCAL_RELEASE_ACCEPTED`; P5 docs/research remains independently reviewed as `P5_REUSE_FROZEN`, with direct Spider_XHS reuse and platform behavior frozen and unauthorized. The predecessor final review merged in PR #315, making `MVP0P_GOAL_COMPLETE` historical current truth. The successor is `ACTIVATION_PENDING` on the Issue #316 branch and becomes `ACTIVE` only when its L0 PR reaches `main`; no L1 implementation is active before that event. The eventual real-AI contract is official DeepSeek `deepseek-v4-pro`, but L0 makes no Provider/model/network/API/PostgreSQL call. The later project-root Git-ignored `.env` containing `DEEPSEEK_API_KEY` is an accepted Secret convention; L0 must not create/read/inspect it. The historical first smoke completed five calls and failed before `awaiting_review`; the second under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) stopped after one `product_intake_v1 / v1` call with fixed safe HTTP 500 before `awaiting_review`. Neither is Provider acceptance; both authorizations are consumed and no further run is authorized. [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) Phase A ended with `INSUFFICIENT_SANITIZED_EVIDENCE` and observational ambiguity across mapper/schema/domain-admission boundaries only. No production repair or Phase B contract exists, and `rejection_disposition` remains a Proposal only.
 
 Advanced retrieval, distributed recovery and other deferred capabilities remain intentionally out of this release slice.
 
-## Productization stages
+## Delivery stages
 
-The completed successor Goal was serial and bounded:
+The completed predecessor P0 → P1 → P2 → P3 → P4 → P5 chain is historical evidence. The successor Goal freezes the next serial order as **L0 → L1 → L2 → L3 → L4 → L5 → L6**:
 
-1. **P0 — Goal activation and current-truth reconciliation:** this docs-only Issue; exactly eight allowlisted files, no code or live action.
-2. **P1 — Action Home and A+C production shell:** Chinese-first `/tasks`, Task identity/header, horizontal five-stage rail, Active Workspace and Context Rail; Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304) is merged/current, preserving current generated client/gateway/data behavior without backend/public-contract changes.
-3. **P2 — Core TaskWorkbench states:** Running, Review and Results with structured Marketing / Xiaohongshu views, safe Markdown preview/export and progressive technical disclosure; Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306) is merged/current.
-4. **P3 — Needs Input and essential recovery:** reconciled [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247) delivers the private gateway, Chinese-first bounded actions and Recovery workspace and is merged/current. The current FastAPI Needs Input read/resolve resource remains unimplemented, and no real-backend completion is claimed.
-5. **P4 — Deterministic local release acceptance:** Issue #308 P4A delivers the bounded ephemeral lifecycle and current-UI locator reconciliation. Issue #310 P4B records `P4_LOCAL_RELEASE_ACCEPTED` after one reviewed-main fictional-data browser → FastAPI → PostgreSQL path, both exports, representative insufficient-input behavior and exact cleanup; the accepted provider-free P4 local scope is complete and independently reviewed, with no live Provider/platform call.
-6. **P5 — Spider_XHS feasibility Gate:** docs/research is complete and independently reviewed as `P5_REUSE_FROZEN`; direct reuse and platform behavior remain frozen and unauthorized. No code copy, clone, install, Cookie/login, proxy, signature, platform request, scraping or publishing is authorized.
+1. **L0 — Governance activation:** this docs-only Issue; exactly nine allowlisted files, no runtime or external action. The branch remains `ACTIVATION_PENDING` until its PR reaches `main`.
+2. **L1 — Real Needs Input backend:** implement the real FastAPI read/resolve boundary and bounded Recovery; current `needsInputRequest: null` remains the starting gap.
+3. **L2 — Minimum Source/Brief persistence:** reconcile tracking parents #81/#82, then create only immediately required bounded child Issues; neither parent is a one-PR contract.
+4. **L3 — Local Web lifecycle:** Apple Silicon + user-installed Docker Desktop, one reliable command, preflight/health/stop and system-default-browser opening. Native App/WebView, Intel, signing and notarization are Deferred.
+5. **L4 — DeepSeek offline diagnosis/repair:** preserve official DeepSeek `deepseek-v4-pro` and the local `.env` boundary; no paid/live call.
+6. **L5 — Real DeepSeek acceptance:** one separately reviewed exact-commit paid acceptance after L4; no prior authorization carries forward.
+7. **L6 — Clean-Mac acceptance and final Goal Review:** another clean Apple Silicon Mac, then an independent completion decision.
 
-P0 is complete. Issue #303 / PR #304, Issue #305 / PR #306 and reconciled Issue #247 are merged/current P1–P3 deliveries. Issue #308 is the merged/current P4A implementation record; Issue #310 records independently reviewed provider-free `P4_LOCAL_RELEASE_ACCEPTED` execution evidence and completes the accepted P4 local scope. The [P5 Spider_XHS feasibility report](docs/reviews/mvp0-spider-xhs-feasibility.md) completes the docs/research Gate with independent review `P5_REUSE_FROZEN`; direct reuse and platform behavior remain frozen and unauthorized. The independent closure record is `FINAL_GOAL_REVIEW_PASS`; `MVP0P_GOAL_COMPLETE` becomes current when this record reaches `main`, and no successor Goal or next implementation Stage is authorized. Open Dependabot work and unrelated old Issues remain outside this staged path.
+Only one successor Stage may be active at a time; the next Issue waits for the prior independently reviewed PR to reach `main`. Intel, native App/WebView/signing/notarization, login/RBAC/multi-user/public deployment, Keychain/Secret UI, real data and Spider_XHS behavior are Deferred or Out of Scope.
 
 ## Deferred from this Goal
 
@@ -74,15 +75,16 @@ Productization does not add a new AST scanner, exact private-directory inventory
 
 ## Execution entry points
 
-Read in this order:
+Read in this order for L0 activation:
 
 1. [AGENTS.md](AGENTS.md)
-2. [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md)
-3. [MVP-0P Local Action Workbench Productization Goal](docs/goals/mvp0-local-action-workbench-productization-goal.md)
-4. [Implementation Readiness](docs/handoffs/implementation-readiness.md)
-5. [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) for historical terminal diagnosis boundaries
-6. [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md) as preserved terminal history
-7. the current Issue and the actual code/tests it changes
+2. [DEC-084](docs/decisions/dec-084-apple-silicon-local-ai-web-app-goal.md)
+3. [MVP-0L Local AI Web App Delivery Goal](docs/goals/mvp0-local-ai-web-app-delivery-goal.md)
+4. [Session-009](docs/sessions/session-009-local-ai-web-app-goal-activation.md)
+5. [Implementation Readiness](docs/handoffs/implementation-readiness.md)
+6. [MVP-0P Local Action Workbench Productization Goal](docs/goals/mvp0-local-action-workbench-productization-goal.md) as historical predecessor
+7. [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md) and [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) for preserved terminal boundaries
+8. the current Issue and the actual code/tests it changes
 
 For an important frontend design or implementation slice, also read [DEC-082](docs/decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md). Applicable taste skills are mandatory for important design work. A user-accepted exact frontend contract may explicitly route work to local Kimi Code + Kimi K3; that narrow exception is not a Luna / Terra fallback, does not extend to backend or Provider boundaries, keeps requested configuration evidence separate from runtime identity, and still requires independent Sol review.
 
@@ -90,27 +92,9 @@ Historical RFCs and Decisions are consulted only when the current vertical chang
 
 ## Local development
 
-Backend setup and commands: [apps/backend/README.md](apps/backend/README.md)
+The completed predecessor's local foundation is documented in [apps/backend/README.md](apps/backend/README.md) and [apps/web/README.md](apps/web/README.md). L0 is documentation-only and does not launch PostgreSQL/API/Web, install dependencies, create or inspect `.env`, or open a browser. The later L3 lifecycle contract will define one Apple Silicon + user-installed Docker Desktop command, preflight/health/stop behavior and system-default-browser opening. The later L5 contract will separately govern one paid DeepSeek acceptance; no live call is authorized here.
 
-Web setup and commands: [apps/web/README.md](apps/web/README.md)
-
-Local PostgreSQL lifecycle:
-
-```bash
-cp .env.example .env
-./scripts/mvp0/preflight --host-processes
-(cd apps/backend && uv sync --locked)
-(cd apps/web && npm ci)
-./scripts/mvp0/demo
-# open the printed URL: http://127.0.0.1:5173/tasks
-# press Ctrl-C to stop only API/Web
-./scripts/mvp0/down       # stop PostgreSQL; named volume is preserved
-
-# bounded isolated rehearsal (uses a repository-prefixed temporary project/volume)
-./scripts/mvp0/demo --ephemeral
-```
-
-`./scripts/mvp0/up` and `./scripts/mvp0/verify` remain database-only lifecycle checks. `scripts/mvp0/demo --ephemeral` owns only its validated repository-prefixed Compose project, network and temporary Postgres volume; the default `scripts/mvp0/demo` path remains project `ai-ecommerce-agent-mvp0` with persistent volume `ai-ecommerce-agent-mvp0-postgres-data`. P4B used exactly one ephemeral demo scope and removed it on Ctrl-C; the protected default volume remained unchanged. `scripts/mvp0/demo` never starts a Worker or selects a live Provider runtime. JSON/CSV/PDF/image/OCR intake, retrieval, distributed Worker/checkpoint recovery, real FastAPI Needs Input/Recovery, advanced Review/Diff, auth/multi-tenant/public deployment and automatic publishing remain deferred.
+The accepted later Secret convention is a project-root Git-ignored `.env` containing `DEEPSEEK_API_KEY`. Do not create, read, inspect, print, measure or hash that file or value during L0. Native App/WebView, Intel, signing/notarization, login/RBAC/multi-user/public deployment and Keychain/Secret UI remain Deferred.
 
 ## Governance
 
@@ -122,7 +106,7 @@ cp .env.example .env
 - One Issue must deliver one observable vertical outcome; speculative contract-only work is not accepted.
 - Destructive migrations, public deployment, real user data, Provider Secrets and paid live calls remain human gates.
 - DEC-081 Phase A is complete with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`; it established observational ambiguity only, made no production repair and created no Phase B contract. `rejection_disposition` remains a Proposal only, and no future Provider call inherits authorization from either phase.
-- P0 is docs-only and makes no Kimi, Terra, Provider or model call; the local full-access grant does not override independent Review, Secret/provider/platform, destructive-action, public-contract/migration or exact implementation-agent gates.
+- L0 is docs-only and makes no Kimi, Terra, Provider or model call; the local full-access grant does not override independent Review, Secret/provider/platform, destructive-action, public-contract/migration or exact implementation-agent gates.
 - Spider_XHS remains frozen and unauthorized after the P5 Gate: no code reuse, clone, install, Cookie/login, proxy, signature, platform request, scraping or publishing is authorized. Any future positive permission or official path would require a separate, explicit contract outside this completed Goal.
 
-See [Decision Log](docs/decisions/decision-log.md) for historical traceability. Current execution is governed by [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md) and the staged Goal; [DEC-078](docs/decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md), DEC-079 and [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) remain historical / boundary authority for the terminal Fast Lane record.
+See [Decision Log](docs/decisions/decision-log.md) for historical traceability. Current L0 activation is governed by [DEC-084](docs/decisions/dec-084-apple-silicon-local-ai-web-app-goal.md), [Session-009](docs/sessions/session-009-local-ai-web-app-goal-activation.md) and the successor Goal. [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md), [DEC-078](docs/decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md), DEC-079 and [DEC-081](docs/decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) remain historical / boundary authority for the completed predecessor and terminal Fast Lane record.
