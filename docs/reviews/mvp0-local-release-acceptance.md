@@ -1,6 +1,6 @@
 # MVP-0 P4B local-release acceptance review
 
-> **Status: P4B execution PASS — `P4_LOCAL_RELEASE_ACCEPTED`; independently reviewed; accepted provider-free P4 local scope complete; final Goal Review and P5 remain pending**
+> **Status: P4B execution PASS — `P4_LOCAL_RELEASE_ACCEPTED`; independently reviewed; accepted provider-free P4 local scope complete; P5 `P5_REUSE_FROZEN` independently reviewed; final closure record [`FINAL_GOAL_REVIEW_PASS`](mvp0-local-action-workbench-final-goal-review.md); `MVP0P_GOAL_COMPLETE` becomes current when that record reaches `main`**
 >
 > **Issue:** [#310](https://github.com/JettxonHo/ai-ecommerce-agent/issues/310) · **Predecessor:** [#308](https://github.com/JettxonHo/ai-ecommerce-agent/issues/308)
 
@@ -26,7 +26,7 @@ PATH=/opt/homebrew/opt/node@24/bin:$PATH MVP0_RUN_REAL_BACKEND_E2E=1 npm run tes
 
 It passed all 3 tests with 1 worker: sufficient Task creation, primary-input persistence, deterministic result, reload and stable `/tasks/:taskId`; current-result confirmation, both immutable UTF-8 Markdown exports and reload persistence; and a separate insufficient Task with Review/export actions unavailable. Existing fictional fixtures were used only. No Needs Input backend state was manufactured; real FastAPI still projects `needsInputRequest: null` and has no public Needs Input read/resolve resource.
 
-Exactly one Ctrl-C was sent to the retained demo session, which exited `130`. Cleanup proof showed the exact ephemeral containers, network and paired volume absent; API/Web processes were gone; ports `8000`, `5173` and `55432` were free; and the protected default volume metadata was unchanged. Therefore the truthful P4B disposition is `P4_LOCAL_RELEASE_ACCEPTED`. Independent five-axis review is complete, so the accepted provider-free P4 local scope is complete. The Productization Goal remains `ACTIVE` because P5 is NEXT as a docs/research-only conditional feasibility Gate and final Goal Review plus its disposition remain pending. The old Fast Lane remains `GOAL_BLOCKED`; no Provider acceptance or authorization was created, and real FastAPI Needs Input/Recovery remains absent.
+Exactly one Ctrl-C was sent to the retained demo session, which exited `130`. Cleanup proof showed the exact ephemeral containers, network and paired volume absent; API/Web processes were gone; ports `8000`, `5173` and `55432` were free; and the protected default volume metadata was unchanged. Therefore the truthful P4B disposition is `P4_LOCAL_RELEASE_ACCEPTED`. Independent five-axis review is complete, so the accepted provider-free P4 local scope is complete. P5 docs/research is complete and independently reviewed as `P5_REUSE_FROZEN`; direct Spider_XHS reuse and platform behavior remain frozen and unauthorized. The closure record is `FINAL_GOAL_REVIEW_PASS`; `MVP0P_GOAL_COMPLETE` becomes current when that record reaches `main`, and no successor Goal or next implementation Stage is authorized. The old Fast Lane remains `GOAL_BLOCKED`; no Provider acceptance or authorization was created, and real FastAPI Needs Input/Recovery remains absent.
 
 ## Historical P4A record (preserved)
 
@@ -127,7 +127,7 @@ Lockfile-only hydration used existing caches (`npm ci --offline --no-audit --no-
 
 ## Five-axis Review input
 
-- **Correctness:** offline lifecycle GREEN covers default protection, bounded ephemeral ownership, fail-closed preflight and cleanup; the source-level locator repair matches current roles. The only real-stack evidence remains the terminal strict-mode failure, so P4 acceptance is pending reviewed-main evidence.
+- **Correctness (historical P4A review):** offline lifecycle GREEN covers default protection, bounded ephemeral ownership, fail-closed preflight and cleanup; the source-level locator repair matches current roles. The only real-stack evidence in that P4A snapshot was the terminal strict-mode failure, so P4 acceptance was pending reviewed-main evidence; P4B above supersedes it with the accepted pass.
 - **Readability:** changes are narrow and comments name the default/ephemeral safety contract. The review records the stale harness mismatch without relabeling it as a product RED.
 - **Architecture:** Compose parameterization is limited to the project/volume pair; no backend, public contract, generated client, migration or new module/seam was added. The single TaskWorkbench route and query-state deep links remain intact.
 - **Security:** default volume is guarded by exact identity, ephemeral names are repository-prefixed and paired, cleanup is scoped to the generated project, and no Secret/provider payload/platform action was used. Existing input, Markdown and same-origin boundaries remain unchanged.
@@ -135,4 +135,4 @@ Lockfile-only hydration used existing caches (`npm ci --offline --no-audit --no-
 
 ## Gate and limitations
 
-The historical P4A result was `P4_ACCEPTANCE_PENDING_REVIEWED_MAIN`. The old Fast Lane Goal remains terminal `GOAL_BLOCKED`; no Provider acceptance exists and no Provider run is authorized. P3 is merged/current. P5 remains a gated docs/research feasibility candidate with no Spider_XHS reuse or platform action. Current P4B execution is recorded above as independently reviewed `P4_LOCAL_RELEASE_ACCEPTED`, completing the accepted provider-free P4 local scope; the Productization Goal remains `ACTIVE` because P5 is NEXT and final Goal Review plus its disposition remain pending.
+The historical P4A result was `P4_ACCEPTANCE_PENDING_REVIEWED_MAIN` (historical P4A gate only). The old Fast Lane Goal remains terminal `GOAL_BLOCKED`; no Provider acceptance exists and no Provider run is authorized. P3 is merged/current. P5 docs/research is complete and independently reviewed as `P5_REUSE_FROZEN`, with no Spider_XHS reuse or platform action. Current P4B execution is recorded above as independently reviewed `P4_LOCAL_RELEASE_ACCEPTED`, completing the accepted provider-free P4 local scope; the closure record is `FINAL_GOAL_REVIEW_PASS` and `MVP0P_GOAL_COMPLETE` becomes current when it reaches `main`.

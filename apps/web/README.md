@@ -25,8 +25,11 @@ volume. The accepted provider-free P4 local scope is complete and independently
 reviewed. P5 docs/research is complete and independently reviewed as
 `P5_REUSE_FROZEN`; direct Spider_XHS reuse and platform behavior remain frozen and
 unauthorized. The [P5 Spider_XHS feasibility report](../../docs/reviews/mvp0-spider-xhs-feasibility.md)
-records the Gate evidence. Final Goal Review remains pending, so the Productization
-Goal stays ACTIVE. No Provider acceptance or authorization was created.
+records the Gate evidence. The independent [closure record
+`FINAL_GOAL_REVIEW_PASS`](../../docs/reviews/mvp0-local-action-workbench-final-goal-review.md)
+is merge-effective as `MVP0P_GOAL_COMPLETE` only when that record reaches `main`,
+and no successor Goal or next implementation Stage is authorized.
+No Provider acceptance or authorization was created.
 
 The current deterministic loop consumes the real local API: create a Task,
 save pasted/TXT/Markdown input, run the scripted Facts → Insight → Positioning
@@ -86,4 +89,4 @@ removed the generated project/network/volume on Ctrl-C. The one authorized one-T
 ran at exact reviewed
 `main@1c7c2107ead332235d492ed063b67101784d35f1`, completed five calls with zero
 retries, and failed safely before `awaiting_review`; FL-2 is `GOAL_BLOCKED`, not
-live verified. Any second paid run requires new explicit authorization.
+live verified. Both historical DeepSeek authorizations are consumed; no further paid/provider run is authorized.
