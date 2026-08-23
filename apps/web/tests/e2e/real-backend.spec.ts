@@ -102,7 +102,7 @@ test("confirms current result and downloads both immutable Markdown exports", as
     "review-marketing-message",
   );
   await page.getByRole("button", { name: "确认并生成结果" }).click();
-  await page.getByRole("link", { name: "Results", exact: true }).click();
+  await expect(page).toHaveURL(/panel=results/u);
   await expect(page.getByText("已确认", { exact: true })).toBeVisible();
   const resultRegion = page.getByRole("region", { name: "结果已就绪" });
   await resultRegion.getByText("技术细节", { exact: true }).click();
