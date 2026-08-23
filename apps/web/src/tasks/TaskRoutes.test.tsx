@@ -490,12 +490,10 @@ describe("TaskRoutes", () => {
       .setup()
       .click(await screen.findByRole("button", { name: "生成结果" }));
     expect(
-      await screen.findByRole("heading", { name: "Current result" }),
+      await screen.findByRole("heading", { name: "结果已就绪" }),
     ).toBeTruthy();
-    expect(screen.getByText("awaiting_review")).toBeTruthy();
-    expect(
-      screen.getByRole("heading", { name: "Marketing Brief" }),
-    ).toBeTruthy();
+    expect(screen.getByText("待审核")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "营销 Brief" })).toBeTruthy();
     expect(generateResult).toHaveBeenCalledTimes(1);
 
     await userEvent
@@ -538,6 +536,87 @@ describe("TaskRoutes", () => {
     expect(generateResult.mock.calls[2]?.[2]).toBe(1);
   });
 
+  it("navigates to Results and hands focus to its heading after confirmation succeeds", async () => {
+    const task = overview({
+      taskId: "task-1",
+      taskStatus: "waiting_for_review",
+      currentStage: "human_review",
+      reviewPackage: { reviewPackageId: "review-1", packageVersion: 1 },
+    });
+    const gateway = createDeterministicTaskGateway({ tasks: [task] });
+    await gateway.savePrimaryInput("task-1", {
+      inputKind: "pasted_text",
+      fileName: null,
+      content:
+        "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包，约 18 升，可放入 14 英寸设备。",
+    });
+    await gateway.generateResult("task-1", "result-key", 0);
+
+    renderRoutes(
+      "/tasks/task-1?filter=mine&panel=review&stage=human_review",
+      gateway,
+    );
+
+    await userEvent
+      .setup()
+      .click(await screen.findByRole("button", { name: "确认并生成结果" }));
+
+    const resultsHeading = await screen.findByRole("heading", {
+      name: "结果已就绪",
+    });
+    expect(
+      screen
+        .getByRole("link", { name: /^结果$/u })
+        .getAttribute("aria-current"),
+    ).toBe("page");
+    expect(
+      screen.getByRole("link", { name: /^结果$/u }).getAttribute("href"),
+    ).toBe("/tasks/task-1?filter=mine&panel=results&stage=human_review");
+    expect(document.activeElement).toBe(resultsHeading);
+  });
+
+  it("keeps Review in place with a safe status when confirmation fails", async () => {
+    const task = overview({
+      taskId: "task-1",
+      taskStatus: "waiting_for_review",
+      currentStage: "human_review",
+      reviewPackage: { reviewPackageId: "review-1", packageVersion: 1 },
+    });
+    const gateway = createDeterministicTaskGateway({ tasks: [task] });
+    await gateway.savePrimaryInput("task-1", {
+      inputKind: "pasted_text",
+      fileName: null,
+      content:
+        "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包，约 18 升，可放入 14 英寸设备。",
+    });
+    await gateway.generateResult("task-1", "result-key", 0);
+    gateway.confirmCurrentResult = vi.fn(async () => {
+      throw new TaskGatewayError("temporary", "confirmation unavailable");
+    });
+
+    renderRoutes(
+      "/tasks/task-1?filter=mine&panel=review&stage=human_review",
+      gateway,
+    );
+
+    await userEvent
+      .setup()
+      .click(await screen.findByRole("button", { name: "确认并生成结果" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "审核候选结果" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "结果已就绪" })).toBeNull();
+    expect(
+      screen
+        .getByRole("link", { name: /^Review$/u })
+        .getAttribute("aria-current"),
+    ).toBe("page");
+    expect(screen.getByText("确认失败，请重试。").textContent).toBe(
+      "确认失败，请重试。",
+    );
+  });
+
   it("renders an insufficient-input result without candidate panels", async () => {
     const task = overview({ taskId: "task-1" });
     const gateway = createDeterministicTaskGateway({ tasks: [task] });
@@ -556,13 +635,11 @@ describe("TaskRoutes", () => {
       .setup()
       .click(await screen.findByRole("button", { name: "生成结果" }));
     expect(
-      await screen.findByRole("heading", { name: "Current result" }),
+      await screen.findByRole("heading", { name: "需要补充资料" }),
     ).toBeTruthy();
     expect(
       screen.getByText("Provide Anchor SKU product identity evidence."),
     ).toBeTruthy();
-    expect(
-      screen.queryByRole("heading", { name: "Marketing Brief" }),
-    ).toBeNull();
+    expect(screen.queryByRole("heading", { name: "营销 Brief" })).toBeNull();
   });
 });

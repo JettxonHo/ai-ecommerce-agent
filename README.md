@@ -1,6 +1,6 @@
 # AI Ecommerce Agent
 
-> **Status: MVP-0P Local Action Workbench Productization Goal ACTIVE after Issue #301 merge · P0 DOCS-ONLY ACTIVATION · ISSUE #303 P1 SHELL DELIVERED AFTER MERGE · P2 GATED · OLD FAST LANE TERMINAL `GOAL_BLOCKED`**
+> **Status: MVP-0P Local Action Workbench Productization Goal ACTIVE · P0 COMPLETE · ISSUE #303 / PR #304 P1 SHELL MERGED AND CURRENT · ISSUE #305 / PR #306 P2 IN REVIEW · P3 GATED · OLD FAST LANE TERMINAL `GOAL_BLOCKED`**
 >
 > The current productization authority is the [MVP-0P Local Action Workbench Productization Goal](docs/goals/mvp0-local-action-workbench-productization-goal.md), activated by [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md). The [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md) is preserved as a terminal `GOAL_BLOCKED` historical execution record, and the original [end-to-end MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) remains historical traceability.
 
@@ -17,7 +17,7 @@ AI Ecommerce Agent is a local, fixed-workspace product-launch strategy workbench
 
 The core is platform-neutral. Xiaohongshu is the first demonstration adapter. The main workflow is deterministic; constrained model calls perform semantic analysis, and one human review remains the final decision point.
 
-[DEC-082](docs/decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) fixes the local single-user Action Workbench direction. [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md) now sequences its productization as P0 → P1 → P2 → P3 → P4 → P5. Issue #303 carries the bounded P1 shell and becomes current only after its PR merges; P2 remains gated on that merge and an independent contract/review. `/tasks` is the action home rather than a dashboard; a stable Task opens one Chinese five-stage progress rail, one Active Workspace and a collapsible `320–360px` Context Rail. Review is structured, Results are action-oriented with separate Marketing / Xiaohongshu views, and raw JSON stays behind technical details. The human A+C verdict is `HUMAN_SELECTED_AC_BASELINE` only: PR #299 remains open / unmerged, while Issue #303 is the separate P1 implementation delivery.
+[DEC-082](docs/decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md) fixes the local single-user Action Workbench direction. [DEC-083](docs/decisions/dec-083-local-action-workbench-productization-goal.md) sequences its productization as P0 → P1 → P2 → P3 → P4 → P5. Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304) carries the bounded P1 shell and is merged/current. Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306) carries the P2 Running, Review and Results implementation and becomes current only after independent review and merge. P3 remains gated; [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247) has not started or been reconciled. `/tasks` is the action home rather than a dashboard; a stable Task opens one Chinese five-stage progress rail, one Active Workspace and a collapsible `320–360px` Context Rail. Review is structured, Results are action-oriented with separate Marketing / Xiaohongshu views, and raw JSON stays behind technical details. The human A+C verdict is `HUMAN_SELECTED_AC_BASELINE` only: PR #299 remains open / unmerged.
 
 ## Current repository truth
 
@@ -45,13 +45,13 @@ Advanced retrieval, distributed recovery and other deferred capabilities remain 
 The successor Goal is serial and bounded:
 
 1. **P0 — Goal activation and current-truth reconciliation:** this docs-only Issue; exactly eight allowlisted files, no code or live action.
-2. **P1 — Action Home and A+C production shell:** Chinese-first `/tasks`, Task identity/header, horizontal five-stage rail, Active Workspace and Context Rail; Issue #303 delivers this shell after merge, preserving current generated client/gateway/data behavior without backend/public-contract changes.
-3. **P2 — Core TaskWorkbench states:** Running, Review and Results with structured Marketing / Xiaohongshu views, safe Markdown preview/export and progressive technical disclosure.
-4. **P3 — Needs Input and essential recovery:** reconcile [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247), no duplicate; smallest bounded action/recovery path.
+2. **P1 — Action Home and A+C production shell:** Chinese-first `/tasks`, Task identity/header, horizontal five-stage rail, Active Workspace and Context Rail; Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304) is merged/current, preserving current generated client/gateway/data behavior without backend/public-contract changes.
+3. **P2 — Core TaskWorkbench states:** Running, Review and Results with structured Marketing / Xiaohongshu views, safe Markdown preview/export and progressive technical disclosure; Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306) carries this implementation and becomes current only after independent review and merge.
+4. **P3 — Needs Input and essential recovery:** remains gated on P2 merge; reconcile [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247) when this Stage starts, with no duplicate; smallest bounded action/recovery path.
 5. **P4 — Deterministic local release acceptance:** fictional-data browser → FastAPI → PostgreSQL path, one-command demo, exports and representative recovery; no live Provider/platform call.
 6. **P5 — Spider_XHS feasibility Gate:** docs/research only first; exact upstream, license/commercial permission, platform risk, Cookie/Secret, dependencies/security and read-only seam. No reuse, code copy, clone, install, Cookie/login, proxy, signature, platform request, scraping or publishing without a positive Gate.
 
-Issue #303 is the P1 delivery after P0; its shell becomes current only when the PR is independently reviewed and merged. P2 remains gated on that merge and its own contract/review. Open Dependabot work and unrelated old Issues remain outside this staged path.
+P0 is complete. Issue #303 / PR #304 is the merged/current P1 delivery. Issue #305 / PR #306 is the active P2 implementation slice and becomes current only after independent review and merge. P3 remains gated on that merge and must reconcile Issue #247 before implementation. Open Dependabot work and unrelated old Issues remain outside this staged path.
 
 ## Deferred from this Goal
 

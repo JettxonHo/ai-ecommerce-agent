@@ -18,6 +18,7 @@ import {
   type WorkbenchPanel,
   type WorkbenchStage,
 } from "./projection";
+import { projectResult, renderMarkdownProjection } from "./resultProjection";
 import styles from "./TaskWorkbench.module.css";
 
 type TaskWorkbenchProps = Readonly<{
@@ -190,6 +191,7 @@ const linkSearch = (
 };
 
 function ReferenceDetails({ task }: Readonly<{ task: TaskOverview }>) {
+  const [showTechnical, setShowTechnical] = useState(false);
   const references = [
     task.activeRunId === null ? null : ["Active Run", task.activeRunId],
     task.latestRunId === null ? null : ["Latest Run", task.latestRunId],
@@ -229,15 +231,26 @@ function ReferenceDetails({ task }: Readonly<{ task: TaskOverview }>) {
 
   return (
     <section className={styles.references}>
-      <h2 id="task-references-heading">Current references</h2>
-      <dl className={styles.referenceList}>
-        {references.map(([label, value]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd>{value}</dd>
-          </div>
-        ))}
-      </dl>
+      <h2 id="task-references-heading">当前引用</h2>
+      <p className={styles.referenceSummary}>
+        来源与版本信息已保留在当前任务中。
+      </p>
+      <details
+        className={styles.technicalDetails}
+        onToggle={(event) => setShowTechnical(event.currentTarget.open)}
+      >
+        <summary>技术详情</summary>
+        {showTechnical ? (
+          <dl className={styles.referenceList}>
+            {references.map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+      </details>
     </section>
   );
 }
@@ -491,25 +504,69 @@ function PrimaryInputPanel({
   );
 }
 
-const resultCandidates: Readonly<
-  Readonly<{
-    key: keyof Pick<
-      TaskCurrentResult,
-      | "productIntake"
-      | "customerInsight"
-      | "productPositioning"
-      | "marketingBrief"
-      | "xiaohongshuBrief"
-    >;
-    label: string;
-  }>[]
-> = [
-  { key: "productIntake", label: "Product Intake" },
-  { key: "customerInsight", label: "Customer Insight" },
-  { key: "productPositioning", label: "Product Positioning" },
-  { key: "marketingBrief", label: "Marketing Brief" },
-  { key: "xiaohongshuBrief", label: "Xiaohongshu Brief" },
-];
+function RunningPanel({
+  task,
+  selectedStage,
+}: Readonly<{ task: TaskOverview; selectedStage: WorkbenchStage }>) {
+  const [showTechnical, setShowTechnical] = useState(false);
+  const stage = task.stages.find((item) => item.stage === selectedStage);
+  return (
+    <section className={styles.runningPanel} aria-labelledby="running-heading">
+      <div className={styles.stateLead}>
+        <div>
+          <p className={styles.sectionLabel}>执行中</p>
+          <h2 id="running-heading">正在处理</h2>
+        </div>
+        <span className={styles.stateMarker}>当前阶段</span>
+      </div>
+      <p className={styles.stateIntro}>
+        系统正在处理这项商品上新任务。完成后会回到这里显示下一步，不展示虚构的百分比或完成时间。
+      </p>
+      <div className={styles.runningGrid}>
+        <section
+          className={styles.semanticGroup}
+          aria-labelledby="running-stage-heading"
+        >
+          <p className={styles.groupLabel}>当前阶段</p>
+          <h3 id="running-stage-heading">
+            {businessStageLabel(selectedStage)}
+          </h3>
+          <p>{stage?.waitingReason ?? "正在整理已提供的资料和上下文。"}</p>
+        </section>
+        <section
+          className={styles.semanticGroup}
+          aria-labelledby="running-context-heading"
+        >
+          <p className={styles.groupLabel}>已知上下文</p>
+          <h3 id="running-context-heading">{task.productCategory}</h3>
+          <p>任务：{task.taskName}</p>
+        </section>
+      </div>
+      <section
+        className={styles.nextAction}
+        aria-labelledby="running-next-heading"
+      >
+        <h3 id="running-next-heading">下一步</h3>
+        <p className={styles.nextActionTitle}>等待当前阶段完成</p>
+        <p>状态更新后继续查看结果或审核材料。</p>
+      </section>
+      <details
+        className={styles.technicalDetails}
+        onToggle={(event) => setShowTechnical(event.currentTarget.open)}
+      >
+        <summary>技术详情</summary>
+        {showTechnical ? (
+          <>
+            {task.activeRunId !== null ? (
+              <p>Active Run：{task.activeRunId}</p>
+            ) : null}
+            <p>任务版本：{task.revision}</p>
+          </>
+        ) : null}
+      </details>
+    </section>
+  );
+}
 
 function ResultPanel({
   result,
@@ -526,21 +583,30 @@ function ResultPanel({
 }>) {
   const [exporting, setExporting] = useState<ExportBriefKind | null>(null);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
+  const [activeBrief, setActiveBrief] = useState<ExportBriefKind>("marketing");
+  const [showPreview, setShowPreview] = useState(false);
+  const [showTechnical, setShowTechnical] = useState(false);
+  const resultHeadingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    resultHeadingRef.current?.focus();
+  }, [error, loading, result]);
   if (loading || result === undefined) {
     return (
       <p className={styles.neutral} role="status" aria-live="polite">
-        Loading current result…
+        正在读取当前结果…
       </p>
     );
   }
   if (error !== null && error !== undefined) {
     return (
       <section className={styles.resultPanel} aria-labelledby="result-heading">
-        <h2 id="result-heading">Current result</h2>
+        <h2 id="result-heading" ref={resultHeadingRef} tabIndex={-1}>
+          结果暂时不可用
+        </h2>
         <p role="alert">{error}</p>
         {retry !== undefined ? (
           <button type="button" onClick={retry}>
-            Retry current result
+            重试读取结果
           </button>
         ) : null}
       </section>
@@ -549,10 +615,10 @@ function ResultPanel({
   if (result === null) {
     return (
       <section className={styles.resultPanel} aria-labelledby="result-heading">
-        <h2 id="result-heading">Current result</h2>
-        <p>
-          No current result yet. Save primary input, then generate a result.
-        </p>
+        <h2 id="result-heading" ref={resultHeadingRef} tabIndex={-1}>
+          还没有当前结果
+        </h2>
+        <p>先保存商品资料，再生成结果。</p>
       </section>
     );
   }
@@ -563,63 +629,263 @@ function ResultPanel({
     setExportMessage(null);
     try {
       const download = await exportBrief(briefKind);
-      setExportMessage(
-        `Export snapshot ${download.snapshot.exportSnapshotId} is ready.`,
-      );
+      if (download.content.trim() === "") {
+        setExportMessage("导出快照已记录，但没有可下载内容，未生成文件。");
+      } else {
+        setExportMessage(
+          `${briefKind === "marketing" ? "营销" : "小红书"} Markdown 已生成并下载。`,
+        );
+      }
     } catch (value) {
       setExportMessage(
-        value instanceof Error ? value.message : "Export failed.",
+        value instanceof Error ? value.message : "导出失败，请稍后重试。",
       );
     } finally {
       setExporting(null);
     }
   };
 
-  return (
-    <section className={styles.resultPanel} aria-labelledby="result-heading">
-      <h2 id="result-heading">Current result</h2>
-      <p>
-        Revision {result.resultRevision} · input revision {result.inputRevision}{" "}
-        · <strong>{result.status}</strong>
-      </p>
-      <time dateTime={result.generatedAt}>Generated {result.generatedAt}</time>
-      {result.status === "insufficient_input" ? (
-        <div className={styles.resultWarning} role="status">
-          <h3>More input required</h3>
+  if (result.status === "insufficient_input") {
+    return (
+      <section className={styles.resultPanel} aria-labelledby="result-heading">
+        <h2 id="result-heading" ref={resultHeadingRef} tabIndex={-1}>
+          需要补充资料
+        </h2>
+        <p>当前资料不足以形成可审核的 Brief。下面列出真实缺口。</p>
+        <ul className={styles.resultList}>
+          {result.missingInformation.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
+
+  const projection = projectResult(result);
+  const markdown = renderMarkdownProjection(result, activeBrief);
+  const briefKinds: readonly ExportBriefKind[] = ["marketing", "xiaohongshu"];
+  const selectBrief = (briefKind: ExportBriefKind) => {
+    setActiveBrief(briefKind);
+    setShowPreview(false);
+  };
+  const renderBriefPanel = (kind: ExportBriefKind) => {
+    const selected = activeBrief === kind;
+    const title = kind === "marketing" ? "营销 Brief" : "小红书 Brief";
+    const content =
+      kind === "marketing"
+        ? projection.marketing.coreMessage
+        : projection.xiaohongshu.titleDirection;
+    const primaryMessage =
+      kind === "marketing" ? projection.marketing.primaryMessage : null;
+    const secondaryBenefits =
+      kind === "marketing"
+        ? projection.marketing.secondaryBenefits
+        : projection.xiaohongshu.messagePriority;
+    return (
+      <section
+        key={kind}
+        id={`${kind}-brief-panel`}
+        role="tabpanel"
+        aria-labelledby={`${kind}-brief-tab`}
+        aria-hidden={!selected}
+        hidden={!selected}
+        className={styles.briefPanel}
+      >
+        <div className={styles.briefPanelHeading}>
+          <h3>{title}</h3>
+          {content !== null ? (
+            <p>{content}</p>
+          ) : (
+            <p>当前结果没有该 Brief 的核心信息。</p>
+          )}
+        </div>
+        {primaryMessage !== null ? <p>{primaryMessage}</p> : null}
+        {secondaryBenefits.length > 0 ? (
           <ul>
-            {result.missingInformation.map((item) => (
+            {secondaryBenefits.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
+        ) : null}
+      </section>
+    );
+  };
+
+  return (
+    <section className={styles.resultPanel} aria-labelledby="result-heading">
+      <div className={styles.stateLead}>
+        <div>
+          <p className={styles.sectionLabel}>结果工作区</p>
+          <h2 id="result-heading" ref={resultHeadingRef} tabIndex={-1}>
+            结果已就绪
+          </h2>
         </div>
-      ) : result.status === "confirmed" ? (
-        <>
-          <div className={styles.resultCandidates}>
-            {resultCandidates.map(({ key, label }) => (
-              <article key={key}>
-                <h3>{label}</h3>
-                <pre>{JSON.stringify(result[key], null, 2)}</pre>
-              </article>
-            ))}
-          </div>
-          {result.confirmation !== null ? (
-            <p>
-              Confirmed {result.confirmation.confirmedAt} · Marketing version{" "}
-              {result.confirmation.marketingBriefVersion.resourceVersionId} ·
-              Xiaohongshu version{" "}
-              {result.confirmation.xiaohongshuBriefVersion.resourceVersionId}
-            </p>
+        <span className={styles.stateMarker}>
+          {result.status === "confirmed" ? "已确认" : "待审核"}
+        </span>
+      </div>
+      <p className={styles.resultIntro}>
+        先看定位、受众、证据与限制，再选择要使用的 Brief。
+      </p>
+      <div className={styles.resultSummary}>
+        <section
+          className={styles.summaryGroup}
+          aria-labelledby="result-positioning-heading"
+        >
+          <h3 id="result-positioning-heading">定位摘要</h3>
+          <p className={styles.summaryValue}>
+            {projection.positioningTitle ?? "定位仍待确认"}
+          </p>
+          {projection.positioningSummary !== null ? (
+            <p>{projection.positioningSummary}</p>
           ) : null}
-          {exportBrief !== undefined ? (
-            <div className={styles.downloads}>
+        </section>
+        <section
+          className={styles.summaryGroup}
+          aria-labelledby="result-audience-heading"
+        >
+          <h3 id="result-audience-heading">目标用户</h3>
+          <p className={styles.summaryValue}>
+            {projection.audience ?? "资料未提供"}
+          </p>
+          {projection.audienceContext.length > 0 ? (
+            <ul>
+              {projection.audienceContext.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+        <section
+          className={styles.summaryGroup}
+          aria-labelledby="result-proof-heading"
+        >
+          <h3 id="result-proof-heading">Proof Points / 证据</h3>
+          <p className={styles.summaryValue}>资料中实际支持的要点</p>
+          {projection.proofPoints.length > 0 ? (
+            <ul>
+              {projection.proofPoints.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>当前结果没有可展示的证据要点。</p>
+          )}
+        </section>
+        <section
+          className={styles.summaryGroup}
+          aria-labelledby="result-risks-heading"
+        >
+          <h3 id="result-risks-heading">风险与限制</h3>
+          <p className={styles.summaryValue}>保持事实边界</p>
+          {projection.evidenceLimitations.length > 0 ||
+          projection.risks.length > 0 ? (
+            <ul>
+              {[...projection.evidenceLimitations, ...projection.risks].map(
+                (item) => (
+                  <li key={item}>{item}</li>
+                ),
+              )}
+            </ul>
+          ) : (
+            <p>当前结果没有额外限制说明。</p>
+          )}
+        </section>
+        <section
+          className={styles.summaryGroup}
+          aria-labelledby="result-next-heading"
+        >
+          <h3 id="result-next-heading">下一步</h3>
+          <p className={styles.summaryValue}>
+            {result.status === "confirmed"
+              ? "使用当前确认版本"
+              : "完成人工审核"}
+          </p>
+          {projection.nextSteps.length > 0 ? (
+            <ul>
+              {projection.nextSteps.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>确认后可分别导出两个 Brief。</p>
+          )}
+        </section>
+      </div>
+
+      <div className={styles.resultBriefArea}>
+        <div className={styles.tabsHeader}>
+          <p className={styles.groupLabel}>Brief 视图</p>
+          <div
+            className={styles.resultTabs}
+            role="tablist"
+            aria-label="结果视图"
+          >
+            {briefKinds.map((kind) => {
+              const label =
+                kind === "marketing" ? "营销 Brief" : "小红书 Brief";
+              const selected = activeBrief === kind;
+              return (
+                <button
+                  key={kind}
+                  type="button"
+                  role="tab"
+                  id={`${kind}-brief-tab`}
+                  aria-selected={selected}
+                  aria-controls={`${kind}-brief-panel`}
+                  tabIndex={selected ? 0 : -1}
+                  className={selected ? styles.tabActive : styles.tab}
+                  onClick={() => {
+                    selectBrief(kind);
+                  }}
+                  onKeyDown={(event) => {
+                    const direction =
+                      event.key === "ArrowRight" || event.key === "ArrowDown"
+                        ? 1
+                        : event.key === "ArrowLeft" || event.key === "ArrowUp"
+                          ? -1
+                          : event.key === "Home"
+                            ? -Infinity
+                            : event.key === "End"
+                              ? Infinity
+                              : 0;
+                    if (direction === 0) return;
+                    event.preventDefault();
+                    const currentIndex = briefKinds.indexOf(kind);
+                    const nextIndex =
+                      direction === Infinity
+                        ? briefKinds.length - 1
+                        : direction === -Infinity
+                          ? 0
+                          : (currentIndex + direction + briefKinds.length) %
+                            briefKinds.length;
+                    const nextBrief = briefKinds[nextIndex] ?? "marketing";
+                    selectBrief(nextBrief);
+                    event.currentTarget.parentElement
+                      ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+                      .item(nextIndex)
+                      ?.focus();
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {briefKinds.map(renderBriefPanel)}
+        <div className={styles.resultActions}>
+          <button type="button" onClick={() => setShowPreview((open) => !open)}>
+            {showPreview ? "收起 Markdown 预览" : "预览 Markdown"}
+          </button>
+          {exportBrief !== undefined && result.status === "confirmed" ? (
+            <>
               <button
                 type="button"
                 disabled={exporting !== null}
                 onClick={() => void download("marketing")}
               >
-                {exporting === "marketing"
-                  ? "Preparing…"
-                  : "Download Marketing Markdown"}
+                {exporting === "marketing" ? "导出中…" : "导出营销 Markdown"}
               </button>
               <button
                 type="button"
@@ -627,28 +893,57 @@ function ResultPanel({
                 onClick={() => void download("xiaohongshu")}
               >
                 {exporting === "xiaohongshu"
-                  ? "Preparing…"
-                  : "Download Xiaohongshu Markdown"}
+                  ? "导出中…"
+                  : "导出小红书 Markdown"}
               </button>
-              {exportMessage !== null ? (
-                <p role="status">{exportMessage}</p>
-              ) : null}
-            </div>
+            </>
           ) : null}
-        </>
-      ) : (
-        <div className={styles.resultCandidates}>
-          {resultCandidates.map(({ key, label }) => {
-            const candidate = result[key];
-            return (
-              <article key={key}>
-                <h3>{label}</h3>
-                <pre>{JSON.stringify(candidate, null, 2)}</pre>
-              </article>
-            );
-          })}
         </div>
-      )}
+        {showPreview ? (
+          <section
+            className={styles.markdownPreview}
+            aria-label="Markdown 预览"
+          >
+            <h3>Markdown 预览</h3>
+            <pre>{markdown}</pre>
+          </section>
+        ) : null}
+        {exportMessage !== null ? (
+          <p className={styles.exportMessage} role="status">
+            {exportMessage}
+          </p>
+        ) : null}
+      </div>
+      <details
+        className={styles.technicalDetails}
+        onToggle={(event) => setShowTechnical(event.currentTarget.open)}
+      >
+        <summary>技术细节</summary>
+        {showTechnical ? (
+          <>
+            <p>
+              结果版本：{result.resultRevision} · 输入版本：
+              {result.inputRevision}
+            </p>
+            <time dateTime={result.generatedAt}>
+              生成于 {formatTimestamp(result.generatedAt)}
+            </time>
+            <pre>
+              {JSON.stringify(
+                {
+                  productIntake: result.productIntake,
+                  customerInsight: result.customerInsight,
+                  productPositioning: result.productPositioning,
+                  marketingBrief: result.marketingBrief,
+                  xiaohongshuBrief: result.xiaohongshuBrief,
+                },
+                null,
+                2,
+              )}
+            </pre>
+          </>
+        ) : null}
+      </details>
     </section>
   );
 }
@@ -663,51 +958,15 @@ function ReviewPanel({
     xiaohongshuTitleDirection: string,
   ) => Promise<TaskCurrentResult>;
 }>) {
-  const record = (value: unknown): Record<string, unknown> | null =>
-    typeof value === "object" && value !== null && !Array.isArray(value)
-      ? (value as Record<string, unknown>)
-      : null;
-  const marketing = record(result?.marketingBrief?.brief_candidate);
-  const xiaohongshu = record(
-    result?.xiaohongshuBrief?.xiaohongshu_brief_candidate,
-  );
-  const marketingMessageGroup = record(marketing?.message_architecture);
-  const xhsStructure = record(xiaohongshu?.creative_structure_directions);
-  const constraints = record(marketing?.constraints_and_honesty);
-  const platformConstraints = record(
-    xiaohongshu?.evidence_and_platform_constraints,
-  );
-  const strings = (value: unknown): string[] =>
-    Array.isArray(value)
-      ? value.filter(
-          (item): item is string =>
-            typeof item === "string" && item.trim() !== "",
-        )
-      : [];
-  const evidenceLimitations = [
-    ...strings(constraints?.evidence_limitations),
-    ...strings(platformConstraints?.evidence_limitations),
-  ];
-  const risks = [
-    ...strings(constraints?.risk_notes),
-    ...strings(platformConstraints?.platform_risk_notes),
-  ];
-  const titleDirections = Array.isArray(xhsStructure?.title_directions)
-    ? xhsStructure.title_directions
-    : [];
-  const firstTitleDirection = record(titleDirections[0]);
-  const marketingMessage =
-    typeof marketingMessageGroup?.core_message === "string"
-      ? marketingMessageGroup.core_message
-      : "";
-  const titleDirection =
-    typeof firstTitleDirection?.title_direction === "string"
-      ? firstTitleDirection.title_direction
-      : "";
+  const projection =
+    result === undefined || result === null ? null : projectResult(result);
+  const marketingMessage = projection?.marketing.coreMessage ?? "";
+  const titleDirection = projection?.xiaohongshu.titleDirection ?? "";
   const [message, setMessage] = useState(marketingMessage);
   const [title, setTitle] = useState(titleDirection);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [showTechnical, setShowTechnical] = useState(false);
   useEffect(() => {
     setMessage(marketingMessage);
     setTitle(titleDirection);
@@ -715,7 +974,8 @@ function ReviewPanel({
   if (
     result === undefined ||
     result === null ||
-    result.status !== "awaiting_review"
+    result.status !== "awaiting_review" ||
+    projection === null
   )
     return null;
   const confirm = async () => {
@@ -724,91 +984,155 @@ function ReviewPanel({
       message.trim() === "" ||
       title.trim() === ""
     ) {
-      setStatus("Enter both bounded corrections before confirming.");
+      setStatus("请填写两项限定修改后再确认。");
       return;
     }
     setSaving(true);
     setStatus(null);
     try {
       await confirmCurrentResult(message.trim(), title.trim());
-      setStatus("Current result confirmed.");
-    } catch (value) {
-      setStatus(
-        value instanceof Error ? value.message : "Confirmation failed.",
-      );
+      setStatus("结果已确认，可以查看并导出两个 Brief。");
+    } catch {
+      setStatus("确认失败，请重试。");
     } finally {
       setSaving(false);
     }
   };
   return (
     <section className={styles.reviewPanel} aria-labelledby="review-heading">
-      <h2 id="review-heading">Review current result</h2>
-      <p>
-        Review the bounded positioning, Marketing Brief, and Xiaohongshu Brief
-        candidates before confirming.
+      <div className={styles.stateLead}>
+        <div>
+          <p className={styles.sectionLabel}>人工审核</p>
+          <h2 id="review-heading">审核候选结果</h2>
+        </div>
+        <span className={styles.stateMarker}>待确认</span>
+      </div>
+      <p className={styles.reviewIntro}>
+        按商品定位、营销 Brief、小红书 Brief 三组信息判断是否可以继续。
       </p>
       <div className={styles.reviewCandidates}>
-        <article>
-          <h3>Positioning candidate</h3>
-          <pre>{JSON.stringify(result.productPositioning, null, 2)}</pre>
-        </article>
-        <article>
-          <h3>Marketing Brief candidate</h3>
-          <pre>{JSON.stringify(result.marketingBrief, null, 2)}</pre>
-        </article>
-        <article>
-          <h3>Xiaohongshu Brief candidate</h3>
-          <pre>{JSON.stringify(result.xiaohongshuBrief, null, 2)}</pre>
-        </article>
+        <section
+          className={styles.semanticGroup}
+          aria-labelledby="review-positioning-heading"
+        >
+          <h3 id="review-positioning-heading">商品定位</h3>
+          <p className={styles.summaryValue}>
+            {projection.positioningTitle ?? "当前没有定位标题"}
+          </p>
+          {projection.positioningSummary !== null ? (
+            <p>{projection.positioningSummary}</p>
+          ) : null}
+          {projection.proofPoints.length > 0 ? (
+            <ul>
+              {projection.proofPoints.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+        <section
+          className={styles.semanticGroup}
+          aria-labelledby="review-marketing-heading"
+        >
+          <h3 id="review-marketing-heading">营销 Brief</h3>
+          <p className={styles.summaryValue}>
+            {marketingMessage || "当前没有核心信息"}
+          </p>
+          {projection.audience !== null ? (
+            <p>目标用户：{projection.audience}</p>
+          ) : null}
+          {projection.marketing.primaryMessage !== null ? (
+            <p>{projection.marketing.primaryMessage}</p>
+          ) : null}
+        </section>
+        <section
+          className={styles.semanticGroup}
+          aria-labelledby="review-xhs-heading"
+        >
+          <h3 id="review-xhs-heading">小红书 Brief</h3>
+          <p className={styles.summaryValue}>
+            {titleDirection || "当前没有标题方向"}
+          </p>
+          {projection.xiaohongshu.contentAngle !== null ? (
+            <p>{projection.xiaohongshu.contentAngle}</p>
+          ) : null}
+        </section>
       </div>
-      {evidenceLimitations.length > 0 ? (
-        <section>
-          <h3>Evidence limitations</h3>
+      {projection.evidenceLimitations.length > 0 ? (
+        <section
+          className={styles.reviewNotes}
+          aria-labelledby="review-limitations-heading"
+        >
+          <h3 id="review-limitations-heading">证据与限制</h3>
           <ul>
-            {evidenceLimitations.map((item, index) => (
-              <li key={`${item}-${index}`}>{item}</li>
+            {projection.evidenceLimitations.map((item) => (
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </section>
       ) : null}
-      {risks.length > 0 ? (
-        <section>
-          <h3>Risks</h3>
+      {projection.risks.length > 0 ? (
+        <section
+          className={styles.reviewNotes}
+          aria-labelledby="review-risks-heading"
+        >
+          <h3 id="review-risks-heading">风险</h3>
           <ul>
-            {risks.map((item, index) => (
-              <li key={`${item}-${index}`}>{item}</li>
+            {projection.risks.map((item) => (
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </section>
       ) : null}
-      <label className={styles.inputField} htmlFor="review-marketing-message">
-        Marketing core message
-        <textarea
-          id="review-marketing-message"
-          maxLength={4096}
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          rows={3}
-        />
-      </label>
-      <label className={styles.inputField} htmlFor="review-xiaohongshu-title">
-        Xiaohongshu title direction
-        <textarea
-          id="review-xiaohongshu-title"
-          maxLength={4096}
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          rows={3}
-        />
-      </label>
-      <button
-        type="button"
-        disabled={saving || confirmCurrentResult === undefined}
-        onClick={() => void confirm()}
-      >
-        {saving ? "Confirming…" : "Confirm current result"}
-      </button>
+      <div className={styles.reviewFields}>
+        <label className={styles.inputField} htmlFor="review-marketing-message">
+          营销核心信息
+          <textarea
+            id="review-marketing-message"
+            maxLength={4096}
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            rows={3}
+          />
+        </label>
+        <label className={styles.inputField} htmlFor="review-xiaohongshu-title">
+          小红书标题方向
+          <textarea
+            id="review-xiaohongshu-title"
+            maxLength={4096}
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            rows={3}
+          />
+        </label>
+        <button
+          type="button"
+          disabled={saving || confirmCurrentResult === undefined}
+          onClick={() => void confirm()}
+        >
+          {saving ? "确认中…" : "确认并生成结果"}
+        </button>
+      </div>
       {status !== null ? <p role="status">{status}</p> : null}
+      <details
+        className={styles.technicalDetails}
+        onToggle={(event) => setShowTechnical(event.currentTarget.open)}
+      >
+        <summary>技术细节</summary>
+        {showTechnical ? (
+          <pre>
+            {JSON.stringify(
+              {
+                productPositioning: result.productPositioning,
+                marketingBrief: result.marketingBrief,
+                xiaohongshuBrief: result.xiaohongshuBrief,
+              },
+              null,
+              2,
+            )}
+          </pre>
+        ) : null}
+      </details>
     </section>
   );
 }
@@ -890,6 +1214,11 @@ export function TaskWorkbench({
 
   const selectedPanel = workbenchLocation.panel;
   const selectedStage = workbenchLocation.stage;
+  const runningStage =
+    typeof task.currentStage === "string" &&
+    stageCatalog.includes(task.currentStage as WorkbenchStage)
+      ? (task.currentStage as WorkbenchStage)
+      : deriveWorkbenchLocation(task, "").stage;
   const selectedSearch = (panel: WorkbenchPanel, stage = selectedStage) =>
     linkSearch(routerLocation.search, panel, stage);
   const generateAndShowResults = async (): Promise<TaskCurrentResult> => {
@@ -1137,6 +1466,10 @@ export function TaskWorkbench({
               retry={retryCurrentResult}
               exportBrief={exportBrief}
             />
+          ) : null}
+
+          {selectedPanel === "progress" && mode === "running" ? (
+            <RunningPanel task={task} selectedStage={runningStage} />
           ) : null}
 
           {selectedPanel === "review" ? (
