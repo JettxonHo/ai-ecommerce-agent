@@ -24,7 +24,7 @@ describe("foundation startup contract", () => {
       </BrowserRouter>,
     );
 
-    expect(screen.getByRole("heading", { name: "Recent tasks" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "行动首页" })).toBeTruthy();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
