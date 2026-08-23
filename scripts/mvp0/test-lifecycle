@@ -54,7 +54,9 @@ REAL_PYTHON="$(command -v python3)"
 cat >"$SANDBOX/fake-bin/docker" <<'FAKE_DOCKER'
 #!/usr/bin/env bash
 set -Eeuo pipefail
-printf 'docker %s\n' "$*" >>"${MVP0_TEST_DOCKER_LOG:?}"
+printf 'docker %s [scope=%s volume=%s]\n' "$*" \
+  "${MVP0_COMPOSE_PROJECT:-unset}" "${MVP0_POSTGRES_VOLUME_NAME:-unset}" \
+  >>"${MVP0_TEST_DOCKER_LOG:?}"
 if [[ "${1:-}" != compose ]]; then
   [[ "${1:-}" == info ]] && exit 0
   exit 0
@@ -208,13 +210,18 @@ run_demo() {
   local output_file="$1"
   local docker_log="$2"
   shift 2
+  local -a demo_command=("$SANDBOX/scripts/mvp0/demo")
+  if (($#)); then
+    demo_command+=("$@")
+  fi
   env "${preflight_env[@]}" MVP0_TEST_DOCKER_LOG="$docker_log" \
+    MVP0_TEST_WEB_FAIL="${MVP0_TEST_WEB_FAIL:-0}" \
     MVP0_TEST_CURL_LOG="$SANDBOX/curl.log" \
     MVP0_TEST_API_PID="$SANDBOX/api.pid" \
     MVP0_TEST_WEB_PID="$SANDBOX/web.pid" \
     MVP0_TEST_API_STARTED="$SANDBOX/api.started" \
     MVP0_TEST_WEB_STARTED="$SANDBOX/web.started" \
-    "$@" "$SANDBOX/scripts/mvp0/demo" >"$output_file" 2>&1 &
+    "${demo_command[@]}" >"$output_file" 2>&1 &
   demo_pid="$!"
 }
 
@@ -239,5 +246,82 @@ set -e
 (( demo_status != 0 )) || fail 'child failure demo unexpectedly passed'
 assert_not_running "$SANDBOX/api.pid"
 assert_not_running "$SANDBOX/web.pid"
+default_docker_log="$(<"$SANDBOX/demo-docker.log")"
+assert_contains '--project-name ai-ecommerce-agent-mvp0' "$default_docker_log"
+assert_contains 'volume=ai-ecommerce-agent-mvp0-postgres-data' "$default_docker_log"
+assert_not_contains 'down --volumes' "$default_docker_log"
+assert_not_contains 'ephemeral-' "$default_docker_log"
 
+ephemeral_port_log="$SANDBOX/ephemeral-port-docker.log"
+set +e
+ephemeral_port_output="$(env "${preflight_env[@]}" MVP0_TEST_DOCKER_LOG="$ephemeral_port_log" \
+  MVP0_TEST_OCCUPIED_PORT=8000 "$SANDBOX/scripts/mvp0/demo" --ephemeral 2>&1)"
+ephemeral_port_status=$?
+set -e
+(( ephemeral_port_status != 0 )) || fail 'ephemeral occupied-port demo unexpectedly passed'
+assert_contains 'loopback port 8000 is already in use' "$ephemeral_port_output"
+if grep -Eq 'docker .* up ' "$ephemeral_port_log" 2>/dev/null; then
+  fail 'ephemeral occupied-port failure started PostgreSQL'
+fi
+
+rm -f "$SANDBOX/curl.log" "$SANDBOX/api.pid" "$SANDBOX/web.pid" \
+  "$SANDBOX/api.started" "$SANDBOX/web.started"
+ephemeral_error_log="$SANDBOX/ephemeral-error-docker.log"
+ephemeral_error_output="$SANDBOX/ephemeral-error.log"
+set +e
+MVP0_TEST_WEB_FAIL=1 run_demo "$ephemeral_error_output" "$ephemeral_error_log" --ephemeral
+ephemeral_error_pid="$demo_pid"
+wait "$ephemeral_error_pid"
+ephemeral_error_status=$?
+set -e
+(( ephemeral_error_status != 0 )) || fail 'ephemeral child failure unexpectedly passed'
+assert_not_running "$SANDBOX/api.pid"
+assert_not_running "$SANDBOX/web.pid"
+ephemeral_error_docker_log="$(<"$ephemeral_error_log")"
+assert_contains 'down --volumes --remove-orphans' "$ephemeral_error_docker_log"
+assert_contains 'volume=ai-ecommerce-agent-mvp0-ephemeral-' "$ephemeral_error_docker_log"
+assert_not_contains 'volume=ai-ecommerce-agent-mvp0-postgres-data' "$ephemeral_error_docker_log"
+ephemeral_error_project="$(sed -n 's/.*--project-name \([^ ]*\).*/\1/p' "$ephemeral_error_log" | tail -n 1)"
+[[ "$ephemeral_error_project" == ai-ecommerce-agent-mvp0-ephemeral-* ]] ||
+  fail "unexpected ephemeral project: ${ephemeral_error_project:-<none>}"
+ephemeral_error_volume="$(sed -n 's/.*volume=\([^]]*\).*/\1/p' "$ephemeral_error_log" | tail -n 1)"
+[[ "$ephemeral_error_volume" == "${ephemeral_error_project}-pg" ]] ||
+  fail "unexpected error volume: ${ephemeral_error_volume:-<none>}"
+
+rm -f "$SANDBOX/curl.log" "$SANDBOX/api.pid" "$SANDBOX/web.pid" \
+  "$SANDBOX/api.started" "$SANDBOX/web.started"
+ephemeral_signal_log="$SANDBOX/ephemeral-signal-docker.log"
+ephemeral_signal_output="$SANDBOX/ephemeral-signal.log"
+run_demo "$ephemeral_signal_output" "$ephemeral_signal_log" --ephemeral
+ephemeral_signal_pid="$demo_pid"
+for _ in {1..20}; do
+  grep -Fq 'Browser URL: http://127.0.0.1:5173/tasks' "$ephemeral_signal_output" 2>/dev/null && break
+  /bin/sleep 0.2
+done
+grep -Fq 'Browser URL: http://127.0.0.1:5173/tasks' "$ephemeral_signal_output" ||
+  fail 'ephemeral signal demo never reached browser readiness'
+kill -TERM "$ephemeral_signal_pid"
+set +e
+wait "$ephemeral_signal_pid"
+ephemeral_signal_status=$?
+set -e
+(( ephemeral_signal_status == 130 )) ||
+  fail "ephemeral signal demo returned ${ephemeral_signal_status}, expected 130"
+assert_not_running "$SANDBOX/api.pid"
+assert_not_running "$SANDBOX/web.pid"
+ephemeral_signal_docker_log="$(<"$ephemeral_signal_log")"
+assert_contains 'down --volumes --remove-orphans' "$ephemeral_signal_docker_log"
+ephemeral_signal_project="$(sed -n 's/.*--project-name \([^ ]*\).*/\1/p' "$ephemeral_signal_log" | tail -n 1)"
+[[ "$ephemeral_signal_project" == ai-ecommerce-agent-mvp0-ephemeral-* ]] ||
+  fail "unexpected signal project: ${ephemeral_signal_project:-<none>}"
+ephemeral_signal_volume="$(sed -n 's/.*volume=\([^]]*\).*/\1/p' "$ephemeral_signal_log" | tail -n 1)"
+[[ "$ephemeral_signal_volume" == "${ephemeral_signal_project}-pg" ]] ||
+  fail "unexpected signal volume: ${ephemeral_signal_volume:-<none>}"
+[[ "$ephemeral_signal_project" != "$ephemeral_error_project" ]] ||
+  fail 'ephemeral invocations reused the same Compose project'
+
+printf 'MVP-0 ephemeral scopes: error=%s/%s signal=%s/%s default=%s/%s\n' \
+  "$ephemeral_error_project" "$ephemeral_error_volume" \
+  "$ephemeral_signal_project" "$ephemeral_signal_volume" \
+  'ai-ecommerce-agent-mvp0' 'ai-ecommerce-agent-mvp0-postgres-data'
 printf 'MVP-0 dynamic lifecycle checks: PASS\n'

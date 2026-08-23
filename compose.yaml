@@ -29,4 +29,4 @@ services:
 
 volumes:
   postgres-data:
-    name: ai-ecommerce-agent-mvp0-postgres-data
+    name: ${MVP0_POSTGRES_VOLUME_NAME:-ai-ecommerce-agent-mvp0-postgres-data}

@@ -10,22 +10,29 @@ is the merged/current P1 shell. Issue #305 / [PR #306](https://github.com/Jettxo
 carries the P2 Running, Review and Results implementation and is merged/current.
 Reconciled [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247)
 carries the P3 private Needs Input gateway, Chinese-first bounded action
-workspace and Recovery workspace; P3 is repository-current only in a checkout
-containing its eventual merge commit. P2 keeps structured business groups,
+workspace and Recovery workspace and is merged/current. P2 keeps structured business groups,
 separate Marketing / Xiaohongshu views, safe Markdown preview/export, raw JSON
 behind technical disclosure, and responsive keyboard / focus / reduced-motion
 boundaries. The current FastAPI task resource still projects
 `needsInputRequest: null` and does not implement the Needs Input read/resolve
 operations, so this frontend/deterministic P3 evidence does not claim a real
-browser-to-FastAPI completion. P4 remains gated on independent P3 review/merge.
+browser-to-FastAPI completion. Issue #308 P4A reconciles the real-backend
+locators with the merged Chinese single-page TaskWorkbench and adds no
+production UI or public contract; its current result is
+`P4_ACCEPTANCE_PENDING_REVIEWED_MAIN`. The one terminal rehearsal remains
+`BLOCKED_REAL_REHEARSAL_LOCATOR_STRICT_MODE`, was cleaned up without touching
+the protected default volume, and was not rerun because the P4A hard freeze
+forbids starting Vite or another stack. Reviewed-main P4B remains pending.
 
 The current deterministic loop consumes the real local API: create a Task,
 save pasted/TXT/Markdown input, run the scripted Facts → Insight → Positioning
 → Marketing Brief → Xiaohongshu Brief pipeline, make the bounded review
 correction, confirm once, and download both current Markdown exports. The
 Workbench also renders honest `insufficient_input` results and reloads saved
-Task/input/result state. The representative real-backend Chromium path is
-opt-in with `MVP0_RUN_REAL_BACKEND_E2E=1` and never calls a provider.
+Task/input/result state. The representative real-backend Chromium harness is
+opt-in with `MVP0_RUN_REAL_BACKEND_E2E=1` and never calls a provider; P4A
+performed source-level locator reconciliation only and records the terminal
+strict-mode failure rather than claiming a current browser pass.
 
 ## Toolchain
 
@@ -67,7 +74,11 @@ complete local stack from the repository root with `./scripts/mvp0/demo`, or
 run `npm run dev` here when an API is already listening. The contract tests
 use an injected transport and the Chromium tests fail on page or console
 errors. The reviewed direct DeepSeek adapter and opt-in smoke seam are backend
-capabilities. The one authorized one-Task/five-call proof ran at exact reviewed
+capabilities. Issue #308 P4A's `./scripts/mvp0/demo --ephemeral` path is an
+isolated, repository-prefixed project/temporary-volume option; the default
+project and persistent volume remain unchanged. P4A did not start Vite or a
+stack while reconciling locators. The one authorized one-Task/five-call proof
+ran at exact reviewed
 `main@1c7c2107ead332235d492ed063b67101784d35f1`, completed five calls with zero
 retries, and failed safely before `awaiting_review`; FL-2 is `GOAL_BLOCKED`, not
 live verified. Any second paid run requires new explicit authorization.
