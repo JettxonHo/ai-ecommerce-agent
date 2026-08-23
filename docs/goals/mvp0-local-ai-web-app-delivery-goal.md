@@ -29,7 +29,7 @@ The exact order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**.
 
 ### L0 — Governance activation
 
-**Result:** this docs-only Issue records DEC-084, the successor Goal, predecessor completion and Session-009 using exactly the nine tracked paths in Issue #316. No implementation or external action is authorized.
+**Result:** this docs-only Issue records DEC-084, the successor Goal, predecessor completion and Session-009 using exactly the nine tracked paths in Issue #316. No implementation or product-runtime/Provider/API/platform action is authorized; ordinary documentation validation and Git/GitHub workflow transport remain allowed.
 
 **Exit:** the nine-path diff is clean, relative links are bidirectionally discoverable, predecessor/current status wording is truthful, and the Ready PR's Required Checks are terminal green. The Goal remains branch `ACTIVATION_PENDING` until that PR reaches `main`.
 
