@@ -63,7 +63,7 @@ Issue #308 P4A delivers the bounded `scripts/mvp0/demo --ephemeral` lifecycle an
 
 ### P5 — Spider_XHS conditional feasibility Gate
 
-P5 is a conditional feasibility candidate and begins as docs / research only. Audit an exact upstream commit, license and commercial-use permission, the Xiaohongshu platform terms and risk, Cookie / Secret handling, dependencies / security and a proposed narrow read-only research seam. The candidate's audited tree currently has no detected LICENSE while its README has conflicting MIT-badge and non-commercial wording; no reuse permission is inferred.
+P5 is a conditional feasibility candidate and begins as docs / research only. Audit an exact upstream commit, license and commercial-use permission, the Xiaohongshu platform terms and risk, Cookie / Secret handling, dependencies / security and a proposed narrow read-only research seam. The candidate's audited tree currently has no detected LICENSE while its README has conflicting MIT-badge and non-commercial wording; no reuse permission is inferred. The [P5 Spider_XHS feasibility report](../reviews/mvp0-spider-xhs-feasibility.md) is delivered as `P5_RESEARCH_DELIVERED_PENDING_INDEPENDENT_REVIEW`; its proposed `P5_REUSE_FROZEN` disposition remains pending independent Review and final Goal Review.
 
 Until a separate positive Gate exists, P5 prohibits code copying or reuse, clone, vendoring or dependency installation, Cookie / login, proxy, fingerprint / signature execution, Xiaohongshu requests, scraping and publishing. If the Gate is rejected or frozen, the local product Goal may still complete. Publishing is outside this Goal.
 

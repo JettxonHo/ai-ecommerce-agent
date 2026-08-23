@@ -161,5 +161,5 @@ P2 Core TaskWorkbench states: MERGED_CURRENT (Issue #305 / PR #306)
 P3 Needs Input and essential recovery: MERGED_CURRENT (Issue #247)
 P4A local release lifecycle and harness reconciliation: MERGED_CURRENT (Issue #308; historical `BLOCKED_REAL_REHEARSAL_LOCATOR_STRICT_MODE` preserved)
 P4B reviewed-main deterministic local release acceptance: P4_LOCAL_RELEASE_ACCEPTED (Issue #310; provider-free; independently reviewed; accepted P4 local scope complete; exact cleanup passed; no real Needs Input/Recovery backend claim)
-P5 Spider_XHS feasibility Gate: NEXT_CONDITIONAL_DOCS_RESEARCH_ONLY; no reuse/platform/publishing authority; final Goal Review and P5 disposition remain pending
+P5 Spider_XHS feasibility Gate: `P5_RESEARCH_DELIVERED_PENDING_INDEPENDENT_REVIEW` ([research report](../reviews/mvp0-spider-xhs-feasibility.md)); no reuse/platform/publishing authority; proposed disposition remains pending independent Review and final Goal Review
 ```
