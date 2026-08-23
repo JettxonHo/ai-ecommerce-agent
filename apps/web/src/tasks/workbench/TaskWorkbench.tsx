@@ -830,12 +830,38 @@ export function TaskWorkbench({
 }: TaskWorkbenchProps) {
   const routerLocation = useLocation();
   const navigate = useNavigate();
+  const [isNarrowContext, setIsNarrowContext] = useState(false);
+  const [contextRailOpen, setContextRailOpen] = useState(true);
+  const contextRailDetailsRef = useRef<HTMLDetailsElement>(null);
   const mode = deriveWorkbenchMode(task);
   const workbenchLocation = deriveWorkbenchLocation(
     task,
     routerLocation.search,
   );
   const attemptedReplacement = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (typeof globalThis.matchMedia !== "function") return;
+    const query = globalThis.matchMedia("(max-width: 64rem)");
+    const update = () => {
+      const narrow = query.matches;
+      const open = !narrow;
+      setIsNarrowContext(narrow);
+      setContextRailOpen(open);
+      if (contextRailDetailsRef.current !== null) {
+        contextRailDetailsRef.current.open = open;
+      }
+    };
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (contextRailDetailsRef.current !== null) {
+      contextRailDetailsRef.current.open = contextRailOpen;
+    }
+  }, [contextRailOpen]);
 
   useEffect(() => {
     const { replaceSearch } = workbenchLocation;
@@ -884,6 +910,89 @@ export function TaskWorkbench({
     selectedPanel === "intake" && savePrimaryInput !== undefined
       ? "保存或更新商品资料"
       : neutralPanelMessage[selectedPanel];
+
+  const contextRail = (
+    <aside className={styles.contextRail} aria-label="上下文与执行信息">
+      <details
+        ref={contextRailDetailsRef}
+        onToggle={(event) => setContextRailOpen(event.currentTarget.open)}
+      >
+        <summary>上下文与执行信息</summary>
+        <div className={styles.contextRailBody}>
+          <section className={styles.contextBlock}>
+            <h2>当前任务</h2>
+            <dl className={styles.details}>
+              <div>
+                <dt>状态</dt>
+                <dd>{userVisibleTaskStatus(task)}</dd>
+              </div>
+              <div>
+                <dt>阶段</dt>
+                <dd>{selectedStageLabel}</dd>
+              </div>
+              <div>
+                <dt>更新时间</dt>
+                <dd>
+                  <time dateTime={task.updatedAt}>
+                    {formatTimestamp(task.updatedAt)}
+                  </time>
+                </dd>
+              </div>
+              {task.waitingReason !== null ? (
+                <div>
+                  <dt>等待原因</dt>
+                  <dd>{task.waitingReason}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </section>
+          <ReferenceDetails task={task} />
+          <details className={styles.technicalDetails}>
+            <summary>内部阶段深链</summary>
+            <nav aria-label="内部阶段深链">
+              <div className={styles.linkColumn}>
+                {stageCatalog.map((stage) => (
+                  <Link
+                    key={stage}
+                    aria-current={stage === selectedStage ? "step" : undefined}
+                    to={{
+                      pathname: routerLocation.pathname,
+                      search: selectedSearch(selectedPanel, stage),
+                    }}
+                  >
+                    {internalStageLabels[stage]}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+          </details>
+          <section className={styles.contextBlock}>
+            <h2>业务阶段摘要</h2>
+            <ol className={styles.stages} aria-label="Stage summaries">
+              {businessStages.map(({ stage, label }) => {
+                const summary = task.stages.find(
+                  (item) => item.stage === stage,
+                );
+                if (summary === undefined) return null;
+                return (
+                  <li key={stage}>
+                    <strong>{label}</strong>
+                    <span>{visibleStageStatus(summary.status)}</span>
+                    {summary.waitingReason ? (
+                      <span>{summary.waitingReason}</span>
+                    ) : null}
+                    <time dateTime={summary.updatedAt}>
+                      {formatTimestamp(summary.updatedAt)}
+                    </time>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        </div>
+      </details>
+    </aside>
+  );
 
   return (
     <section className={styles.page} aria-labelledby="task-workbench-heading">
@@ -961,6 +1070,7 @@ export function TaskWorkbench({
       </nav>
 
       <div className={styles.workbenchGrid}>
+        {isNarrowContext ? contextRail : null}
         <section
           className={styles.workspace}
           aria-labelledby="active-workspace-heading"
@@ -1037,85 +1147,7 @@ export function TaskWorkbench({
           ) : null}
         </section>
 
-        <aside className={styles.contextRail} aria-label="上下文与执行信息">
-          <details open>
-            <summary>上下文与执行信息</summary>
-            <div className={styles.contextRailBody}>
-              <section className={styles.contextBlock}>
-                <h2>当前任务</h2>
-                <dl className={styles.details}>
-                  <div>
-                    <dt>状态</dt>
-                    <dd>{userVisibleTaskStatus(task)}</dd>
-                  </div>
-                  <div>
-                    <dt>阶段</dt>
-                    <dd>{selectedStageLabel}</dd>
-                  </div>
-                  <div>
-                    <dt>更新时间</dt>
-                    <dd>
-                      <time dateTime={task.updatedAt}>
-                        {formatTimestamp(task.updatedAt)}
-                      </time>
-                    </dd>
-                  </div>
-                  {task.waitingReason !== null ? (
-                    <div>
-                      <dt>等待原因</dt>
-                      <dd>{task.waitingReason}</dd>
-                    </div>
-                  ) : null}
-                </dl>
-              </section>
-              <ReferenceDetails task={task} />
-              <details className={styles.technicalDetails}>
-                <summary>内部阶段深链</summary>
-                <nav aria-label="内部阶段深链">
-                  <div className={styles.linkColumn}>
-                    {stageCatalog.map((stage) => (
-                      <Link
-                        key={stage}
-                        aria-current={
-                          stage === selectedStage ? "step" : undefined
-                        }
-                        to={{
-                          pathname: routerLocation.pathname,
-                          search: selectedSearch(selectedPanel, stage),
-                        }}
-                      >
-                        {internalStageLabels[stage]}
-                      </Link>
-                    ))}
-                  </div>
-                </nav>
-              </details>
-              <section className={styles.contextBlock}>
-                <h2>业务阶段摘要</h2>
-                <ol className={styles.stages} aria-label="Stage summaries">
-                  {businessStages.map(({ stage, label }) => {
-                    const summary = task.stages.find(
-                      (item) => item.stage === stage,
-                    );
-                    if (summary === undefined) return null;
-                    return (
-                      <li key={stage}>
-                        <strong>{label}</strong>
-                        <span>{visibleStageStatus(summary.status)}</span>
-                        {summary.waitingReason ? (
-                          <span>{summary.waitingReason}</span>
-                        ) : null}
-                        <time dateTime={summary.updatedAt}>
-                          {formatTimestamp(summary.updatedAt)}
-                        </time>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </section>
-            </div>
-          </details>
-        </aside>
+        {!isNarrowContext ? contextRail : null}
       </div>
     </section>
   );

@@ -679,12 +679,23 @@
 
 @media (max-width: 22.5rem) {
   .page {
+    padding-top: 1rem;
     padding-right: 0;
     padding-left: 0;
   }
 
+  .stageRail {
+    margin: 0.8rem 0;
+    padding: 0.65rem 0 0.8rem;
+  }
+
+  .stageRailHeading {
+    margin-bottom: 0.45rem;
+  }
+
   .stageRailList {
     grid-template-columns: 1fr;
+    gap: 0.15rem;
     overflow: visible;
   }
 
@@ -692,5 +703,10 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas: "icon label state";
     align-items: center;
+    padding: 0.45rem 0.4rem 0.2rem;
+  }
+
+  .contextRail {
+    padding: 0.65rem;
   }
 }

@@ -406,6 +406,10 @@ test("renders long reference identities as literal text without overflow or exec
   await expect(
     page.getByRole("heading", { name: "Long references" }),
   ).toBeVisible();
+  const context = page.getByRole("complementary", {
+    name: "上下文与执行信息",
+  });
+  await context.locator(":scope > details > summary").click();
 
   const expectedReferenceText = [
     references.activeRunId,
@@ -452,6 +456,7 @@ test("renders long reference identities as literal text without overflow or exec
     name: "证据",
     exact: true,
   });
+  await page.keyboard.press("Tab");
   await evidenceLink.focus();
   await expect(evidenceLink).toBeFocused();
   expect(
@@ -544,6 +549,90 @@ test("reflows long Task values without page-level horizontal overflow", async ({
         document.documentElement.clientWidth,
     ),
   ).toBe(true);
+});
+
+test("keeps the Context Rail visible wide and collapsible in-flow at narrow widths", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/tasks**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/primary-input")) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/current-result")) {
+      await route.fulfill({
+        status: 404,
+        contentType: "application/problem+json",
+        body: JSON.stringify(missingCurrentResult(url.pathname)),
+      });
+      return;
+    }
+    if (decodeURIComponent(url.pathname) === "/api/v1/tasks/task/7") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(task),
+      });
+      return;
+    }
+    await route.abort();
+  });
+
+  const context = page.getByRole("complementary", {
+    name: "上下文与执行信息",
+  });
+  const contextDetails = context.locator(":scope > details");
+  const contextSummary = context.locator(":scope > details > summary");
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/tasks/task%2F7?panel=progress&stage=product_positioning");
+  await expect(contextDetails).toHaveAttribute("open", "");
+  await expect(context.getByText("当前任务", { exact: true })).toBeVisible();
+  expect(
+    await page
+      .locator('[class*="workbenchGrid"] > *')
+      .evaluateAll((elements) =>
+        elements.map(
+          (element) =>
+            element.getAttribute("aria-label") ??
+            element.getAttribute("aria-labelledby"),
+        ),
+      ),
+  ).toEqual(["active-workspace-heading", "上下文与执行信息"]);
+
+  for (const width of [1024, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/tasks/task%2F7?panel=progress&stage=product_positioning");
+    await expect(contextDetails).not.toHaveAttribute("open", "");
+    expect(
+      await page
+        .locator('[class*="workbenchGrid"] > *')
+        .evaluateAll((elements) =>
+          elements.map(
+            (element) =>
+              element.getAttribute("aria-label") ??
+              element.getAttribute("aria-labelledby"),
+          ),
+        ),
+    ).toEqual(["上下文与执行信息", "active-workspace-heading"]);
+    await contextSummary.focus();
+    await expect(contextSummary).toBeFocused();
+    await contextSummary.click();
+    await expect(contextDetails).toHaveAttribute("open", "");
+    await expect(context.getByText("当前任务", { exact: true })).toBeVisible();
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+  }
 });
 
 test("creates a Task through the generated HTTP client and reuses its key on explicit retry", async ({
