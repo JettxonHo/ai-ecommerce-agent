@@ -75,6 +75,14 @@
   background: var(--color-paper);
 }
 
+.successNotice {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--color-accent);
+  background: #ecfdf5;
+  color: var(--color-ink);
+}
+
 .primaryInput {
   min-width: 0;
   margin: 2rem 0;
@@ -85,7 +93,9 @@
 }
 
 .reviewPanel,
-.resultPanel {
+.resultPanel,
+.needsInputPanel,
+.recoveryPanel {
   min-width: 0;
   margin: 2rem 0;
   padding: 1rem;
@@ -95,12 +105,47 @@
 }
 
 .reviewPanel pre,
-.resultPanel pre {
+.resultPanel pre,
+.needsInputPanel pre,
+.recoveryPanel pre {
   max-width: 100%;
   overflow: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font: inherit;
+}
+
+.recoveryDetails {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.recoveryDetails div {
+  min-width: 0;
+  padding: 0.85rem;
+  border-left: 3px solid var(--color-accent);
+  background: #f8fafc;
+}
+
+.recoveryDetails dt {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.recoveryDetails dd {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.recoveryActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .reviewCandidates,

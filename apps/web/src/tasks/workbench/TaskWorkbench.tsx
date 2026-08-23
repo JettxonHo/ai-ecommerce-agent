@@ -10,6 +10,13 @@ import {
   type ExportBriefKind,
   type ExportDownload,
 } from "../gateway";
+import { NeedsInputGatewayError } from "../../needsInput/gateway";
+import type {
+  NeedsInputActionRequest,
+  JsonValue,
+  NeedsInputResolution,
+  NeedsInputResolutionResult,
+} from "../../needsInput/gateway";
 import {
   deriveWorkbenchLocation,
   deriveWorkbenchMode,
@@ -40,6 +47,18 @@ type TaskWorkbenchProps = Readonly<{
     xiaohongshuTitleDirection: string,
   ) => Promise<TaskCurrentResult>;
   exportBrief?: (briefKind: ExportBriefKind) => Promise<ExportDownload>;
+  needsInputRequest?: NeedsInputActionRequest;
+  needsInputLoading?: boolean;
+  needsInputError?: string | null;
+  needsInputAuthorityMatch?: boolean;
+  retryNeedsInput?: () => void;
+  resolveNeedsInput?: (
+    resolution: NeedsInputResolution,
+  ) => Promise<NeedsInputResolutionResult>;
+  refreshTask?: () => void;
+  needsInputRefreshError?: string | null;
+  hasCurrentResult?: boolean;
+  needsInputCompletion?: boolean;
 }>;
 
 const panelLabels: Readonly<Record<WorkbenchPanel, string>> = {
@@ -564,6 +583,394 @@ function RunningPanel({
           </>
         ) : null}
       </details>
+    </section>
+  );
+}
+
+function NeedsInputPanel({
+  request,
+  loading = false,
+  error = null,
+  authorityMatch = false,
+  retry,
+  resolveNeedsInput,
+  refreshTask,
+  refreshError = null,
+}: Readonly<{
+  request?: NeedsInputActionRequest;
+  loading?: boolean;
+  error?: string | null;
+  authorityMatch?: boolean;
+  retry?: () => void;
+  resolveNeedsInput?: (
+    resolution: NeedsInputResolution,
+  ) => Promise<NeedsInputResolutionResult>;
+  refreshTask?: () => void;
+  refreshError?: string | null;
+}>) {
+  const [selectedValue, setSelectedValue] = useState<string | null>(null);
+  const [limitationConfirmed, setLimitationConfirmed] = useState(false);
+  const [cancelArmed, setCancelArmed] = useState(false);
+  const [retryResolution, setRetryResolution] =
+    useState<NeedsInputResolution | null>(null);
+  const [staleBlocked, setStaleBlocked] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const statusRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    setSelectedValue(null);
+    setLimitationConfirmed(false);
+    setCancelArmed(false);
+    setRetryResolution(null);
+    setStaleBlocked(false);
+    setStatusMessage(null);
+  }, [request?.actionRequestId, request?.revision]);
+
+  useEffect(() => {
+    if (statusMessage !== null) statusRef.current?.focus();
+  }, [statusMessage]);
+
+  if (error !== null) {
+    return (
+      <section
+        className={styles.needsInputPanel}
+        aria-labelledby="needs-input-heading"
+      >
+        <h2 id="needs-input-heading">补充请求暂时不可用</h2>
+        <p role="alert">{error}</p>
+        {retry !== undefined ? (
+          <button type="button" onClick={retry}>
+            重试读取补充请求
+          </button>
+        ) : null}
+      </section>
+    );
+  }
+  if (loading || request === undefined) {
+    return (
+      <p className={styles.neutral} role="status" aria-live="polite">
+        正在读取补充请求…
+      </p>
+    );
+  }
+
+  const stageLabel = (stage: string): string => {
+    const labels: Readonly<Record<string, string>> = {
+      product_intake_and_fact_extraction: "资料整理",
+      customer_insight_analysis: "用户洞察",
+      product_positioning: "商品定位",
+      human_review: "人工审核",
+      marketing_brief_generation: "营销 Brief",
+      xiaohongshu_brief_mapping: "小红书 Brief",
+    };
+    return labels[stage] ?? stage;
+  };
+  const recoveryLabel: Readonly<Record<string, string>> = {
+    resume: "继续处理",
+    rerun: "重新处理",
+    manual_review: "转人工审核",
+    none: "无自动恢复",
+  };
+  const conflictGroup =
+    request.conflictValues.length === 1 ? request.conflictValues[0] : undefined;
+  const canChooseExisting =
+    request.allowedResolutionTypes.includes("choose_existing_value") &&
+    conflictGroup !== undefined &&
+    conflictGroup.values.length > 0;
+  const canConfirmKnownLimitation = request.allowedResolutionTypes.includes(
+    "confirm_known_limitation",
+  );
+  const canCancelPath = request.allowedResolutionTypes.includes("cancel_path");
+  const writeAuthority = authorityMatch && !staleBlocked;
+
+  const submitResolution = async (resolution: NeedsInputResolution) => {
+    if (resolveNeedsInput === undefined || !writeAuthority || submitting) {
+      return;
+    }
+    setSubmitting(true);
+    setStatusMessage(null);
+    try {
+      await resolveNeedsInput(resolution);
+      setRetryResolution(null);
+      setStatusMessage("补充请求已提交，正在刷新任务事实。");
+    } catch (error) {
+      const canRetry =
+        error instanceof NeedsInputGatewayError && error.kind === "temporary";
+      const isStale =
+        error instanceof NeedsInputGatewayError && error.kind === "stale";
+      setStaleBlocked(isStale);
+      setRetryResolution(canRetry ? resolution : null);
+      setStatusMessage(
+        canRetry
+          ? "补充请求暂时未提交，请手动重试。"
+          : isStale
+            ? "补充请求已变化，请刷新任务事实后再提交。"
+            : "补充请求暂时未提交，请检查任务事实后重试。",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const displayValue = (value: string): string => {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      return typeof parsed === "string" ? parsed : value;
+    } catch {
+      return value;
+    }
+  };
+
+  const submitChoice = async () => {
+    if (
+      !canChooseExisting ||
+      selectedValue === null ||
+      resolveNeedsInput === undefined ||
+      !writeAuthority
+    ) {
+      return;
+    }
+    let parsed: JsonValue;
+    try {
+      parsed = JSON.parse(selectedValue) as JsonValue;
+    } catch {
+      setStatusMessage("当前候选值无法提交，请刷新补充请求。");
+      return;
+    }
+    const resolution: NeedsInputResolution = {
+      type: "choose_existing_value",
+      selectedValue: parsed,
+    };
+    await submitResolution(resolution);
+  };
+
+  const submitKnownLimitation = async () => {
+    if (
+      !canConfirmKnownLimitation ||
+      !limitationConfirmed ||
+      resolveNeedsInput === undefined ||
+      !writeAuthority
+    ) {
+      return;
+    }
+    await submitResolution({ type: "confirm_known_limitation" });
+  };
+
+  const submitCancelPath = async () => {
+    if (
+      !canCancelPath ||
+      !cancelArmed ||
+      resolveNeedsInput === undefined ||
+      !writeAuthority
+    ) {
+      return;
+    }
+    await submitResolution({ type: "cancel_path" });
+  };
+
+  return (
+    <section
+      className={styles.needsInputPanel}
+      aria-labelledby="needs-input-heading"
+    >
+      <div className={styles.stateLead}>
+        <div>
+          <p className={styles.sectionLabel}>真实阻断</p>
+          <h2 id="needs-input-heading">需要补充信息</h2>
+        </div>
+        <span className={styles.stateMarker}>
+          {writeAuthority ? "待处理" : "需刷新事实"}
+        </span>
+      </div>
+      <p>{request.reasonSummary}</p>
+      {refreshError !== null ? <p role="alert">{refreshError}</p> : null}
+      <section aria-labelledby="needs-input-stages-heading">
+        <h3 id="needs-input-stages-heading">受影响阶段</h3>
+        <ul>
+          {request.affectedStages.map((stage) => (
+            <li key={stage}>{stageLabel(stage)}</li>
+          ))}
+        </ul>
+      </section>
+      <p>
+        预期恢复：{recoveryLabel[request.expectedRecovery] ?? "按任务事实决定"}
+      </p>
+      {request.sourceReferences.length > 0 ? (
+        <details className={styles.technicalDetails}>
+          <summary>技术详情</summary>
+          <dl className={styles.details}>
+            {request.sourceReferences.map((reference) => (
+              <div key={`${reference.resourceKind}:${reference.resourceId}`}>
+                <dt>来源类型</dt>
+                <dd>
+                  <code>{reference.resourceKind}</code>
+                </dd>
+                <dt>来源标识</dt>
+                <dd>
+                  <code>{reference.resourceId}</code>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      ) : null}
+      {canChooseExisting ? (
+        <fieldset>
+          <legend>选择一个已有值</legend>
+          <p>{conflictGroup.fieldPath}</p>
+          {conflictGroup.values.map((value) => (
+            <label key={value}>
+              <input
+                type="radio"
+                name={`needs-input-${request.actionRequestId}`}
+                value={value}
+                checked={selectedValue === value}
+                disabled={!writeAuthority || submitting}
+                onChange={() => {
+                  setSelectedValue(value);
+                  setRetryResolution(null);
+                  setStatusMessage(null);
+                }}
+              />
+              <code>{displayValue(value)}</code>
+            </label>
+          ))}
+          <button
+            type="button"
+            disabled={!writeAuthority || selectedValue === null || submitting}
+            onClick={() => void submitChoice()}
+          >
+            {submitting ? "提交中…" : "确认采用此值"}
+          </button>
+        </fieldset>
+      ) : null}
+      {canConfirmKnownLimitation ? (
+        <fieldset>
+          <legend>确认已知限制</legend>
+          <label>
+            <input
+              type="checkbox"
+              checked={limitationConfirmed}
+              disabled={!writeAuthority || submitting}
+              onChange={(event) =>
+                setLimitationConfirmed(event.currentTarget.checked)
+              }
+            />
+            我确认已了解此限制
+          </label>
+          <button
+            type="button"
+            disabled={!writeAuthority || !limitationConfirmed || submitting}
+            onClick={() => void submitKnownLimitation()}
+          >
+            {submitting ? "提交中…" : "确认此限制"}
+          </button>
+        </fieldset>
+      ) : null}
+      {canCancelPath ? (
+        <fieldset>
+          <legend>取消当前处理</legend>
+          {!cancelArmed ? (
+            <button
+              type="button"
+              disabled={!writeAuthority || submitting}
+              onClick={() => setCancelArmed(true)}
+            >
+              取消当前处理
+            </button>
+          ) : (
+            <>
+              <p role="alert">再次确认后将结束当前处理。</p>
+              <button
+                type="button"
+                disabled={!writeAuthority || submitting}
+                onClick={() => void submitCancelPath()}
+              >
+                {submitting ? "提交中…" : "确认取消"}
+              </button>
+            </>
+          )}
+        </fieldset>
+      ) : null}
+      {!canChooseExisting && !canConfirmKnownLimitation && !canCancelPath ? (
+        <p role="alert">
+          当前没有可安全执行的补充动作，请返回资料输入并更新任务事实。
+          <Link to="?panel=intake">返回资料输入</Link>
+        </p>
+      ) : null}
+      {statusMessage !== null ? (
+        <p ref={statusRef} role="status" aria-live="polite" tabIndex={-1}>
+          {statusMessage}
+        </p>
+      ) : null}
+      {retryResolution !== null && resolveNeedsInput !== undefined ? (
+        <button
+          type="button"
+          disabled={!writeAuthority || submitting}
+          onClick={() => void submitResolution(retryResolution)}
+        >
+          {submitting ? "提交中…" : "重试提交"}
+        </button>
+      ) : null}
+      {(!authorityMatch || staleBlocked) && refreshTask !== undefined ? (
+        <button type="button" onClick={refreshTask}>
+          刷新任务事实
+        </button>
+      ) : null}
+    </section>
+  );
+}
+
+function RecoveryPanel({
+  task,
+  refreshTask,
+  hasCurrentResult = false,
+}: Readonly<{
+  task: TaskOverview;
+  refreshTask?: () => void;
+  hasCurrentResult?: boolean;
+}>) {
+  const currentStage =
+    task.currentStage !== null &&
+    stageCatalog.includes(task.currentStage as WorkbenchStage)
+      ? businessStageLabel(task.currentStage as WorkbenchStage)
+      : (task.currentStage ?? "当前阶段未提供");
+  return (
+    <section
+      className={styles.recoveryPanel}
+      aria-labelledby="recovery-heading"
+    >
+      <div className={styles.stateLead}>
+        <div>
+          <p className={styles.sectionLabel}>当前事实</p>
+          <h2 id="recovery-heading">需要恢复</h2>
+        </div>
+        <span className={styles.stateMarker}>先刷新事实</span>
+      </div>
+      <p className={styles.stateIntro}>
+        任务处于失败或暂停状态。这里只显示当前任务事实，不预设恢复命令。
+      </p>
+      <dl className={styles.recoveryDetails}>
+        <div>
+          <dt>等待原因</dt>
+          <dd>{task.waitingReason ?? "当前任务需要重新读取事实。"}</dd>
+        </div>
+        <div>
+          <dt>当前阶段</dt>
+          <dd>{currentStage}</dd>
+        </div>
+      </dl>
+      <div className={styles.recoveryActions}>
+        {refreshTask !== undefined ? (
+          <button type="button" onClick={refreshTask}>
+            刷新任务事实
+          </button>
+        ) : null}
+        {hasCurrentResult ? (
+          <Link to="?panel=results">查看当前结果</Link>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -1151,12 +1558,23 @@ export function TaskWorkbench({
   generateResult,
   confirmCurrentResult,
   exportBrief,
+  needsInputRequest,
+  needsInputLoading,
+  needsInputError,
+  needsInputAuthorityMatch,
+  retryNeedsInput,
+  resolveNeedsInput,
+  refreshTask,
+  needsInputRefreshError,
+  hasCurrentResult,
+  needsInputCompletion = false,
 }: TaskWorkbenchProps) {
   const routerLocation = useLocation();
   const navigate = useNavigate();
   const [isNarrowContext, setIsNarrowContext] = useState(false);
   const [contextRailOpen, setContextRailOpen] = useState(true);
   const contextRailDetailsRef = useRef<HTMLDetailsElement>(null);
+  const completionRef = useRef<HTMLParagraphElement>(null);
   const mode = deriveWorkbenchMode(task);
   const workbenchLocation = deriveWorkbenchLocation(
     task,
@@ -1186,6 +1604,10 @@ export function TaskWorkbench({
       contextRailDetailsRef.current.open = contextRailOpen;
     }
   }, [contextRailOpen]);
+
+  useEffect(() => {
+    if (needsInputCompletion) completionRef.current?.focus();
+  }, [needsInputCompletion]);
 
   useEffect(() => {
     const { replaceSearch } = workbenchLocation;
@@ -1236,9 +1658,13 @@ export function TaskWorkbench({
   const selectedStageLabel = businessStageLabel(selectedStage);
   const modeLabel = modeLabels[mode] ?? mode;
   const activeAction =
-    selectedPanel === "intake" && savePrimaryInput !== undefined
-      ? "保存或更新商品资料"
-      : neutralPanelMessage[selectedPanel];
+    mode === "needs_input"
+      ? "处理当前阻断"
+      : mode === "recovery"
+        ? "刷新当前任务事实"
+        : selectedPanel === "intake" && savePrimaryInput !== undefined
+          ? "保存或更新商品资料"
+          : neutralPanelMessage[selectedPanel];
 
   const contextRail = (
     <aside className={styles.contextRail} aria-label="上下文与执行信息">
@@ -1361,6 +1787,18 @@ export function TaskWorkbench({
         </details>
       </header>
 
+      {needsInputCompletion ? (
+        <p
+          ref={completionRef}
+          className={styles.successNotice}
+          role="status"
+          aria-live="polite"
+          tabIndex={-1}
+        >
+          补充请求已处理，任务事实已刷新。
+        </p>
+      ) : null}
+
       <nav className={styles.stageRail} aria-label="业务阶段">
         <div className={styles.stageRailHeading}>
           <div>
@@ -1439,7 +1877,7 @@ export function TaskWorkbench({
               : neutralPanelMessage[selectedPanel]}
           </p>
 
-          {selectedPanel === "intake" ? (
+          {selectedPanel === "intake" && mode !== "needs_input" ? (
             <PrimaryInputPanel
               primaryInput={primaryInput}
               primaryInputLoading={primaryInputLoading}
@@ -1451,6 +1889,27 @@ export function TaskWorkbench({
                   ? undefined
                   : generateAndShowResults
               }
+            />
+          ) : null}
+
+          {mode === "recovery" ? (
+            <RecoveryPanel
+              task={task}
+              refreshTask={refreshTask}
+              hasCurrentResult={hasCurrentResult}
+            />
+          ) : null}
+
+          {mode === "needs_input" ? (
+            <NeedsInputPanel
+              request={needsInputRequest}
+              loading={needsInputLoading}
+              error={needsInputError}
+              authorityMatch={needsInputAuthorityMatch}
+              retry={retryNeedsInput}
+              resolveNeedsInput={resolveNeedsInput}
+              refreshTask={refreshTask}
+              refreshError={needsInputRefreshError}
             />
           ) : null}
 

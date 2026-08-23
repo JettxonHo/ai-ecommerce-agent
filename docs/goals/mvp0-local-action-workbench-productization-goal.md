@@ -1,6 +1,6 @@
 # MVP-0P Local Action Workbench Productization Goal
 
-> **Status: ACTIVE — P0 complete; Issue #303 / PR #304 P1 shell merged/current; Issue #305 / PR #306 carries the P2 implementation and is current only after independent review and merge**
+> **Status: ACTIVE — P0 complete; Issue #303 / PR #304 P1 shell merged/current; Issue #305 / PR #306 P2 merged/current; reconciled Issue #247 P3 implementation active and merge-conditional; P4 gated**
 >
 > **Decision authority:** [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) · [Session-008](../sessions/session-008-local-productization-goal-activation.md) · [Issue #301](https://github.com/JettxonHo/ai-ecommerce-agent/issues/301)
 >
@@ -10,15 +10,16 @@
 
 Turn the accepted deterministic local foundation into one understandable, recoverable and exportable single-user Action Workbench for a small ecommerce operator. The product remains a fixed local workspace with no login, tenant selector or public deployment. The productization Goal does not require Provider acceptance and does not reopen the terminal DeepSeek Gate.
 
-The accepted human A+C selection is the design baseline. `HUMAN_SELECTED_AC_BASELINE` means that the product should expose Chinese task identity and stable business/status reading order, a wide-desktop horizontal five-stage rail, one dominant current action, progressive disclosure and a Context Rail, while retaining the four business states, 1024/320 reflow, focus/reduced-motion behavior and raw JSON behind technical details. [PR #299](https://github.com/JettxonHo/ai-ecommerce-agent/pull/299) remains open and unmerged; Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304) is the merged/current P1 shell. Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306) carries the P2 implementation and becomes current only after independent review and merge. No ignored prototype is promoted by this Goal.
+The accepted human A+C selection is the design baseline. `HUMAN_SELECTED_AC_BASELINE` means that the product should expose Chinese task identity and stable business/status reading order, a wide-desktop horizontal five-stage rail, one dominant current action, progressive disclosure and a Context Rail, while retaining the four business states, 1024/320 reflow, focus/reduced-motion behavior and raw JSON behind technical details. [PR #299](https://github.com/JettxonHo/ai-ecommerce-agent/pull/299) remains open and unmerged; Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304) is the merged/current P1 shell. Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306) is the merged/current P2 implementation. Reconciled Issue #247 carries the P3 implementation and is repository-current only with its eventual merge commit. No ignored prototype is promoted by this Goal.
 
 ## 2. Frozen Stage order and operating rule
 
 The exact Stage order is **P0 → P1 → P2 → P3 → P4 → P5**.
 
 - Only one implementation Stage may be active at a time.
-- P1 became current when Issue #303 / PR #304 was independently reviewed and merged. Issue #305 / PR #306 is the active P2 implementation slice and becomes current only after independent review and merge.
-- P3 remains gated until P2 is independently reviewed and merged; reconcile [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247) when P3 starts, without creating a duplicate.
+- P1 became current when Issue #303 / PR #304 was independently reviewed and merged. Issue #305 / PR #306 is independently reviewed and merged/current as P2.
+- Reconciled [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247) is the single P3 implementation record; its product result is repository-current only in a checkout containing the eventual merge commit.
+- P4 remains gated until P3 is independently reviewed and merged; no P4 implementation or real-backend Needs Input claim is authorized by this record.
 - Create the next implementation Issue only after the previous Stage's PR is independently reviewed and merged.
 - Do not create all implementation Issues up front; each Issue must have a real, immediately observable consumer.
 - Ordinary reversible local repository, test, branch and PR work is standing-authorized inside the active Issue contract. That access does not override Secret / Provider / platform gates, destructive-action controls, public-contract or migration gates, independent Review, or the exact implementation-agent rule.
@@ -54,7 +55,7 @@ Productize the current backend behavior into three product states: Running, Revi
 
 ### P3 — Needs Input and essential recovery
 
-Reconcile and reuse [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247); do not create a duplicate Needs Input Issue. Implement only the bounded structured action request and the smallest recoverable-error path required by the local product and current backend. Public-contract or migration changes are stop conditions unless separately accepted.
+Reconcile and reuse [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247); do not create a duplicate Needs Input Issue. The reconciled delivery is one private generated-client/deterministic gateway, one Chinese-first bounded action workspace and one bounded failed/paused Recovery workspace. P3 is repository-current only with the eventual independently reviewed merge commit. The current FastAPI task resource still projects `needsInputRequest: null` and does not implement the Needs Input read/resolve resource, so this P3 frontend/deterministic evidence does not claim real browser-to-FastAPI completion. Public-contract, persistence or migration changes remain stop conditions unless separately accepted.
 
 ### P4 — Deterministic local release acceptance
 
@@ -105,7 +106,7 @@ The DEC-082 Kimi Code + Kimi K3 exception remains limited to a later user-accept
 ## 7. Current limitations and risks
 
 - The deterministic foundation is useful local evidence, not live Provider acceptance.
-- Human selection of A+C is a design baseline; Issue #303 / PR #304 is the merged/current P1 implementation. Issue #305 / PR #306 carries P2 Running, Review and Results and is not current until independently reviewed and merged. P3 remains gated and Issue #247 has not started or been reconciled.
+- Human selection of A+C is a design baseline; Issue #303 / PR #304 is the merged/current P1 implementation. Issue #305 / PR #306 is the merged/current P2 implementation. Issue #247 is the reconciled P3 implementation record and is merge-conditional; P4 remains gated on independent P3 review/merge.
 - Spider_XHS licensing and platform behavior are unresolved and intentionally isolated to P5.
 - Staged execution may leave later work pending; that is preferable to manufacturing parallel Issues without a consumer or bypassing a gate.
 
@@ -116,4 +117,4 @@ The DEC-082 Kimi Code + Kimi K3 exception remains limited to a later user-accept
 - Session: [Session-008](../sessions/session-008-local-productization-goal-activation.md)
 - Human A+C verdict: [Issue #300 comment 5386010673](https://github.com/JettxonHo/ai-ecommerce-agent/issues/300#issuecomment-5386010673)
 - Activation Issue: [Issue #301](https://github.com/JettxonHo/ai-ecommerce-agent/issues/301)
-- Open reconciliation dependency: [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247)
+- Reconciled P3 implementation record: [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247)

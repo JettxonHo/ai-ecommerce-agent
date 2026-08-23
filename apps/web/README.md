@@ -7,13 +7,17 @@ generated OpenAPI client through a private Task gateway.
 
 P0 is complete and Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304)
 is the merged/current P1 shell. Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306)
-carries the P2 Running, Review and Results implementation; it becomes
-repository-current only after independent review and merge. P2 keeps structured
-business groups, separate Marketing / Xiaohongshu views, safe Markdown
-preview/export, raw JSON behind technical disclosure, and responsive keyboard /
-focus / reduced-motion boundaries. P3 remains gated,
-and [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247)
-has not started or been reconciled.
+carries the P2 Running, Review and Results implementation and is merged/current.
+Reconciled [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247)
+carries the P3 private Needs Input gateway, Chinese-first bounded action
+workspace and Recovery workspace; P3 is repository-current only in a checkout
+containing its eventual merge commit. P2 keeps structured business groups,
+separate Marketing / Xiaohongshu views, safe Markdown preview/export, raw JSON
+behind technical disclosure, and responsive keyboard / focus / reduced-motion
+boundaries. The current FastAPI task resource still projects
+`needsInputRequest: null` and does not implement the Needs Input read/resolve
+operations, so this frontend/deterministic P3 evidence does not claim a real
+browser-to-FastAPI completion. P4 remains gated on independent P3 review/merge.
 
 The current deterministic loop consumes the real local API: create a Task,
 save pasted/TXT/Markdown input, run the scripted Facts → Insight → Positioning

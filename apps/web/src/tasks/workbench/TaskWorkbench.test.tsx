@@ -13,6 +13,10 @@ import { describe, expect, it, vi } from "vitest";
 import { TaskRoutes } from "../TaskRoutes";
 import type { TaskGateway, TaskOverview } from "../gateway";
 import type { TaskCurrentResult, TaskPrimaryInput } from "../gateway";
+import type {
+  NeedsInputActionRequest,
+  NeedsInputResolutionResult,
+} from "../../needsInput/gateway";
 import { WORKBENCH_PANELS, WORKBENCH_STAGES } from "./projection";
 import { TaskWorkbench } from "./TaskWorkbench";
 
@@ -103,6 +107,417 @@ const renderWorkbench = (
 };
 
 describe("TaskWorkbench", () => {
+  it("presents one server-allowed conflict choice with business context and an explicit submit", async () => {
+    const request: NeedsInputActionRequest = {
+      actionRequestId: "action-7",
+      taskId: taskBaseline.taskId,
+      revision: 4,
+      status: "open",
+      reasonType: "identity_conflict",
+      reasonSummary: "商品身份存在两个候选值。",
+      affectedStages: ["product_intake_and_fact_extraction"],
+      sourceReferences: [
+        { resourceKind: "source_version", resourceId: "source-7" },
+      ],
+      conflictValues: [
+        {
+          fieldPath: "product.sku",
+          values: ['"CBP-SYN-001"', '"CBP-SYN-002"'],
+        },
+      ],
+      allowedResolutionTypes: ["choose_existing_value"],
+      expectedRecovery: "resume",
+      supersededBy: null,
+    };
+    const resolveNeedsInput = vi.fn(
+      async (): Promise<NeedsInputResolutionResult> => ({
+        actionRequest: {
+          ...request,
+          revision: request.revision + 1,
+          status: "resolved",
+          allowedResolutionTypes: [],
+        },
+        task: { taskId: request.taskId },
+      }),
+    );
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?panel=intake&stage=product_intake_and_fact_extraction`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task({
+            taskStatus: "waiting_for_input",
+            currentStage: "product_intake_and_fact_extraction",
+            needsInputRequest: {
+              resourceId: request.actionRequestId,
+              revision: request.revision,
+            },
+          })}
+          needsInputRequest={request}
+          needsInputAuthorityMatch
+          resolveNeedsInput={resolveNeedsInput}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("heading", { name: "需要补充信息" })).toBeTruthy();
+    const needsPanel = screen.getByRole("region", {
+      name: "需要补充信息",
+    });
+    expect(within(needsPanel).getByText(request.reasonSummary)).toBeTruthy();
+    expect(within(needsPanel).getByText("资料整理")).toBeTruthy();
+    expect(within(needsPanel).getByText("预期恢复：继续处理")).toBeTruthy();
+    expect(within(needsPanel).getByText("CBP-SYN-001")).toBeTruthy();
+    expect(within(needsPanel).getByText("CBP-SYN-002")).toBeTruthy();
+    const sourceDetails = within(needsPanel)
+      .getByText("技术详情", { exact: true })
+      .closest("details");
+    expect(sourceDetails).not.toBeNull();
+    expect((sourceDetails as HTMLDetailsElement).open).toBe(false);
+    expect(
+      within(sourceDetails as HTMLElement).getByText("source-7", {
+        exact: true,
+      }),
+    ).toBeTruthy();
+
+    const user = userEvent.setup();
+    const firstValue = within(needsPanel).getByRole("radio", {
+      name: /CBP-SYN-001/u,
+    });
+    await user.click(firstValue);
+    await user.click(
+      within(needsPanel).getByRole("button", { name: "确认采用此值" }),
+    );
+    await waitFor(() => {
+      expect(resolveNeedsInput).toHaveBeenCalledWith({
+        type: "choose_existing_value",
+        selectedValue: "CBP-SYN-001",
+      });
+    });
+  });
+
+  it("keeps request source identities behind a closed native technical disclosure", async () => {
+    const sourceResourceKind = "source_version";
+    const sourceResourceId = '<img src=x onerror="window.__sourceInjected=1">';
+    const request: NeedsInputActionRequest = {
+      actionRequestId: "action-source-details",
+      taskId: taskBaseline.taskId,
+      revision: 4,
+      status: "open",
+      reasonType: "missing_source_reference",
+      reasonSummary: "当前阻断需要补充一个来源引用。",
+      affectedStages: ["product_intake_and_fact_extraction"],
+      sourceReferences: [
+        { resourceKind: sourceResourceKind, resourceId: sourceResourceId },
+      ],
+      conflictValues: [],
+      allowedResolutionTypes: ["provide_source_reference"],
+      expectedRecovery: "resume",
+      supersededBy: null,
+    };
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?panel=intake&stage=product_intake_and_fact_extraction`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task({
+            taskStatus: "waiting_for_input",
+            currentStage: "product_intake_and_fact_extraction",
+            needsInputRequest: {
+              resourceId: request.actionRequestId,
+              revision: request.revision,
+            },
+          })}
+          needsInputRequest={request}
+          needsInputAuthorityMatch
+        />
+      </MemoryRouter>,
+    );
+
+    const panel = screen.getByRole("region", { name: "需要补充信息" });
+    const summary = within(panel).getByText("技术详情", { exact: true });
+    const disclosure = summary.closest("details");
+    expect(disclosure).not.toBeNull();
+    expect((disclosure as HTMLDetailsElement).open).toBe(false);
+
+    const disclosureContents = within(disclosure as HTMLElement);
+    const kindIdentity = disclosureContents.getByText(sourceResourceKind, {
+      exact: true,
+    });
+    const idIdentity = disclosureContents.getByText(sourceResourceId, {
+      exact: true,
+    });
+    expect((kindIdentity.closest("details") as HTMLDetailsElement).open).toBe(
+      false,
+    );
+    expect((idIdentity.closest("details") as HTMLDetailsElement).open).toBe(
+      false,
+    );
+
+    await userEvent.setup().click(summary);
+    expect((disclosure as HTMLDetailsElement).open).toBe(true);
+    expect((kindIdentity.closest("details") as HTMLDetailsElement).open).toBe(
+      true,
+    );
+    expect((idIdentity.closest("details") as HTMLDetailsElement).open).toBe(
+      true,
+    );
+    expect(
+      (disclosure as HTMLElement).querySelector("img, script, [onerror]"),
+    ).toBeNull();
+    expect(
+      disclosureContents.queryByText(
+        /actionRequestId|reasonType|allowedResolutionTypes|sourceReferences|conflictValues/u,
+      ),
+    ).toBeNull();
+  });
+
+  it("requires explicit confirmation before resolving a known limitation", async () => {
+    const request: NeedsInputActionRequest = {
+      actionRequestId: "action-limit",
+      taskId: taskBaseline.taskId,
+      revision: 4,
+      status: "open",
+      reasonType: "known_limitation",
+      reasonSummary: "当前资料没有真实用户规模数据。",
+      affectedStages: ["customer_insight_analysis"],
+      sourceReferences: [],
+      conflictValues: [],
+      allowedResolutionTypes: ["confirm_known_limitation"],
+      expectedRecovery: "manual_review",
+      supersededBy: null,
+    };
+    const resolveNeedsInput = vi.fn(
+      async (): Promise<NeedsInputResolutionResult> => ({
+        actionRequest: {
+          ...request,
+          revision: request.revision + 1,
+          status: "resolved",
+          allowedResolutionTypes: [],
+        },
+        task: { taskId: request.taskId },
+      }),
+    );
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?panel=intake&stage=customer_insight_analysis`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task({
+            taskStatus: "waiting_for_input",
+            currentStage: "customer_insight_analysis",
+            needsInputRequest: {
+              resourceId: request.actionRequestId,
+              revision: request.revision,
+            },
+          })}
+          needsInputRequest={request}
+          needsInputAuthorityMatch
+          resolveNeedsInput={resolveNeedsInput}
+        />
+      </MemoryRouter>,
+    );
+
+    const panel = screen.getByRole("region", { name: "需要补充信息" });
+    const confirmation = within(panel).getByRole("checkbox", {
+      name: "我确认已了解此限制",
+    });
+    const submit = within(panel).getByRole("button", {
+      name: "确认此限制",
+    });
+    expect(confirmation).toBeTruthy();
+    expect((submit as HTMLButtonElement).disabled).toBe(true);
+
+    const user = userEvent.setup();
+    await user.click(confirmation);
+    expect((submit as HTMLButtonElement).disabled).toBe(false);
+    await user.click(submit);
+    await waitFor(() => {
+      expect(resolveNeedsInput).toHaveBeenCalledWith({
+        type: "confirm_known_limitation",
+      });
+    });
+  });
+
+  it("requires a second inline confirmation before submitting a cancel path", async () => {
+    const request: NeedsInputActionRequest = {
+      actionRequestId: "action-cancel",
+      taskId: taskBaseline.taskId,
+      revision: 4,
+      status: "open",
+      reasonType: "missing_required_input",
+      reasonSummary: "当前资料不足，无法继续处理。",
+      affectedStages: ["product_intake_and_fact_extraction"],
+      sourceReferences: [],
+      conflictValues: [],
+      allowedResolutionTypes: ["cancel_path"],
+      expectedRecovery: "none",
+      supersededBy: null,
+    };
+    const resolveNeedsInput = vi.fn(
+      async (): Promise<NeedsInputResolutionResult> => ({
+        actionRequest: {
+          ...request,
+          revision: request.revision + 1,
+          status: "cancelled",
+          allowedResolutionTypes: [],
+        },
+        task: { taskId: request.taskId },
+      }),
+    );
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?panel=intake&stage=product_intake_and_fact_extraction`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task({
+            taskStatus: "waiting_for_input",
+            currentStage: "product_intake_and_fact_extraction",
+            needsInputRequest: {
+              resourceId: request.actionRequestId,
+              revision: request.revision,
+            },
+          })}
+          needsInputRequest={request}
+          needsInputAuthorityMatch
+          resolveNeedsInput={resolveNeedsInput}
+        />
+      </MemoryRouter>,
+    );
+
+    const panel = screen.getByRole("region", { name: "需要补充信息" });
+    const user = userEvent.setup();
+    const cancel = within(panel).getByRole("button", {
+      name: "取消当前处理",
+    });
+    expect(
+      within(panel).queryByRole("button", { name: "确认取消" }),
+    ).toBeNull();
+    await user.click(cancel);
+    expect(
+      within(panel).getByRole("button", { name: "确认取消" }),
+    ).toBeTruthy();
+    expect(resolveNeedsInput).not.toHaveBeenCalled();
+    await user.click(within(panel).getByRole("button", { name: "确认取消" }));
+    await waitFor(() => {
+      expect(resolveNeedsInput).toHaveBeenCalledWith({
+        type: "cancel_path",
+      });
+    });
+  });
+
+  it("returns honestly to Intake when the server allows an unsupported source action", () => {
+    const request: NeedsInputActionRequest = {
+      actionRequestId: "action-source",
+      taskId: taskBaseline.taskId,
+      revision: 4,
+      status: "open",
+      reasonType: "missing_source_reference",
+      reasonSummary: "当前阻断需要补充一个来源引用。",
+      affectedStages: ["product_intake_and_fact_extraction"],
+      sourceReferences: [
+        { resourceKind: "source_version", resourceId: "source-9" },
+      ],
+      conflictValues: [],
+      allowedResolutionTypes: ["provide_source_reference"],
+      expectedRecovery: "resume",
+      supersededBy: null,
+    };
+    const resolveNeedsInput = vi.fn(
+      async (): Promise<NeedsInputResolutionResult> => ({
+        actionRequest: request,
+        task: { taskId: request.taskId },
+      }),
+    );
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?panel=intake&stage=product_intake_and_fact_extraction`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task({
+            taskStatus: "waiting_for_input",
+            currentStage: "product_intake_and_fact_extraction",
+            needsInputRequest: {
+              resourceId: request.actionRequestId,
+              revision: request.revision,
+            },
+          })}
+          needsInputRequest={request}
+          needsInputAuthorityMatch
+          resolveNeedsInput={resolveNeedsInput}
+        />
+      </MemoryRouter>,
+    );
+
+    const panel = screen.getByRole("region", { name: "需要补充信息" });
+    expect(
+      within(panel).getByRole("link", { name: "返回资料输入" }),
+    ).toBeTruthy();
+    expect(
+      within(panel).queryByRole("button", { name: /提交|确认/u }),
+    ).toBeNull();
+    expect(resolveNeedsInput).not.toHaveBeenCalled();
+  });
+
+  it("bounds failed recovery to authoritative context and refresh without inventing commands", async () => {
+    const refreshTask = vi.fn();
+    const waitingReason = "商品定位阶段处理失败，请先刷新当前任务事实。";
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?panel=progress&stage=product_positioning`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task({
+            taskStatus: "failed",
+            currentStage: "product_positioning",
+            waitingReason,
+            primaryAction: { kind: "navigate", target: "recovery" },
+            marketingBrief: null,
+            xiaohongshuBrief: null,
+          })}
+          refreshTask={refreshTask}
+          hasCurrentResult={false}
+        />
+      </MemoryRouter>,
+    );
+
+    const recovery = screen.getByRole("region", { name: "需要恢复" });
+    expect(within(recovery).getByText(waitingReason)).toBeTruthy();
+    expect(within(recovery).getByText("商品定位")).toBeTruthy();
+    const refresh = within(recovery).getByRole("button", {
+      name: "刷新任务事实",
+    });
+    expect(refresh).toBeTruthy();
+    expect(
+      within(recovery).queryByRole("link", { name: "查看当前结果" }),
+    ).toBeNull();
+    expect(
+      within(recovery).queryByRole("button", {
+        name: /恢复|重试|继续|重新运行/u,
+      }),
+    ).toBeNull();
+
+    await userEvent.setup().click(refresh);
+    expect(refreshTask).toHaveBeenCalledTimes(1);
+  });
+
   it("presents Running as an honest business stage with a next action", () => {
     renderWorkbench(
       task({

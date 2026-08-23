@@ -2,11 +2,15 @@ import styles from "./App.module.css";
 import { Navigate, Route, Routes } from "react-router";
 import { NewTaskRoute } from "./tasks/NewTaskRoute";
 import { TaskRoutes } from "./tasks/TaskRoutes";
+import type { NeedsInputGateway } from "./needsInput/gateway";
 import type { TaskGateway } from "./tasks/gateway";
 
-type AppProps = Readonly<{ taskGateway: TaskGateway }>;
+type AppProps = Readonly<{
+  taskGateway: TaskGateway;
+  needsInputGateway?: NeedsInputGateway;
+}>;
 
-export function App({ taskGateway }: AppProps) {
+export function App({ taskGateway, needsInputGateway }: AppProps) {
   return (
     <>
       <a className={styles.skipLink} href="#main-content">
@@ -17,7 +21,12 @@ export function App({ taskGateway }: AppProps) {
           <Route path="/" element={<Navigate replace to="/tasks" />} />
           <Route
             path="/tasks"
-            element={<TaskRoutes taskGateway={taskGateway} />}
+            element={
+              <TaskRoutes
+                taskGateway={taskGateway}
+                needsInputGateway={needsInputGateway}
+              />
+            }
           />
           <Route
             path="/tasks/new"
@@ -25,7 +34,12 @@ export function App({ taskGateway }: AppProps) {
           />
           <Route
             path="/tasks/:taskId"
-            element={<TaskRoutes taskGateway={taskGateway} />}
+            element={
+              <TaskRoutes
+                taskGateway={taskGateway}
+                needsInputGateway={needsInputGateway}
+              />
+            }
           />
           <Route path="*" element={<Navigate replace to="/tasks" />} />
         </Routes>

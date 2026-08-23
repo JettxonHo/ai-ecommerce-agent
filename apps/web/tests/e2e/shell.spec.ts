@@ -41,6 +41,20 @@ const primaryInput = {
   byteCount: 20,
   updatedAt: "2026-08-12T00:00:00Z",
 };
+const emptyCurrentResult = {
+  taskId: "task-shell",
+  resultRevision: 0,
+  inputRevision: 0,
+  status: "insufficient_input",
+  generatedAt: "2026-08-12T00:00:00Z",
+  missingInformation: [],
+  productIntake: null,
+  customerInsight: null,
+  productPositioning: null,
+  marketingBrief: null,
+  xiaohongshuBrief: null,
+  confirmation: null,
+};
 const missingCurrentResult = (instance: string) => ({
   type: "urn:ai-ecommerce-agent:problem:not-found",
   title: "Not found",
@@ -50,6 +64,77 @@ const missingCurrentResult = (instance: string) => ({
   action: "none",
 });
 const missingCurrentResultStatus = "status of 404 (Not Found)";
+
+const needsInputRequest = {
+  actionRequestId: "action-1",
+  taskId: "task-needs-input",
+  revision: 2,
+  status: "open",
+  reasonType: "identity_conflict",
+  reasonSummary: "商品身份存在两个候选值。",
+  affectedStages: ["product_intake_and_fact_extraction"],
+  sourceReferences: [
+    { resourceKind: "source_version", resourceId: "source-1" },
+  ],
+  conflictValues: [
+    { fieldPath: "product.sku", values: ["CBP-SYN-001", "CBP-SYN-002"] },
+  ],
+  allowedResolutionTypes: ["choose_existing_value"],
+  expectedRecovery: "resume",
+  supersededBy: null,
+};
+const needsInputTask = {
+  ...task,
+  taskId: "task-needs-input",
+  taskName: "Needs Input launch",
+  taskStatus: "waiting_for_input",
+  currentStage: "product_intake_and_fact_extraction",
+  waitingReason: "商品身份存在两个候选值。",
+  revision: 2,
+  primaryAction: { type: "NavigatePrimaryAction", target: "needs_input" },
+  capabilities: ["resolve_needs_input"],
+  stages: [
+    {
+      ...task.stages[0],
+      status: "waiting_input",
+      waitingReason: "商品身份存在两个候选值。",
+    },
+    task.stages[1],
+  ],
+  activeRun: null,
+  latestRun: null,
+  needsInputRequest: {
+    resourceKind: "needs_input",
+    resourceId: "action-1",
+    revision: 2,
+  },
+  reviewPackage: null,
+  approvedStrategy: null,
+  marketingBrief: null,
+  xiaohongshuBrief: null,
+};
+const resolvedNeedsInputTask = {
+  ...needsInputTask,
+  taskStatus: "running",
+  currentStage: "product_positioning",
+  waitingReason: null,
+  revision: 3,
+  primaryAction: { type: "NoPrimaryAction" },
+  capabilities: [],
+  needsInputRequest: null,
+};
+const recoveryTaskForEvidence = {
+  ...needsInputTask,
+  taskId: "task-recovery-evidence",
+  taskName: "Recovery evidence",
+  taskStatus: "failed",
+  currentStage: "product_positioning",
+  waitingReason: "任务事实暂时无法继续。",
+  primaryAction: { type: "NavigatePrimaryAction", target: "recovery" },
+  capabilities: [],
+  needsInputRequest: null,
+  latestRun: { runId: "run-recovery-evidence" },
+};
 
 test("renders recent tasks and restores a stable deep link without errors", async ({
   page,
@@ -376,6 +461,13 @@ test("renders long reference identities as literal text without overflow or exec
   await page.addInitScript(() => {
     (window as unknown as { __shellInjected?: boolean }).__shellInjected =
       false;
+  });
+  await page.route("**/api/v1/needs-input-requests/**", async (route) => {
+    await route.fulfill({
+      status: 404,
+      contentType: "application/problem+json",
+      body: JSON.stringify({ detail: "No Needs Input action request" }),
+    });
   });
   await page.route("**/api/v1/tasks**", async (route) => {
     const url = new URL(route.request().url());
@@ -1225,4 +1317,255 @@ test("reuses the same key after a malformed-success response and rotates it only
   expect(page.getByText(createRequests[0]?.key ?? "missing-key")).toHaveCount(
     0,
   );
+});
+
+test("resolves a Needs Input choice after a temporary failure with manual retry", async ({
+  page,
+}) => {
+  let resolveAttempts = 0;
+  let resolved = false;
+  const resolutionKeys: string[] = [];
+  const resolvedRequest = {
+    ...needsInputRequest,
+    revision: 3,
+    status: "resolved",
+    allowedResolutionTypes: [],
+  };
+
+  await page.route("**/api/v1/tasks**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/primary-input")) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/current-result")) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(emptyCurrentResult),
+      });
+      return;
+    }
+    if (url.pathname === "/api/v1/tasks") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          items: [resolved ? resolvedNeedsInputTask : needsInputTask],
+          limit: 20,
+        }),
+      });
+      return;
+    }
+    if (url.pathname === "/api/v1/tasks/task-needs-input") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(
+          resolved ? resolvedNeedsInputTask : needsInputTask,
+        ),
+      });
+      return;
+    }
+    await route.abort();
+  });
+  await page.route("**/api/v1/needs-input-requests/**", async (route) => {
+    const request = route.request();
+    if (request.method() === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(resolved ? resolvedRequest : needsInputRequest),
+      });
+      return;
+    }
+    if (request.method() === "POST") {
+      resolveAttempts += 1;
+      resolutionKeys.push(request.headers()["idempotency-key"] ?? "");
+      if (resolveAttempts === 1) {
+        await route.fulfill({
+          status: 503,
+          contentType: "application/problem+json",
+          body: JSON.stringify({ detail: "private temporary detail" }),
+        });
+        return;
+      }
+      resolved = true;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          actionRequest: resolvedRequest,
+          task: { taskId: "task-needs-input" },
+        }),
+      });
+      return;
+    }
+    await route.abort();
+  });
+
+  await page.goto(
+    "/tasks/task-needs-input?panel=intake&stage=product_intake_and_fact_extraction",
+  );
+  const panel = page.getByRole("region", { name: "需要补充信息" });
+  await expect(panel).toBeVisible();
+  await panel.getByRole("radio").first().check();
+  await panel.getByRole("button", { name: "确认采用此值" }).click();
+  await expect(
+    page.getByText("补充请求暂时未提交，请手动重试。", { exact: true }),
+  ).toBeVisible();
+  await panel.getByRole("button", { name: "重试提交" }).click();
+
+  await expect(
+    page.getByText("补充请求已处理，任务事实已刷新。", { exact: true }),
+  ).toBeVisible();
+  expect(resolveAttempts).toBe(2);
+  expect(resolutionKeys[0]).toBeTruthy();
+  expect(resolutionKeys[1]).toBe(resolutionKeys[0]);
+  await expect(page.getByRole("heading", { name: "需要补充信息" })).toHaveCount(
+    0,
+  );
+});
+
+test("keeps Needs Input and Recovery bounded and reflow-safe at shell widths", async ({
+  page,
+}) => {
+  const pageErrors: string[] = [];
+  const consoleErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.route("**/api/v1/tasks**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/primary-input")) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/current-result")) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(emptyCurrentResult),
+      });
+      return;
+    }
+    if (url.pathname === "/api/v1/tasks/task-needs-input") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(needsInputTask),
+      });
+      return;
+    }
+    if (url.pathname === "/api/v1/tasks/task-recovery-evidence") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(recoveryTaskForEvidence),
+      });
+      return;
+    }
+    await route.abort();
+  });
+  await page.route("**/api/v1/needs-input-requests/**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(needsInputRequest),
+    });
+  });
+
+  for (const width of [1280, 1024, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(
+      "/tasks/task-needs-input?panel=intake&stage=product_intake_and_fact_extraction",
+    );
+    await expect(
+      page.getByRole("heading", { name: "需要补充信息" }),
+    ).toBeVisible();
+    const needsInputPanel = page.getByRole("region", {
+      name: "需要补充信息",
+    });
+    const needsInputRadio = needsInputPanel.getByRole("radio").first();
+    await needsInputRadio.focus();
+    await expect(needsInputRadio).toBeFocused();
+    expect(
+      await needsInputRadio.evaluate(
+        (element) => getComputedStyle(element).outlineStyle,
+      ),
+    ).not.toBe("none");
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: `test-results/issue247-needs-input/needs-input-${width}.png`,
+      fullPage: true,
+    });
+    await page.evaluate(() => {
+      document.documentElement.style.fontSize = "200%";
+    });
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+
+    await page.goto(
+      "/tasks/task-recovery-evidence?panel=progress&stage=product_positioning",
+    );
+    await expect(page.getByRole("heading", { name: "需要恢复" })).toBeVisible();
+    const recoveryRefresh = page.getByRole("button", {
+      name: "刷新任务事实",
+    });
+    await expect(recoveryRefresh).toBeVisible();
+    await expect(page.getByRole("link", { name: "查看当前结果" })).toHaveCount(
+      0,
+    );
+    await recoveryRefresh.focus();
+    await expect(recoveryRefresh).toBeFocused();
+    expect(
+      await recoveryRefresh.evaluate(
+        (element) => getComputedStyle(element).outlineStyle,
+      ),
+    ).not.toBe("none");
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: `test-results/issue247-needs-input/recovery-${width}.png`,
+      fullPage: true,
+    });
+    await page.evaluate(() => {
+      document.documentElement.style.fontSize = "200%";
+    });
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+  }
+  expect(pageErrors).toEqual([]);
+  expect(consoleErrors).toEqual([]);
 });
