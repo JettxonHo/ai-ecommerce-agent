@@ -46,7 +46,7 @@ The successor Goal is serial and bounded:
 
 1. **P0 — Goal activation and current-truth reconciliation:** this docs-only Issue; exactly eight allowlisted files, no code or live action.
 2. **P1 — Action Home and A+C production shell:** Chinese-first `/tasks`, Task identity/header, horizontal five-stage rail, Active Workspace and Context Rail; Issue #303 delivers this shell after merge, preserving current generated client/gateway/data behavior without backend/public-contract changes.
-3. **P2 — Core TaskWorkbench states:** Running, Needs Input, Review and Results with structured Marketing / Xiaohongshu views, safe Markdown preview/export and progressive technical disclosure.
+3. **P2 — Core TaskWorkbench states:** Running, Review and Results with structured Marketing / Xiaohongshu views, safe Markdown preview/export and progressive technical disclosure.
 4. **P3 — Needs Input and essential recovery:** reconcile [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247), no duplicate; smallest bounded action/recovery path.
 5. **P4 — Deterministic local release acceptance:** fictional-data browser → FastAPI → PostgreSQL path, one-command demo, exports and representative recovery; no live Provider/platform call.
 6. **P5 — Spider_XHS feasibility Gate:** docs/research only first; exact upstream, license/commercial permission, platform risk, Cookie/Secret, dependencies/security and read-only seam. No reuse, code copy, clone, install, Cookie/login, proxy, signature, platform request, scraping or publishing without a positive Gate.

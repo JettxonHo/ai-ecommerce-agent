@@ -106,20 +106,51 @@ const taskStatusLabels: Readonly<Record<string, string>> = {
   cancelled: "已取消",
 };
 
-const stageStatusLabels: Readonly<Record<string, string>> = {
-  valid: "已完成",
-  ready: "已完成",
-  completed: "已完成",
-  running: "处理中",
-  blocked: "受阻",
-  failed: "失败",
-  waiting_for_input: "需补资料",
-  needs_input: "需补资料",
-  pending: "待处理",
+type StageStatus =
+  | "not_started"
+  | "ready"
+  | "running"
+  | "waiting_input"
+  | "waiting_review"
+  | "valid"
+  | "invalid"
+  | "failed"
+  | "skipped";
+type StageStatusPresentation = Readonly<{
+  label: string;
+  icon: string;
+  tone: "upcoming" | "current" | "completed" | "needsInput" | "blocked";
+}>;
+
+const neutralStageStatus: StageStatusPresentation = {
+  label: "待处理",
+  icon: "○",
+  tone: "upcoming",
 };
 
+const stageStatusPresentation: Readonly<
+  Record<StageStatus, StageStatusPresentation>
+> = {
+  not_started: { label: "待处理", icon: "○", tone: "upcoming" },
+  ready: { label: "可开始", icon: "○", tone: "upcoming" },
+  running: { label: "处理中", icon: "●", tone: "current" },
+  waiting_input: { label: "需补资料", icon: "!", tone: "needsInput" },
+  waiting_review: { label: "待审核", icon: "!", tone: "needsInput" },
+  valid: { label: "已完成", icon: "✓", tone: "completed" },
+  invalid: {
+    label: "已失效/需重新处理",
+    icon: "!",
+    tone: "blocked",
+  },
+  failed: { label: "失败", icon: "×", tone: "blocked" },
+  skipped: { label: "已跳过", icon: "—", tone: "upcoming" },
+};
+
+const stageStatusFor = (status: string): StageStatusPresentation =>
+  stageStatusPresentation[status as StageStatus] ?? neutralStageStatus;
+
 const visibleStageStatus = (status: string): string =>
-  stageStatusLabels[status] ?? "待处理";
+  stageStatusFor(status).label;
 
 const userVisibleTaskStatus = (task: TaskOverview): string =>
   taskStatusLabels[task.taskStatus] ?? "等待处理";
@@ -133,20 +164,16 @@ const stateForStage = (
   stage: WorkbenchStage,
 ): Readonly<{ label: string; icon: string; tone: string }> => {
   const summary = task.stages.find((item) => item.stage === stage);
-  const status = summary?.status ?? "";
-  if (summary?.waitingReason !== null && summary?.waitingReason !== undefined) {
-    return { label: "需补资料", icon: "!", tone: "needsInput" };
+  const presentation = stageStatusFor(summary?.status ?? "");
+  if (task.currentStage !== stage || presentation.label === "处理中") {
+    return presentation;
   }
-  if (status === "failed" || status === "blocked") {
-    return { label: "受阻", icon: "×", tone: "blocked" };
-  }
-  if (task.currentStage === stage || status === "running") {
-    return { label: "当前", icon: "●", tone: "current" };
-  }
-  if (status === "valid" || status === "ready" || status === "completed") {
-    return { label: "已完成", icon: "✓", tone: "completed" };
-  }
-  return { label: "待处理", icon: "○", tone: "upcoming" };
+  return {
+    ...presentation,
+    label: `当前 · ${presentation.label}`,
+    icon: "●",
+    tone: "current",
+  };
 };
 
 const linkSearch = (
@@ -915,7 +942,6 @@ export function TaskWorkbench({
                 key={stage}
               >
                 <Link
-                  aria-label={label}
                   aria-current={stage === selectedStage ? "step" : undefined}
                   to={{
                     pathname: routerLocation.pathname,

@@ -119,22 +119,90 @@ describe("TaskWorkbench", () => {
     const stageNavigation = screen.getByRole("navigation", {
       name: "业务阶段",
     });
-    expect(
-      within(stageNavigation)
-        .getAllByRole("link")
-        .map((link) => link.getAttribute("aria-label")),
-    ).toEqual([
+    expect(within(stageNavigation).getAllByRole("link")).toHaveLength(5);
+    for (const label of [
       "资料整理",
       "用户洞察",
       "商品定位",
       "营销 Brief",
       "小红书 Brief",
-    ]);
-    expect(within(stageNavigation).getAllByRole("link")).toHaveLength(5);
+    ]) {
+      expect(
+        within(stageNavigation).getByRole("link", {
+          name: new RegExp(`^${label}`),
+        }),
+      ).toBeTruthy();
+    }
     expect(WORKBENCH_STAGES).toHaveLength(6);
     expect(screen.getByTestId("location").textContent).toContain(
       "stage=human_review",
     );
+  });
+
+  it("keeps authoritative stage statuses distinct in the rail and summary", () => {
+    renderWorkbench(
+      task({
+        currentStage: "product_positioning",
+        stages: [
+          {
+            stage: "product_intake_and_fact_extraction",
+            status: "ready",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+          {
+            stage: "customer_insight_analysis",
+            status: "waiting_input",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+          {
+            stage: "product_positioning",
+            status: "invalid",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+          {
+            stage: "marketing_brief_generation",
+            status: "skipped",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+        ],
+      }),
+      "?panel=progress&stage=product_positioning",
+    );
+
+    const summaries = screen.getByRole("list", { name: "Stage summaries" });
+    expect(within(summaries).getByText("可开始")).toBeTruthy();
+    expect(within(summaries).getByText("需补资料")).toBeTruthy();
+    expect(within(summaries).getByText("已失效/需重新处理")).toBeTruthy();
+    expect(within(summaries).getByText("已跳过")).toBeTruthy();
+    expect(within(summaries).queryByText("已完成")).toBeNull();
+
+    const stageNavigation = screen.getByRole("navigation", {
+      name: "业务阶段",
+    });
+    expect(
+      within(stageNavigation).getByRole("link", {
+        name: /资料整理.*可开始/,
+      }),
+    ).toBeTruthy();
+    expect(
+      within(stageNavigation).getByRole("link", {
+        name: /用户洞察.*需补资料/,
+      }),
+    ).toBeTruthy();
+    expect(
+      within(stageNavigation).getByRole("link", {
+        name: /商品定位.*当前.*已失效\/需重新处理/,
+      }),
+    ).toBeTruthy();
+    expect(
+      within(stageNavigation).getByRole("link", {
+        name: /营销 Brief.*已跳过/,
+      }),
+    ).toBeTruthy();
   });
 
   it("provides one active workspace and an in-flow Context Rail disclosure", () => {
@@ -176,7 +244,7 @@ describe("TaskWorkbench", () => {
     });
     expect(within(summaries).getByText("资料整理")).toBeTruthy();
     expect(within(summaries).getByText("商品定位")).toBeTruthy();
-    expect(within(summaries).getAllByText("已完成").length).toBeGreaterThan(0);
+    expect(within(summaries).getAllByText("可开始").length).toBeGreaterThan(0);
     expect(within(summaries).getByText("处理中")).toBeTruthy();
     expect(within(summaries).queryByText("valid")).toBeNull();
     expect(within(summaries).queryByText("running")).toBeNull();
@@ -374,20 +442,10 @@ describe("TaskWorkbench", () => {
     ).toBe("page");
 
     const stageNav = screen.getByRole("navigation", { name: "业务阶段" });
+    expect(within(stageNav).getAllByRole("link")).toHaveLength(5);
     expect(
       within(stageNav)
-        .getAllByRole("link")
-        .map((link) => link.getAttribute("aria-label")),
-    ).toEqual([
-      "资料整理",
-      "用户洞察",
-      "商品定位",
-      "营销 Brief",
-      "小红书 Brief",
-    ]);
-    expect(
-      within(stageNav)
-        .getByRole("link", { name: "商品定位" })
+        .getByRole("link", { name: /商品定位/ })
         .getAttribute("aria-current"),
     ).toBeNull();
     const internalStageNav = screen.getByRole("navigation", {
@@ -424,7 +482,7 @@ describe("TaskWorkbench", () => {
       "/tasks/task%2Fwith%20spaces?filter=mine&filter=all&panel=evidence&stage=human_review",
     );
     expect(
-      screen.getByRole("link", { name: "商品定位" }).getAttribute("href"),
+      screen.getByRole("link", { name: /商品定位/ }).getAttribute("href"),
     ).toBe(
       "/tasks/task%2Fwith%20spaces?filter=mine&filter=all&panel=review&stage=product_positioning",
     );
