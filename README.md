@@ -45,7 +45,7 @@ Advanced retrieval, distributed recovery and other deferred capabilities remain 
 
 The completed predecessor P0 → P1 → P2 → P3 → P4 → P5 chain is historical evidence. The successor Goal freezes the next serial order as **L0 → L1 → L2 → L3 → L4 → L5 → L6**:
 
-1. **L0 — Governance activation:** this docs-only Issue; exactly nine allowlisted files, no runtime or external action. The branch remains `ACTIVATION_PENDING` until its PR reaches `main`.
+1. **L0 — Governance activation:** this docs-only Issue; exactly nine allowlisted files, no product-runtime/Provider/API/platform action. Ordinary Git/GitHub documentation workflow transport remains allowed. The branch remains `ACTIVATION_PENDING` until its PR reaches `main`.
 2. **L1 — Real Needs Input backend:** implement the real FastAPI read/resolve boundary and bounded Recovery; current `needsInputRequest: null` remains the starting gap.
 3. **L2 — Minimum Source/Brief persistence:** reconcile tracking parents #81/#82, then create only immediately required bounded child Issues; neither parent is a one-PR contract.
 4. **L3 — Local Web lifecycle:** Apple Silicon + user-installed Docker Desktop, one reliable command, preflight/health/stop and system-default-browser opening. Native App/WebView, signing and notarization are Deferred; Intel support is Deferred; excluded from the first release.

@@ -12,7 +12,7 @@
 
 Deliver a real-AI local Web App for a single operator on Apple Silicon Mac. The first release runs locally with user-installed Docker Desktop and opens in the system default browser. It builds on the completed deterministic Action Workbench, then closes the explicitly staged Needs Input, persistence, lifecycle, offline DeepSeek diagnosis, paid DeepSeek acceptance and clean-Mac review gates.
 
-The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0 itself is governance-only: it performs no code, test, environment, Secret, Provider, model, product-runtime/API/platform network activity, PostgreSQL or platform action. Ordinary Git/GitHub branch, push, PR and CI transport is part of the docs workflow and is not product-runtime activity. The current FastAPI task resource still projects `needsInputRequest: null`; L1 starts from that real backend gap.
+The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0 itself is governance-only: it creates or changes no code or test files, performs no product-runtime/Provider/API/platform action, launches no Docker, API or PostgreSQL runtime, accesses no `.env`, environment or Secret values, and performs no Provider/model/live action. Documentation validation and CI checks remain allowed; ordinary Git/GitHub branch, push, PR and CI transport is documentation workflow transport, not product-runtime activity. The current FastAPI task resource still projects `needsInputRequest: null`; L1 starts from that real backend gap.
 
 ## 2. Activation and operating rule
 
