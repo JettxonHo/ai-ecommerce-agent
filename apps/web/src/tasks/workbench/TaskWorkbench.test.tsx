@@ -135,6 +135,56 @@ describe("TaskWorkbench", () => {
     expect(within(runningPanel).queryByText(/%|预计完成|ETA/u)).toBeNull();
   });
 
+  it("keeps the authoritative current stage in Running when the URL selects a future stage", () => {
+    renderWorkbench(
+      task({
+        taskStatus: "running",
+        currentStage: "customer_insight_analysis",
+        activeRunId: "run-commuter-1",
+        stages: [
+          {
+            stage: "product_intake_and_fact_extraction",
+            status: "valid",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+          {
+            stage: "customer_insight_analysis",
+            status: "running",
+            waitingReason: "正在整理用户反馈",
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+          {
+            stage: "marketing_brief_generation",
+            status: "ready",
+            waitingReason: "等待用户洞察完成",
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+        ],
+      }),
+      "?panel=progress&stage=marketing_brief_generation",
+    );
+
+    const runningPanel = screen.getByRole("region", { name: "正在处理" });
+    expect(
+      within(runningPanel).getByRole("heading", { name: "用户洞察" }),
+    ).toBeTruthy();
+    expect(within(runningPanel).getByText("正在整理用户反馈")).toBeTruthy();
+    expect(screen.getByTestId("location").textContent).toContain(
+      "stage=marketing_brief_generation",
+    );
+    const stageRail = screen.getByRole("navigation", { name: "业务阶段" });
+    expect(
+      within(stageRail)
+        .getByRole("link", { name: /^营销 Brief/u })
+        .getAttribute("aria-current"),
+    ).toBe("step");
+    const stageSummaries = screen.getByRole("list", {
+      name: "Stage summaries",
+    });
+    expect(within(stageSummaries).getByText("正在整理用户反馈")).toBeTruthy();
+  });
+
   it("renders Review as semantic business groups with only the two bounded edits", () => {
     const reviewResult: TaskCurrentResult = {
       taskId: taskBaseline.taskId,

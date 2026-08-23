@@ -1214,6 +1214,11 @@ export function TaskWorkbench({
 
   const selectedPanel = workbenchLocation.panel;
   const selectedStage = workbenchLocation.stage;
+  const runningStage =
+    typeof task.currentStage === "string" &&
+    stageCatalog.includes(task.currentStage as WorkbenchStage)
+      ? (task.currentStage as WorkbenchStage)
+      : deriveWorkbenchLocation(task, "").stage;
   const selectedSearch = (panel: WorkbenchPanel, stage = selectedStage) =>
     linkSearch(routerLocation.search, panel, stage);
   const generateAndShowResults = async (): Promise<TaskCurrentResult> => {
@@ -1464,7 +1469,7 @@ export function TaskWorkbench({
           ) : null}
 
           {selectedPanel === "progress" && mode === "running" ? (
-            <RunningPanel task={task} selectedStage={selectedStage} />
+            <RunningPanel task={task} selectedStage={runningStage} />
           ) : null}
 
           {selectedPanel === "review" ? (
