@@ -18,11 +18,13 @@ boundaries. The current FastAPI task resource still projects
 operations, so this frontend/deterministic P3 evidence does not claim a real
 browser-to-FastAPI completion. Issue #308 P4A reconciles the real-backend
 locators with the merged Chinese single-page TaskWorkbench and adds no
-production UI or public contract; its current result is
-`P4_ACCEPTANCE_PENDING_REVIEWED_MAIN`. The one terminal rehearsal remains
-`BLOCKED_REAL_REHEARSAL_LOCATOR_STRICT_MODE`, was cleaned up without touching
-the protected default volume, and was not rerun because the P4A hard freeze
-forbids starting Vite or another stack. Reviewed-main P4B remains pending.
+production UI or public contract. Issue #310 P4B records
+`P4_LOCAL_RELEASE_ACCEPTED` after one reviewed-main rehearsal passed and its
+generated resources were cleaned up without touching the protected default
+volume. The accepted provider-free P4 local scope is complete and independently
+reviewed. P5 is NEXT as a docs/research-only conditional feasibility Gate;
+final Goal Review and its disposition remain pending, so the Productization
+Goal stays ACTIVE. No Provider acceptance or authorization was created.
 
 The current deterministic loop consumes the real local API: create a Task,
 save pasted/TXT/Markdown input, run the scripted Facts → Insight → Positioning
@@ -30,9 +32,9 @@ save pasted/TXT/Markdown input, run the scripted Facts → Insight → Positioni
 correction, confirm once, and download both current Markdown exports. The
 Workbench also renders honest `insufficient_input` results and reloads saved
 Task/input/result state. The representative real-backend Chromium harness is
-opt-in with `MVP0_RUN_REAL_BACKEND_E2E=1` and never calls a provider; P4A
-performed source-level locator reconciliation only and records the terminal
-strict-mode failure rather than claiming a current browser pass.
+opt-in with `MVP0_RUN_REAL_BACKEND_E2E=1` and never calls a provider; P4B ran
+the existing three fictional-data cases once and all passed. Real FastAPI
+Needs Input/Recovery is still absent (`needsInputRequest: null`).
 
 ## Toolchain
 
@@ -76,8 +78,9 @@ use an injected transport and the Chromium tests fail on page or console
 errors. The reviewed direct DeepSeek adapter and opt-in smoke seam are backend
 capabilities. Issue #308 P4A's `./scripts/mvp0/demo --ephemeral` path is an
 isolated, repository-prefixed project/temporary-volume option; the default
-project and persistent volume remain unchanged. P4A did not start Vite or a
-stack while reconciling locators. The one authorized one-Task/five-call proof
+project and persistent volume remain unchanged. Issue #310 P4B used exactly
+one retained foreground ephemeral demo and one real-backend command, then
+removed the generated project/network/volume on Ctrl-C. The one authorized one-Task/five-call proof
 ran at exact reviewed
 `main@1c7c2107ead332235d492ed063b67101784d35f1`, completed five calls with zero
 retries, and failed safely before `awaiting_review`; FL-2 is `GOAL_BLOCKED`, not
