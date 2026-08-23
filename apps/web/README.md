@@ -25,9 +25,10 @@ volume. The accepted provider-free P4 local scope is complete and independently
 reviewed. P5 docs/research is complete and independently reviewed as
 `P5_REUSE_FROZEN`; direct Spider_XHS reuse and platform behavior remain frozen and
 unauthorized. The [P5 Spider_XHS feasibility report](../../docs/reviews/mvp0-spider-xhs-feasibility.md)
-records the Gate evidence. The independent closure record is
-`FINAL_GOAL_REVIEW_PASS`; `MVP0P_GOAL_COMPLETE` becomes current when that record
-reaches `main`, and no successor Goal or next implementation Stage is authorized.
+records the Gate evidence. The independent [closure record
+`FINAL_GOAL_REVIEW_PASS`](../../docs/reviews/mvp0-local-action-workbench-final-goal-review.md)
+is merge-effective as `MVP0P_GOAL_COMPLETE` only when that record reaches `main`,
+and no successor Goal or next implementation Stage is authorized.
 No Provider acceptance or authorization was created.
 
 The current deterministic loop consumes the real local API: create a Task,

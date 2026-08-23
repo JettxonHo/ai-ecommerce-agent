@@ -2,6 +2,7 @@
 
 > **Review base：** `origin/main@951cd0b3eedfc94fe9ef2a6780fe8238ddcba840`<br>
 > **Issue：** [#314](https://github.com/JettxonHo/ai-ecommerce-agent/issues/314)<br>
+> **权威文档：** [MVP-0P Local Action Workbench Productization Goal](../goals/mvp0-local-action-workbench-productization-goal.md) · [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md)<br>
 > **本记录分支：** `codex/mvp0p-final-goal-review`（closure PR 尚未合并；Issue #314 在记录时仍为 open）<br>
 > **配置证据：** `CONFIG_VERIFIED`（`luna-worker` / `gpt-5.6-luna` / `max`）<br>
 > **运行时身份：** `UNVERIFIED_RUNTIME_MODEL`（独立运行时模型未暴露）
@@ -59,12 +60,12 @@ P5 #313 的独立研究结果为 `P5_REUSE_FROZEN`。许可证/商业权限证�
 
 ### C5 — accepted local scope 无 Critical/Blocking defect
 
-上述 P0–P5 记录、exact merge chain、P4B 3/3 fictional-data evidence、P5 freeze evidence 及 exact review-base 12-path merge-push CI 共同支持：在已接受的 fixed local single-user deterministic scope 内，没有剩余 Critical 或 Blocking defect。该判断不扩展到 Provider、平台、公开部署、通用 production readiness 或后续能力。
+上述 P0–P5 记录、exact merge chain、P4B 3/3 fictional-data evidence、P5 freeze evidence 及 exact review base 上已完成且成功的四个 main merge-push workflows（quality / security / web / test）共同支持：在已接受的 fixed local single-user deterministic scope 内，没有剩余 Critical 或 Blocking defect。四个 main workflow 结果不等同于本 closure PR 的 12 Required Checks；后者另行核对为 12/12 successful。该判断不扩展到 Provider、平台、公开部署、通用 production readiness 或后续能力。
 
 ## 4. 最终五轴 Review
 
 - **Correctness / 正确性：** P0–P5 合并链与 SHA 与 GitHub 只读结果逐一相符；P4B 的三条 browser path、exports、reload 和 cleanup 证据与 `P4_LOCAL_RELEASE_ACCEPTED` 一致；P5 `P5_REUSE_FROZEN` 与研究证据一致；未将 `needsInputRequest: null` 改写为真实 Needs Input 成功。
-- **Readability / 可读性：** 七份 current-truth 文档移除或重分类 stale `Goal ACTIVE`、final-review-pending、`P5 NEXT` 语义；本报告中文优先，明确区分 review branch 当前状态与到达 `main` 后的 merge-effective 状态，并保留历史失败记录。
+- **Readability / 可读性：** 七份已同步的既有文档移除或重分类 stale `Goal ACTIVE`、final-review-pending、`P5 NEXT` 语义；本报告中文优先，明确区分 review branch 当前状态与到达 `main` 后的 merge-effective 状态，并保留历史失败记录。
 - **Architecture / 架构：** 结果限于既有 fixed-workspace、TaskWorkbench、deterministic pipeline、local API/PostgreSQL 和 Markdown export 边界；没有新 API、schema、migration、dependency、runtime seam、successor Goal 或产品方向。
 - **Security / 安全：** 没有读取或输出 Secret、Cookie、Provider payload；两次 DeepSeek authorization 已消耗且不再授权；Spider_XHS 认证、签名、代理、远程脚本、平台请求和发布保持冻结；无生产数据、外部平台或部署动作。
 - **Performance / 性能：** 本次仅做文档与只读状态核对；不改变 production runtime、browser budget、Provider latency 或数据库路径。P4B 的既有一次性 provider-free evidence 与 required checks 足以支持本地范围判断，不推导通用容量或生产 SLO。

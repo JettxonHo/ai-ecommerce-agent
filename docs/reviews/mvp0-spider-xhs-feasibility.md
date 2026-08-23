@@ -4,7 +4,7 @@
 > **研究状态：** `P5_REUSE_FROZEN`（独立 Review 已完成）<br>
 > **研究日期：** 2026-08-24（Asia/Shanghai）<br>
 > **项目基线：** `origin/main@926a5b8d00e1308ac56d203f08cc83b267215fca`<br>
-> **处置：** `P5_REUSE_FROZEN`（P5 docs/research Gate 完成；独立最终闭合记录为 `FINAL_GOAL_REVIEW_PASS`；`MVP0P_GOAL_COMPLETE` 在该记录到达 `main` 后生效）
+> **处置：** `P5_REUSE_FROZEN`（P5 docs/research Gate 完成；独立最终闭合记录为 [`FINAL_GOAL_REVIEW_PASS`](mvp0-local-action-workbench-final-goal-review.md)；`MVP0P_GOAL_COMPLETE` 在该记录到达 `main` 后生效）
 
 本报告只做文档与公开一手资料研究。Spider_XHS 只通过 GitHub API、GitHub HTML
 和指定 commit 的 raw/blob 文件检查；没有 clone、fork、archive/download、安装、执行、
@@ -363,9 +363,7 @@ Program 文档误读成主站抓取/Creator 发布许可，就会产生 current-
 
 ### Inference / Proposal
 
-保留报告、五份 current-truth 独立 Review 标记和最终 Goal Review 入口；只有在存在明确
-权限/官方路径且 Goal Review 完成后，才另行决定是否建立实现合同。无论结果如何，当前分支
-不含代码、依赖、Secret、平台请求或公共接口改动。
+保留报告、五份 current-truth 独立 Review 标记，并链接[独立最终闭合记录](mvp0-local-action-workbench-final-goal-review.md)。P5_REUSE_FROZEN 的真实剩余 Gate 是：获得兼容的书面许可或适用的官方路径，另行形成新的 exact implementation contract，并取得明确授权；在这些条件闭合前，不建立实现合同。无论结果如何，当前分支不含代码、依赖、Secret、平台请求或公共接口改动。
 
 ## 9. 研究验证与来源索引
 

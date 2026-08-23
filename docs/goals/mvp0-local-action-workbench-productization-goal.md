@@ -1,6 +1,6 @@
 # MVP-0P Local Action Workbench Productization Goal
 
-> **Status: `FINAL_GOAL_REVIEW_PASS` recorded on the closure branch — `MVP0P_GOAL_COMPLETE` becomes current when this record reaches `main`; P0 complete; Issue #303 / PR #304 P1 shell merged/current; Issue #305 / PR #306 P2 merged/current; reconciled Issue #247 P3 merged/current; Issue #308 P4A merged/current; Issue #310 P4B `P4_LOCAL_RELEASE_ACCEPTED` independently reviewed / accepted P4 local scope complete; P5 `P5_REUSE_FROZEN` independently reviewed / P5 docs-research Gate complete; no successor Goal or next implementation Stage authorized**
+> **Status: [`FINAL_GOAL_REVIEW_PASS`](../reviews/mvp0-local-action-workbench-final-goal-review.md) recorded on the closure branch — `MVP0P_GOAL_COMPLETE` becomes current when this record reaches `main`; P0 complete; Issue #303 / PR #304 P1 shell merged/current; Issue #305 / PR #306 P2 merged/current; reconciled Issue #247 P3 merged/current; Issue #308 P4A merged/current; Issue #310 P4B `P4_LOCAL_RELEASE_ACCEPTED` independently reviewed / accepted P4 local scope complete; P5 `P5_REUSE_FROZEN` independently reviewed / P5 docs-research Gate complete; no successor Goal or next implementation Stage authorized**
 >
 > **Decision authority:** [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) · [Session-008](../sessions/session-008-local-productization-goal-activation.md) · [Issue #301](https://github.com/JettxonHo/ai-ecommerce-agent/issues/301)
 >
@@ -120,3 +120,4 @@ The DEC-082 Kimi Code + Kimi K3 exception remains limited to a later user-accept
 - Human A+C verdict: [Issue #300 comment 5386010673](https://github.com/JettxonHo/ai-ecommerce-agent/issues/300#issuecomment-5386010673)
 - Activation Issue: [Issue #301](https://github.com/JettxonHo/ai-ecommerce-agent/issues/301)
 - Reconciled P3 implementation record: [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247)
+- Final Goal Review: [MVP-0P Local Action Workbench final Goal Review](../reviews/mvp0-local-action-workbench-final-goal-review.md)

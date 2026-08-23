@@ -1,6 +1,6 @@
 # MVP-0 P4B local-release acceptance review
 
-> **Status: P4B execution PASS — `P4_LOCAL_RELEASE_ACCEPTED`; independently reviewed; accepted provider-free P4 local scope complete; P5 `P5_REUSE_FROZEN` independently reviewed; final closure record `FINAL_GOAL_REVIEW_PASS`; `MVP0P_GOAL_COMPLETE` becomes current when that record reaches `main`**
+> **Status: P4B execution PASS — `P4_LOCAL_RELEASE_ACCEPTED`; independently reviewed; accepted provider-free P4 local scope complete; P5 `P5_REUSE_FROZEN` independently reviewed; final closure record [`FINAL_GOAL_REVIEW_PASS`](mvp0-local-action-workbench-final-goal-review.md); `MVP0P_GOAL_COMPLETE` becomes current when that record reaches `main`**
 >
 > **Issue:** [#310](https://github.com/JettxonHo/ai-ecommerce-agent/issues/310) · **Predecessor:** [#308](https://github.com/JettxonHo/ai-ecommerce-agent/issues/308)
 

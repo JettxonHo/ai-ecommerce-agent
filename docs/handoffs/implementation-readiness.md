@@ -1,6 +1,6 @@
 # Implementation Readiness
 
-> **Status: `FINAL_GOAL_REVIEW_PASS` recorded on the closure branch · `MVP0P_GOAL_COMPLETE` becomes current when this record reaches `main` · P0 COMPLETE · ISSUE #303 / PR #304 P1 SHELL MERGED AND CURRENT · ISSUE #305 / PR #306 P2 MERGED AND CURRENT · ISSUE #247 P3 MERGED AND CURRENT · ISSUE #308 P4A MERGED/CURRENT · ISSUE #310 P4B `P4_LOCAL_RELEASE_ACCEPTED` INDEPENDENTLY REVIEWED / P4 COMPLETE · P5 `P5_REUSE_FROZEN` INDEPENDENTLY REVIEWED / P5 COMPLETE · OLD FAST LANE TERMINAL `GOAL_BLOCKED`**
+> **Status: [`FINAL_GOAL_REVIEW_PASS`](../reviews/mvp0-local-action-workbench-final-goal-review.md) recorded on the closure branch · `MVP0P_GOAL_COMPLETE` becomes current when this record reaches `main` · P0 COMPLETE · ISSUE #303 / PR #304 P1 SHELL MERGED AND CURRENT · ISSUE #305 / PR #306 P2 MERGED AND CURRENT · ISSUE #247 P3 MERGED AND CURRENT · ISSUE #308 P4A MERGED/CURRENT · ISSUE #310 P4B `P4_LOCAL_RELEASE_ACCEPTED` INDEPENDENTLY REVIEWED / P4 COMPLETE · P5 `P5_REUSE_FROZEN` INDEPENDENTLY REVIEWED / P5 COMPLETE · OLD FAST LANE TERMINAL `GOAL_BLOCKED`**
 >
 > **Authority:** [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) · [MVP-0P Local Action Workbench Productization Goal](../goals/mvp0-local-action-workbench-productization-goal.md) · [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) · [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md)
 >
