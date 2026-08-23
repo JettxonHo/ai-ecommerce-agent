@@ -21,7 +21,10 @@ locators with the merged Chinese single-page TaskWorkbench and adds no
 production UI or public contract. Issue #310 P4B records
 `P4_LOCAL_RELEASE_ACCEPTED` after one reviewed-main rehearsal passed and its
 generated resources were cleaned up without touching the protected default
-volume. Independent ORCHESTRATOR review and final Goal Review remain pending.
+volume. The accepted provider-free P4 local scope is complete and independently
+reviewed. P5 is NEXT as a docs/research-only conditional feasibility Gate;
+final Goal Review and its disposition remain pending, so the Productization
+Goal stays ACTIVE. No Provider acceptance or authorization was created.
 
 The current deterministic loop consumes the real local API: create a Task,
 save pasted/TXT/Markdown input, run the scripted Facts → Insight → Positioning
