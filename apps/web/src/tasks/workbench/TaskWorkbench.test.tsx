@@ -240,8 +240,10 @@ describe("TaskWorkbench", () => {
     const generate = await screen.findByRole("button", { name: "生成结果" });
     await userEvent.setup().click(generate);
     expect(generateResult).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId("location").textContent).toContain(
-      "?keep=one&panel=results&stage=product_positioning",
+    await waitFor(() =>
+      expect(screen.getByTestId("location").textContent).toContain(
+        "?keep=one&panel=results&stage=product_positioning",
+      ),
     );
   });
 
