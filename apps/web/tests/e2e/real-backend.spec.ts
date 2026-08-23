@@ -41,15 +41,9 @@ test("creates a Task and persists primary input through the real backend", async
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Generate result" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Current result" }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("awaiting_review", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Marketing Brief" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "结果已就绪" })).toBeVisible();
+  await expect(page.getByText("待审核", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "营销 Brief" })).toBeVisible();
 
   await page.reload();
   await expect(
@@ -63,12 +57,8 @@ test("creates a Task and persists primary input through the real backend", async
     page.getByRole("region", { name: "Saved input preview" }).getByText(input),
   ).toBeVisible();
   await page.getByRole("link", { name: "Results", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Current result" }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("awaiting_review", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "结果已就绪" })).toBeVisible();
+  await expect(page.getByText("待审核", { exact: true })).toBeVisible();
 });
 
 test("confirms current result and downloads both immutable Markdown exports", async ({
@@ -89,13 +79,11 @@ test("confirms current result and downloads both immutable Markdown exports", as
   await page.getByLabel("Pasted text").fill(input);
   await page.getByRole("button", { name: "Save primary input" }).click();
   await page.getByRole("button", { name: "Generate result" }).click();
-  await expect(
-    page.getByText("awaiting_review", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("待审核", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Review", exact: true }).click();
   await expect(page).toHaveURL(/panel=review/);
   await expect(
-    page.getByRole("heading", { name: "Review current result" }),
+    page.getByRole("heading", { name: "审核候选结果" }),
   ).toBeVisible();
   await page.setViewportSize({ width: 320, height: 900 });
   const viewport = await page.evaluate(() => ({
@@ -107,26 +95,22 @@ test("confirms current result and downloads both immutable Markdown exports", as
     "# Confirmed heading [safe link](https://example.test) <strong>literal</strong> ``ticks``";
   const xiaohongshuCorrection =
     "# Title [safe link](https://example.test) <em>literal</em> ``ticks``";
-  await page.getByLabel("Marketing core message").fill(marketingCorrection);
-  await page
-    .getByLabel("Xiaohongshu title direction")
-    .fill(xiaohongshuCorrection);
-  await page.getByLabel("Marketing core message").focus();
+  await page.getByLabel("营销核心信息").fill(marketingCorrection);
+  await page.getByLabel("小红书标题方向").fill(xiaohongshuCorrection);
+  await page.getByLabel("营销核心信息").focus();
   expect(await page.evaluate(() => document.activeElement?.id)).toBe(
     "review-marketing-message",
   );
-  await page.getByRole("button", { name: "Confirm current result" }).click();
+  await page.getByRole("button", { name: "确认并生成结果" }).click();
   await page.getByRole("link", { name: "Results", exact: true }).click();
-  await expect(page.getByText("confirmed", { exact: true })).toBeVisible();
+  await expect(page.getByText("已确认", { exact: true })).toBeVisible();
+  const resultRegion = page.getByRole("region", { name: "结果已就绪" });
+  await resultRegion.getByText("技术细节", { exact: true }).click();
   await expect(
     page.locator("pre").filter({ hasText: marketingCorrection }),
   ).toBeVisible();
   await expect(
     page.locator("pre").filter({ hasText: xiaohongshuCorrection }),
-  ).toBeVisible();
-  await expect(page.getByText(/Marketing version .*marketing/u)).toBeVisible();
-  await expect(
-    page.getByText(/Xiaohongshu version .*xiaohongshu/u),
   ).toBeVisible();
 
   const assertDownload = async (
@@ -151,26 +135,23 @@ test("confirms current result and downloads both immutable Markdown exports", as
       new RegExp(`${kind}-v1-\\d{8}T\\d{6}Z\\.md$`, "u"),
     );
   };
+  await assertDownload("导出营销 Markdown", "marketing", marketingCorrection);
   await assertDownload(
-    "Download Marketing Markdown",
-    "marketing",
-    marketingCorrection,
-  );
-  await assertDownload(
-    "Download Xiaohongshu Markdown",
+    "导出小红书 Markdown",
     "xiaohongshu",
     xiaohongshuCorrection,
   );
 
   await page.reload();
-  await expect(page.getByText("confirmed", { exact: true })).toBeVisible();
+  await expect(page.getByText("已确认", { exact: true })).toBeVisible();
+  const reloadedResultRegion = page.getByRole("region", { name: "结果已就绪" });
+  await reloadedResultRegion.getByText("技术细节", { exact: true }).click();
   await expect(
     page.locator("pre").filter({ hasText: marketingCorrection }),
   ).toBeVisible();
   await expect(
     page.locator("pre").filter({ hasText: xiaohongshuCorrection }),
   ).toBeVisible();
-  await expect(page.getByText(/Marketing version .*marketing/u)).toBeVisible();
 });
 
 test("does not expose review or export actions for an insufficient result", async ({
@@ -187,22 +168,19 @@ test("does not expose review or export actions for an insufficient result", asyn
   await page.getByRole("button", { name: "Generate result" }).click();
 
   await expect(
-    page.getByText("insufficient_input", { exact: true }),
+    page.getByRole("heading", { name: "需要补充资料" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "More input required" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Confirm current result" }),
+    page.getByRole("button", { name: "确认并生成结果" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Download Marketing Markdown" }),
+    page.getByRole("button", { name: "导出营销 Markdown" }),
   ).toHaveCount(0);
   await page.getByRole("link", { name: "Review", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "审核候选结果" })).toHaveCount(
+    0,
+  );
   await expect(
-    page.getByRole("heading", { name: "Review current result" }),
-  ).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Confirm current result" }),
+    page.getByRole("button", { name: "确认并生成结果" }),
   ).toHaveCount(0);
 });

@@ -490,12 +490,10 @@ describe("TaskRoutes", () => {
       .setup()
       .click(await screen.findByRole("button", { name: "生成结果" }));
     expect(
-      await screen.findByRole("heading", { name: "Current result" }),
+      await screen.findByRole("heading", { name: "结果已就绪" }),
     ).toBeTruthy();
-    expect(screen.getByText("awaiting_review")).toBeTruthy();
-    expect(
-      screen.getByRole("heading", { name: "Marketing Brief" }),
-    ).toBeTruthy();
+    expect(screen.getByText("待审核")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "营销 Brief" })).toBeTruthy();
     expect(generateResult).toHaveBeenCalledTimes(1);
 
     await userEvent
@@ -556,13 +554,11 @@ describe("TaskRoutes", () => {
       .setup()
       .click(await screen.findByRole("button", { name: "生成结果" }));
     expect(
-      await screen.findByRole("heading", { name: "Current result" }),
+      await screen.findByRole("heading", { name: "需要补充资料" }),
     ).toBeTruthy();
     expect(
       screen.getByText("Provide Anchor SKU product identity evidence."),
     ).toBeTruthy();
-    expect(
-      screen.queryByRole("heading", { name: "Marketing Brief" }),
-    ).toBeNull();
+    expect(screen.queryByRole("heading", { name: "营销 Brief" })).toBeNull();
   });
 });

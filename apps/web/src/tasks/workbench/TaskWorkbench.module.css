@@ -129,6 +129,213 @@
   margin-top: 1rem;
 }
 
+.runningPanel {
+  min-width: 0;
+  margin: 2rem 0;
+  padding: 1rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 0.35rem;
+  background: var(--color-paper);
+}
+
+.stateLead {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.stateLead h2 {
+  margin: 0.2rem 0 0;
+}
+
+.stateMarker {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.stateIntro,
+.resultIntro,
+.reviewIntro {
+  max-width: 62rem;
+  color: var(--color-muted);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.runningGrid,
+.resultSummary,
+.reviewCandidates {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.semanticGroup,
+.summaryGroup,
+.nextAction,
+.reviewNotes {
+  min-width: 0;
+  padding: 0.9rem;
+  border-left: 3px solid var(--color-accent);
+  background: #f8fafc;
+}
+
+.semanticGroup h3,
+.summaryGroup h3,
+.nextAction h3,
+.reviewNotes h3 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 1rem;
+}
+
+.semanticGroup p,
+.summaryGroup p,
+.nextAction p,
+.reviewNotes p {
+  overflow-wrap: anywhere;
+}
+
+.groupLabel,
+.sectionLabel {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.groupLabel + h3 {
+  margin-top: 0.25rem;
+}
+
+.summaryValue,
+.nextActionTitle {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.nextAction {
+  grid-column: 1 / -1;
+  margin-top: 0.25rem;
+}
+
+.resultSummary {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+.resultSummary ul,
+.briefPanel ul,
+.reviewCandidates ul,
+.reviewNotes ul {
+  margin-bottom: 0;
+  padding-left: 1.25rem;
+}
+
+.resultBriefArea {
+  min-width: 0;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-rule);
+}
+
+.tabsHeader {
+  display: flex;
+  min-width: 0;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.resultTabs,
+.resultActions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.resultTabs {
+  align-items: end;
+}
+
+.tab {
+  border-color: var(--color-rule);
+  background: transparent;
+  color: var(--color-muted);
+}
+
+.tabActive {
+  border-color: var(--color-accent-strong);
+  background: var(--color-warm);
+  color: var(--color-ink);
+}
+
+.briefPanel {
+  min-width: 0;
+  margin-top: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--color-rule);
+  background: #fff;
+}
+
+.briefPanelHeading h3 {
+  margin-top: 0;
+}
+
+.briefPanel p,
+.briefPanel li {
+  overflow-wrap: anywhere;
+}
+
+.resultActions {
+  margin-top: 1rem;
+}
+
+.markdownPreview {
+  min-width: 0;
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border: 1px solid var(--color-rule);
+  background: var(--color-warm);
+}
+
+.markdownPreview h3 {
+  margin-top: 0;
+}
+
+.markdownPreview pre {
+  max-width: 100%;
+  margin-bottom: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+}
+
+.exportMessage {
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+
+.reviewFields {
+  min-width: 0;
+  margin-top: 1rem;
+}
+
+.reviewNotes {
+  margin-top: 1rem;
+}
+
 .primaryInput h2,
 .primaryInput h3 {
   margin-top: 0;
@@ -596,6 +803,12 @@
   background: transparent;
 }
 
+.referenceSummary {
+  margin: 0.65rem 0 0;
+  color: var(--color-muted);
+  line-height: 1.45;
+}
+
 .contextRail .referenceList {
   grid-template-columns: 1fr;
   gap: 0.5rem;
@@ -654,7 +867,9 @@
 @media (max-width: 44rem) {
   .headerRow,
   .stageRailHeading,
-  .workspaceHeader {
+  .workspaceHeader,
+  .stateLead,
+  .tabsHeader {
     display: grid;
   }
 
@@ -674,6 +889,16 @@
 
   .contextRailBody {
     grid-template-columns: 1fr;
+  }
+
+  .runningGrid,
+  .resultSummary,
+  .reviewCandidates {
+    grid-template-columns: 1fr;
+  }
+
+  .nextAction {
+    grid-column: auto;
   }
 }
 

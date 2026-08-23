@@ -285,6 +285,8 @@ test("renders representative intake, active-run, and recovery modes without extr
   );
   await expect(page.getByRole("heading", { name: "当前工作区" })).toBeVisible();
   await expect(page.getByText("处理中").first()).toBeVisible();
+  const activeRunPanel = page.getByRole("region", { name: "正在处理" });
+  await activeRunPanel.getByText("技术详情", { exact: true }).click();
   await expect(page.getByText("run-active")).toBeVisible();
 
   await page.goto(
@@ -292,6 +294,11 @@ test("renders representative intake, active-run, and recovery modes without extr
   );
   await expect(page.getByRole("heading", { name: "当前工作区" })).toBeVisible();
   await expect(page.getByText("需要恢复").first()).toBeVisible();
+  const recoveryReferences = page
+    .getByRole("heading", { name: "当前引用" })
+    .locator("..")
+    .locator("details");
+  await recoveryReferences.getByText("技术详情", { exact: true }).click();
   await expect(page.getByText("run-latest")).toBeVisible();
 
   expect(requestPaths).toEqual([
@@ -410,6 +417,11 @@ test("renders long reference identities as literal text without overflow or exec
     name: "上下文与执行信息",
   });
   await context.locator(":scope > details > summary").click();
+  const referenceDetails = context
+    .getByRole("heading", { name: "当前引用" })
+    .locator("..")
+    .locator("details");
+  await referenceDetails.getByText("技术详情", { exact: true }).click();
 
   const expectedReferenceText = [
     references.activeRunId,
@@ -633,6 +645,224 @@ test("keeps the Context Rail visible wide and collapsible in-flow at narrow widt
       ),
     ).toBe(true);
   }
+});
+
+test("captures Running Review Results visual evidence with reflow and keyboard proof", async ({
+  page,
+}) => {
+  const visualResult = {
+    taskId: "task-visual-review",
+    resultRevision: 5,
+    inputRevision: 1,
+    status: "awaiting_review",
+    generatedAt: "2026-08-12T00:00:00Z",
+    missingInformation: [],
+    productIntake: { facts: ["约 18 升"] },
+    customerInsight: {
+      customer_insights: [{ statement: "工作日城市通勤需要有序携带" }],
+    },
+    productPositioning: {
+      positioning_candidates: [
+        {
+          candidate_title: "城市通勤的清晰收纳方案",
+          target_segment: "工作日城市通勤者",
+          value_proposition: "用清晰收纳支持日常通勤携带",
+          proof_points: [{ statement: "可放入 14 英寸级别笔记本电脑" }],
+          evidence_limitations: ["没有真实用户研究"],
+          strategic_risks: ["不得将防泼水描述写成绝对防水"],
+        },
+      ],
+    },
+    marketingBrief: {
+      brief_candidate: {
+        objective_and_audience: { audience: "工作日城市通勤者" },
+        message_architecture: {
+          core_message: "为工作日通勤提供清晰的电脑与日常物品收纳",
+        },
+        constraints_and_honesty: {
+          evidence_limitations: ["合成资料，不代表真实用户研究"],
+          risk_notes: ["防泼水只按资料原文表达"],
+        },
+      },
+    },
+    xiaohongshuBrief: {
+      xiaohongshu_brief_candidate: {
+        creative_structure_directions: {
+          title_directions: [
+            { title_direction: "通勤包如何把电脑和日常物品放得更清楚" },
+          ],
+        },
+      },
+    },
+    confirmation: null,
+  };
+  const confirmedVisualResult = {
+    ...visualResult,
+    taskId: "task-visual-results",
+    status: "confirmed",
+    confirmation: {
+      marketingBriefVersion: {
+        resourceKind: "marketing_brief",
+        resourceVersionId: "visual-marketing",
+        versionNumber: 1,
+      },
+      xiaohongshuBriefVersion: {
+        resourceKind: "xiaohongshu_brief",
+        resourceVersionId: "visual-xiaohongshu",
+        versionNumber: 1,
+      },
+      confirmedAt: "2026-08-12T00:00:00Z",
+    },
+  };
+  const visualTasks = new Map([
+    [
+      "task-visual-running",
+      {
+        ...task,
+        taskId: "task-visual-running",
+        activeRun: { runId: "run-visual" },
+      },
+    ],
+    [
+      "task-visual-review",
+      {
+        ...task,
+        taskId: "task-visual-review",
+        activeRun: null,
+        reviewPackage: { reviewPackageId: "visual-review", packageVersion: 1 },
+      },
+    ],
+    [
+      "task-visual-results",
+      {
+        ...task,
+        taskId: "task-visual-results",
+        activeRun: null,
+        reviewPackage: null,
+        marketingBrief: {
+          resourceKind: "marketing_brief",
+          resourceVersionId: "visual-marketing",
+          versionNumber: 1,
+        },
+        xiaohongshuBrief: {
+          resourceKind: "xiaohongshu_brief",
+          resourceVersionId: "visual-xiaohongshu",
+          versionNumber: 1,
+        },
+      },
+    ],
+  ]);
+  const pageErrors: string[] = [];
+  const consoleErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.route("**/api/v1/tasks**", async (route) => {
+    const url = new URL(route.request().url());
+    const path = decodeURIComponent(url.pathname);
+    const taskId = path.split("/").at(-1) ?? "";
+    if (path.endsWith("/primary-input")) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(primaryInput),
+      });
+      return;
+    }
+    if (path.endsWith("/current-result")) {
+      const resultTaskId = path.split("/").at(-2) ?? "";
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(
+          resultTaskId === "task-visual-results"
+            ? confirmedVisualResult
+            : visualResult,
+        ),
+      });
+      return;
+    }
+    const selected = visualTasks.get(taskId);
+    if (selected === undefined) {
+      await route.abort();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(selected),
+    });
+  });
+
+  const states = [
+    {
+      name: "running",
+      taskId: "task-visual-running",
+      panel: "progress",
+      stage: "product_positioning",
+      heading: "正在处理",
+    },
+    {
+      name: "review",
+      taskId: "task-visual-review",
+      panel: "review",
+      stage: "human_review",
+      heading: "审核候选结果",
+    },
+    {
+      name: "results",
+      taskId: "task-visual-results",
+      panel: "results",
+      stage: "marketing_brief_generation",
+      heading: "结果已就绪",
+    },
+  ] as const;
+  for (const state of states) {
+    for (const width of [1280, 1024, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(
+        `/tasks/${state.taskId}?panel=${state.panel}&stage=${state.stage}`,
+      );
+      await expect(
+        page.getByRole("heading", { name: state.heading }),
+      ).toBeVisible();
+      expect(
+        await page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+      ).toBe(true);
+      expect(
+        await page.evaluate(
+          () =>
+            globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: `test-results/issue305/${state.name}-${width}.png`,
+        fullPage: true,
+      });
+    }
+  }
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.goto(
+    "/tasks/task-visual-results?panel=results&stage=marketing_brief_generation",
+  );
+  const resultTabs = page.getByRole("tablist", { name: "结果视图" });
+  const marketingTab = resultTabs.getByRole("tab", { name: "营销 Brief" });
+  const xiaohongshuTab = resultTabs.getByRole("tab", {
+    name: "小红书 Brief",
+  });
+  await marketingTab.focus();
+  await expect(marketingTab).toBeFocused();
+  await page.keyboard.press("ArrowRight");
+  await expect(xiaohongshuTab).toBeFocused();
+  await expect(xiaohongshuTab).toHaveAttribute("aria-selected", "true");
+  expect(pageErrors).toEqual([]);
+  expect(consoleErrors).toEqual([]);
 });
 
 test("creates a Task through the generated HTTP client and reuses its key on explicit retry", async ({

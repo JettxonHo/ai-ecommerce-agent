@@ -103,6 +103,263 @@ const renderWorkbench = (
 };
 
 describe("TaskWorkbench", () => {
+  it("presents Running as an honest business stage with a next action", () => {
+    renderWorkbench(
+      task({
+        taskStatus: "running",
+        currentStage: "customer_insight_analysis",
+        activeRunId: "run-commuter-1",
+        stages: [
+          {
+            stage: "product_intake_and_fact_extraction",
+            status: "valid",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+          {
+            stage: "customer_insight_analysis",
+            status: "running",
+            waitingReason: null,
+            updatedAt: "2026-08-12T00:00:00Z",
+          },
+        ],
+      }),
+      "?panel=progress&stage=customer_insight_analysis",
+    );
+
+    expect(screen.getByRole("heading", { name: "正在处理" })).toBeTruthy();
+    expect(screen.getAllByText("当前阶段").length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: "用户洞察" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "下一步" })).toBeTruthy();
+    const runningPanel = screen.getByRole("region", { name: "正在处理" });
+    expect(within(runningPanel).queryByText(/%|预计完成|ETA/u)).toBeNull();
+  });
+
+  it("renders Review as semantic business groups with only the two bounded edits", () => {
+    const reviewResult: TaskCurrentResult = {
+      taskId: taskBaseline.taskId,
+      resultRevision: 4,
+      inputRevision: 1,
+      status: "awaiting_review",
+      generatedAt: "2026-08-12T00:00:00Z",
+      missingInformation: [],
+      productIntake: { facts: ["约 18 升", "可放入 14 英寸级别笔记本电脑"] },
+      customerInsight: {
+        customer_insights: [
+          { statement: "工作日城市通勤需要有序携带电脑和文件" },
+        ],
+      },
+      productPositioning: {
+        positioning_candidates: [
+          {
+            candidate_title: "城市通勤的清晰收纳方案",
+            target_segment: "工作日城市通勤者",
+            value_proposition: "用清晰收纳支持日常通勤携带",
+            proof_points: [{ statement: "可放入 14 英寸级别笔记本电脑" }],
+            evidence_limitations: ["没有竞品资料或用户规模数据"],
+            strategic_risks: ["不得将防泼水描述写成绝对防水"],
+          },
+        ],
+      },
+      marketingBrief: {
+        brief_candidate: {
+          objective_and_audience: { audience: "工作日城市通勤者" },
+          message_architecture: {
+            core_message: "为工作日通勤提供清晰的电脑与日常物品收纳",
+          },
+          constraints_and_honesty: {
+            evidence_limitations: ["没有真实用户研究"],
+            risk_notes: ["防泼水只按资料原文表达"],
+          },
+        },
+      },
+      xiaohongshuBrief: {
+        xiaohongshu_brief_candidate: {
+          creative_structure_directions: {
+            title_directions: [
+              { title_direction: "通勤包如何把电脑和日常物品放得更清楚" },
+            ],
+          },
+          evidence_and_platform_constraints: {
+            evidence_limitations: ["合成资料，不代表真实用户研究"],
+            platform_risk_notes: ["遵守事实和证据边界"],
+          },
+        },
+      },
+      confirmation: null,
+    };
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?panel=review&stage=product_positioning`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task({
+            reviewPackage: { reviewPackageId: "review-1", packageVersion: 4 },
+          })}
+          currentResult={reviewResult}
+          confirmCurrentResult={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("heading", { name: "商品定位" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "营销 Brief" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "小红书 Brief" })).toBeTruthy();
+    expect(screen.getByText("城市通勤的清晰收纳方案")).toBeTruthy();
+    expect(
+      screen.getAllByText("为工作日通勤提供清晰的电脑与日常物品收纳").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("通勤包如何把电脑和日常物品放得更清楚").length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "确认并生成结果" })).toBeTruthy();
+    expect(screen.getByLabelText("营销核心信息")).toBeTruthy();
+    expect(screen.getByLabelText("小红书标题方向")).toBeTruthy();
+    expect(screen.getByText("技术细节")).toBeTruthy();
+    expect(screen.queryByText(/brief_candidate/u)).toBeNull();
+  });
+
+  it("keeps Results views separate and previews Markdown as escaped text", async () => {
+    const confirmedResult: TaskCurrentResult = {
+      taskId: taskBaseline.taskId,
+      resultRevision: 5,
+      inputRevision: 1,
+      status: "confirmed",
+      generatedAt: "2026-08-12T00:00:00Z",
+      missingInformation: [],
+      productIntake: { facts: ["约 18 升"] },
+      customerInsight: {
+        customer_insights: [{ statement: "通勤需要有序携带" }],
+      },
+      productPositioning: {
+        positioning_candidates: [
+          {
+            candidate_title: "城市通勤的清晰收纳方案",
+            target_segment: "工作日城市通勤者",
+            proof_points: [{ statement: "可放入 14 英寸级别笔记本电脑" }],
+          },
+        ],
+      },
+      marketingBrief: {
+        brief_candidate: {
+          objective_and_audience: { audience: "工作日城市通勤者" },
+          message_architecture: {
+            core_message: "收纳清晰，通勤取用更从容 <strong>字面内容</strong>",
+          },
+          reasons_to_believe_and_evidence: {
+            proof_points: [{ proof_point: "可放入 14 英寸级别笔记本电脑" }],
+          },
+          constraints_and_honesty: {
+            evidence_limitations: ["没有真实用户研究"],
+            risk_notes: ["不宣称绝对防水"],
+          },
+        },
+      },
+      xiaohongshuBrief: {
+        xiaohongshu_brief_candidate: {
+          creative_structure_directions: {
+            title_directions: [{ title_direction: "通勤收纳路径" }],
+          },
+          evidence_and_platform_constraints: {
+            proof_points: ["约 18 升容量"],
+            evidence_limitations: ["合成资料"],
+            platform_risk_notes: ["遵守事实和证据边界"],
+          },
+        },
+      },
+      confirmation: {
+        marketingBriefVersion: {
+          resourceKind: "marketing_brief",
+          resourceVersionId: "brief-marketing",
+          versionNumber: 1,
+        },
+        xiaohongshuBriefVersion: {
+          resourceKind: "xiaohongshu_brief",
+          resourceVersionId: "brief-xhs",
+          versionNumber: 1,
+        },
+        confirmedAt: "2026-08-12T00:00:00Z",
+      },
+    };
+    const exportBrief = vi.fn(async () => ({
+      snapshot: {
+        exportSnapshotId: "export-1",
+        taskId: taskBaseline.taskId,
+        briefKind: "marketing" as const,
+        briefVersion: {
+          resourceKind: "marketing_brief",
+          resourceVersionId: "brief-marketing",
+          versionNumber: 1,
+        },
+        upstreamVersions: [],
+        exportedAt: "2026-08-12T00:00:00Z",
+        fileName: "task-7-marketing-v1-20260812T000000Z.md",
+        mediaType: "text/markdown; charset=utf-8",
+        contentLocation: "local://export-1",
+        templateVersion: "mvp0-markdown-v1",
+      },
+      content: "# Marketing Brief\n\n收纳清晰",
+    }));
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?panel=results&stage=marketing_brief_generation`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task({
+            marketingBrief: {
+              resourceKind: "marketing_brief",
+              resourceVersionId: "brief-marketing",
+              versionNumber: 1,
+            },
+            xiaohongshuBrief: {
+              resourceKind: "xiaohongshu_brief",
+              resourceVersionId: "brief-xhs",
+              versionNumber: 1,
+            },
+          })}
+          currentResult={confirmedResult}
+          exportBrief={exportBrief}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("heading", { name: "定位摘要" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "目标用户" })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Proof Points / 证据" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "风险与限制" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "下一步" })).toBeTruthy();
+    const tabs = screen.getByRole("tablist", { name: "结果视图" });
+    expect(within(tabs).getByRole("tab", { name: "营销 Brief" })).toBeTruthy();
+    expect(
+      within(tabs).getByRole("tab", { name: "小红书 Brief" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "预览 Markdown" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "导出营销 Markdown" }),
+    ).toBeTruthy();
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "预览 Markdown" }));
+    expect(screen.getByRole("region", { name: "Markdown 预览" })).toBeTruthy();
+    expect(
+      screen.getAllByText(/<strong>字面内容<\/strong>/u).length,
+    ).toBeGreaterThan(0);
+    expect(document.querySelector("script")).toBeNull();
+    await userEvent
+      .setup()
+      .click(screen.getByRole("tab", { name: "小红书 Brief" }));
+    expect(screen.getByText("通勤收纳路径")).toBeTruthy();
+    expect(screen.queryByText("收纳清晰，通勤取用更从容")).toBeNull();
+  });
+
   it("shows exactly five Chinese business stages while retaining the six-value internal catalog and deep links", () => {
     renderWorkbench(
       task({
@@ -315,7 +572,7 @@ describe("TaskWorkbench", () => {
     );
   });
 
-  it("renders authoritative task metadata, mode, selection, and stage order", () => {
+  it("renders authoritative task metadata, mode, selection, and stage order", async () => {
     renderWorkbench(
       task({
         taskStatus: "waiting_for_input",
@@ -374,21 +631,30 @@ describe("TaskWorkbench", () => {
       within(summaries).getAllByRole("listitem")[1]?.textContent,
     ).toContain("处理中");
 
-    expect(screen.getByText("run-active")).toBeTruthy();
-    expect(screen.getByText("run-latest")).toBeTruthy();
-    expect(screen.getByText(/input\/1.*revision 5/)).toBeTruthy();
-    expect(screen.getByText(/review-1.*version 2/)).toBeTruthy();
-    expect(screen.getByText(/strategy-3.*version 3/)).toBeTruthy();
-    expect(screen.getByText(/brief-2.*version 2/)).toBeTruthy();
-    expect(screen.getByText(/xhs-1.*version 1/)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "当前引用" })).toBeTruthy();
+    expect(screen.queryByText("run-active")).toBeNull();
+    const references = screen
+      .getByRole("heading", { name: "当前引用" })
+      .closest("section");
+    expect(references).not.toBeNull();
+    if (references !== null) {
+      await userEvent.setup().click(within(references).getByText("技术详情"));
+      expect(within(references).getByText("run-active")).toBeTruthy();
+      expect(within(references).getByText("run-latest")).toBeTruthy();
+      expect(within(references).getByText(/input\/1.*revision 5/)).toBeTruthy();
+      expect(within(references).getByText(/review-1.*version 2/)).toBeTruthy();
+      expect(
+        within(references).getByText(/strategy-3.*version 3/),
+      ).toBeTruthy();
+      expect(within(references).getByText(/brief-2.*version 2/)).toBeTruthy();
+      expect(within(references).getByText(/xhs-1.*version 1/)).toBeTruthy();
+    }
   });
 
   it("omits absent references and does not fabricate actions", () => {
     renderWorkbench(task({ taskStatus: "draft" }), "");
 
-    expect(
-      screen.queryByRole("heading", { name: "Current references" }),
-    ).toBeNull();
+    expect(screen.queryByRole("heading", { name: "当前引用" })).toBeNull();
     expect(screen.queryByText(/Active Run/)).toBeNull();
     expect(screen.queryByRole("button")).toBeNull();
     expect(screen.getByRole("status").textContent).toBe(
