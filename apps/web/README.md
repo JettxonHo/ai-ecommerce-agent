@@ -5,41 +5,35 @@ React Router Declarative Mode for `/tasks`, `/tasks/new` and stable
 `/tasks/:taskId` deep links, TanStack Query for remote Task state, and the
 generated OpenAPI client through a private Task gateway.
 
-P0 is complete and Issue #303 / [PR #304](https://github.com/JettxonHo/ai-ecommerce-agent/pull/304)
-is the merged/current P1 shell. Issue #305 / [PR #306](https://github.com/JettxonHo/ai-ecommerce-agent/pull/306)
-carries the P2 Running, Review and Results implementation and is merged/current.
-Reconciled [Issue #247](https://github.com/JettxonHo/ai-ecommerce-agent/issues/247)
-carries the P3 private Needs Input gateway, Chinese-first bounded action
-workspace and Recovery workspace and is merged/current. P2 keeps structured business groups,
-separate Marketing / Xiaohongshu views, safe Markdown preview/export, raw JSON
-behind technical disclosure, and responsive keyboard / focus / reduced-motion
-boundaries. The current FastAPI task resource still projects
-`needsInputRequest: null` and does not implement the Needs Input read/resolve
-operations, so this frontend/deterministic P3 evidence does not claim a real
-browser-to-FastAPI completion. Issue #308 P4A reconciles the real-backend
-locators with the merged Chinese single-page TaskWorkbench and adds no
-production UI or public contract. Issue #310 P4B records
-`P4_LOCAL_RELEASE_ACCEPTED` after one reviewed-main rehearsal passed and its
-generated resources were cleaned up without touching the protected default
-volume. The accepted provider-free P4 local scope is complete and independently
-reviewed. P5 docs/research is complete and independently reviewed as
-`P5_REUSE_FROZEN`; direct Spider_XHS reuse and platform behavior remain frozen and
-unauthorized. The [P5 Spider_XHS feasibility report](../../docs/reviews/mvp0-spider-xhs-feasibility.md)
-records the Gate evidence. The independent [closure record
-`FINAL_GOAL_REVIEW_PASS`](../../docs/reviews/mvp0-local-action-workbench-final-goal-review.md)
-is merge-effective as `MVP0P_GOAL_COMPLETE` only when that record reaches `main`,
-and no successor Goal or next implementation Stage is authorized.
-No Provider acceptance or authorization was created.
+The predecessor P0 → P1 → P2 → P3 → P4 → P5 Action Workbench chain is complete
+and historical `MVP0P_GOAL_COMPLETE` after PR #315 reached `main`. Its P3 UI and
+deterministic gateway remain evidence only: the current FastAPI task resource
+still projects `needsInputRequest: null` and does not implement the Needs Input
+read/resolve operations. The predecessor P4B result remains
+`P4_LOCAL_RELEASE_ACCEPTED`; P5 docs/research remains independently reviewed as
+`P5_REUSE_FROZEN`, with direct Spider_XHS reuse and platform behavior frozen and
+unauthorized.
 
-The current deterministic loop consumes the real local API: create a Task,
+The successor [MVP-0L Local AI Web App Delivery Goal](../../docs/goals/mvp0-local-ai-web-app-delivery-goal.md)
+is `ACTIVATION_PENDING` on the Issue #316 branch and becomes `ACTIVE` only when
+its L0 PR reaches `main`. Its exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6.
+L0 is docs-only; no Provider acceptance or authorization is created here. The
+eventual real-AI contract is official DeepSeek `deepseek-v4-pro` for fictional
+or sanitized acceptance material. Apple Silicon is the first-release boundary;
+Docker Desktop is user-installed; the product remains a local Web App opened in
+the system default browser. Native App/WebView, signing/notarization,
+login/RBAC/multi-user/public deployment and Keychain/Secret UI are Deferred.
+Intel support is Deferred; excluded from the first release.
+
+The completed deterministic loop consumes the real local API: create a Task,
 save pasted/TXT/Markdown input, run the scripted Facts → Insight → Positioning
 → Marketing Brief → Xiaohongshu Brief pipeline, make the bounded review
-correction, confirm once, and download both current Markdown exports. The
-Workbench also renders honest `insufficient_input` results and reloads saved
-Task/input/result state. The representative real-backend Chromium harness is
-opt-in with `MVP0_RUN_REAL_BACKEND_E2E=1` and never calls a provider; P4B ran
-the existing three fictional-data cases once and all passed. Real FastAPI
-Needs Input/Recovery is still absent (`needsInputRequest: null`).
+correction, confirm once, and download both current Markdown exports. This is
+historical predecessor evidence, not the L0 activation result. Real FastAPI
+Needs Input/Recovery is still absent (`needsInputRequest: null`) and is the L1
+starting gap. The later L3 lifecycle will target Apple Silicon + user-installed
+Docker Desktop + system-default-browser opening; L0 does not launch the local
+stack, install dependencies, or inspect environment/Secret state.
 
 ## Toolchain
 
@@ -76,17 +70,11 @@ npm run api:check
 `src/api/generated/schema.d.ts` is generated from the repository OpenAPI
 authority and must remain byte-identical after `npm run api:check`.
 
-The development server proxies `/api` to `http://127.0.0.1:8000`; start the
-complete local stack from the repository root with `./scripts/mvp0/demo`, or
-run `npm run dev` here when an API is already listening. The contract tests
-use an injected transport and the Chromium tests fail on page or console
-errors. The reviewed direct DeepSeek adapter and opt-in smoke seam are backend
-capabilities. Issue #308 P4A's `./scripts/mvp0/demo --ephemeral` path is an
-isolated, repository-prefixed project/temporary-volume option; the default
-project and persistent volume remain unchanged. Issue #310 P4B used exactly
-one retained foreground ephemeral demo and one real-backend command, then
-removed the generated project/network/volume on Ctrl-C. The one authorized one-Task/five-call proof
-ran at exact reviewed
-`main@1c7c2107ead332235d492ed063b67101784d35f1`, completed five calls with zero
-retries, and failed safely before `awaiting_review`; FL-2 is `GOAL_BLOCKED`, not
-live verified. Both historical DeepSeek authorizations are consumed; no further paid/provider run is authorized.
+The development server proxies `/api` to `http://127.0.0.1:8000`; the
+predecessor local stack and Chromium harness are retained as historical,
+provider-free evidence. L0 does not launch them. The reviewed direct DeepSeek
+adapter and opt-in smoke seam are backend capabilities, not current Provider
+acceptance. Both historical DeepSeek authorizations are consumed; no further
+paid/provider run is authorized until a later L5 exact-commit human Gate. The
+later project-root Git-ignored `.env` convention contains `DEEPSEEK_API_KEY`,
+but L0 must not create, read or inspect it.
