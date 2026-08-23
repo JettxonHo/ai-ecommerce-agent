@@ -79,7 +79,7 @@ The full remaining locator scan was reconciled against the current source: Engli
 
 ## CI follow-up (12th-path amendment)
 
-PR #309's initial 12-check matrix is accepted RED evidence: 11 checks passed and `web / chromium` reported 9 passed / 3 skipped, one flaky and one failed. The two failures were existing asynchronous assertions in `apps/web/tests/e2e/shell.spec.ts` at lines 1202 and 1317; each called `expect(page.getByText(...)).toHaveCount(0)` without `await`, producing `Received: undefined` and a session-closed retry error. `real-backend.spec.ts` did not run. The exact 12th-path repair adds `await` to those two assertions only; no timeout, fixture, product code or other assertion changed. Local shell E2E remains `NOT_RERUN_DUE_EXPLICIT_NO_VITE`, and the follow-up CI job must provide the fresh 12/12 result.
+PR #309's initial 12-check matrix is accepted RED evidence: 11 checks passed and `web / chromium` reported 9 passed / 3 skipped, one flaky and one failed. The two failures were existing asynchronous assertions in `apps/web/tests/e2e/shell.spec.ts` at lines 1202 and 1317; each called `expect(page.getByText(...)).toHaveCount(0)` without `await`, producing `Received: undefined` and a session-closed retry error. `real-backend.spec.ts` did not run. The exact 12th-path repair adds `await` to those two assertions only; no timeout, fixture, product code or other assertion changed. Local shell E2E remains `NOT_RERUN_DUE_EXPLICIT_NO_VITE`. A fresh CI run at head `fef449d27c43343a8089831eaf89319b235b6751` passed all 12 Required Checks (12/12).
 
 ## Offline validation
 
