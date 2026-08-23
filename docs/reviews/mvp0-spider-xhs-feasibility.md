@@ -4,7 +4,7 @@
 > **研究状态：** `P5_REUSE_FROZEN`（独立 Review 已完成）<br>
 > **研究日期：** 2026-08-24（Asia/Shanghai）<br>
 > **项目基线：** `origin/main@926a5b8d00e1308ac56d203f08cc83b267215fca`<br>
-> **处置：** `P5_REUSE_FROZEN`（P5 docs/research Gate 完成；最终 Goal Review 仍待完成）
+> **处置：** `P5_REUSE_FROZEN`（P5 docs/research Gate 完成；独立最终闭合记录为 `FINAL_GOAL_REVIEW_PASS`；`MVP0P_GOAL_COMPLETE` 在该记录到达 `main` 后生效）
 
 本报告只做文档与公开一手资料研究。Spider_XHS 只通过 GitHub API、GitHub HTML
 和指定 commit 的 raw/blob 文件检查；没有 clone、fork、archive/download、安装、执行、
@@ -331,8 +331,8 @@ Task/Source/Brief 契约；这会扩大 API、Secret、部署和测试范围，�
 
 ### Inference / Proposal
 
-P5 独立 Review 已完成；后续 Goal 仍可优先评估用户/官方授权材料 intake，维持当前平台
-中立 Brief 及 Markdown 导出。在最终 Goal Review 和新的明确授权前，不创建平台网络客户端。
+P5 独立 Review 已完成；任何用户/官方授权材料 intake 只能作为后续、另行授权的候选，维持当前平台
+中立 Brief 及 Markdown 导出。在新的明确授权前，不创建平台网络客户端。
 
 ## 8. 最终处置、当前真相与交接
 
@@ -342,14 +342,14 @@ P5 独立 Review 已完成；后续 Goal 仍可优先评估用户/官方授权�
   官方适用路径未明确，但未来可能因书面许可或经审核的官方计划而改变。
 - P4 的 `P4_LOCAL_RELEASE_ACCEPTED` 仍是已独立 Review 的 provider-free 本地结果；P5
   docs/research Gate 已完成并独立 Review 为 `P5_REUSE_FROZEN`，direct Spider_XHS
-  reuse/platform behavior 仍 frozen 且 unauthorized；successor Goal 仍 `ACTIVE`，仅等待
-  最终 Goal Review；旧 Fast Lane 仍是 terminal `GOAL_BLOCKED`；没有 Provider acceptance；
-  当前真实 FastAPI task 仍投影
+  reuse/platform behavior 仍 frozen 且 unauthorized；独立闭合记录为
+  `FINAL_GOAL_REVIEW_PASS`，`MVP0P_GOAL_COMPLETE` 仅在该记录到达 `main` 后生效；旧 Fast Lane
+  仍是 terminal `GOAL_BLOCKED`；没有 Provider acceptance；当前真实 FastAPI task 仍投影
   `needsInputRequest: null`，不宣称真实 Needs Input/Recovery 完成；PR #299 已实时核对为
   open/unmerged（[PR #299](https://github.com/JettxonHo/ai-ecommerce-agent/pull/299)）。
-- 当前同步应记录 `P5_REUSE_FROZEN` 与 P5 stage complete，同时保留 Goal ACTIVE/最终
-  Goal Review pending；这不是 Goal complete、PR merged、用户接受 Decision 或 Provider
-  资格。直接复用和平台行为仍未授权。
+- 当前同步应记录 `P5_REUSE_FROZEN` 与 P5 stage complete，并链接独立闭合记录
+  `FINAL_GOAL_REVIEW_PASS`；这不是 PR merged、用户接受新 Decision 或 Provider 资格，也不
+  授权 successor Goal、平台行为或运行时扩展。直接复用和平台行为仍未授权。
 
 ### Observation
 
@@ -358,7 +358,7 @@ P5 独立 Review 已完成；后续 Goal 仍可优先评估用户/官方授权�
 
 ### Risk
 
-若后续文档把“Goal Review pending”提前改成 Goal complete/PR merged，或把 Share/Mini
+若后续文档把“`MVP0P_GOAL_COMPLETE` 仅在闭合记录到达 main 后生效”提前改成 Goal complete/PR merged，或把 Share/Mini
 Program 文档误读成主站抓取/Creator 发布许可，就会产生 current-truth 冲突并扩大 Goal 范围。
 
 ### Inference / Proposal
@@ -374,7 +374,7 @@ Program 文档误读成主站抓取/Creator 发布许可，就会产生 current-
 - 研究在 fresh isolated clone 的 `codex/mvp0-p5-spider-xhs-feasibility` 分支完成，
   初始 HEAD、`origin/main` 和任务基线均为 `926a5b8d00e1308ac56d203f08cc83b267215fca`；
   tracked allowlist 最多六个路径，报告为第一个新文件，其他五个同步为独立 Review 后的
-  `P5_REUSE_FROZEN`/P5 stage complete 状态；最终 Goal Review 仍 pending。
+  `P5_REUSE_FROZEN`/P5 stage complete 状态；该历史快照早于最终闭合记录。
 - 上游 tree、commit 和文件内容证据使用上述 SHA/ref-pinned GitHub API/HTML/raw/blob；
   仓库与 release metadata URL 是研究日读取的 live metadata，必须在未来复核时重新验证。
   平台来源是官方 `agora.xiaohongshu.com`、`miniapp.xiaohongshu.com` 或
