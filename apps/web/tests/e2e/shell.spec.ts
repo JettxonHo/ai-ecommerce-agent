@@ -1199,9 +1199,9 @@ test("creates a Task through the generated HTTP client and reuses its key on exp
   expect(createRequests[1]?.body).toEqual(createRequests[0]?.body);
   expect(createRequests[0]?.key).toBeTruthy();
   expect(createRequests[1]?.key).toBe(createRequests[0]?.key);
-  expect(page.getByText(createRequests[0]?.key ?? "missing-key")).toHaveCount(
-    0,
-  );
+  await expect(
+    page.getByText(createRequests[0]?.key ?? "missing-key"),
+  ).toHaveCount(0);
   expect(requestPaths.some((path) => path.includes("/commands/"))).toBe(false);
   expect(pageErrors).toEqual([]);
   expect(consoleErrors).toEqual([]);
@@ -1314,9 +1314,9 @@ test("reuses the same key after a malformed-success response and rotates it only
     productCategory: "Tote",
     promotionGoal: "Awareness",
   });
-  expect(page.getByText(createRequests[0]?.key ?? "missing-key")).toHaveCount(
-    0,
-  );
+  await expect(
+    page.getByText(createRequests[0]?.key ?? "missing-key"),
+  ).toHaveCount(0);
 });
 
 test("resolves a Needs Input choice after a temporary failure with manual retry", async ({

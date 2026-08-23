@@ -77,6 +77,10 @@ page.getByRole("textbox", { name: "粘贴文本" })
 
 The full remaining locator scan was reconciled against the current source: English New Task form controls, Chinese workbench controls and status headings, the literal `Review` panel, and scoped Markdown technical-detail assertions. Query deep links remain within `/tasks/:taskId`; no disconnected route or second workspace was introduced. The real-backend spec was not rerun after this fix because the P4A hard freeze prohibits starting Vite or another stack.
 
+## CI follow-up (12th-path amendment)
+
+PR #309's initial 12-check matrix is accepted RED evidence: 11 checks passed and `web / chromium` reported 9 passed / 3 skipped, one flaky and one failed. The two failures were existing asynchronous assertions in `apps/web/tests/e2e/shell.spec.ts` at lines 1202 and 1317; each called `expect(page.getByText(...)).toHaveCount(0)` without `await`, producing `Received: undefined` and a session-closed retry error. `real-backend.spec.ts` did not run. The exact 12th-path repair adds `await` to those two assertions only; no timeout, fixture, product code or other assertion changed. Local shell E2E remains `NOT_RERUN_DUE_EXPLICIT_NO_VITE`, and the follow-up CI job must provide the fresh 12/12 result.
+
 ## Offline validation
 
 Lockfile-only hydration used existing caches (`npm ci --offline --no-audit --no-fund`, `uv sync --locked --offline`); `apps/web/package-lock.json` and `apps/backend/uv.lock` remained byte-identical. The canonical local tuple was Node `24.18.0`, npm `11.16.0`, Python `3.13.14`, uv `0.12.0`, Docker Compose `2.39.1-desktop.1`, Vite `8.2.1`.
