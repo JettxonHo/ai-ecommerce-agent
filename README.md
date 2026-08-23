@@ -47,7 +47,7 @@ The completed predecessor P0 → P1 → P2 → P3 → P4 → P5 chain is histori
 
 1. **L0 — Governance activation:** this docs-only Issue; exactly nine allowlisted files, no product-runtime/Provider/API/platform action. Ordinary Git/GitHub documentation workflow transport remains allowed. The branch remains `ACTIVATION_PENDING` until its PR reaches `main`.
 2. **L1 — Real Needs Input backend:** implement the real FastAPI read/resolve boundary and bounded Recovery; current `needsInputRequest: null` remains the starting gap.
-3. **L2 — Minimum Source/Brief persistence:** reconcile tracking parents #81/#82, then create only immediately required bounded child Issues; neither parent is a one-PR contract.
+3. **L2 — Minimum Source/Brief persistence:** exactly one bounded persistence acceptance/reconciliation Issue/PR, not an umbrella or child-Issue implementation batch. Existing Task primary input, current generated and confirmed Marketing/Xiaohongshu results, and immutable export snapshots are implementation surfaces/evidence candidates only; from reviewed `main`, independently verify that they survive accepted reload/replay paths. L0 records evidence candidates only and does not claim L2 acceptance. Residual unconsumed #81/#82 scope is Deferred; do not close or mutate either parent, create child implementation Issues or revive the full Source/Review platform without a concrete later consumer and a new explicit contract. Review Draft autosave, diff and stale-draft recovery remain Deferred; if evidence contradicts minimum persistence, stop with the exact gap and no silent production-code repair, migration, public-contract change or child-Issue creation/widening.
 4. **L3 — Local Web lifecycle:** Apple Silicon + user-installed Docker Desktop, one reliable command, preflight/health/stop and system-default-browser opening. Native App/WebView, signing and notarization are Deferred; Intel support is Deferred; excluded from the first release.
 5. **L4 — DeepSeek offline diagnosis/repair:** preserve official DeepSeek `deepseek-v4-pro` and the local `.env` boundary; no paid/live call.
 6. **L5 — Real DeepSeek acceptance:** one separately reviewed exact-commit paid acceptance after L4; no prior authorization carries forward.
@@ -61,7 +61,7 @@ Only one successor Stage may be active at a time; the next Issue waits for the p
 - semantic or hybrid retrieval and the full EvidencePackage lifecycle;
 - distributed Worker lease/fencing and complete checkpoint recovery;
 - partial rerun, full cancellation/recovery matrices and Source replace/remove UX;
-- review autosave/diff, multiple outcomes and Brief comparison;
+- Review Draft autosave/diff/stale-draft recovery, multiple outcomes and Brief comparison;
 - unused public operations, login, RBAC, multi-tenancy and public deployment;
 - multi-agent runtime, multi-provider routing, automatic publishing and generic compliance or telemetry platforms.
 

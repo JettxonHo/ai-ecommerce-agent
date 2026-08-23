@@ -5,7 +5,7 @@
 - **Status:** Accepted
 - **Date:** 2026-08-24
 - **Decision Type:** Product Delivery / Goal Governance / Local Runtime Boundary / Stage Sequencing
-- **Source:** 用户在 Codex conversation/session 中明确接受 successor direction；主控 `ORCHESTRATOR_REVIEWER` 将该方向持久记录于 [Issue #316](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316)
+- **Source:** 用户在 Codex conversation/session 中明确接受 successor direction；主控 `ORCHESTRATOR_REVIEWER` 将该方向持久记录于 [Issue #316 comment](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316#issuecomment-5388616747)
 - **Amends:** [DEC-083](dec-083-local-action-workbench-productization-goal.md) 的已完成 Goal 入口与 Stage 结论
 - **Preserves:** [DEC-039](dec-039-proportional-validation-and-review-governance.md)、[DEC-071](dec-071-luna-worker-exclusive-implementation-routing.md)、[DEC-072](dec-072-long-running-autonomy-and-agent-identity-governance.md)、[DEC-079](dec-079-deepseek-v4-pro-mvp0-real-provider-amendment.md)、[DEC-081](dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) 与 `P5_REUSE_FROZEN`
 
@@ -19,7 +19,7 @@
 
 ### Accepted Decision
 
-The owner explicitly accepted the following successor direction in the Codex conversation/session; the `ORCHESTRATOR_REVIEWER` durably recorded that direction in Issue #316:
+The owner explicitly accepted the following successor direction in the Codex conversation/session; the `ORCHESTRATOR_REVIEWER` durably recorded that direction in [Issue #316 comment](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316#issuecomment-5388616747):
 
 - first release supports Apple Silicon Macs only; Intel support is Deferred; excluded from the first release;
 - Docker Desktop is a user-installed prerequisite;
@@ -45,7 +45,7 @@ The exact serial order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**. Only
 
 1. **L0 — Governance activation:** this docs-only Issue and its exact nine-file allowlist.
 2. **L1 — Real Needs Input backend:** implement the real FastAPI Needs Input read/resolve boundary and bounded Recovery. The current `needsInputRequest: null` gap remains explicit until independently accepted.
-3. **L2 — Minimum Source/Brief persistence:** reconcile open tracking parents [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) and [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82), then create only immediately required bounded child Issues; neither parent is a one-PR contract.
+3. **L2 — Minimum Source/Brief persistence:** run exactly one bounded persistence acceptance/reconciliation Issue/PR, not an umbrella or multi-child implementation batch. Task primary input, current generated and confirmed Marketing/Xiaohongshu results, and immutable export snapshots are existing implementation surfaces/evidence candidates only; L2 must independently verify from reviewed `main` that they survive accepted reload/replay paths. Residual unconsumed scope in tracking parents [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) and [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) remains Deferred; do not close or mutate either parent, create child implementation Issues, or revive the full Source/Review platform without a concrete later consumer and a new explicit contract. Review Draft autosave, diff and stale-draft recovery remain Deferred. If evidence contradicts the minimum persistence, stop and return the exact gap; no silent production-code repair, migration, public-contract change or child-Issue creation/widening is authorized.
 4. **L3 — Local Web lifecycle:** on Apple Silicon with user-installed Docker Desktop, provide one reliable command, preflight/health/stop behavior and system-default-browser opening. Native App/WebView, signing and notarization remain Deferred; Intel support is Deferred; excluded from the first release.
 5. **L4 — DeepSeek offline diagnosis/repair:** preserve the official base/model contract and the local `.env` boundary; no paid or live call is allowed in this Stage.
 6. **L5 — Real DeepSeek acceptance:** after L4, run exactly one separately reviewed, exact-commit paid acceptance contract. No previous smoke authorization carries forward.
@@ -89,7 +89,7 @@ Rejected. L0 is docs-only; L4 must complete offline diagnosis/repair first, and 
 
 - The repository gains one successor delivery entry with a truthful branch-pending activation state and a merge-effective `ACTIVE` transition.
 - The predecessor's completed local deterministic evidence and terminal Fast Lane failure history remain auditable without being mistaken for real-AI acceptance.
-- The six future implementation boundaries are explicit and serial, preventing parallel or speculative Issues without a reviewed consumer.
+- The future implementation boundaries are explicit and serial for L1 and L3–L6; L2 is a bounded acceptance/reconciliation audit rather than an implementation boundary. If its evidence audit finds a gap, any repair waits for a later explicit contract, preventing parallel or speculative Issues without a reviewed consumer.
 - Apple Silicon, user-installed Docker Desktop, local browser operation and the later `.env` convention are product constraints; deferred packaging, platform and account features cannot silently enter an L Stage.
 
 ## Relationships

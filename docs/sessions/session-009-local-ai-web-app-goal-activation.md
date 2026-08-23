@@ -20,7 +20,7 @@
 
 ## 2. Owner-accepted direction (Codex conversation/session)
 
-The owner explicitly accepted the successor direction in the Codex conversation/session. The `ORCHESTRATOR_REVIEWER` durably recorded that accepted direction in [Issue #316](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316):
+The owner explicitly accepted the successor direction in the Codex conversation/session. The `ORCHESTRATOR_REVIEWER` durably recorded that accepted direction in [Issue #316 comment](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316#issuecomment-5388616747):
 
 - first release: Apple Silicon Mac only;
 - Docker Desktop: user-installed prerequisite;
@@ -36,13 +36,13 @@ These are `Accepted Decision` inputs to DEC-084. They are not inferred from exis
 
 ## 3. Activation record
 
-DEC-084 is recorded as `Accepted` solely from the owner's explicit direction in the Codex conversation/session; the `ORCHESTRATOR_REVIEWER` durably recorded it in Issue #316. The predecessor Goal is historical `MVP0P_GOAL_COMPLETE`. The successor Goal is `ACTIVATION_PENDING` on this branch and becomes `ACTIVE` only when the L0 PR reaches `main`; neither this branch nor this Session may claim merge-effective `ACTIVE` earlier.
+DEC-084 is recorded as `Accepted` solely from the owner's explicit direction in the Codex conversation/session; the `ORCHESTRATOR_REVIEWER` durably recorded it in [Issue #316 comment](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316#issuecomment-5388616747). The predecessor Goal is historical `MVP0P_GOAL_COMPLETE`. The successor Goal is `ACTIVATION_PENDING` on this branch and becomes `ACTIVE` only when the L0 PR reaches `main`; neither this branch nor this Session may claim merge-effective `ACTIVE` earlier.
 
 The exact successor Stage order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**, with only one active Stage at a time:
 
 1. **L0 — Governance activation:** this docs-only Issue and exact nine-path allowlist.
 2. **L1 — Real Needs Input backend:** real FastAPI read/resolve and bounded Recovery; begin from the explicit `needsInputRequest: null` gap.
-3. **L2 — Minimum Source/Brief persistence:** reconcile tracking parents #81/#82 and create only immediately required bounded child Issues.
+3. **L2 — Minimum Source/Brief persistence:** exactly one bounded persistence acceptance/reconciliation Issue/PR, not an umbrella or child-Issue implementation batch. Existing Task primary input, current generated and confirmed Marketing/Xiaohongshu results, and immutable export snapshots are implementation surfaces/evidence candidates only; from reviewed `main`, independently verify that they survive accepted reload/replay paths. L0 records evidence candidates only and does not claim L2 acceptance. Residual unconsumed #81/#82 scope is Deferred; do not close or mutate either parent, create child implementation Issues or revive the full Source/Review platform without a concrete later consumer and a new explicit contract. Review Draft autosave, diff and stale-draft recovery remain Deferred. If evidence contradicts minimum persistence, stop and return the exact gap; no silent production-code repair, migration, public-contract change or child-Issue creation/widening is authorized.
 4. **L3 — Local Web lifecycle:** Apple Silicon + user-installed Docker Desktop, one reliable command, preflight/health/stop and default-browser opening.
 5. **L4 — DeepSeek offline diagnosis/repair:** official base/model and `.env` boundary preserved; no paid/live call.
 6. **L5 — Real DeepSeek acceptance:** one separately reviewed exact-commit paid acceptance after L4; no previous authorization carries.
@@ -74,7 +74,7 @@ L0 validation is documentation-only and proportional under [DEC-039](../decision
 
 ### Archive Result
 
-- **Accepted Decision:** DEC-084 is recorded as Accepted from the owner's explicit Codex conversation/session direction only; the `ORCHESTRATOR_REVIEWER` durably recorded it in Issue #316.
+- **Accepted Decision:** DEC-084 is recorded as Accepted from the owner's explicit Codex conversation/session direction only; the `ORCHESTRATOR_REVIEWER` durably recorded it in [Issue #316 comment](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316#issuecomment-5388616747).
 - **Historical predecessor:** MVP0P is `MVP0P_GOAL_COMPLETE`; Fast Lane is terminal `GOAL_BLOCKED`; `P5_REUSE_FROZEN` and `needsInputRequest: null` remain explicit.
 - **Successor state:** MVP-0L is `ACTIVATION_PENDING` on the branch and merge-effective `ACTIVE` only after the L0 PR reaches `main`.
 - **Deferred:** Intel support is Deferred; excluded from the first release; native App/WebView/signing/notarization, login/RBAC/multi-user/public deployment and Keychain/Secret UI.

@@ -41,9 +41,9 @@ The exact order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**.
 
 ### L2 — Minimum Source/Brief persistence
 
-**Result:** reconcile open tracking parents [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) and [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82), then create only the immediately required bounded child Issues. Neither parent is treated as a one-PR implementation contract.
+**Result:** L2 is exactly one bounded persistence acceptance/reconciliation Issue/PR, not an umbrella or multi-child implementation batch. Task primary input, current generated and confirmed Marketing/Xiaohongshu results, and immutable export snapshots are existing implementation surfaces/evidence candidates only; L2 must independently verify from reviewed `main` that they survive accepted reload/replay paths. This L0 Goal records the audit contract only and does not claim L2 acceptance. Residual unconsumed scope in tracking parents [#81](https://github.com/JettxonHo/ai-ecommerce-agent/issues/81) and [#82](https://github.com/JettxonHo/ai-ecommerce-agent/issues/82) remains Deferred; neither parent is closed or mutated, and L2 creates no child implementation Issues or revives the full Source/Review platform without a concrete later consumer and a new explicit contract. Review Draft autosave, diff and stale-draft recovery remain Deferred. If evidence contradicts the minimum persistence, stop and return the exact gap; no silent production-code repair, migration, public-contract change or child-Issue creation/widening is authorized.
 
-**Gate:** each child has a concrete consumer, ownership, acceptance and independent review; no speculative source/review platform is activated.
+**Gate:** one independently reviewed L2 Issue/PR records the exact reviewed-main evidence; no child Issues, migration, public contract or full Source/Review platform revival is authorized without a concrete later consumer and a new explicit contract.
 
 ### L3 — Local Web lifecycle
 
@@ -109,7 +109,7 @@ Use proportional evidence under [DEC-039](../decisions/dec-039-proportional-vali
 L0 acceptance requires:
 
 - exactly the nine allowlisted tracked paths and no tenth tracked path;
-- DEC-084 marked Accepted solely from the owner's explicit Codex conversation/session direction; the `ORCHESTRATOR_REVIEWER` durably recorded it in Issue #316;
+- DEC-084 marked Accepted solely from the owner's explicit Codex conversation/session direction; the `ORCHESTRATOR_REVIEWER` durably recorded it in [Issue #316 comment](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316#issuecomment-5388616747);
 - bidirectional relative links among DEC-084, this Goal, Session-009 and the predecessor Goal;
 - predecessor `MVP0P_GOAL_COMPLETE` historical truth and successor branch `ACTIVATION_PENDING` truth;
 - preserved terminal Fast Lane / `P5_REUSE_FROZEN` language and current `needsInputRequest: null` gap;
