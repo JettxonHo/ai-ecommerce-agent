@@ -252,6 +252,52 @@ assert_contains 'volume=ai-ecommerce-agent-mvp0-postgres-data' "$default_docker_
 assert_not_contains 'down --volumes' "$default_docker_log"
 assert_not_contains 'ephemeral-' "$default_docker_log"
 
+# Characterize the copied production scope guard directly. Every invalid
+# ephemeral volume identity must fail before mvp0_compose reaches fake Docker;
+# the paired value remains the only value allowed to reach destructive cleanup.
+scope_project='ai-ecommerce-agent-mvp0-ephemeral-260824123456-12345-54321'
+scope_default_volume='ai-ecommerce-agent-mvp0-postgres-data'
+scope_probe_invalid() {
+  local case_name="$1"
+  local value_mode="$2"
+  local value="${3:-}"
+  local docker_log="$SANDBOX/scope-${case_name}.docker.log"
+  rm -f "$docker_log"
+
+  set +e
+  if [[ "$value_mode" == unset ]]; then
+    env -u MVP0_POSTGRES_VOLUME_NAME PATH="$FAKE_PATH" \
+      MVP0_COMPOSE_PROJECT="$scope_project" MVP0_TEST_DOCKER_LOG="$docker_log" \
+      bash -c 'set -Eeuo pipefail; source "$1/lib.sh"; mvp0_compose down --volumes --remove-orphans' \
+      _ "$SANDBOX/scripts/mvp0"
+  else
+    env PATH="$FAKE_PATH" MVP0_COMPOSE_PROJECT="$scope_project" \
+      MVP0_POSTGRES_VOLUME_NAME="$value" MVP0_TEST_DOCKER_LOG="$docker_log" \
+      bash -c 'set -Eeuo pipefail; source "$1/lib.sh"; mvp0_compose down --volumes --remove-orphans' \
+      _ "$SANDBOX/scripts/mvp0"
+  fi
+  local status=$?
+  set -e
+  (( status != 0 )) || fail "invalid ${case_name} scope unexpectedly passed"
+  [[ ! -s "$docker_log" ]] ||
+    fail "invalid ${case_name} scope reached fake Docker"
+}
+
+scope_probe_invalid unset unset
+scope_probe_invalid empty value ''
+scope_probe_invalid default value "$scope_default_volume"
+scope_probe_invalid mismatch value "${scope_project}-wrong"
+
+scope_paired_log="$SANDBOX/scope-paired.docker.log"
+env PATH="$FAKE_PATH" MVP0_COMPOSE_PROJECT="$scope_project" \
+  MVP0_POSTGRES_VOLUME_NAME="${scope_project}-pg" \
+  MVP0_TEST_DOCKER_LOG="$scope_paired_log" \
+  bash -c 'set -Eeuo pipefail; source "$1/lib.sh"; mvp0_compose down --volumes --remove-orphans' \
+  _ "$SANDBOX/scripts/mvp0"
+scope_paired_docker_log="$(<"$scope_paired_log")"
+assert_contains 'down --volumes --remove-orphans' "$scope_paired_docker_log"
+assert_contains "volume=${scope_project}-pg" "$scope_paired_docker_log"
+
 ephemeral_port_log="$SANDBOX/ephemeral-port-docker.log"
 set +e
 ephemeral_port_output="$(env "${preflight_env[@]}" MVP0_TEST_DOCKER_LOG="$ephemeral_port_log" \
