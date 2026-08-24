@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+if [[ "$#" -ne 0 ]]; then
+  printf '%s\n' 'ERROR: this runner does not accept caller commands or options.' >&2
+  exit 2
+fi
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+command -v date >/dev/null 2>&1 || {
+  printf '%s\n' 'ERROR: required command date is missing; cannot create an ephemeral scope.' >&2
+  exit 1
+}
+
+# These values are fixed before the shared lifecycle guard is sourced. The
+# caller cannot redirect this runner to the persistent default scope.
+ephemeral_timestamp="$(date -u +%y%m%d%H%M%S)"
+ephemeral_pid="$(printf '%05d' "$(( $$ % 100000 ))")"
+ephemeral_random="$(printf '%05d' "$RANDOM")"
+export MVP0_COMPOSE_PROJECT="ai-ecommerce-agent-mvp0-ephemeral-${ephemeral_timestamp}-${ephemeral_pid}-${ephemeral_random}"
+export MVP0_POSTGRES_VOLUME_NAME="${MVP0_COMPOSE_PROJECT}-pg"
+export MVP0_POSTGRES_PORT=55432
+
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+mvp0_validate_resource_scope
+
+config_json=""
+if ! config_json="$(mvp0_compose config --format json 2>/dev/null)"; then
+  mvp0_die 'could not render the scoped PostgreSQL Compose configuration'
+fi
+
+parsed_config=""
+if ! parsed_config="$(printf '%s\n' "$config_json" | python3 -c '
+import json
+import sys
+
+try:
+    config = json.load(sys.stdin)
+    service = config["services"]["postgres"]
+    environment = service["environment"]
+    ports = service["ports"]
+    volumes = config["volumes"]
+    port = ports[0]
+    volume = volumes["postgres-data"]["name"]
+    values = (
+        environment["MVP0_BUSINESS_DB"],
+        environment["MVP0_BUSINESS_ROLE"],
+        environment["MVP0_BUSINESS_PASSWORD"],
+        port["host_ip"],
+        str(port["published"]),
+        volume,
+    )
+    if any(not isinstance(value, str) or not value for value in values):
+        raise ValueError("empty Compose value")
+    print("\t".join(values))
+except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError):
+    raise SystemExit(1)
+' 2>/dev/null)"; then
+  mvp0_die 'could not inspect the rendered PostgreSQL Compose configuration'
+fi
+
+IFS=$'\t' read -r business_db business_role business_password rendered_host rendered_port rendered_volume <<<"$parsed_config"
+[[ "$rendered_volume" == "$MVP0_POSTGRES_VOLUME_NAME" ]] ||
+  mvp0_die 'rendered PostgreSQL volume is not the exact paired ephemeral volume'
+[[ "$rendered_host" == 127.0.0.1 && "$rendered_port" == "$MVP0_POSTGRES_PORT" ]] ||
+  mvp0_die 'rendered PostgreSQL endpoint is outside the fixed loopback port'
+
+printf '%s\n' 'MVP0_MIGRATION_SCOPE=validated'
+
+log_dir="$(mktemp -d "${TMPDIR:-/tmp}/mvp0-migration-validation.XXXXXX")"
+cleanup_armed=0
+
+cleanup() {
+  local primary_status="$?"
+  local cleanup_failed=0
+  trap - EXIT
+  if (( cleanup_armed == 1 )); then
+    if mvp0_compose down --volumes --remove-orphans >/dev/null 2>&1; then
+      printf '%s\n' 'MVP0_MIGRATION_CLEANUP=pass'
+    else
+      printf '%s\n' 'MVP0_MIGRATION_CLEANUP=fail' >&2
+      cleanup_failed=1
+    fi
+  fi
+  if ! rm -rf "$log_dir"; then
+    cleanup_failed=1
+  fi
+  if (( cleanup_failed == 1 )); then
+    printf 'MVP0_MIGRATION_RESULT=fail primary=%s cleanup=fail\n' "$primary_status" >&2
+    (( primary_status == 0 )) && primary_status=1
+  elif (( primary_status != 0 )); then
+    printf 'MVP0_MIGRATION_RESULT=fail primary=%s cleanup=pass\n' "$primary_status" >&2
+  else
+    printf '%s\n' 'MVP0_MIGRATION_RESULT=pass'
+  fi
+  exit "$primary_status"
+}
+
+handle_int() {
+  exit 130
+}
+
+handle_term() {
+  exit 143
+}
+
+trap cleanup EXIT
+trap handle_int INT
+trap handle_term TERM
+
+printf '%s\n' 'MVP0_MIGRATION_CREATE=begin'
+cleanup_armed=1
+if "$SCRIPT_DIR/up" >"$log_dir/create.log" 2>&1; then
+  printf '%s\n' 'MVP0_MIGRATION_CREATE=pass'
+else
+  create_status="$?"
+  printf '%s\n' 'MVP0_MIGRATION_CREATE=fail' >&2
+  exit "$create_status"
+fi
+
+database_url="postgresql+psycopg://${business_role}:${business_password}@127.0.0.1:${rendered_port}/${business_db}"
+printf '%s\n' 'MVP0_MIGRATION_TEST=begin'
+if (
+  cd "$MVP0_ROOT_DIR/apps/backend"
+  MVP0_RUN_POSTGRES_MIGRATION=1 MVP0_MIGRATION_DATABASE_URL="$database_url" \
+    uv run --locked pytest tests/migration -m migration -q
+) >"$log_dir/migration.log" 2>&1; then
+  printf '%s\n' 'MVP0_MIGRATION_TEST=pass'
+else
+  migration_status="$?"
+  printf '%s\n' 'MVP0_MIGRATION_TEST=fail' >&2
+  exit "$migration_status"
+fi
