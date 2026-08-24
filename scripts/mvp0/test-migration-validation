@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Offline regression entry point for the repository-owned migration runner.
+# All lifecycle and migration calls below use bounded fake tools; this test
+# never needs Docker, PostgreSQL, a listener, a network, or a volume.
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+RUNNER="$SCRIPT_DIR/run-migration-validation"
+
+fail() {
+  printf 'FAIL: %s\n' "$*" >&2
+  exit 1
+}
+
+assert_contains() {
+  local needle="$1"
+  local haystack="$2"
+  [[ "$haystack" == *"$needle"* ]] || fail "expected output to contain: $needle"
+}
+
+assert_not_contains() {
+  local needle="$1"
+  local haystack="$2"
+  [[ "$haystack" != *"$needle"* ]] || fail "unexpected output: $needle"
+}
+
+assert_count() {
+  local pattern="$1"
+  local expected="$2"
+  local file="$3"
+  local actual
+  actual="$(grep -Ec "$pattern" "$file" || true)"
+  [[ "$actual" == "$expected" ]] ||
+    fail "expected $expected matches for $pattern in $file, found $actual"
+}
+
+[[ -x "$RUNNER" ]] || fail "repository-owned migration runner is absent: $RUNNER"
+
+SANDBOX="$(mktemp -d "${TMPDIR:-/tmp}/mvp0-migration-validation.XXXXXX")"
+cleanup_sandbox() {
+  rm -rf "$SANDBOX"
+}
+trap cleanup_sandbox EXIT
+
+mkdir -p "$SANDBOX/scripts/mvp0" "$SANDBOX/apps/backend" "$SANDBOX/fake-bin"
+cp "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/preflight" "$SCRIPT_DIR/up" "$RUNNER" "$SANDBOX/scripts/mvp0/"
+cp "$SCRIPT_DIR/../../compose.yaml" "$SANDBOX/compose.yaml"
+chmod +x "$SANDBOX/scripts/mvp0"/*
+
+cat >"$SANDBOX/fake-bin/docker" <<'FAKE_DOCKER'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+log="${MVP0_TEST_DOCKER_LOG:?}"
+printf 'docker %s [scope=%s volume=%s]\n' "$*" \
+  "${MVP0_COMPOSE_PROJECT:-unset}" "${MVP0_POSTGRES_VOLUME_NAME:-unset}" >>"$log"
+
+if [[ "${1:-}" != compose ]]; then
+  [[ "${1:-}" == info ]] && exit 0
+  exit 0
+fi
+shift
+while (($#)); do
+  case "$1" in
+    --project-name|--file|--env-file)
+      shift 2
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+command_name="${1:-}"
+shift || true
+
+case "$command_name" in
+  version)
+    if [[ "${1:-}" == --short ]]; then
+      printf '2.40.0\n'
+    else
+      printf 'Docker Compose version v2.40.0\n'
+    fi
+    ;;
+  config)
+    case " $* " in
+      *' --images '*) printf 'postgres:16.14-bookworm\n' ;;
+      *' --services '*) printf 'postgres\n' ;;
+      *' --volumes '*) printf 'postgres-data\n' ;;
+      *' --format json '*|*' --format=json '*)
+        render_volume="${MVP0_TEST_RENDER_VOLUME:-$MVP0_POSTGRES_VOLUME_NAME}"
+        render_port="${MVP0_TEST_RENDER_PORT:-55432}"
+        render_host="${MVP0_TEST_RENDER_HOST_IP:-127.0.0.1}"
+        printf '%s\n' \
+          "{\"services\":{\"postgres\":{\"environment\":{\"MVP0_BUSINESS_DB\":\"ecommerce_business\",\"MVP0_BUSINESS_ROLE\":\"mvp0_business\",\"MVP0_BUSINESS_PASSWORD\":\"mvp0_business_local_only\"},\"ports\":[{\"host_ip\":\"$render_host\",\"published\":$render_port}]}},\"volumes\":{\"postgres-data\":{\"name\":\"$render_volume\"}}}"
+        ;;
+      *) ;;
+    esac
+    ;;
+  up)
+    if [[ "${MVP0_TEST_SIGNAL:-}" == INT || "${MVP0_TEST_SIGNAL:-}" == TERM ]]; then
+      runner_pid="$(ps -o ppid= -p "$PPID" | tr -d ' ')"
+      kill -"${MVP0_TEST_SIGNAL}" "$runner_pid"
+    fi
+    if [[ "${MVP0_TEST_START_FAIL:-0}" == 1 ]]; then
+      exit 17
+    fi
+    ;;
+  exec)
+    ;;
+  down)
+    if [[ "${MVP0_TEST_CLEANUP_FAIL:-0}" == 1 ]]; then
+      exit 23
+    fi
+    ;;
+  *) ;;
+esac
+FAKE_DOCKER
+
+cat >"$SANDBOX/fake-bin/uv" <<'FAKE_UV'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+printf '%s\n' "$*" >>"${MVP0_TEST_UV_LOG:?}"
+if [[ " $* " == *' pytest '* ]]; then
+  printf 'MVP0_RUN_POSTGRES_MIGRATION=%s\n' \
+    "${MVP0_RUN_POSTGRES_MIGRATION:-unset}" >"${MVP0_TEST_UV_CONTROL:?}"
+  [[ "${MVP0_TEST_MIGRATION_FAIL:-0}" == 1 ]] && exit 19
+fi
+exit 0
+FAKE_UV
+chmod +x "$SANDBOX/fake-bin"/*
+
+FAKE_PATH="$SANDBOX/fake-bin:$PATH"
+run_runner() {
+  local output
+  : >"$SANDBOX/docker.log"
+  : >"$SANDBOX/uv.log"
+  : >"$SANDBOX/uv-control"
+  set +e
+  output="$(env PATH="$FAKE_PATH" \
+    MVP0_TEST_DOCKER_LOG="$SANDBOX/docker.log" \
+    MVP0_TEST_UV_LOG="$SANDBOX/uv.log" \
+    MVP0_TEST_UV_CONTROL="$SANDBOX/uv-control" \
+    "$@" "$SANDBOX/scripts/mvp0/run-migration-validation" 2>&1)"
+  RUNNER_RC=$?
+  set -e
+  RUNNER_OUTPUT="$output"
+}
+
+run_runner
+(( RUNNER_RC == 0 )) || fail "success case returned $RUNNER_RC: $RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_SCOPE=validated' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CREATE=begin' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CREATE=pass' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_TEST=begin' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_TEST=pass' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CLEANUP=pass' "$RUNNER_OUTPUT"
+assert_not_contains 'postgresql+psycopg://' "$RUNNER_OUTPUT"
+assert_not_contains 'mvp0_business_local_only' "$RUNNER_OUTPUT"
+assert_count 'docker .* up ' 1 "$SANDBOX/docker.log"
+assert_count 'docker .* down ' 1 "$SANDBOX/docker.log"
+assert_contains 'pytest -m integration and migration -q' "$(<"$SANDBOX/uv.log")"
+assert_contains 'MVP0_RUN_POSTGRES_MIGRATION=1' "$(<"$SANDBOX/uv-control")"
+
+project="$(sed -n 's/.*scope=\([^ ]*\) volume=.*/\1/p' "$SANDBOX/docker.log" | head -n 1)"
+volume="$(sed -n 's/.*volume=\([^]]*\).*/\1/p' "$SANDBOX/docker.log" | head -n 1)"
+[[ "$project" =~ ^ai-ecommerce-agent-mvp0-ephemeral-[0-9]{12}-[0-9]{5}-[0-9]{5}$ ]] ||
+  fail "unexpected ephemeral project: ${project:-<none>}"
+[[ "$volume" == "${project}-pg" ]] || fail "unexpected paired volume: ${volume:-<none>}"
+
+run_runner MVP0_TEST_START_FAIL=1
+(( RUNNER_RC == 17 )) || fail "start failure returned $RUNNER_RC: $RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CREATE=begin' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CREATE=fail' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CLEANUP=pass' "$RUNNER_OUTPUT"
+assert_not_contains 'MVP0_MIGRATION_TEST=begin' "$RUNNER_OUTPUT"
+assert_count 'docker .* up ' 1 "$SANDBOX/docker.log"
+assert_count 'docker .* down ' 1 "$SANDBOX/docker.log"
+
+run_runner MVP0_TEST_MIGRATION_FAIL=1
+(( RUNNER_RC == 19 )) || fail "migration failure returned $RUNNER_RC: $RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CREATE=pass' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_TEST=begin' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_TEST=fail' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CLEANUP=pass' "$RUNNER_OUTPUT"
+assert_contains 'primary=19 cleanup=pass' "$RUNNER_OUTPUT"
+assert_count 'docker .* up ' 1 "$SANDBOX/docker.log"
+assert_count 'docker .* down ' 1 "$SANDBOX/docker.log"
+
+run_runner MVP0_TEST_SIGNAL=INT
+(( RUNNER_RC == 130 )) || fail "INT returned $RUNNER_RC: $RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CREATE=begin' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CLEANUP=pass' "$RUNNER_OUTPUT"
+assert_contains 'primary=130 cleanup=pass' "$RUNNER_OUTPUT"
+assert_not_contains 'MVP0_MIGRATION_RESULT=pass' "$RUNNER_OUTPUT"
+assert_count 'docker .* up ' 1 "$SANDBOX/docker.log"
+assert_count 'docker .* down ' 1 "$SANDBOX/docker.log"
+
+run_runner MVP0_TEST_SIGNAL=TERM
+(( RUNNER_RC == 143 )) || fail "TERM returned $RUNNER_RC: $RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CREATE=begin' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CLEANUP=pass' "$RUNNER_OUTPUT"
+assert_contains 'primary=143 cleanup=pass' "$RUNNER_OUTPUT"
+assert_not_contains 'MVP0_MIGRATION_RESULT=pass' "$RUNNER_OUTPUT"
+assert_count 'docker .* up ' 1 "$SANDBOX/docker.log"
+assert_count 'docker .* down ' 1 "$SANDBOX/docker.log"
+
+run_runner MVP0_TEST_CLEANUP_FAIL=1
+(( RUNNER_RC == 1 )) || fail "cleanup failure returned $RUNNER_RC: $RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_TEST=pass' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CLEANUP=fail' "$RUNNER_OUTPUT"
+assert_contains 'primary=0 cleanup=fail' "$RUNNER_OUTPUT"
+assert_not_contains 'MVP0_MIGRATION_RESULT=pass' "$RUNNER_OUTPUT"
+assert_count 'docker .* up ' 1 "$SANDBOX/docker.log"
+assert_count 'docker .* down ' 1 "$SANDBOX/docker.log"
+
+assert_scope_rejected() {
+  local rendered_volume="$1"
+  run_runner MVP0_TEST_RENDER_VOLUME="$rendered_volume"
+  (( RUNNER_RC != 0 )) || fail "invalid rendered volume unexpectedly passed: $rendered_volume"
+  assert_contains 'rendered PostgreSQL volume is not the exact paired ephemeral volume' "$RUNNER_OUTPUT"
+  assert_count 'docker .* up ' 0 "$SANDBOX/docker.log"
+  assert_count 'docker .* down ' 0 "$SANDBOX/docker.log"
+}
+
+assert_scope_rejected 'ai-ecommerce-agent-mvp0-postgres-data'
+assert_scope_rejected 'not-a-paired-volume'
+assert_scope_rejected 'ai-ecommerce-agent-mvp0-ephemeral-invalid'
+
+run_runner MVP0_TEST_MIGRATION_FAIL=1 MVP0_TEST_CLEANUP_FAIL=1
+(( RUNNER_RC == 19 )) || fail "primary plus cleanup failure returned $RUNNER_RC: $RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_TEST=fail' "$RUNNER_OUTPUT"
+assert_contains 'MVP0_MIGRATION_CLEANUP=fail' "$RUNNER_OUTPUT"
+assert_contains 'primary=19 cleanup=fail' "$RUNNER_OUTPUT"
+assert_count 'docker .* up ' 1 "$SANDBOX/docker.log"
+assert_count 'docker .* down ' 1 "$SANDBOX/docker.log"
+
+printf 'MVP-0 migration validation success seam: PASS\n'

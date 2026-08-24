@@ -4,7 +4,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPO_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
 
-scripts=(lib.sh postgres-init.sh preflight up down status verify reset-demo demo test-static test-lifecycle)
+scripts=(lib.sh postgres-init.sh preflight up down status verify reset-demo demo test-static test-lifecycle run-migration-validation test-migration-validation)
 for script in "${scripts[@]}"; do
   path="$SCRIPT_DIR/$script"
   [[ -x "$path" ]] || {
@@ -34,6 +34,15 @@ if grep -Eq -- '--volumes|down -v|volume rm' "$SCRIPT_DIR/up" "$SCRIPT_DIR/down"
 fi
 grep -Fq -- 'down --volumes' "$SCRIPT_DIR/reset-demo"
 
+grep -Fq -- 'source "$SCRIPT_DIR/lib.sh"' "$SCRIPT_DIR/run-migration-validation"
+grep -Fq -- 'MVP0_POSTGRES_PORT=55432' "$SCRIPT_DIR/run-migration-validation"
+grep -Fq -- 'MVP0_RUN_POSTGRES_MIGRATION=1' "$SCRIPT_DIR/run-migration-validation"
+if grep -Eq -- 'docker[[:space:]]+compose[[:space:]]+(up|down)' "$SCRIPT_DIR/run-migration-validation"; then
+  printf 'FAIL: migration runner must use the guarded Compose wrapper\n' >&2
+  exit 1
+fi
+
 "$SCRIPT_DIR/test-lifecycle"
+"$SCRIPT_DIR/test-migration-validation"
 
 printf 'MVP-0 lifecycle static checks: PASS\n'
