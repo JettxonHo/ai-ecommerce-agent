@@ -125,7 +125,7 @@ printf '%s\n' 'MVP0_MIGRATION_TEST=begin'
 if (
   cd "$MVP0_ROOT_DIR/apps/backend"
   MVP0_RUN_POSTGRES_MIGRATION=1 MVP0_MIGRATION_DATABASE_URL="$database_url" \
-    uv run --locked pytest -m 'integration and migration' -q
+    uv run --locked pytest tests/migration -m migration -q
 ) >"$log_dir/migration.log" 2>&1; then
   printf '%s\n' 'MVP0_MIGRATION_TEST=pass'
 else

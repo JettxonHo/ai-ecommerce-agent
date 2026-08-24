@@ -159,7 +159,7 @@ assert_not_contains 'postgresql+psycopg://' "$RUNNER_OUTPUT"
 assert_not_contains 'mvp0_business_local_only' "$RUNNER_OUTPUT"
 assert_count 'docker .* up ' 1 "$SANDBOX/docker.log"
 assert_count 'docker .* down ' 1 "$SANDBOX/docker.log"
-assert_contains 'pytest -m integration and migration -q' "$(<"$SANDBOX/uv.log")"
+assert_contains 'pytest tests/migration -m migration -q' "$(<"$SANDBOX/uv.log")"
 assert_contains 'MVP0_RUN_POSTGRES_MIGRATION=1' "$(<"$SANDBOX/uv-control")"
 
 project="$(sed -n 's/.*scope=\([^ ]*\) volume=.*/\1/p' "$SANDBOX/docker.log" | head -n 1)"
