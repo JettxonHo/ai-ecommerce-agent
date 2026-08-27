@@ -27,6 +27,53 @@ services:
       retries: 30
       start_period: 5s
 
+  api:
+    profiles: ["local-web"]
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile.local
+    restart: unless-stopped
+    environment:
+      MVP0_BUSINESS_DATABASE_URL: postgresql+psycopg://${MVP0_BUSINESS_ROLE:-mvp0_business}:${MVP0_BUSINESS_PASSWORD:-mvp0_business_local_only}@postgres:5432/${MVP0_BUSINESS_DB:-ecommerce_business}
+      MVP0_LOCAL_DEMO_DATABASE_URL: postgresql+psycopg://${MVP0_BUSINESS_ROLE:-mvp0_business}:${MVP0_BUSINESS_PASSWORD:-mvp0_business_local_only}@postgres:5432/${MVP0_BUSINESS_DB:-ecommerce_business}
+      MVP0_LOCAL_DEMO_WORKSPACE_ID: local-demo
+      MVP0_LOCAL_DEMO_WORKBENCH_ORIGIN: http://127.0.0.1:5173
+    expose:
+      - "8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/tasks?limit=1', timeout=2)",
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  web:
+    profiles: ["local-web"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5173:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/tasks"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
 volumes:
   postgres-data:
     name: ${MVP0_POSTGRES_VOLUME_NAME:-ai-ecommerce-agent-mvp0-postgres-data}

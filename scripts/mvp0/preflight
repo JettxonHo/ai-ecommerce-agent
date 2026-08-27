@@ -6,18 +6,23 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 host_processes=0
+local_web=0
 for arg in "$@"; do
   case "$arg" in
     --host-processes)
       host_processes=1
       ;;
+    --local-web)
+      local_web=1
+      ;;
     -h|--help)
       cat <<'USAGE'
-Usage: scripts/mvp0/preflight [--host-processes]
+Usage: scripts/mvp0/preflight [--host-processes] [--local-web]
 
 Checks Docker/Compose and the pinned PostgreSQL Compose configuration.
 --host-processes additionally checks the Python/uv/Node/npm tools required by
 the deterministic local-demo API and Web host processes.
+--local-web validates the three-service Docker-only API/PostgreSQL/Web stack.
 USAGE
       exit 0
       ;;
@@ -27,6 +32,14 @@ USAGE
       ;;
   esac
 done
+
+mvp0_preflight_compose() {
+  if (( local_web == 1 )); then
+    mvp0_local_web_compose "$@"
+  else
+    mvp0_compose "$@"
+  fi
+}
 
 require_command() {
   local command_name="$1"
@@ -48,12 +61,12 @@ version_parts() {
 }
 
 require_command docker 'Install Docker Desktop or Docker Engine and retry.'
-docker compose version >/dev/null 2>&1 || {
+mvp0_preflight_compose version >/dev/null 2>&1 || {
   printf 'ERROR: Docker Compose v2 is unavailable. Install/enable the Compose plugin.\n' >&2
   exit 1
 }
 
-compose_version="$(docker compose version --short 2>/dev/null || docker compose version 2>/dev/null)"
+compose_version="$(mvp0_preflight_compose version --short 2>/dev/null || mvp0_preflight_compose version 2>/dev/null)"
 read -r compose_major compose_minor < <(version_parts "$compose_version")
 if [[ ! "$compose_major" =~ ^[0-9]+$ || ! "$compose_minor" =~ ^[0-9]+$ ]] ||
   (( compose_major < 2 || (compose_major == 2 && compose_minor < 20) )); then
@@ -67,21 +80,49 @@ docker info >/dev/null 2>&1 || {
 }
 
 mvp0_require_repo
-mvp0_compose config --quiet || {
+mvp0_preflight_compose config --quiet || {
   printf 'ERROR: compose.yaml is invalid or its environment values are incomplete.\n' >&2
   exit 1
 }
 
-configured_images="$(mvp0_compose config --images)"
-if [[ "$configured_images" != 'postgres:16.14-bookworm' ]]; then
-  printf 'ERROR: expected exactly the pinned image postgres:16.14-bookworm; found:\n%s\n' "$configured_images" >&2
-  exit 1
-fi
-
-configured_services="$(mvp0_compose config --services)"
-if [[ "$configured_services" != 'postgres' ]]; then
-  printf 'ERROR: MVP-0 local stack must contain exactly one service named postgres; found:\n%s\n' "$configured_services" >&2
-  exit 1
+configured_services="$(mvp0_preflight_compose config --services)"
+configured_images="$(mvp0_preflight_compose config --images)"
+if (( local_web == 1 )); then
+  [[ "$configured_services" == $'postgres\napi\nweb' ]] || {
+    printf 'ERROR: Docker-only local Web stack must contain exactly postgres, api and web; found:\n%s\n' \
+      "$configured_services" >&2
+    exit 1
+  }
+  expected_local_web_images="$(printf '%s\n' \
+    "${MVP0_COMPOSE_PROJECT}-api" \
+    "${MVP0_COMPOSE_PROJECT}-web" \
+    'postgres:16.14-bookworm' | LC_ALL=C sort)"
+  rendered_local_web_images="$(printf '%s\n' "$configured_images" | LC_ALL=C sort)"
+  [[ "$rendered_local_web_images" == "$expected_local_web_images" ]] || {
+    printf 'ERROR: Docker-only local Web stack has unexpected rendered images; found:\n%s\n' \
+      "$configured_images" >&2
+    exit 1
+  }
+  backend_base_image="$(awk '/^FROM[[:space:]]+/ { print $2; exit }' "$MVP0_ROOT_DIR/apps/backend/Dockerfile.local")"
+  web_base_images="$(awk '/^FROM[[:space:]]+/ { print $2 }' "$MVP0_ROOT_DIR/apps/web/Dockerfile.local")"
+  [[ "$backend_base_image" == 'python:3.13.14-slim-bookworm' &&
+    "$web_base_images" == $'node:24.18.0-bookworm-slim\nnginx:1.29.1-alpine-slim' ]] || {
+    printf 'ERROR: Docker-only local Web Dockerfile base images drifted from the pinned tuple.\n' >&2
+    exit 1
+  }
+else
+  # Existing host-process demo commands intentionally start only PostgreSQL;
+  # the local-Web profile must be selected explicitly via --local-web.
+  [[ "$configured_services" == 'postgres' ]] || {
+    printf 'ERROR: default MVP-0 preflight must contain only postgres; found:\n%s\n' \
+      "$configured_services" >&2
+    exit 1
+  }
+  [[ "$configured_images" == 'postgres:16.14-bookworm' ]] || {
+    printf 'ERROR: expected exactly the pinned image postgres:16.14-bookworm; found:\n%s\n' \
+      "$configured_images" >&2
+    exit 1
+  }
 fi
 
 if (( host_processes == 1 )); then
@@ -154,8 +195,16 @@ else
   printf '  Host process tools: not checked (use --host-processes before scripts/mvp0/demo)\n'
 fi
 
-printf 'MVP-0 local PostgreSQL preflight: PASS\n'
+if (( local_web == 1 )); then
+  printf 'MVP-0 Docker-only local Web preflight: PASS\n'
+else
+  printf 'MVP-0 local PostgreSQL preflight: PASS\n'
+fi
 printf '  Docker Compose: %s\n' "$compose_version"
 printf '  PostgreSQL image: postgres:16.14-bookworm\n'
 printf '  Compose project: %s\n' "$MVP0_COMPOSE_PROJECT"
-printf '  Service topology: postgres only (deterministic API/Web remain host processes)\n'
+if (( local_web == 1 )); then
+  printf '  Service topology: postgres + private api + loopback web\n'
+else
+  printf '  Service topology: postgres (deterministic API/Web remain host processes)\n'
+fi

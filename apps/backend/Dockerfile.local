@@ -1,0 +1,27 @@
+FROM python:3.13.14-slim-bookworm
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src \
+    PATH=/app/.venv/bin:$PATH
+
+WORKDIR /app
+
+# uv is a build tool only; the project runtime dependencies are resolved from
+# the committed lockfile inside this image, never from the host environment.
+RUN python -m pip install --no-cache-dir --disable-pip-version-check uv==0.12.6
+
+COPY apps/backend/pyproject.toml apps/backend/uv.lock ./
+RUN uv sync --locked --no-dev --no-install-project
+
+COPY apps/backend/README.md ./README.md
+COPY apps/backend/alembic.ini ./alembic.ini
+COPY apps/backend/migrations ./migrations
+COPY apps/backend/src ./src
+RUN uv sync --locked --no-dev --no-editable
+
+RUN useradd --create-home --uid 10001 appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
+CMD ["sh", "-c", "alembic -c /app/alembic.ini upgrade head && exec uvicorn ai_ecommerce_agent.bootstrap.local_demo:create_local_demo_application --factory --host 0.0.0.0 --port 8000 --log-level warning"]

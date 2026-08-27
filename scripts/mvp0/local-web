@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+MVP0_WEB_URL="http://127.0.0.1:5173/tasks"
+MVP0_WEB_PORT=5173
+MVP0_LOCAL_WEB_READY_ATTEMPTS="${MVP0_LOCAL_WEB_READY_ATTEMPTS:-60}"
+MVP0_DOCKER_READY_ATTEMPTS="${MVP0_DOCKER_READY_ATTEMPTS:-60}"
+
+usage() {
+  cat <<'USAGE'
+Usage: scripts/mvp0/local-web [--ephemeral] [--stop|--status]
+
+Runs the Apple Silicon Docker-only local Web App. Docker Compose starts the
+private API, PostgreSQL and loopback Web services, waits for their health, and
+opens the system default browser at http://127.0.0.1:5173/tasks.
+
+The default project preserves its named PostgreSQL volume. --ephemeral uses a
+unique repository-scoped project and paired volume, removing only that scope
+on stop or Ctrl-C. --stop and --status perform bounded lifecycle operations
+without opening a browser.
+USAGE
+}
+
+require_apple_silicon_macos() {
+  local platform
+  local architecture
+  platform="$(uname -s 2>/dev/null || true)"
+  architecture="$(uname -m 2>/dev/null || true)"
+  if [[ "$platform" != Darwin || "$architecture" != arm64 ]]; then
+    mvp0_die 'Docker-only local Web requires Apple Silicon macOS (Darwin arm64).'
+  fi
+}
+
+ensure_docker_desktop() {
+  command -v docker >/dev/null 2>&1 ||
+    mvp0_die 'Docker Desktop is required; install it and retry.'
+  if docker info >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local app_path="${MVP0_DOCKER_DESKTOP_APP:-/Applications/Docker.app}"
+  [[ -d "$app_path" ]] ||
+    mvp0_die 'Docker Desktop is not installed or not running; install/start Docker Desktop and retry.'
+  local opener
+  opener="$(command -v open 2>/dev/null || true)"
+  [[ -n "$opener" ]] ||
+    mvp0_die 'Docker Desktop is installed but the macOS open command is unavailable.'
+  "$opener" "$app_path" >/dev/null 2>&1 ||
+    mvp0_die 'Docker Desktop could not be opened normally.'
+
+  local attempt
+  for ((attempt = 1; attempt <= MVP0_DOCKER_READY_ATTEMPTS; attempt += 1)); do
+    if docker info >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  mvp0_die 'Docker Desktop did not become ready within the bounded wait.'
+}
+
+require_web_port_free() {
+  command -v lsof >/dev/null 2>&1 ||
+    mvp0_die 'macOS lsof is required to verify the loopback Web port.'
+  if lsof -nP -iTCP:"$MVP0_WEB_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    mvp0_die "loopback port $MVP0_WEB_PORT is already in use."
+  fi
+}
+
+wait_for_web() {
+  local attempt
+  for ((attempt = 1; attempt <= MVP0_LOCAL_WEB_READY_ATTEMPTS; attempt += 1)); do
+    if curl --fail --silent --show-error --max-time 2 "$MVP0_WEB_URL" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  mvp0_die 'Web service did not become ready on loopback; no browser was opened.'
+}
+
+mode=run
+ephemeral=0
+for arg in "$@"; do
+  case "$arg" in
+    --ephemeral)
+      [[ "$ephemeral" -eq 0 ]] || mvp0_die '--ephemeral may be supplied only once'
+      ephemeral=1
+      ;;
+    --stop)
+      [[ "$mode" == run ]] || mvp0_die 'choose only one lifecycle operation'
+      mode=stop
+      ;;
+    --status)
+      [[ "$mode" == run ]] || mvp0_die 'choose only one lifecycle operation'
+      mode=status
+      ;;
+    -h|--help)
+      [[ "$#" -eq 1 ]] || mvp0_die '--help does not accept additional arguments'
+      usage
+      exit 0
+      ;;
+    *)
+      printf 'ERROR: unknown option %q\n' "$arg" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+mvp0_validate_ready_attempts "$MVP0_LOCAL_WEB_READY_ATTEMPTS"
+mvp0_validate_ready_attempts "$MVP0_DOCKER_READY_ATTEMPTS"
+require_apple_silicon_macos
+if (( ephemeral == 1 )); then
+  mvp0_set_ephemeral_scope
+else
+  export MVP0_COMPOSE_PROJECT="$MVP0_DEFAULT_COMPOSE_PROJECT"
+  export MVP0_POSTGRES_VOLUME_NAME="$MVP0_DEFAULT_POSTGRES_VOLUME_NAME"
+  mvp0_validate_resource_scope
+fi
+
+ensure_docker_desktop
+"$SCRIPT_DIR/preflight" --local-web
+
+if [[ "$mode" == stop ]]; then
+  printf 'Stopping Docker-only local Web project %s.\n' "$MVP0_COMPOSE_PROJECT"
+  if (( ephemeral == 1 )); then
+    mvp0_local_web_compose down --volumes --remove-orphans
+  else
+    mvp0_local_web_compose down --remove-orphans
+  fi
+  printf 'Docker-only local Web project stopped.\n'
+  exit 0
+fi
+
+if [[ "$mode" == status ]]; then
+  mvp0_local_web_compose ps
+  exit 0
+fi
+
+command -v curl >/dev/null 2>&1 ||
+  mvp0_die 'curl is required to verify the loopback Web health endpoint.'
+require_web_port_free
+
+stack_attempted=0
+cleanup() {
+  local exit_status="$?"
+  local cleanup_failed=0
+  trap - EXIT
+  if (( stack_attempted == 1 )); then
+    if (( ephemeral == 1 )); then
+      mvp0_local_web_compose down --volumes --remove-orphans >/dev/null 2>&1 || cleanup_failed=1
+    else
+      mvp0_local_web_compose down --remove-orphans >/dev/null 2>&1 || cleanup_failed=1
+    fi
+    if (( cleanup_failed == 1 )); then
+      printf 'ERROR: Docker-only local Web cleanup failed for project %s.\n' \
+        "$MVP0_COMPOSE_PROJECT" >&2
+      [[ "$exit_status" -eq 0 ]] && exit_status=1
+    fi
+  fi
+  exit "$exit_status"
+}
+trap cleanup EXIT
+trap 'exit 130' INT TERM
+
+printf 'Starting Docker-only local Web project %s.\n' "$MVP0_COMPOSE_PROJECT"
+if (( ephemeral == 1 )); then
+  printf 'Ephemeral resources: project=%s volume=%s\n' \
+    "$MVP0_COMPOSE_PROJECT" "$MVP0_POSTGRES_VOLUME_NAME"
+fi
+
+stack_attempted=1
+mvp0_local_web_compose up --detach --build --wait --wait-timeout 180
+wait_for_web
+
+printf 'Docker API, PostgreSQL and Web health passed.\n'
+printf 'Opening system default browser: %s\n' "$MVP0_WEB_URL"
+opener="$(command -v open 2>/dev/null || true)"
+[[ -n "$opener" ]] || mvp0_die 'macOS open command is unavailable; no browser was opened.'
+"$opener" "$MVP0_WEB_URL"
+printf 'Docker-only local Web is ready. Press Ctrl-C to stop owned containers/network.\n'
+
+while :; do
+  # Compose remains the authority for detached service state.  A missing or
+  # stopped service fails closed and lets the EXIT fence remove owned scope.
+  # Compose does not promise service output order, so compare a normalized
+  # exact set rather than a positional list.
+  expected_running_services=$'api\npostgres\nweb'
+  running_services="$(mvp0_local_web_compose ps --services --filter status=running 2>/dev/null || true)"
+  running_services="$(printf '%s\n' "$running_services" | LC_ALL=C sort)"
+  if [[ "$running_services" != "$expected_running_services" ]]; then
+    mvp0_die 'a Docker-only local Web service stopped before lifecycle completion.'
+  fi
+  sleep 1
+done

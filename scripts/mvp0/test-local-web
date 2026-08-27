@@ -1,0 +1,466 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Offline Docker-only lifecycle contract.  The first assertion is intentionally
+# executable before implementation and must produce a real RED, not a skipped
+# or empty test, while the remaining checks define the later GREEN boundary.
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+REPO_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
+
+fail() {
+  printf 'FAIL: %s\n' "$*" >&2
+  exit 1
+}
+
+assert_contains() {
+  local needle="$1"
+  local haystack="$2"
+  [[ "$haystack" == *"$needle"* ]] || fail "expected output to contain: $needle"
+}
+
+assert_not_contains() {
+  local needle="$1"
+  local haystack="$2"
+  [[ "$haystack" != *"$needle"* ]] || fail "unexpected output: $needle"
+}
+
+LOCAL_WEB="$SCRIPT_DIR/local-web"
+[[ -x "$LOCAL_WEB" ]] || fail "missing executable Docker-only lifecycle entry: $LOCAL_WEB"
+
+COMMAND_ENTRY="$REPO_ROOT/AI Ecommerce Agent.command"
+validate_command_entry() {
+  local entry_path="$1"
+  [[ -f "$entry_path" && -x "$entry_path" ]] || return 1
+  local exact_delegate_count
+  exact_delegate_count="$(rg -c '^[[:space:]]*exec[[:space:]]+"\$SCRIPT_DIR/scripts/mvp0/local-web"[[:space:]]+"\$@"[[:space:]]*$' "$entry_path" || true)"
+  [[ "$exact_delegate_count" == 1 ]] || return 1
+  local lifecycle_reference_count
+  lifecycle_reference_count="$(rg -c 'scripts/mvp0/' "$entry_path" || true)"
+  [[ "$lifecycle_reference_count" == 1 ]] || return 1
+  ! rg -q 'docker[[:space:]]+(compose|run)|scripts/mvp0/(demo|up|down|status|verify)' "$entry_path"
+}
+
+validate_command_entry "$COMMAND_ENTRY" ||
+  fail 'root AI Ecommerce Agent.command must be executable and delegate exactly once to scripts/mvp0/local-web'
+
+# Correction RED characterization: host-development Compose must retain its
+# existing optional .env behavior, while the Docker-only image build must
+# install dependencies in two locked phases around the project README/source.
+red_failures=0
+if ! rg -q 'MVP0_ENV_FILE=.*\.env' "$REPO_ROOT/scripts/mvp0/lib.sh" ||
+  ! rg -q 'if \[\[ -f "\$MVP0_ENV_FILE" \]\]' "$REPO_ROOT/scripts/mvp0/lib.sh"; then
+  printf 'FAIL: host-development Compose .env compatibility characterization is missing\n' >&2
+  red_failures=$((red_failures + 1))
+fi
+backend_dockerfile="$REPO_ROOT/apps/backend/Dockerfile.local"
+if ! rg -q \
+  'python -m pip install --no-cache-dir --disable-pip-version-check uv==0\.12\.6([[:space:]]|$)' \
+  "$backend_dockerfile" || rg -q 'uv==0\.12\.8' "$backend_dockerfile"; then
+  printf 'FAIL: backend Dockerfile must use the published official uv==0.12.6 pin and reject uv==0.12.8\n' >&2
+  red_failures=$((red_failures + 1))
+fi
+no_project_line="$(rg -n 'uv sync --locked --no-dev --no-install-project' "$backend_dockerfile" | head -1 | cut -d: -f1 || true)"
+readme_line="$(rg -n 'COPY apps/backend/README\.md' "$backend_dockerfile" | head -1 | cut -d: -f1 || true)"
+final_sync_line="$(rg -n 'uv sync --locked --no-dev --no-editable' "$backend_dockerfile" | head -1 | cut -d: -f1 || true)"
+if [[ -z "$no_project_line" || -z "$readme_line" || -z "$final_sync_line" ]] ||
+  (( no_project_line >= readme_line || readme_line >= final_sync_line )); then
+  printf 'FAIL: backend Dockerfile lacks the locked two-phase install ordering\n' >&2
+  red_failures=$((red_failures + 1))
+fi
+if ! rg -q '"\$opener" "\$app_path"' "$LOCAL_WEB"; then
+  printf 'FAIL: Docker Desktop readiness must open the configured app path before polling\n' >&2
+  red_failures=$((red_failures + 1))
+fi
+(( red_failures == 0 )) || exit 1
+
+SANDBOX="$(mktemp -d "${TMPDIR:-/tmp}/mvp0-local-web.XXXXXX")"
+cleanup() {
+  rm -rf "$SANDBOX"
+}
+trap cleanup EXIT
+
+mkdir -p "$SANDBOX/repo/scripts/mvp0" "$SANDBOX/repo/apps/backend" "$SANDBOX/repo/apps/web" \
+  "$SANDBOX/fake-bin" "$SANDBOX/Docker.app"
+bad_command_entry="$SANDBOX/bad-command-entry"
+sed 's#scripts/mvp0/local-web#scripts/mvp0/misdirected#' "$COMMAND_ENTRY" >"$bad_command_entry"
+chmod +x "$bad_command_entry"
+set +e
+validate_command_entry "$bad_command_entry"
+bad_command_status=$?
+set -e
+(( bad_command_status != 0 )) || fail 'misedirected command-entry fixture unexpectedly passed the exact delegation guard'
+cp "$LOCAL_WEB" "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/preflight" \
+  "$SANDBOX/repo/scripts/mvp0/"
+cp "$REPO_ROOT/compose.yaml" "$SANDBOX/repo/compose.yaml"
+cp "$REPO_ROOT/scripts/mvp0/postgres-init.sh" "$SANDBOX/repo/scripts/mvp0/"
+cp "$REPO_ROOT/apps/backend/Dockerfile.local" "$SANDBOX/repo/apps/backend/"
+cp "$REPO_ROOT/apps/web/Dockerfile.local" "$SANDBOX/repo/apps/web/"
+cp "$REPO_ROOT/apps/web/package.json" "$SANDBOX/repo/apps/web/package.json"
+chmod +x "$SANDBOX/repo/scripts/mvp0"/*
+
+DOCKER_LOG="$SANDBOX/docker.log"
+OPEN_LOG="$SANDBOX/open.log"
+STATE_FILE="$SANDBOX/docker-ready"
+COMPOSE_STATE="$SANDBOX/compose-running"
+
+cat >"$SANDBOX/fake-bin/uname" <<'FAKE_UNAME'
+#!/usr/bin/env bash
+case "${1:-}" in
+  -s) printf '%s\n' "${MVP0_TEST_UNAME_S:-Darwin}" ;;
+  -m) printf '%s\n' "${MVP0_TEST_UNAME_M:-arm64}" ;;
+  *) exit 2 ;;
+esac
+FAKE_UNAME
+
+cat >"$SANDBOX/fake-bin/open" <<'FAKE_OPEN'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf 'open %s\n' "$*" >>"${MVP0_TEST_OPEN_LOG:?}"
+printf 'open %s\n' "$*" >>"${MVP0_TEST_DOCKER_LOG:?}"
+if [[ "${1:-}" == "-a" || "${1:-}" == *Docker.app ]]; then
+  : >"${MVP0_TEST_DOCKER_READY_FILE:?}"
+fi
+FAKE_OPEN
+
+cat >"$SANDBOX/fake-bin/lsof" <<'FAKE_LSOF'
+#!/usr/bin/env bash
+if [[ -n "${MVP0_TEST_OCCUPIED_PORT:-}" && "$*" == *":${MVP0_TEST_OCCUPIED_PORT}"* ]]; then
+  exit 0
+fi
+exit 1
+FAKE_LSOF
+
+cat >"$SANDBOX/fake-bin/docker" <<'FAKE_DOCKER'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf 'docker %s [project=%s volume=%s]\n' "$*" \
+  "${MVP0_COMPOSE_PROJECT:-unset}" "${MVP0_POSTGRES_VOLUME_NAME:-unset}" \
+  >>"${MVP0_TEST_DOCKER_LOG:?}"
+if [[ "${1:-}" == info ]]; then
+  [[ -f "${MVP0_TEST_DOCKER_READY_FILE:?}" ]] || exit 1
+  exit 0
+fi
+[[ "${1:-}" == compose ]] || exit 0
+shift
+while (($#)); do
+  case "$1" in
+    --project-name|--file|--env-file|--profile) shift 2 ;;
+    *) break ;;
+  esac
+done
+command_name="${1:-}"
+shift || true
+case "$command_name" in
+  version)
+    if [[ "${1:-}" == --short ]]; then
+      printf '2.40.0\n'
+    else
+      printf 'Docker Compose version v2.40.0\n'
+    fi
+    ;;
+  config)
+    if [[ "${MVP0_ADMIN_USER:-}" == mvp0_admin &&
+      "${MVP0_ADMIN_PASSWORD:-}" == mvp0_admin_local_only &&
+      "${MVP0_BUSINESS_DB:-}" == ecommerce_business &&
+      "${MVP0_BUSINESS_ROLE:-}" == mvp0_business &&
+      "${MVP0_BUSINESS_PASSWORD:-}" == mvp0_business_local_only &&
+      "${MVP0_CHECKPOINT_DB:-}" == ecommerce_checkpoint &&
+      "${MVP0_CHECKPOINT_ROLE:-}" == mvp0_checkpoint &&
+      "${MVP0_CHECKPOINT_PASSWORD:-}" == mvp0_checkpoint_local_only &&
+      "${MVP0_POSTGRES_PORT:-}" == 55432 ]]; then
+      printf 'compose-interpolation=fixed port=55432\n' >>"${MVP0_TEST_DOCKER_LOG:?}"
+    else
+      printf 'compose-interpolation=caller port=%s\n' "${MVP0_POSTGRES_PORT:-unset}" \
+        >>"${MVP0_TEST_DOCKER_LOG:?}"
+    fi
+    case " $* " in
+      *' --services '*) printf 'postgres\napi\nweb\n' ;;
+      *' --images '*) printf '%s\n%s\npostgres:16.14-bookworm\n' \
+        "${MVP0_COMPOSE_PROJECT}-api" "${MVP0_COMPOSE_PROJECT}-web" ;;
+      *) ;;
+    esac
+    ;;
+  up)
+    [[ "${MVP0_TEST_COMPOSE_FAIL:-0}" != 1 ]] || exit 41
+    : >"${MVP0_TEST_COMPOSE_STATE:?}"
+    ;;
+  ps)
+    if [[ "${1:-}" == --format ]]; then
+      printf '%s\n' '[{"Service":"postgres","Health":"healthy"},{"Service":"api","Health":"healthy"},{"Service":"web","Health":"healthy"}]'
+    elif [[ "${MVP0_TEST_RUNNING_SERVICES:-}" == permuted ]]; then
+      printf 'web\npostgres\napi\n'
+    elif [[ "${MVP0_TEST_RUNNING_SERVICES:-}" == missing ]]; then
+      printf 'web\npostgres\n'
+    elif [[ "${MVP0_TEST_RUNNING_SERVICES:-}" == extra ]]; then
+      printf 'web\npostgres\napi\nrogue\n'
+    else
+      printf 'postgres\napi\nweb\n'
+    fi
+    ;;
+  down)
+    rm -f "${MVP0_TEST_COMPOSE_STATE:?}"
+    ;;
+  *) ;;
+esac
+FAKE_DOCKER
+
+cat >"$SANDBOX/fake-bin/curl" <<'FAKE_CURL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+url="${!#}"
+printf 'curl %s\n' "$url" >>"${MVP0_TEST_CURL_LOG:?}"
+[[ -f "${MVP0_TEST_COMPOSE_STATE:?}" ]] || exit 22
+[[ "${MVP0_TEST_WEB_UNREADY:-0}" != 1 ]] || exit 22
+case "$url" in
+  http://127.0.0.1:5173/tasks) exit 0 ;;
+  *) exit 22 ;;
+esac
+FAKE_CURL
+
+chmod +x "$SANDBOX/fake-bin"/*
+
+FAKE_PATH="$SANDBOX/fake-bin:$PATH"
+base_env=(
+  PATH="$FAKE_PATH"
+  MVP0_TEST_DOCKER_LOG="$DOCKER_LOG"
+  MVP0_TEST_OPEN_LOG="$OPEN_LOG"
+  MVP0_TEST_CURL_LOG="$SANDBOX/curl.log"
+  MVP0_TEST_DOCKER_READY_FILE="$STATE_FILE"
+  MVP0_TEST_COMPOSE_STATE="$COMPOSE_STATE"
+  MVP0_DOCKER_DESKTOP_APP="$SANDBOX/Docker.app"
+  MVP0_LOCAL_WEB_READY_ATTEMPTS=2
+  MVP0_DOCKER_READY_ATTEMPTS=2
+  MVP0_TEST_RUNNING_SERVICES=permuted
+)
+
+run_local_web() {
+  local output_file="$1"
+  shift
+  env "${base_env[@]}" /bin/bash "$SANDBOX/repo/scripts/mvp0/local-web" "$@" \
+    >"$output_file" 2>&1 &
+  local_pid="$!"
+}
+
+stop_local_web() {
+  local pid="$1"
+  kill -TERM "$pid" >/dev/null 2>&1 || true
+  for _ in {1..30}; do
+    if ! kill -0 "$pid" >/dev/null 2>&1; then
+      local status
+      set +e
+      wait "$pid"
+      status=$?
+      set -e
+      (( status == 130 )) || fail "local Web process returned ${status}, expected TERM status 130"
+      return 0
+    fi
+    sleep 0.1
+  done
+  fail "local Web process remained after bounded TERM cleanup: pid=${pid}"
+}
+
+wait_for_open() {
+  local attempts=0
+  while ((attempts < 30)); do
+    if grep -Fq 'http://127.0.0.1:5173/tasks' "$OPEN_LOG" 2>/dev/null; then
+      return 0
+    fi
+    sleep 0.1
+    ((attempts += 1))
+  done
+  return 1
+}
+
+# Excessive readiness limits must fail before stack creation or browser
+# mutation. The fixed contract bound is 600 attempts; normal tests retain the
+# existing value 2 and production defaults remain 60.
+oversized_attempts=601
+: >"$DOCKER_LOG"
+: >"$OPEN_LOG"
+rm -f "$STATE_FILE"
+set +e
+oversized_docker_output="$(env "${base_env[@]}" MVP0_DOCKER_READY_ATTEMPTS="$oversized_attempts" \
+  "$SANDBOX/repo/scripts/mvp0/local-web" --status 2>&1)"
+oversized_docker_status=$?
+set -e
+(( oversized_docker_status != 0 )) || fail 'oversized Docker readiness limit unexpectedly passed'
+assert_contains 'readiness attempt limits' "$oversized_docker_output"
+assert_not_contains ' up ' "$(<"$DOCKER_LOG")"
+[[ ! -s "$OPEN_LOG" ]] || fail 'oversized Docker readiness limit opened Docker Desktop/browser before validation'
+
+: >"$STATE_FILE"
+: >"$DOCKER_LOG"
+: >"$OPEN_LOG"
+set +e
+oversized_web_output="$(env "${base_env[@]}" MVP0_LOCAL_WEB_READY_ATTEMPTS="$oversized_attempts" \
+  "$SANDBOX/repo/scripts/mvp0/local-web" 2>&1)"
+oversized_web_status=$?
+set -e
+(( oversized_web_status != 0 )) || fail 'oversized Web readiness limit unexpectedly passed'
+assert_contains 'readiness attempt limits' "$oversized_web_output"
+assert_not_contains ' up ' "$(<"$DOCKER_LOG")"
+assert_not_contains 'http://127.0.0.1:5173/tasks' "$(<"$OPEN_LOG")"
+
+# When Docker Desktop is installed but stopped, the configured application
+# path is opened normally before the bounded docker-info readiness poll.
+: >"$STATE_FILE"
+: >"$DOCKER_LOG"
+: >"$OPEN_LOG"
+rm -f "$STATE_FILE"
+set +e
+docker_start_output="$(env "${base_env[@]}" \
+  MVP0_ADMIN_USER=hostile-admin MVP0_ADMIN_PASSWORD=hostile-secret \
+  MVP0_BUSINESS_DB=hostile-business MVP0_BUSINESS_ROLE=hostile-business-role \
+  MVP0_BUSINESS_PASSWORD=hostile-business-secret \
+  MVP0_CHECKPOINT_DB=hostile-checkpoint MVP0_CHECKPOINT_ROLE=hostile-checkpoint-role \
+  MVP0_CHECKPOINT_PASSWORD=hostile-checkpoint-secret MVP0_POSTGRES_PORT=59999 \
+  "$SANDBOX/repo/scripts/mvp0/local-web" --status 2>&1)"
+docker_start_status=$?
+set -e
+(( docker_start_status == 0 )) || fail "Docker Desktop readiness status failed: $docker_start_output"
+assert_not_contains 'compose-interpolation=caller' "$(<"$DOCKER_LOG")"
+assert_contains 'compose-interpolation=fixed port=55432' "$(<"$DOCKER_LOG")"
+assert_not_contains '59999' "$(<"$DOCKER_LOG")"
+first_info_line="$(grep -n '^docker info ' "$DOCKER_LOG" | sed -n '1p' | cut -d: -f1)"
+desktop_open_line="$(grep -n 'open .*Docker\.app' "$DOCKER_LOG" | sed -n '1p' | cut -d: -f1)"
+second_info_line="$(grep -n '^docker info ' "$DOCKER_LOG" | sed -n '2p' | cut -d: -f1)"
+[[ -n "$first_info_line" && -n "$desktop_open_line" && -n "$second_info_line" ]] ||
+  fail 'Docker Desktop open/poll events were not captured'
+(( first_info_line < desktop_open_line && desktop_open_line < second_info_line )) ||
+  fail 'Docker Desktop was not opened before the bounded readiness poll'
+
+# Normal Apple Silicon lifecycle: Compose health and Web reachability precede
+# the browser action; TERM removes owned containers/network but preserves the
+# fixed named Postgres volume.
+: >"$STATE_FILE"
+: >"$DOCKER_LOG"
+: >"$OPEN_LOG"
+: >"$SANDBOX/curl.log"
+normal_output="$SANDBOX/normal.log"
+run_local_web "$normal_output"
+normal_pid="$local_pid"
+wait_for_open || fail 'normal lifecycle never opened browser after readiness'
+open_line="$(grep -n 'http://127.0.0.1:5173/tasks' "$DOCKER_LOG" | head -1 | cut -d: -f1)"
+up_line="$(grep -n ' compose .* up ' "$DOCKER_LOG" | head -1 | cut -d: -f1)"
+[[ -n "$up_line" && -n "$open_line" && "$up_line" -lt "$open_line" ]] ||
+  fail 'browser opened before Compose start/health sequence'
+stop_local_web "$normal_pid"
+normal_docker_log="$(<"$DOCKER_LOG")"
+assert_contains 'down --remove-orphans' "$normal_docker_log"
+assert_not_contains 'down --volumes' "$normal_docker_log"
+assert_contains 'volume=ai-ecommerce-agent-mvp0-postgres-data' "$normal_docker_log"
+
+# A missing or extra running service fails closed after the browser gate and
+# removes only the owned default scope.  The monitor therefore enforces the
+# exact service set, not merely a subset.
+for invalid_services in missing extra; do
+  : >"$STATE_FILE"
+  : >"$DOCKER_LOG"
+  : >"$OPEN_LOG"
+  invalid_output="$SANDBOX/${invalid_services}.log"
+  env "${base_env[@]}" MVP0_TEST_RUNNING_SERVICES="$invalid_services" \
+    /bin/bash "$SANDBOX/repo/scripts/mvp0/local-web" >"$invalid_output" 2>&1 &
+  invalid_pid="$!"
+  wait_for_open || fail "${invalid_services} service monitor never reached browser gate"
+  set +e
+  wait "$invalid_pid"
+  invalid_status=$?
+  set -e
+  (( invalid_status != 0 )) || fail "${invalid_services} running service set unexpectedly passed"
+  invalid_docker_log="$(<"$DOCKER_LOG")"
+  assert_contains 'down --remove-orphans' "$invalid_docker_log"
+  assert_not_contains 'down --volumes' "$invalid_docker_log"
+done
+
+# A loopback port conflict fails before resource creation or browser opening.
+: >"$DOCKER_LOG"
+: >"$OPEN_LOG"
+set +e
+occupied_output="$(env "${base_env[@]}" MVP0_TEST_OCCUPIED_PORT=5173 \
+  "$SANDBOX/repo/scripts/mvp0/local-web" 2>&1)"
+occupied_status=$?
+set -e
+(( occupied_status != 0 )) || fail 'occupied Web port unexpectedly passed'
+assert_contains 'loopback port 5173 is already in use' "$occupied_output"
+assert_not_contains 'http://127.0.0.1:5173/tasks' "$(<"$OPEN_LOG")"
+assert_not_contains ' compose '"'"' up '"'"' ' "$(<"$DOCKER_LOG")"
+
+# Non-arm64 hosts fail closed before Docker is touched.
+: >"$DOCKER_LOG"
+: >"$OPEN_LOG"
+set +e
+arch_output="$(env "${base_env[@]}" MVP0_TEST_UNAME_M=x86_64 \
+  "$SANDBOX/repo/scripts/mvp0/local-web" 2>&1)"
+arch_status=$?
+set -e
+(( arch_status != 0 )) || fail 'non-arm64 host unexpectedly passed'
+assert_contains 'Apple Silicon macOS' "$arch_output"
+[[ ! -s "$DOCKER_LOG" ]] || fail 'non-arm64 rejection touched Docker'
+[[ ! -s "$OPEN_LOG" ]] || fail 'non-arm64 rejection opened browser'
+
+# Web readiness failure cleans only the owned default project and never opens
+# the browser.
+: >"$STATE_FILE"
+: >"$DOCKER_LOG"
+: >"$OPEN_LOG"
+set +e
+unready_output="$(env "${base_env[@]}" MVP0_TEST_WEB_UNREADY=1 \
+  "$SANDBOX/repo/scripts/mvp0/local-web" 2>&1)"
+unready_status=$?
+set -e
+(( unready_status != 0 )) || fail 'Web readiness failure unexpectedly passed'
+assert_not_contains 'http://127.0.0.1:5173/tasks' "$(<"$OPEN_LOG")"
+unready_docker_log="$(<"$DOCKER_LOG")"
+assert_contains 'up' "$unready_docker_log"
+assert_contains 'down --remove-orphans' "$unready_docker_log"
+assert_not_contains 'down --volumes' "$unready_docker_log"
+
+# Docker Desktop missing/unready is recoverable and fails without starting the
+# stack.  No download/install/force-kill behavior is allowed.
+: >"$DOCKER_LOG"
+: >"$OPEN_LOG"
+rm -f "$STATE_FILE"
+set +e
+docker_output="$(env "${base_env[@]}" MVP0_TEST_DOCKER_DESKTOP_PRESENT=0 \
+  MVP0_DOCKER_DESKTOP_APP="$SANDBOX/Missing.app" \
+  "$SANDBOX/repo/scripts/mvp0/local-web" 2>&1)"
+docker_status=$?
+set -e
+(( docker_status != 0 )) || fail 'missing Docker Desktop unexpectedly passed'
+assert_contains 'Docker Desktop' "$docker_output"
+assert_not_contains 'http://127.0.0.1:5173/tasks' "$(<"$OPEN_LOG")"
+assert_not_contains 'up' "$(<"$DOCKER_LOG")"
+
+# Ephemeral scope uses one validated repository-prefixed project and its exact
+# paired volume; cleanup is the sole allowed volume removal.
+: >"$STATE_FILE"
+: >"$DOCKER_LOG"
+: >"$OPEN_LOG"
+ephemeral_output="$SANDBOX/ephemeral.log"
+run_local_web "$ephemeral_output" --ephemeral
+ephemeral_pid="$local_pid"
+wait_for_open || fail 'ephemeral lifecycle never opened browser after readiness'
+stop_local_web "$ephemeral_pid"
+ephemeral_docker_log="$(<"$DOCKER_LOG")"
+ephemeral_project="$(sed -n 's/.*--project-name \([^ ]*\).*/\1/p' "$DOCKER_LOG" | head -1)"
+[[ "$ephemeral_project" == ai-ecommerce-agent-mvp0-ephemeral-* ]] ||
+  fail "unexpected ephemeral Compose project: ${ephemeral_project:-<none>}"
+ephemeral_volume="$(sed -n 's/.*volume=\([^]]*\).*/\1/p' "$DOCKER_LOG" | tail -1)"
+[[ "$ephemeral_volume" == "${ephemeral_project}-pg" ]] ||
+  fail "unexpected ephemeral paired volume: ${ephemeral_volume:-<none>}"
+assert_contains 'down --volumes --remove-orphans' "$ephemeral_docker_log"
+assert_not_contains 'volume=ai-ecommerce-agent-mvp0-postgres-data' "$ephemeral_docker_log"
+
+# Static safety checks prevent accidental raw cleanup, public binds, provider
+# selection or project .env loading in the Docker-only entry path.
+if rg -n --glob 'local-web' --glob 'preflight' \
+  'docker[[:space:]]+compose|DEEPSEEK_API_KEY|openai|(^|[^A-Za-z])\.env([^A-Za-z]|$)|0\.0\.0\.0' \
+  "$SANDBOX/repo/scripts/mvp0" >/dev/null; then
+  fail 'local Web scripts contain an unguarded Compose/provider/.env/public bind path'
+fi
+grep -Fq -- '127.0.0.1:5173' "$SANDBOX/repo/compose.yaml" ||
+  fail 'Compose Web service is not loopback-bound'
+grep -Fq -- 'postgres:5432' "$SANDBOX/repo/compose.yaml" ||
+  fail 'API does not use exact internal postgres service identity'
+
+printf 'MVP-0 Docker-only local Web lifecycle checks: PASS\n'

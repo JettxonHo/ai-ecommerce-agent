@@ -37,6 +37,26 @@ def test_local_demo_config_rejects_non_loopback_workbench_origin() -> None:
         )
 
 
+def test_local_demo_config_accepts_only_internal_compose_postgres_identity() -> None:
+    """Docker API composition may target only the exact private postgres service."""
+
+    module = importlib.import_module("ai_ecommerce_agent.bootstrap.local_demo")
+
+    config = module.LocalDemoConfig(
+        database_url=("postgresql+psycopg://user:password@postgres:5432/database"),
+        workspace_id="local-demo",
+        workbench_origin="http://127.0.0.1:5173",
+    )
+    assert config.database_url.endswith("@postgres:5432/database")
+
+    with pytest.raises(ValueError, match="internal postgres service"):
+        module.LocalDemoConfig(
+            database_url=("postgresql+psycopg://user:password@postgres:55432/database"),
+            workspace_id="local-demo",
+            workbench_origin="http://127.0.0.1:5173",
+        )
+
+
 def test_local_demo_config_reads_only_explicit_operator_values() -> None:
     """Provider settings are irrelevant to the local scripted composition."""
 
