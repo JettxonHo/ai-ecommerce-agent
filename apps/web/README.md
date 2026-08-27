@@ -25,7 +25,10 @@ is merged/current and Issue #329 is closed. Issue #331 is the active L3
 Docker-only lifecycle contract; its offline evidence is green on an isolated
 branch, its first provider-free runtime is historical `HOLD` at the
 image-build-only `uv==0.12.8` failure, and its single corrected-pin runtime
-passed health, browser and cleanup; independent review and merge remain pending.
+passed health, browser and cleanup. Independent five-axis review is `PASS` at
+`f831519`, fresh Required Checks are `12/12`, and Ready PR #332 is `OPEN`/unmerged;
+L3 becomes merge-effective/current only when this reviewed record reaches `main`.
+L4 is gated and not started.
 Its exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6, with the owner-confirmed
 MBL-first sequence L2 → L3 → L4 → L5 → Agent UI → L6. L0 was docs-only; the
 existing Issue #318 adds no Provider acceptance or authorization. Issue #329's test-only
@@ -66,9 +69,12 @@ service, health, browser or product-behavior result was produced and guarded
 cleanup passed. Tests first required `uv==0.12.6`, and the one new provider-free
 attempt built both images, passed PostgreSQL/API/Web health, opened the browser
 after health, and passed one bounded `/tasks` read (title “商品上新行动工作台”,
-heading “行动首页”) and exact cleanup (Ctrl-C 130). Independent review and
-merge remain pending. No Provider/model, Agent UI production or Secret access is
-part of this Stage.
+heading “行动首页”) and exact cleanup (Ctrl-C 130). Independent five-axis review
+is `PASS` at `f831519`, fresh Required Checks are `12/12`, and Ready PR #332 is
+`OPEN`/unmerged; L3 becomes merge-effective/current only when this reviewed
+record reaches `main`. L4 is gated and not started. No further runtime,
+Provider/model or Secret access is authorized; Agent UI production is not part
+of this Stage.
 
 ## Toolchain
 
@@ -121,8 +127,10 @@ project and paired volume and removes both on exit; default stop preserves the
 named database volume. For Issue #331, the first runtime is historical
 `HOLD` before service creation and the corrected-pin second runtime is
 `PASS` with images/health/browser/`/tasks` title+heading/Ctrl-C 130 and exact
-ephemeral cleanup; independent review and merge remain
-pending. L0 did not launch them. The reviewed direct DeepSeek
+ephemeral cleanup. Independent five-axis review is `PASS` at `f831519`, fresh
+Required Checks are `12/12`, and Ready PR #332 is `OPEN`/unmerged; L3 becomes
+merge-effective/current only when this reviewed record reaches `main`. L4 is
+gated and not started. L0 did not launch them. The reviewed direct DeepSeek
 adapter and opt-in smoke seam are backend capabilities, not current Provider
 acceptance. Both historical DeepSeek authorizations are consumed; no further
 paid/provider run is authorized until a later L5 exact-commit human Gate. The

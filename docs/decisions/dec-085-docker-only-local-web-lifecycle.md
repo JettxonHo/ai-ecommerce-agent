@@ -25,7 +25,7 @@
 
 ## Evidence and relationships
 
-离线证据（RED→GREEN、rendered Compose、shell/static checks、backend/Web tests、lock/API identity、fake lifecycle and cleanup proof）及运行证据记录于 [L3 review](../reviews/mvp0l-l3-docker-local-web-lifecycle.md)。第一次 provider-free `--ephemeral` runtime 在 API image build 因未发布的 `uv==0.12.8` 处于历史 `HOLD`，无服务、health 或 browser 结果；测试先行将官方 pin 修复为 `uv==0.12.6` 后，唯一一次新的 provider-free runtime 通过两镜像构建、PostgreSQL/API/Web health、health 后浏览器、一次有界 `/tasks` 读取、Ctrl-C 130 与精确清理，直接检查的 5173/55432 端口空闲。其余仅为最终证据对账、普通 commit/Ready PR、fresh Required Checks 与独立五轴 review/merge；不继承 L2、Fast Lane 或任何 Provider authorization，也不再授权 runtime 重试。
+离线证据（RED→GREEN、rendered Compose、shell/static checks、backend/Web tests、lock/API identity、fake lifecycle and cleanup proof）及运行证据记录于 [L3 review](../reviews/mvp0l-l3-docker-local-web-lifecycle.md)。第一次 provider-free `--ephemeral` runtime 在 API image build 因未发布的 `uv==0.12.8` 处于历史 `HOLD`，无服务、health 或 browser 结果；测试先行将官方 pin 修复为 `uv==0.12.6` 后，唯一一次新的 provider-free runtime 通过两镜像构建、PostgreSQL/API/Web health、health 后浏览器、一次有界 `/tasks` 读取、Ctrl-C 130 与精确清理，直接检查的 5173/55432 端口空闲。独立五轴 review 已在 `f831519` 为 `PASS`，fresh Required Checks 为 `12/12`，Ready PR #332 保持 `OPEN`/未合并；L3 仅在该 reviewed record 到达 `main` 后成为 merge-effective/current，L4 仍为 gated/not started。除待授权 merge 外，证据对账、普通 commit/Ready PR 与 checks 已完成；不继承 L2、Fast Lane 或任何 Provider authorization，也不再授权 runtime 重试。
 
 - Goal: [MVP-0L Local AI Web App Delivery Goal](../goals/mvp0-local-ai-web-app-delivery-goal.md)
 - Issue: [#331](https://github.com/JettxonHo/ai-ecommerce-agent/issues/331)

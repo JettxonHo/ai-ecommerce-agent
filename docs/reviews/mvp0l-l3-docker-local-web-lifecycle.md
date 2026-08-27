@@ -2,9 +2,11 @@
 
 **Status:** offline implementation `GREEN`; the historical first provider-free
 runtime is `HOLD` (image-build failure only), and the single bounded repair
-runtime is `PASS`. Independent five-axis review, commit/PR and merge remain
-pending. This document records implementation evidence only and does not
-approve or merge the change.
+runtime is `PASS`. Independent five-axis review is `PASS` at `f831519`, fresh
+Required Checks are `12/12`, and Ready PR #332 is `OPEN`/unmerged. L3 becomes
+merge-effective/current only when this reviewed record reaches `main`; L4 is
+gated and not started. This document records implementation and independent
+review evidence; it does not approve or merge the change.
 
 ## Baseline and authority
 
@@ -82,8 +84,11 @@ absent afterward, ports 5173/55432 were free, and the default/unrelated
 resource identities were unchanged. No Provider/model/Secret/.env access was
 made.
 
-This `PASS` is runtime evidence only. Independent five-axis review, commit/PR
-and merge remain pending; no self-approval or merge is claimed here.
+This runtime `PASS` is complemented by independent five-axis review `PASS` at
+`f831519` and fresh Required Checks `12/12`; Ready PR #332 remains
+`OPEN`/unmerged. L3 becomes merge-effective/current only when this reviewed
+record reaches `main`; L4 is gated and not started. No self-approval or merge is
+claimed here.
 
 ## Implemented contract
 
@@ -145,7 +150,9 @@ inspection or Docker container creation:
 
 One provider-free `scripts/mvp0/local-web --ephemeral` runtime completed `PASS` with
 the required image-build, PostgreSQL/API/Web health, browser-after-health,
-bounded `/tasks`, Ctrl-C and exact cleanup evidence. Remaining gates are final
-evidence reconciliation, ordinary commit/Ready PR, fresh Required Checks and
-independent five-axis review/merge. No additional runtime is authorized; no
-retry, second scope, raw Compose invocation or provider/model call is permitted.
+bounded `/tasks`, Ctrl-C and exact cleanup evidence. Independent five-axis review
+is `PASS` at `f831519`, fresh Required Checks are `12/12`, and Ready PR #332 is
+`OPEN`/unmerged. L3 becomes merge-effective/current only when this reviewed
+record reaches `main`; L4 is gated and not started. No additional runtime is
+authorized; no retry, second scope, raw Compose invocation or provider/model
+call is permitted.
