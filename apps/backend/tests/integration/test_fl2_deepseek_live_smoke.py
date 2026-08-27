@@ -354,6 +354,12 @@ def _preserve_downloads(downloads: dict[str, bytes]) -> None:
         raise
 
 
+def _remove_preserved_downloads() -> None:
+    for file_name in _EXPORT_FILENAMES.values():
+        (_EXPORT_DIR / file_name).unlink(missing_ok=True)
+    _EXPORT_DIR.rmdir()
+
+
 def test_one_deepseek_task_to_export_smoke(postgres_engine: Engine) -> None:
     """Run exactly one fictional sufficient-input path with five calls."""
 
@@ -362,6 +368,7 @@ def test_one_deepseek_task_to_export_smoke(postgres_engine: Engine) -> None:
     runtimes: list[DeepSeekModelRuntime] = []
     gates = dict(_FALSE_GATES)
     composition: DeterministicResultPostgresComposition | None = None
+    preserved_exports = False
     try:
         client, composition = _result_client(postgres_engine, runtimes)
         with client:
@@ -465,6 +472,7 @@ def test_one_deepseek_task_to_export_smoke(postgres_engine: Engine) -> None:
                 item.version_tuple.execution_profile_version for item in metadata
             ] == ["v1", "v1", "v1", "v1", "v2"]
             _preserve_downloads(downloads)
+            preserved_exports = True
         _write_evidence(
             started_at=started_at,
             started_clock=started_clock,
@@ -474,6 +482,8 @@ def test_one_deepseek_task_to_export_smoke(postgres_engine: Engine) -> None:
             behavior_gates=gates,
         )
     except Exception:
+        if preserved_exports:
+            _remove_preserved_downloads()
         _write_evidence(
             started_at=started_at,
             started_clock=started_clock,
