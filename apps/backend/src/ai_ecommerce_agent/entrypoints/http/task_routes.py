@@ -18,6 +18,7 @@ from ai_ecommerce_agent.modules.export_delivery.public import (
     ExportBasis,
     ExportBriefKind,
 )
+from ai_ecommerce_agent.modules.needs_input.public import NeedsInputApplicationError
 from ai_ecommerce_agent.modules.source_evidence.public import (
     PRIMARY_INPUT_MAX_BYTES,
     GetPrimaryInput,
@@ -58,6 +59,7 @@ _VALIDATION_FAILED = "urn:ai-ecommerce-agent:problem:validation-failed"
 _REVISION_CONFLICT = "urn:ai-ecommerce-agent:problem:revision-conflict"
 _SERVICE_UNAVAILABLE = "urn:ai-ecommerce-agent:problem:service-unavailable"
 _IDEMPOTENCY_CONFLICT = "urn:ai-ecommerce-agent:problem:idempotency-conflict"
+_CAPABILITY_CONFLICT = "urn:ai-ecommerce-agent:problem:capability-conflict"
 _MARKDOWN_MEDIA_TYPE = "text/markdown; charset=utf-8"
 
 
@@ -173,7 +175,9 @@ def _summary(task: TaskSnapshot) -> dict[str, Any]:
     }
 
 
-def _overview(task: TaskSnapshot) -> dict[str, Any]:
+def _overview(
+    task: TaskSnapshot, needs_input_request: Any | None = None
+) -> dict[str, Any]:
     return {
         **_summary(task),
         "stages": [],
@@ -187,7 +191,15 @@ def _overview(task: TaskSnapshot) -> dict[str, Any]:
             if task.latest_run_id is not None
             else None
         ),
-        "needsInputRequest": None,
+        "needsInputRequest": (
+            {
+                "resourceKind": "needs_input",
+                "resourceId": needs_input_request.action_request_id,
+                "revision": needs_input_request.revision.value,
+            }
+            if needs_input_request is not None
+            else None
+        ),
         "reviewPackage": None,
         "approvedStrategy": None,
         "marketingBrief": None,
@@ -544,6 +556,7 @@ def register_task_routes(
     result_application: Any | None = None,
     pipeline_coordinator: ResultPipelineCoordinator | None = None,
     export_application: Any | None = None,
+    needs_input_application: Any | None = None,
 ) -> None:
     """Register only the Task/input operations consumed by the Fast Lane Web UI."""
 
@@ -881,7 +894,31 @@ def register_task_routes(
             task = task_application.get_task(GetTask(task_id_value))
         except TaskManagementError as error:
             return _task_problem(request, error)
-        return JSONResponse(_overview(task))
+        current_needs_input = None
+        if needs_input_application is not None:
+            try:
+                current_needs_input = needs_input_application.get_current_request(
+                    task_id_value
+                )
+            except NeedsInputApplicationError as error:
+                status = 503 if error.retryability else 422
+                return safe_problem_response(
+                    request=request,
+                    problem_type=(
+                        _SERVICE_UNAVAILABLE if status == 503 else _VALIDATION_FAILED
+                    ),
+                    title=(
+                        "Service unavailable" if status == 503 else "Validation failed"
+                    ),
+                    status=status,
+                    detail=(
+                        "The Needs Input service is temporarily unavailable."
+                        if status == 503
+                        else "The Task overview could not be completed."
+                    ),
+                    action="retry_later" if status == 503 else "refresh",
+                )
+        return JSONResponse(_overview(task, current_needs_input))
 
 
 __all__ = ("register_task_routes",)

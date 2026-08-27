@@ -19,6 +19,9 @@ warnings.filterwarnings("ignore", category=StarletteDeprecationWarning)
 from fastapi.testclient import TestClient  # noqa: E402
 from pytest_socket import SocketBlockedError, _true_socket  # noqa: E402
 
+from ai_ecommerce_agent.bootstrap.deterministic_result_postgres import (  # noqa: E402
+    DeterministicResultError,
+)
 from ai_ecommerce_agent.entrypoints.http import (  # noqa: E402
     FixedWorkspaceHttpConfig,
     create_task_http_application,
@@ -245,6 +248,25 @@ class _Results:
         )
 
 
+class _UnavailableResults(_Results):
+    """Result adapter failure represented by the safe application error."""
+
+    def generate_result(
+        self,
+        *,
+        task_id: TaskId,
+        idempotency_key: str,
+        expected_input_revision: int,
+        coordinator: object,
+    ) -> tuple[_ResultSnapshot, bool]:
+        del task_id, idempotency_key, expected_input_revision, coordinator
+        raise DeterministicResultError(
+            "persistence_error",
+            "The result service is temporarily unavailable",
+            retryability=True,
+        )
+
+
 class _Coordinator:
     def generate(self, *, input_text: str) -> object:
         return input_text
@@ -393,6 +415,36 @@ def test_result_routes_require_injected_coordinator_and_preserve_idempotent_repl
         ("task-1", "result-retry-1", 0),
         ("task-1", "result-retry-1", 0),
     ]
+
+
+def test_result_persistence_failure_maps_to_safe_503() -> None:
+    application = create_task_http_application(
+        config=FixedWorkspaceHttpConfig(
+            workspace_id="workspace-demo",
+            workbench_origin="http://127.0.0.1:5173",
+        ),
+        task_application=_Tasks(),
+        primary_input_application=_PrimaryInputs(),
+        result_application=_UnavailableResults(),
+        pipeline_coordinator=_Coordinator(),
+    )
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/v1/tasks/task-1/commands/generate-result",
+            headers={"Idempotency-Key": "result-failure-1"},
+            json={"expectedInputRevision": 0},
+        )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "type": "urn:ai-ecommerce-agent:problem:service-unavailable",
+        "title": "Service unavailable",
+        "status": 503,
+        "detail": "The result service is temporarily unavailable.",
+        "instance": "/api/v1/tasks/task-1/commands/generate-result",
+        "action": "retry_later",
+    }
+    assert "DeterministicResultError" not in response.text
 
 
 def test_result_location_encodes_an_opaque_task_id_as_one_path_segment() -> None:

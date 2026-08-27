@@ -21,6 +21,10 @@ from ai_ecommerce_agent.bootstrap.deterministic_result_postgres import (
     DeterministicResultPostgresComposition,
     compose_deterministic_result_postgres,
 )
+from ai_ecommerce_agent.bootstrap.needs_input_postgres import (
+    NeedsInputPostgresComposition,
+    compose_needs_input_postgres,
+)
 from ai_ecommerce_agent.bootstrap.primary_input_postgres import (
     PrimaryInputPostgresComposition,
     compose_primary_input_postgres,
@@ -126,6 +130,7 @@ class LocalDemoComposition:
     application: Any
     task: TaskManagementPostgresComposition
     primary_input: PrimaryInputPostgresComposition
+    needs_input: NeedsInputPostgresComposition
     result: DeterministicResultPostgresComposition
     _closed: bool = field(default=False, init=False, compare=False, repr=False)
 
@@ -137,7 +142,12 @@ class LocalDemoComposition:
         object.__setattr__(self, "_closed", True)
         first_error: BaseException | None = None
         # Close every participant even if one adapter unexpectedly raises.
-        for participant in (self.result, self.primary_input, self.task):
+        for participant in (
+            self.result,
+            self.needs_input,
+            self.primary_input,
+            self.task,
+        ):
             try:
                 participant.close()
             except BaseException as error:  # pragma: no cover - defensive fence
@@ -172,11 +182,16 @@ def compose_local_demo(config: LocalDemoConfig) -> LocalDemoComposition:
     postgres_config = PostgresEngineConfig(config.database_url)
     task: TaskManagementPostgresComposition | None = None
     primary_input: PrimaryInputPostgresComposition | None = None
+    needs_input: NeedsInputPostgresComposition | None = None
     result: DeterministicResultPostgresComposition | None = None
     try:
         task = compose_task_management_postgres(postgres_config)
         primary_input = compose_primary_input_postgres(postgres_config)
-        result = compose_deterministic_result_postgres(postgres_config)
+        needs_input = compose_needs_input_postgres(postgres_config)
+        result = compose_deterministic_result_postgres(
+            postgres_config,
+            needs_input_application=needs_input.application,
+        )
         application = create_task_http_application(
             config=FixedWorkspaceHttpConfig(
                 workspace_id=config.workspace_id,
@@ -187,11 +202,13 @@ def compose_local_demo(config: LocalDemoConfig) -> LocalDemoComposition:
             result_application=result.application,
             pipeline_coordinator=result.coordinator,
             export_application=result.export_application,
+            needs_input_application=needs_input.application,
         )
         composition = LocalDemoComposition(
             application=application,
             task=task,
             primary_input=primary_input,
+            needs_input=needs_input,
             result=result,
         )
         _attach_lifespan(application, composition)
@@ -199,7 +216,7 @@ def compose_local_demo(config: LocalDemoConfig) -> LocalDemoComposition:
     except BaseException:
         # A failed composition must not leak any engines that were already
         # created before a later participant or route failed.
-        for participant in (result, primary_input, task):
+        for participant in (result, needs_input, primary_input, task):
             if participant is not None:
                 participant.close()
         raise

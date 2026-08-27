@@ -12,7 +12,11 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { TaskRoutes } from "../TaskRoutes";
 import type { TaskGateway, TaskOverview } from "../gateway";
-import type { TaskCurrentResult, TaskPrimaryInput } from "../gateway";
+import type {
+  TaskCurrentResult,
+  TaskPrimaryInput,
+  TaskPrimaryInputDraft,
+} from "../gateway";
 import type {
   NeedsInputActionRequest,
   NeedsInputResolutionResult,
@@ -472,6 +476,130 @@ describe("TaskWorkbench", () => {
       within(panel).queryByRole("button", { name: /提交|确认/u }),
     ).toBeNull();
     expect(resolveNeedsInput).not.toHaveBeenCalled();
+  });
+
+  it("keeps the authoritative blocker before editable Intake recovery", async () => {
+    const request: NeedsInputActionRequest = {
+      actionRequestId: "action-insufficient-input",
+      taskId: taskBaseline.taskId,
+      revision: 0,
+      status: "open",
+      reasonType: "missing_information",
+      reasonSummary: "请补充商品规格与来源资料。",
+      affectedStages: ["product_intake_and_fact_extraction"],
+      sourceReferences: [],
+      conflictValues: [],
+      allowedResolutionTypes: [
+        "provide_source_reference",
+        "submit_correction",
+        "confirm_known_limitation",
+        "cancel_path",
+      ],
+      expectedRecovery: "rerun",
+      supersededBy: null,
+    };
+    const savedInput: TaskPrimaryInput = {
+      taskId: taskBaseline.taskId,
+      inputKind: "pasted_text",
+      fileName: null,
+      content: "fixture-insufficient-v1 only",
+      inputRevision: 0,
+      byteCount: "fixture-insufficient-v1 only".length,
+      updatedAt: "2026-08-12T00:00:00Z",
+    };
+    const sufficientInput =
+      "fixture-sufficient-v1 fictional synthetic non-regulated\\n" +
+      "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包";
+    const savePrimaryInput = vi.fn(
+      async (input: TaskPrimaryInputDraft) =>
+        ({
+          ...savedInput,
+          ...input,
+          inputRevision: 1,
+          byteCount: new TextEncoder().encode(input.content).byteLength,
+        }) as TaskPrimaryInput,
+    );
+    const generateResult = vi.fn(async (): Promise<TaskCurrentResult> => ({
+      taskId: taskBaseline.taskId,
+      resultRevision: 1,
+      inputRevision: 1,
+      status: "awaiting_review",
+      generatedAt: "2026-08-12T00:00:00Z",
+      missingInformation: [],
+      productIntake: {},
+      customerInsight: {},
+      productPositioning: {},
+      marketingBrief: {},
+      xiaohongshuBrief: {},
+      confirmation: null,
+    }));
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/tasks/${encodeURIComponent(taskBaseline.taskId)}?panel=intake&stage=product_intake_and_fact_extraction`,
+        ]}
+      >
+        <TaskWorkbench
+          task={task({
+            taskStatus: "waiting_for_input",
+            currentStage: "product_intake_and_fact_extraction",
+            needsInputRequest: {
+              resourceId: request.actionRequestId,
+              revision: request.revision,
+            },
+          })}
+          primaryInput={savedInput}
+          savePrimaryInput={savePrimaryInput}
+          generateResult={generateResult}
+          needsInputRequest={request}
+          needsInputAuthorityMatch
+        />
+      </MemoryRouter>,
+    );
+
+    const needsPanel = screen.getByRole("region", {
+      name: "需要补充信息",
+    });
+    expect(within(needsPanel).getByText(request.reasonSummary)).toBeTruthy();
+    expect(
+      within(needsPanel).getByRole("button", { name: "取消当前处理" }),
+    ).toBeTruthy();
+
+    const inputPanel = screen.getByRole("region", { name: "商品资料" });
+    const needsHeading = within(needsPanel).getByRole("heading", {
+      name: "需要补充信息",
+    });
+    const inputHeading = within(inputPanel).getByRole("heading", {
+      name: "商品资料",
+    });
+    expect(
+      Boolean(
+        needsHeading.compareDocumentPosition(inputHeading) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+
+    const user = userEvent.setup();
+    const editor = within(inputPanel).getByRole("textbox", {
+      name: "粘贴文本",
+    });
+    await user.clear(editor);
+    await user.type(editor, sufficientInput);
+    await user.click(
+      within(inputPanel).getByRole("button", { name: "保存商品资料" }),
+    );
+    await waitFor(() => {
+      expect(savePrimaryInput).toHaveBeenCalledWith({
+        inputKind: "pasted_text",
+        fileName: null,
+        content: sufficientInput,
+      });
+    });
+    await user.click(
+      within(inputPanel).getByRole("button", { name: "生成结果" }),
+    );
+    await waitFor(() => expect(generateResult).toHaveBeenCalledTimes(1));
   });
 
   it("bounds failed recovery to authoritative context and refresh without inventing commands", async () => {
