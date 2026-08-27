@@ -87,3 +87,32 @@ and fresh explicit user authorization.
 
 Neither controlled run establishes DeepSeek Provider acceptance. The MVP-0
 Fast Lane Goal remains `GOAL_BLOCKED`.
+
+## MVP-0L L4 qualification (Issue #333)
+
+STATUS: `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR_REVIEW_READY`
+
+The fresh exact-base Phase-A review at
+`origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e` re-traced the retained
+five-stage DeepSeek path and reran the existing synthetic/sanitized offline
+diagnosis plus directly affected DeepSeek, pipeline, schema and architecture
+tests. The current request/profile/version tuples, JSON-mode preparation,
+response mapper, project-schema validation and Fast Lane domain admission are
+coherent. The retained safe signature remains compatible with multiple real
+mapper/schema/domain rejection categories, so no general correctness RED
+justifies a repair. The exact disposition is
+`L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`; production diff is zero and no
+Phase-B amendment exists.
+
+Current first-party DeepSeek documentation was rechecked read-only from
+`api-docs.deepseek.com`: [Quick Start](https://api-docs.deepseek.com/), [Chat
+Completions API](https://api-docs.deepseek.com/api/create-chat-completion/),
+[JSON Output](https://api-docs.deepseek.com/guides/json_mode/), [Thinking
+Mode](https://api-docs.deepseek.com/guides/thinking_mode/) and [Models &
+Pricing](https://api-docs.deepseek.com/quick_start/pricing/). It continues to
+document `https://api.deepseek.com`, `deepseek-v4-pro`, Chat Completions JSON
+Output, enabled thinking with `reasoning_effort=high`, reasonable
+`max_tokens`, `finish_reason=length` truncation and occasional empty content.
+No documentation drift affects the frozen path. This offline qualification is
+not live Provider acceptance and does not authorize L5, a Secret access or a
+new run.
