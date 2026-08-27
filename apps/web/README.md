@@ -16,19 +16,10 @@ remain unchanged. The predecessor P4B result remains
 unauthorized.
 
 The successor [MVP-0L Local AI Web App Delivery Goal](../../docs/goals/mvp0-local-ai-web-app-delivery-goal.md)
-is `ACTIVE` after L0 PR #317 reached `main`; Issue #318 is merged/current through
-PR #328 after its independent five-axis review `PASS`. Issue #329 / PR #330 is the
-completed L2 minimum persistence acceptance/reconciliation Stage from exact base
-`dbccacacc54cb21c393987a8612dfc6aa825093b`; its provider-free runtime,
-independent five-axis review and fresh Required Checks are `PASS`/`12/12`, PR #330
-is merged/current and Issue #329 is closed. Issue #331 is the active L3
-Docker-only lifecycle contract; its offline evidence is green on an isolated
-branch, its first provider-free runtime is historical `HOLD` at the
-image-build-only `uv==0.12.8` failure, and its single corrected-pin runtime
-passed health, browser and cleanup. Independent five-axis review is `PASS` at
-`f831519`, fresh Required Checks are `12/12`, and Ready PR #332 is `OPEN`/unmerged;
-L3 becomes merge-effective/current only when this reviewed record reaches `main`.
-L4 is gated and not started.
+is `ACTIVE`; L0–L3 are merged/current through PRs #317, #328, #330 and #332 at
+exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 records
+the L4 offline qualification as `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, with
+production diff zero and no Phase-B amendment. L5 remains separately gated.
 Its exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6, with the owner-confirmed
 MBL-first sequence L2 → L3 → L4 → L5 → Agent UI → L6. L0 was docs-only; the
 existing Issue #318 adds no Provider acceptance or authorization. Issue #329's test-only
@@ -60,21 +51,14 @@ five-axis review is `PASS`, fresh Required Checks are `12/12`, PR #330 is
 merged/current and Issue #329 is closed. The characterization proves Task
 primary input, generated/confirmed Marketing/Xiaohongshu results and immutable
 Markdown export snapshots across recomposition/replay and a materially newer
-fictional input. Issue #331 is the active L3 lifecycle implementation: its
-Docker-only Apple Silicon stack and bounded default-browser entry are offline
-GREEN on an isolated branch. The ORCHESTRATOR_REVIEWER bounded repair/runtime
-ruling under the owner's standing serial-order instruction records the first
-attempt as image-build-only `HOLD` because `uv==0.12.8` was unpublished; no
-service, health, browser or product-behavior result was produced and guarded
-cleanup passed. Tests first required `uv==0.12.6`, and the one new provider-free
-attempt built both images, passed PostgreSQL/API/Web health, opened the browser
-after health, and passed one bounded `/tasks` read (title “商品上新行动工作台”,
-heading “行动首页”) and exact cleanup (Ctrl-C 130). Independent five-axis review
-is `PASS` at `f831519`, fresh Required Checks are `12/12`, and Ready PR #332 is
-`OPEN`/unmerged; L3 becomes merge-effective/current only when this reviewed
-record reaches `main`. L4 is gated and not started. No further runtime,
-Provider/model or Secret access is authorized; Agent UI production is not part
-of this Stage.
+fictional input. Issue #331 / PR #332 is the merged/current L3 lifecycle at exact
+`origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`; its historical build-only
+`HOLD`, corrected-pin provider-free `PASS`, independent review and fresh checks
+remain recorded. Issue #333's provider-free offline qualification confirms the
+current DeepSeek seams and official contract are coherent; the sanitized
+signature remains ambiguous and no production behavior changed. No further
+runtime, Provider/model or Secret access is authorized; Agent UI production is
+not part of L4.
 
 ## Toolchain
 
@@ -113,26 +97,13 @@ authority and must remain byte-identical after `npm run api:check`.
 
 The development server proxies `/api` to `http://127.0.0.1:8000`; the
 predecessor local stack and Chromium harness are retained as provider-free
-evidence, Issue #318's one-time local runtime acceptance is recorded in the
-L1 review, and Issue #329 / PR #330's one-time backend persistence acceptance,
-independent five-axis `PASS` and fresh checks `12/12` are recorded in the
-[L2 review](../../docs/reviews/mvp0l-l2-minimum-persistence.md) at the exact
-merge-effective base `dbccacacc54cb21c393987a8612dfc6aa825093b`; PR #330 is
-merged/current and Issue #329 is closed. For Issue #331, run the tracked
-[AI Ecommerce Agent.command](../../AI%20Ecommerce%20Agent.command) to invoke
-the Docker-only local-Web lifecycle; it performs bounded Apple Silicon and
-Docker Desktop preflight, renders the `local-web` profile, waits for API/Web
-health, then opens the system default browser. `--ephemeral` uses an isolated
-project and paired volume and removes both on exit; default stop preserves the
-named database volume. For Issue #331, the first runtime is historical
-`HOLD` before service creation and the corrected-pin second runtime is
-`PASS` with images/health/browser/`/tasks` title+heading/Ctrl-C 130 and exact
-ephemeral cleanup. Independent five-axis review is `PASS` at `f831519`, fresh
-Required Checks are `12/12`, and Ready PR #332 is `OPEN`/unmerged; L3 becomes
-merge-effective/current only when this reviewed record reaches `main`. L4 is
-gated and not started. L0 did not launch them. The reviewed direct DeepSeek
-adapter and opt-in smoke seam are backend capabilities, not current Provider
-acceptance. Both historical DeepSeek authorizations are consumed; no further
-paid/provider run is authorized until a later L5 exact-commit human Gate. The
-later project-root Git-ignored `.env` convention contains `DEEPSEEK_API_KEY`,
-but L0 must not create, read or inspect it.
+evidence. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at
+exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`; Issue #333 and the
+[L4 qualification review](../../docs/reviews/mvp0l-l4-deepseek-offline-qualification.md)
+record provider-free offline evidence and disposition
+`L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`. The reviewed direct DeepSeek adapter
+and opt-in smoke seam are backend capabilities, not Provider acceptance. Both
+historical DeepSeek authorizations are consumed; no paid/provider run is
+authorized until a later L5 exact-commit human Gate. The later project-root
+Git-ignored `.env` convention contains `DEEPSEEK_API_KEY`, but no Stage may
+create, read or inspect it.
