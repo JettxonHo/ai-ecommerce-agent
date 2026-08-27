@@ -2,9 +2,9 @@
 
 ## Disposition
 
-**Fact:** Issue [#318](https://github.com/JettxonHo/ai-ecommerce-agent/issues/318) is the active L1 Stage after L0 PR #317 reached `main`. The original Issue review used `origin/main@8c67eb571c54bdb77538c9bb79f1035150eec4d5` as its reviewed baseline. This clean-history replacement uses the effective current base `origin/main@fe431693070bfa5a5bbe936b41556fbea8027ab2`; the historical `8c67eb5` baseline is not the replacement-review base.
+**Fact:** Issue [#318](https://github.com/JettxonHo/ai-ecommerce-agent/issues/318) was the L1 Stage after L0 PR #317 reached `main`; its independently reviewed replacement merged as PR #328, making L1 merge-effective. The original Issue review used `origin/main@8c67eb571c54bdb77538c9bb79f1035150eec4d5` as its reviewed baseline. This clean-history replacement used `origin/main@fe431693070bfa5a5bbe936b41556fbea8027ab2`; the historical `8c67eb5` baseline is not the replacement-review base.
 
-**Fact:** The implementation and one-time provider-free runtime acceptance are complete on the original branch `codex/mvp0l-l1-needs-input-backend` and are reproduced byte-for-byte in this clean-history replacement. The independent five-axis review is `PASS`; the replacement PR, merge and fresh Required Checks remain pending. L1 becomes merge-effective only after the replacement PR reaches `main`; L2 remains gated. This document does not approve or merge the change.
+**Fact:** The implementation and one-time provider-free runtime acceptance completed on the original branch `codex/mvp0l-l1-needs-input-backend` and were reproduced byte-for-byte in the clean-history replacement. The independent five-axis review is `PASS`, and PR #328 is merged/current. Issue #329 is now the active L2 Stage; this document does not approve or merge either change.
 
 **Fact:** The durable runtime disposition is [`L1_RUNTIME_ACCEPTANCE_PASS`](https://github.com/JettxonHo/ai-ecommerce-agent/issues/318#issuecomment-5436381488). No credentials, database URLs, provider/model payloads, Secret values or `.env` contents are recorded here.
 
@@ -67,6 +67,6 @@ CI= MVP0_RUN_REAL_BACKEND_E2E=1 PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run
 
 ## Current-truth impact and remaining gate
 
-**Fact:** L0 is merged/current through PR #317 and the successor Goal is `ACTIVE`. Issue #318's L1 implementation and exact one-time runtime acceptance are recorded here and in the durable Issue comment above. L2 remains gated until an independently reviewed L1 PR reaches `main`.
+**Fact:** L0 is merged/current through PR #317 and the successor Goal is `ACTIVE`. Issue #318's L1 implementation and exact one-time runtime acceptance are recorded here and in the durable Issue comment above; PR #328 makes L1 merge-effective. Issue #329 is the active L2 Stage and remains separately gated by its own independent review, PR and fresh Required Checks.
 
-**Fact:** The independent five-axis review is `PASS` for the clean-history replacement across correctness, readability, architecture, security and proportional performance. The replacement PR, merge and fresh Required Checks remain pending; L1 becomes merge-effective only after the replacement PR reaches `main`, and L2 remains gated. The implementer does not approve or merge.
+**Fact:** The independent five-axis review is `PASS` for the clean-history replacement across correctness, readability, architecture, security and proportional performance. PR #328 is merged/current; Issue #329 remains the separately bounded active L2 Stage. The implementer does not approve or merge.

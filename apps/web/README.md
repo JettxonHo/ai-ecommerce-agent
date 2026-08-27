@@ -16,12 +16,14 @@ remain unchanged. The predecessor P4B result remains
 unauthorized.
 
 The successor [MVP-0L Local AI Web App Delivery Goal](../../docs/goals/mvp0-local-ai-web-app-delivery-goal.md)
-is `ACTIVE` after L0 PR #317 reached `main`; Issue #318 is the active L1 Stage.
-Its independent five-axis review is `PASS`, while the replacement PR and merge
-remain pending. L1 becomes merge-effective only after that replacement PR reaches
-`main`; L2 remains gated. Its exact order is L0 → L1 → L2 →
-L3 → L4 → L5 → L6. L0 was docs-only; Issue #318 adds no Provider acceptance or
-authorization. The
+is `ACTIVE` after L0 PR #317 reached `main`; Issue #318 is merged/current through
+PR #328 after its independent five-axis review `PASS`. Issue #329 is the active
+L2 minimum persistence acceptance/reconciliation Stage; its one-time provider-free
+runtime acceptance passed, while independent review, PR merge and fresh Required
+Checks remain pending. L2 is not merge-effective until its PR reaches `main`, and
+L3 remains gated. Its exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6. L0 was
+docs-only; Issue #318 adds no Provider acceptance or authorization. Issue #329
+adds no production behavior or public-contract change. The
 eventual real-AI contract is official DeepSeek `deepseek-v4-pro` for fictional
 or sanitized acceptance material. Apple Silicon is the first-release boundary;
 Docker Desktop is user-installed; the product remains a local Web App opened in
@@ -37,10 +39,11 @@ extends this existing page with an authority-first Chinese Needs Input panel on
 the selected Intake view, followed by the same editor/save/regenerate controls;
 the blocker remains authoritative until a sufficient generation clears it. The
 one-time provider-free runtime acceptance passed 6 backend integration cases and
-4 browser cases, including recomposition and reload; independent five-axis review
-is `PASS`, while the replacement PR and merge remain pending. L1 becomes
-merge-effective only after that replacement PR reaches `main`; L2 remains gated.
-The later L3 lifecycle will
+4 browser cases, including recomposition and reload; PR #328 makes L1
+merge-effective with independent five-axis review `PASS`. Issue #329's one-time
+provider-free L2 runtime acceptance passed the six-test backend characterization on
+an isolated ephemeral scope; independent review, PR merge and fresh Required Checks
+remain pending, so L2 is not merge-effective and L3 remains gated. The later L3 lifecycle will
 target Apple Silicon + user-installed Docker Desktop + system-default-browser
 opening; no Provider/model or Secret access is part of this Stage.
 
@@ -81,8 +84,10 @@ authority and must remain byte-identical after `npm run api:check`.
 
 The development server proxies `/api` to `http://127.0.0.1:8000`; the
 predecessor local stack and Chromium harness are retained as provider-free
-evidence, and Issue #318's one-time local runtime acceptance is recorded in the
-L1 review. L0 did not launch them. The reviewed direct DeepSeek
+evidence, Issue #318's one-time local runtime acceptance is recorded in the
+L1 review, and Issue #329's one-time backend persistence acceptance is recorded
+in the [L2 review](../../docs/reviews/mvp0l-l2-minimum-persistence.md). L0 did
+not launch them. The reviewed direct DeepSeek
 adapter and opt-in smoke seam are backend capabilities, not current Provider
 acceptance. Both historical DeepSeek authorizations are consumed; no further
 paid/provider run is authorized until a later L5 exact-commit human Gate. The
