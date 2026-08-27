@@ -42,6 +42,8 @@ from ai_ecommerce_agent.platform.postgres import PostgresEngineConfig
 _DATABASE_ENV = "MVP0_LOCAL_DEMO_DATABASE_URL"
 _WORKSPACE_ENV = "MVP0_LOCAL_DEMO_WORKSPACE_ID"
 _ORIGIN_ENV = "MVP0_LOCAL_DEMO_WORKBENCH_ORIGIN"
+_COMPOSE_POSTGRES_HOST = "postgres"
+_COMPOSE_POSTGRES_PORT = 5432
 
 
 def _validate_local_database_url(value: object) -> None:
@@ -65,10 +67,20 @@ def _validate_local_database_url(value: object) -> None:
         raise ValueError("database_url must include one local database and credentials")
     if port is not None and not 1 <= port <= 65535:
         raise ValueError("database_url must have a valid port")
-    if parsed.hostname.lower() == "localhost":
+    hostname = parsed.hostname.lower()
+    if hostname == "localhost":
+        return
+    # The Docker-only local Web stack uses one exact internal Compose service
+    # identity.  Keep the host-development loopback boundary intact and do
+    # not turn arbitrary DNS names into accepted database targets.
+    if hostname == _COMPOSE_POSTGRES_HOST:
+        if parsed.port != _COMPOSE_POSTGRES_PORT:
+            raise ValueError(
+                "database_url must use the internal postgres service on port 5432"
+            )
         return
     try:
-        address = ip_address(parsed.hostname)
+        address = ip_address(hostname)
     except ValueError as error:
         raise ValueError("database_url must use a loopback host") from error
     if not address.is_loopback:

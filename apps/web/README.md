@@ -18,12 +18,15 @@ unauthorized.
 The successor [MVP-0L Local AI Web App Delivery Goal](../../docs/goals/mvp0-local-ai-web-app-delivery-goal.md)
 is `ACTIVE` after L0 PR #317 reached `main`; Issue #318 is merged/current through
 PR #328 after its independent five-axis review `PASS`. Issue #329 / PR #330 is the
-active L2 minimum persistence acceptance/reconciliation Stage; at exact code/test
-head `2c1c1d39c44b77803f587785f07f741f8374ef29`, its provider-free runtime and
-independent five-axis review are `PASS`, and fresh Required Checks are `12/12`.
-PR #330 remains `OPEN`/unmerged during this reconciliation, so L2 is not
-merge-effective until reviewed closure reaches `main`, and L3 remains gated. Its
-exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6, with the owner-confirmed
+completed L2 minimum persistence acceptance/reconciliation Stage from exact base
+`dbccacacc54cb21c393987a8612dfc6aa825093b`; its provider-free runtime,
+independent five-axis review and fresh Required Checks are `PASS`/`12/12`, PR #330
+is merged/current and Issue #329 is closed. Issue #331 is the active L3
+Docker-only lifecycle contract; its offline evidence is green on an isolated
+branch, its first provider-free runtime is historical `HOLD` at the
+image-build-only `uv==0.12.8` failure, and its single corrected-pin runtime
+passed health, browser and cleanup; independent review and merge remain pending.
+Its exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6, with the owner-confirmed
 MBL-first sequence L2 → L3 → L4 → L5 → Agent UI → L6. L0 was docs-only; the
 existing Issue #318 adds no Provider acceptance or authorization. Issue #329's test-only
 follow-up restores stale revision/idempotency rejections before and after
@@ -46,17 +49,26 @@ one-time provider-free runtime acceptance passed 6 backend integration cases and
 4 browser cases, including recomposition and reload; PR #328 makes L1
 merge-effective with independent five-axis review `PASS`. Issue #329 / PR #330's
 one-time provider-free L2 runtime acceptance passed the six-test backend
-characterization in `1.41s` on an isolated ephemeral scope at code/test head
-`2c1c1d39c44b77803f587785f07f741f8374ef29`; the blocking stale revision/idempotency
-finding was resolved by test-only assertions, independent five-axis review is
-`PASS`, and fresh Required Checks are `12/12`. PR #330 remains `OPEN`/unmerged
-during this reconciliation, so L2 is not merge-effective and L3 remains gated.
-The characterization proves Task primary input, generated/confirmed
-Marketing/Xiaohongshu results and immutable Markdown export snapshots across
-recomposition/replay and a materially newer fictional input. The later L3
-lifecycle will target Apple Silicon + user-installed Docker Desktop +
-system-default-browser opening; no Provider/model, Agent UI production or Secret
-access is part of this Stage.
+characterization in `1.41s` on an isolated ephemeral scope at the exact
+merge-effective base
+`dbccacacc54cb21c393987a8612dfc6aa825093b`; the blocking stale
+revision/idempotency finding was resolved by test-only assertions, independent
+five-axis review is `PASS`, fresh Required Checks are `12/12`, PR #330 is
+merged/current and Issue #329 is closed. The characterization proves Task
+primary input, generated/confirmed Marketing/Xiaohongshu results and immutable
+Markdown export snapshots across recomposition/replay and a materially newer
+fictional input. Issue #331 is the active L3 lifecycle implementation: its
+Docker-only Apple Silicon stack and bounded default-browser entry are offline
+GREEN on an isolated branch. The ORCHESTRATOR_REVIEWER bounded repair/runtime
+ruling under the owner's standing serial-order instruction records the first
+attempt as image-build-only `HOLD` because `uv==0.12.8` was unpublished; no
+service, health, browser or product-behavior result was produced and guarded
+cleanup passed. Tests first required `uv==0.12.6`, and the one new provider-free
+attempt built both images, passed PostgreSQL/API/Web health, opened the browser
+after health, and passed one bounded `/tasks` read (title “商品上新行动工作台”,
+heading “行动首页”) and exact cleanup (Ctrl-C 130). Independent review and
+merge remain pending. No Provider/model, Agent UI production or Secret access is
+part of this Stage.
 
 ## Toolchain
 
@@ -98,10 +110,19 @@ predecessor local stack and Chromium harness are retained as provider-free
 evidence, Issue #318's one-time local runtime acceptance is recorded in the
 L1 review, and Issue #329 / PR #330's one-time backend persistence acceptance,
 independent five-axis `PASS` and fresh checks `12/12` are recorded in the
-[L2 review](../../docs/reviews/mvp0l-l2-minimum-persistence.md) at code/test
-head `2c1c1d39c44b77803f587785f07f741f8374ef29`; PR #330 remains open/unmerged
-until reviewed closure reaches `main`. L0 did
-not launch them. The reviewed direct DeepSeek
+[L2 review](../../docs/reviews/mvp0l-l2-minimum-persistence.md) at the exact
+merge-effective base `dbccacacc54cb21c393987a8612dfc6aa825093b`; PR #330 is
+merged/current and Issue #329 is closed. For Issue #331, run the tracked
+[AI Ecommerce Agent.command](../../AI%20Ecommerce%20Agent.command) to invoke
+the Docker-only local-Web lifecycle; it performs bounded Apple Silicon and
+Docker Desktop preflight, renders the `local-web` profile, waits for API/Web
+health, then opens the system default browser. `--ephemeral` uses an isolated
+project and paired volume and removes both on exit; default stop preserves the
+named database volume. For Issue #331, the first runtime is historical
+`HOLD` before service creation and the corrected-pin second runtime is
+`PASS` with images/health/browser/`/tasks` title+heading/Ctrl-C 130 and exact
+ephemeral cleanup; independent review and merge remain
+pending. L0 did not launch them. The reviewed direct DeepSeek
 adapter and opt-in smoke seam are backend capabilities, not current Provider
 acceptance. Both historical DeepSeek authorizations are consumed; no further
 paid/provider run is authorized until a later L5 exact-commit human Gate. The

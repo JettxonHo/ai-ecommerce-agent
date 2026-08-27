@@ -4,7 +4,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPO_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
 
-scripts=(lib.sh postgres-init.sh preflight up down status verify reset-demo demo test-static test-lifecycle run-migration-validation test-migration-validation)
+scripts=(lib.sh postgres-init.sh preflight up down status verify reset-demo demo local-web test-static test-local-web test-lifecycle run-migration-validation test-migration-validation)
 for script in "${scripts[@]}"; do
   path="$SCRIPT_DIR/$script"
   [[ -x "$path" ]] || {
@@ -14,11 +14,49 @@ for script in "${scripts[@]}"; do
   bash -n "$path"
 done
 
+command_entry="$REPO_ROOT/AI Ecommerce Agent.command"
+[[ -f "$command_entry" && -x "$command_entry" ]] || {
+  printf 'FAIL: root AI Ecommerce Agent.command must exist and be executable\n' >&2
+  exit 1
+}
+[[ "$(rg -c '^[[:space:]]*exec[[:space:]]+"\$SCRIPT_DIR/scripts/mvp0/local-web"[[:space:]]+"\$@"[[:space:]]*$' "$command_entry" || true)" == 1 ]] || {
+  printf 'FAIL: root command entry must delegate exactly once to scripts/mvp0/local-web\n' >&2
+  exit 1
+}
+[[ "$(rg -c 'scripts/mvp0/' "$command_entry" || true)" == 1 ]] || {
+  printf 'FAIL: root command entry contains a second lifecycle reference\n' >&2
+  exit 1
+}
+if rg -q 'docker[[:space:]]+(compose|run)|scripts/mvp0/(demo|up|down|status|verify)' "$command_entry"; then
+  printf 'FAIL: root command entry contains an unguarded second lifecycle\n' >&2
+  exit 1
+fi
+
 compose=(docker compose --project-name ai-ecommerce-agent-mvp0 --file "$REPO_ROOT/compose.yaml")
 "${compose[@]}" config --quiet
 [[ "$("${compose[@]}" config --services)" == postgres ]]
 [[ "$("${compose[@]}" config --images)" == postgres:16.14-bookworm ]]
 [[ "$("${compose[@]}" config --volumes)" == postgres-data ]]
+
+local_web_compose=(
+  docker compose --project-name ai-ecommerce-agent-mvp0
+  --file "$REPO_ROOT/compose.yaml" --env-file /dev/null --profile local-web
+)
+[[ "$("${local_web_compose[@]}" config --services)" == $'postgres\napi\nweb' ]]
+rendered_local_web_images="$("${local_web_compose[@]}" config --images | LC_ALL=C sort)"
+expected_local_web_images="$(printf '%s\n' \
+  ai-ecommerce-agent-mvp0-api ai-ecommerce-agent-mvp0-web postgres:16.14-bookworm | LC_ALL=C sort)"
+[[ "$rendered_local_web_images" == "$expected_local_web_images" ]]
+rendered_local_web="$("${local_web_compose[@]}" config)"
+grep -Fq -- 'host_ip: 127.0.0.1' <<<"$rendered_local_web"
+grep -Fq -- 'published: "5173"' <<<"$rendered_local_web"
+grep -Fq -- 'expose:' <<<"$rendered_local_web"
+grep -Fq -- 'MVP0_BUSINESS_DATABASE_URL: postgresql+psycopg://mvp0_business:' <<<"$rendered_local_web"
+grep -Fq -- 'postgres:5432/ecommerce_business' <<<"$rendered_local_web"
+if grep -Eq -- '0\.0\.0\.0' <<<"$rendered_local_web"; then
+  printf 'FAIL: Docker-only API/Web binds must remain private/loopback-only\n' >&2
+  exit 1
+fi
 
 grep -Fq -- '--force-recreate postgres' "$SCRIPT_DIR/up"
 grep -Fq -- '127.0.0.1:8000' "$SCRIPT_DIR/demo"
@@ -44,5 +82,6 @@ fi
 
 "$SCRIPT_DIR/test-lifecycle"
 "$SCRIPT_DIR/test-migration-validation"
+"$SCRIPT_DIR/test-local-web"
 
 printf 'MVP-0 lifecycle static checks: PASS\n'
