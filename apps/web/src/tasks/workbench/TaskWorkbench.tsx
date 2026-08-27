@@ -1877,7 +1877,20 @@ export function TaskWorkbench({
               : neutralPanelMessage[selectedPanel]}
           </p>
 
-          {selectedPanel === "intake" && mode !== "needs_input" ? (
+          {mode === "needs_input" ? (
+            <NeedsInputPanel
+              request={needsInputRequest}
+              loading={needsInputLoading}
+              error={needsInputError}
+              authorityMatch={needsInputAuthorityMatch}
+              retry={retryNeedsInput}
+              resolveNeedsInput={resolveNeedsInput}
+              refreshTask={refreshTask}
+              refreshError={needsInputRefreshError}
+            />
+          ) : null}
+
+          {selectedPanel === "intake" ? (
             <PrimaryInputPanel
               primaryInput={primaryInput}
               primaryInputLoading={primaryInputLoading}
@@ -1897,19 +1910,6 @@ export function TaskWorkbench({
               task={task}
               refreshTask={refreshTask}
               hasCurrentResult={hasCurrentResult}
-            />
-          ) : null}
-
-          {mode === "needs_input" ? (
-            <NeedsInputPanel
-              request={needsInputRequest}
-              loading={needsInputLoading}
-              error={needsInputError}
-              authorityMatch={needsInputAuthorityMatch}
-              retry={retryNeedsInput}
-              resolveNeedsInput={resolveNeedsInput}
-              refreshTask={refreshTask}
-              refreshError={needsInputRefreshError}
             />
           ) : null}
 

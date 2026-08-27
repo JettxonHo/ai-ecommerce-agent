@@ -94,7 +94,7 @@ def test_local_demo_composition_binds_existing_seams_and_closes_once(
     monkeypatch.setattr(
         module,
         "compose_deterministic_result_postgres",
-        lambda config: (calls.append(("result", config)), result)[1],
+        lambda config, **_: (calls.append(("result", config)), result)[1],
     )
     monkeypatch.setattr(module, "create_task_http_application", lambda **_: app)
 

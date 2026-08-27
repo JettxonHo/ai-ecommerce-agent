@@ -184,3 +184,103 @@ test("does not expose review or export actions for an insufficient result", asyn
     page.getByRole("button", { name: "确认并生成结果" }),
   ).toHaveCount(0);
 });
+
+test("recovers insufficient input through the one-page Needs Input Intake path", async ({
+  page,
+}) => {
+  const sufficientInput =
+    "fixture-sufficient-v1 fictional synthetic non-regulated\n" +
+    "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包\n" +
+    "工作日城市通勤时携带电脑、文件和日常随身物品，约 18 升，" +
+    "可放入 14 英寸级别笔记本电脑。\n" +
+    "表面有防泼水处理。source-sufficient-product-v1 product.json direct_source。";
+
+  await page.goto("/tasks");
+  await page.getByRole("link", { name: "新建商品上新任务" }).click();
+  await page.getByLabel("Task name").fill("Chromium Needs Input recovery");
+  await page.getByLabel("Product category").fill("Backpack");
+  await page.getByLabel("Promotion goal").fill("Bounded recovery");
+  await page.getByRole("button", { name: "Create task" }).click();
+  await page
+    .getByRole("textbox", { name: "粘贴文本" })
+    .fill("fixture-insufficient-v1 only");
+  await page.getByRole("button", { name: "保存商品资料" }).click();
+  await page.getByRole("button", { name: "生成结果" }).click();
+
+  const needsInputPanel = page.getByRole("region", {
+    name: "需要补充信息",
+  });
+  await expect(
+    needsInputPanel.getByRole("heading", { name: "需要补充信息" }),
+  ).toBeVisible();
+  await expect(
+    needsInputPanel.getByText("资料整理", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    needsInputPanel.getByText("Provide Anchor SKU product identity evidence."),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "导出营销 Markdown" }),
+  ).toHaveCount(0);
+  await page.getByRole("link", { name: "Review", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "审核候选结果" })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole("button", { name: "导出营销 Markdown" }),
+  ).toHaveCount(0);
+  await page.getByRole("link", { name: "资料输入", exact: true }).click();
+
+  const intakeNeedsInputPanel = page.getByRole("region", {
+    name: "需要补充信息",
+  });
+  const primaryInputPanel = page.getByRole("region", { name: "商品资料" });
+  await expect(intakeNeedsInputPanel).toBeVisible();
+  await expect(
+    intakeNeedsInputPanel.getByRole("checkbox", {
+      name: "我确认已了解此限制",
+    }),
+  ).toBeVisible();
+  await expect(
+    intakeNeedsInputPanel.getByRole("button", { name: "确认此限制" }),
+  ).toBeVisible();
+  await expect(primaryInputPanel).toBeVisible();
+  const needsInputPrecedesEditor = await intakeNeedsInputPanel.evaluate(
+    (panel) => {
+      const editor =
+        document.getElementById("primary-input-heading")?.closest("section") ??
+        null;
+      return (
+        editor !== null &&
+        Boolean(
+          panel.compareDocumentPosition(editor) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+        )
+      );
+    },
+  );
+  expect(needsInputPrecedesEditor).toBe(true);
+
+  await page.getByRole("textbox", { name: "粘贴文本" }).fill(sufficientInput);
+  await page.getByRole("button", { name: "保存商品资料" }).click();
+  await expect(
+    page.getByText("Saved revision 1.", { exact: true }),
+  ).toBeVisible();
+  await expect(intakeNeedsInputPanel).toBeVisible();
+  await expect(
+    intakeNeedsInputPanel.getByRole("button", { name: "确认此限制" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "生成结果" }).click();
+  await expect(page.getByRole("heading", { name: "结果已就绪" })).toBeVisible();
+  await expect(page.getByText("待审核", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "需要补充信息" })).toHaveCount(
+    0,
+  );
+
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "结果已就绪" })).toBeVisible();
+  await expect(page.getByText("待审核", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "需要补充信息" })).toHaveCount(
+    0,
+  );
+});

@@ -45,10 +45,11 @@ BASELINE_REVISION = "0001_business_baseline"
 TASK_HEAD_REVISION = "0002_task_management"
 SOURCE_HEAD_REVISION = "0003_source_evidence"
 DISPATCH_HEAD_REVISION = "0004_durable_dispatch"
-PREVIOUS_HEAD_REVISION = "0007_deterministic_result"
+PREVIOUS_HEAD_REVISION = "0008_review_export"
+REVIEW_PREVIOUS_REVISION = "0007_deterministic_result"
 RESULT_PREVIOUS_REVISION = "0006_task_primary_input"
 SUPERSESSION_REVISION = "0005_dispatch_supersession"
-HEAD_REVISION = "0008_review_export"
+HEAD_REVISION = "0009_needs_input"
 DATABASE_URL_ENV = "MVP0_MIGRATION_DATABASE_URL"
 DOMAIN_TABLES = (
     "durable_dispatch_work_intents",
@@ -60,6 +61,7 @@ DOMAIN_TABLES = (
     "task_management_create_idempotency",
     "task_management_deterministic_results",
     "task_management_export_snapshots",
+    "task_management_needs_input_requests",
     "task_management_runs",
     "task_management_stages",
     "task_management_tasks",
@@ -590,7 +592,10 @@ def test_revision_graph_has_one_business_head() -> None:
     assert head.down_revision == PREVIOUS_HEAD_REVISION
     previous_head = script.get_revision(PREVIOUS_HEAD_REVISION)
     assert previous_head is not None
-    assert previous_head.down_revision == RESULT_PREVIOUS_REVISION
+    assert previous_head.down_revision == REVIEW_PREVIOUS_REVISION
+    review_previous = script.get_revision(REVIEW_PREVIOUS_REVISION)
+    assert review_previous is not None
+    assert review_previous.down_revision == RESULT_PREVIOUS_REVISION
     result_previous = script.get_revision(RESULT_PREVIOUS_REVISION)
     assert result_previous is not None
     assert result_previous.down_revision == SUPERSESSION_REVISION
@@ -865,6 +870,27 @@ def test_named_tables_and_constraints_are_present(
         "ck_task_management_export_snapshots_template_version",
         "ck_task_management_export_snapshots_content_nonempty",
         "ck_task_management_export_snapshots_content_utf8_nonempty",
+        "pk_task_management_needs_input_requests",
+        "uq_task_management_needs_input_requests_task_action",
+        "fk_task_management_needs_input_requests_task_owner",
+        "fk_task_management_needs_input_requests_superseded_by",
+        "ck_task_management_needs_input_requests_id_nonempty",
+        "ck_task_management_needs_input_requests_task_id_nonempty",
+        "ck_task_management_needs_input_requests_revision_nonnegative",
+        "ck_task_management_needs_input_requests_status",
+        "ck_task_management_needs_input_requests_reason_type",
+        "ck_task_management_needs_input_requests_reason_summary",
+        "ck_task_management_needs_input_requests_affected_stages",
+        "ck_task_management_needs_input_requests_source_references",
+        "ck_task_management_needs_input_requests_conflict_values",
+        "ck_task_management_needs_input_requests_allowed_resolutions",
+        "ck_task_management_needs_input_requests_expected_recovery",
+        "ck_task_management_needs_input_requests_resolution_key",
+        "ck_task_management_needs_input_requests_resolution_type",
+        "ck_task_management_needs_input_requests_resolution_payload",
+        "ck_task_management_needs_input_requests_state_projection",
+        "ck_task_management_needs_input_requests_resolution_status",
+        "ck_task_management_needs_input_requests_superseded_distinct",
         *DURABLE_CONSTRAINT_NAMES,
     }
     assert expected_constraints <= _constraint_names(migration_engine)
