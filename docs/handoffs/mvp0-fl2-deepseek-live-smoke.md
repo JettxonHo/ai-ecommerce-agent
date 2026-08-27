@@ -12,7 +12,8 @@ implemented offline and merged as PR #280; the bounded legacy cleanup in Issue
 at exact `main@ac4edfed6e8e216e9938affdc734298c8630d2de`. It made exactly one
 `product_intake_v1 / v1` call and stopped on a fixed safe HTTP 500 during
 generate-result, before `awaiting_review`. Its authorization is consumed and
-the Issue is closed. No further Provider run is authorized.
+the Issue is closed. No further Provider run is authorized from that historical
+contract; a new L5 Stage must pass its own gates.
 
 The fifth call recorded 12,288 output tokens and 136,622 ms latency against the
 historical `xiaohongshu_mapping_v1 / v1` limit of 12,288 / 120 s. Sanitized
@@ -37,7 +38,9 @@ below the configured timeout.
 
 No rerun, repair, substitution, top-up or raw-material inspection occurred.
 Credential, bounded PostgreSQL and temporary checkout/cache cleanup completed;
-the exclusive sanitized evidence remains outside the repository.
+the exclusive sanitized evidence remains outside the repository. Those two
+authorizations are consumed; a new L5 Stage requires its own exact-commit
+contract and owner authorization.
 
 The historical #281 execution selected the retained live test only when all of
 these were explicit:
@@ -79,14 +82,40 @@ dependency, public contract or product-direction action.
 ## Current authorization boundary
 
 The #281 authorization is consumed and no additional Provider call is
-authorized. The retained opt-in seam is historical/testable code, not current
-execution authority. DEC-081 Phase A is complete with terminal
+authorized without a new L5 Gate. The retained opt-in seam is
+historical/testable code, not current execution authority. DEC-081 Phase A is complete with terminal
 `INSUFFICIENT_SANITIZED_EVIDENCE`; no production repair or Phase B contract
 exists. Any future real Provider run requires a separate exact-commit contract
 and fresh explicit user authorization.
 
 Neither controlled run establishes DeepSeek Provider acceptance. The MVP-0
 Fast Lane Goal remains `GOAL_BLOCKED`.
+
+## MVP-0L L5 Phase A harness (Issue #335)
+
+STATUS: `L5_HARNESS_REVIEW_READY` — owner authorization pending
+
+Issue #335 prepares the retained opt-in smoke seam for a future, separately
+authorized DeepSeek acceptance. The new explicit control
+`FL2_DEEPSEEK_LIVE_EXPORT_DIR` must name an absolute target outside the
+repository that does not already exist. Module preflight rejects an invalid or
+existing target before private credential/runtime resolution, client creation,
+PostgreSQL setup or network activity.
+
+After the existing five-call Task-to-export path has passed all automated gates,
+Phase A preserves exactly `marketing-brief.md` and `xiaohongshu-brief.md` with
+exclusive/no-overwrite creation. Payloads remain UTF-8, BOM-free and exactly
+one final newline. Failed validation or smoke execution retains only the
+existing sanitized evidence record and does not fabricate review exports; raw
+Provider response/reasoning, prompts, context, candidates, tracebacks, Secrets,
+account data and database rows are not written.
+
+Tests-first evidence is recorded in the [L5 Phase-A review](../reviews/mvp0l-l5-deepseek-live-acceptance.md): the unchanged harness produced
+`4 failed, 3 passed`, then the minimal edit produced `7 passed`, affected Ruff
+format/lint PASS and `git diff --check` PASS. No Provider, Secret, Docker,
+PostgreSQL, API/Web/browser or paid runtime action occurred. The current truth
+is harness review-ready only; no live success is claimed and no owner
+authorization is implied.
 
 ## MVP-0L L4 qualification (Issue #333)
 

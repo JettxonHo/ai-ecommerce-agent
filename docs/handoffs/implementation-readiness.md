@@ -1,10 +1,10 @@
 # Implementation Readiness
 
-> **Status: predecessor `MVP0P_GOAL_COMPLETE` is historical merge-effective truth after PR #315 · successor [MVP-0L Local AI Web App Delivery Goal](../goals/mvp0-local-ai-web-app-delivery-goal.md) is `ACTIVE` · L0–L3 are merged/current through PRs #317, #328, #330 and #332 at `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e` · L4 Issue #333 is review-ready with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment · L5 remains separately gated · predecessor P0–P5 complete · OLD FAST LANE TERMINAL `GOAL_BLOCKED` · P5 `P5_REUSE_FROZEN`**
+> **Status: predecessor `MVP0P_GOAL_COMPLETE` is historical merge-effective truth after PR #315 · successor [MVP-0L Local AI Web App Delivery Goal](../goals/mvp0-local-ai-web-app-delivery-goal.md) is `ACTIVE` · L0–L3 are merged/current through PRs #317, #328, #330 and #332 at `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e` · L4 Issue #333 is review-ready with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment · L5 Phase A Issue #335 is `L5_HARNESS_REVIEW_READY`; owner authorization pending and no live success claimed · predecessor P0–P5 complete · OLD FAST LANE TERMINAL `GOAL_BLOCKED` · P5 `P5_REUSE_FROZEN`**
 >
 > **Authority:** [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) · [DEC-085](../decisions/dec-085-docker-only-local-web-lifecycle.md) · [MVP-0L Local AI Web App Delivery Goal](../goals/mvp0-local-ai-web-app-delivery-goal.md) · [Session-009](../sessions/session-009-local-ai-web-app-goal-activation.md) · predecessor [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md) · [DEC-078](../decisions/dec-078-mvp0-fast-lane-execution-rebaseline.md) · [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) · [DEC-082](../decisions/dec-082-local-single-user-action-workbench-and-kimi-frontend-routing.md)
 >
-> **Current release boundary:** the deterministic local loop and one-command demo are completed predecessor foundation, not live Provider acceptance. The old Fast Lane record remains terminal `GOAL_BLOCKED`: its first authorized smoke completed five calls and failed before `awaiting_review`; the second under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) failed safely after one `product_intake_v1 / v1` call before `awaiting_review`. Both authorizations are consumed; no further Provider run is authorized. [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) and the [L4 qualification review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) preserve `INSUFFICIENT_SANITIZED_EVIDENCE` / observational ambiguity, record `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, and make no production repair or Phase-B contract. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`; P5 remains independently reviewed `P5_REUSE_FROZEN`. The successor L0–L6 order is governed by [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) and [DEC-085](../decisions/dec-085-docker-only-local-web-lifecycle.md).
+> **Current release boundary:** the deterministic local loop and one-command demo are completed predecessor foundation, not live Provider acceptance. The old Fast Lane record remains terminal `GOAL_BLOCKED`: its first authorized smoke completed five calls and failed before `awaiting_review`; the second under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) failed safely after one `product_intake_v1 / v1` call before `awaiting_review`. Both authorizations are consumed; no further Provider run is authorized without a new L5 Gate. [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) and the [L4 qualification review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) preserve `INSUFFICIENT_SANITIZED_EVIDENCE` / observational ambiguity, record `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, and make no production repair or Phase-B contract. Issue #335 adds only a provider-free Phase-A export-preservation harness and is `L5_HARNESS_REVIEW_READY`; owner authorization remains pending. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`; P5 remains independently reviewed `P5_REUSE_FROZEN`. The successor L0–L6 order is governed by [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) and [DEC-085](../decisions/dec-085-docker-only-local-web-lifecycle.md).
 
 P2's bounded surface is Running, Review and Results with structured business groups, separate Marketing / Xiaohongshu views, safe Markdown preview/export, raw JSON behind technical disclosure, and responsive keyboard / focus / reduced-motion boundaries. It does not claim Provider acceptance.
 
@@ -22,11 +22,12 @@ The following are accepted and sufficient for the minimal demo:
 - honest insufficient-input behavior;
 - a retained opt-in direct DeepSeek official `deepseek-v4-pro` seam plus terminal evidence from the two controlled runs; neither is Provider acceptance and no further run is authorized;
 - the completed bounded offline Phase A diagnosis at the exact first-stage boundary with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`; no production repair was made and no Phase B contract exists;
+- Issue #335's tests-first L5 Phase-A harness preparation with fail-closed export-directory preflight and exact two-file preservation; status `L5_HARNESS_REVIEW_READY`, owner authorization pending, no live success claimed;
 - an accepted next productization direction: fixed local single-user Action Workbench with `/tasks` action home, a Chinese five-stage rail, one Active Workspace, a collapsible `320–360px` Context Rail, structured Review and action-oriented Marketing / Xiaohongshu Results.
 - the predecessor Goal's serial order P0 → P1 → P2 → P3 → P4 → P5 is complete; Issue #303 / PR #304, Issue #305 / PR #306 and Issue #247 are merged/current P1–P3 deliveries. Issue #308 is merged/current P4A, and Issue #310 records independently reviewed provider-free `P4_LOCAL_RELEASE_ACCEPTED` P4B execution evidence, completing the accepted P4 local scope. P5 docs/research is complete and independently reviewed as `P5_REUSE_FROZEN`; direct reuse and platform behavior remain frozen and unauthorized. PR #315 made `MVP0P_GOAL_COMPLETE` merge-effective. The successor Goal's exact serial order is L0 → L1 → L2 → L3 → L4 → L5 → L6; L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 is the review-ready L4 offline qualification with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, no production diff and no Phase-B amendment. The owner-confirmed MBL-first sequence remains L2 → L3 → L4 → L5 → Agent UI → L6.
 - the human A+C verdict `HUMAN_SELECTED_AC_BASELINE`; PR #299 remains open / unmerged, while Issue #303 / PR #304 is the merged/current P1 implementation.
 
-No further Persona, RFC, general architecture, retrieval or enterprise-security planning is required for the deterministic foundation. The two controlled DeepSeek runs are terminal failure evidence, not Provider acceptance; #281 is closed and no further Provider run is authorized. Phase A is complete with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`, establishing observational ambiguity only; no production repair or Phase B contract exists, and `rejection_disposition` remains a Proposal only. Later deferred capabilities retain their separate gates.
+No further Persona, RFC, general architecture, retrieval or enterprise-security planning is required for the deterministic foundation. The two controlled DeepSeek runs are terminal failure evidence, not Provider acceptance; #281 is closed and any new Provider run requires the separately gated L5 authorization. Issue #335's Phase-A harness is `L5_HARNESS_REVIEW_READY` only, with owner authorization pending. DEC-081 Phase A is complete with terminal `INSUFFICIENT_SANITIZED_EVIDENCE`, establishing observational ambiguity only; no production repair or Phase B contract exists, and `rejection_disposition` remains a Proposal only. Later deferred capabilities retain their separate gates.
 
 ## 2. Implemented foundation inherited by the productization Goal
 
@@ -36,7 +37,7 @@ Implemented or physically present:
 - local PostgreSQL lifecycle and compatibility evidence;
 - Task / Run / Stage and Source persistence components;
 - bounded Durable Dispatch, checkpoint and runtime diagnostic seams;
-- provider-neutral Model Runtime, scripted substitute, reviewed offline direct DeepSeek adapter and retained shared live-evidence seam; superseded OpenAI/Qwen provider-specific adapters are removed by the bounded cleanup;
+- provider-neutral Model Runtime, scripted substitute, reviewed offline direct DeepSeek adapter and retained shared live-evidence seam; Issue #335 adds only a test-side export-preservation control; superseded OpenAI/Qwen provider-specific adapters are removed by the bounded cleanup;
 - private output contracts for Facts, Insight, Positioning, Marketing Brief and Xiaohongshu mapping;
 - Marketing / Xiaohongshu domain snapshots and safe Markdown renderer;
 - authored OpenAPI and generated TypeScript client;
@@ -53,7 +54,7 @@ Implemented or physically present:
 - the real-backend Chromium harness for sufficient/insufficient input, review, Markdown downloads and reload persistence; P4A reconciled its locators against the merged Chinese single-page UI and P4B records the historical predecessor rehearsal;
 - private local-demo composition plus `scripts/mvp0/demo` foreground API/Web lifecycle and non-destructive PostgreSQL stale-container repair.
 
-The DeepSeek offline implementation landed at `main@c12a9ab285eefee35c78342fd01180c1e47a83f0`. The release path still uses loopback only, keeps PostgreSQL separate from API/Web child cleanup, and does not select any live Provider runtime.
+The DeepSeek offline implementation landed at `main@c12a9ab285eefee35c78342fd01180c1e47a83f0`. Issue #335's Phase-A harness is provider-free and test-only; the release path still uses loopback only, keeps PostgreSQL separate from API/Web child cleanup, and does not select any live Provider runtime.
 
 ## 3. FL-1 and FL-2 status
 
@@ -88,7 +89,7 @@ The single authorized terminal browser rehearsal before the P4A hard freeze ran 
 
 ### P4B Issue #310
 
-P4B ran once from exact reviewed main and passed three fictional-data cases with exact ephemeral cleanup; its truthful predecessor result is independently reviewed `P4_LOCAL_RELEASE_ACCEPTED`, provider-free. Issue #318 / PR #328, Issue #329 / PR #330 and Issue #331 / PR #332 are merged/current L1–L3 boundaries; exact runtime and review evidence remain in their linked reviews. Issue #333 / the [L4 review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) records provider-free offline qualification with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. L5 remains a separate human Gate; no further runtime or Provider authorization is permitted.
+P4B ran once from exact reviewed main and passed three fictional-data cases with exact ephemeral cleanup; its truthful predecessor result is independently reviewed `P4_LOCAL_RELEASE_ACCEPTED`, provider-free. Issue #318 / PR #328, Issue #329 / PR #330 and Issue #331 / PR #332 are merged/current L1–L3 boundaries; exact runtime and review evidence remain in their linked reviews. Issue #333 / the [L4 review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) records provider-free offline qualification with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. Issue #335 / the [L5 Phase-A review](../reviews/mvp0l-l5-deepseek-live-acceptance.md) records `L5_HARNESS_REVIEW_READY`; owner authorization is pending, no live success is claimed, and no runtime or Provider action occurred.
 
 ## 5. Deferred and non-blocking
 
@@ -106,7 +107,7 @@ The following are outside the current productization Stage unless a later Stage 
 
 Accepted future designs remain available for a later Goal. They are not implementation prerequisites for this one.
 
-DEC-082 supplies the accepted product and frontend baseline. DEC-083's P0–P5 predecessor execution is complete; PR #315 made `MVP0P_GOAL_COMPLETE` current historical truth. DEC-084 and DEC-085 sequence the successor as L0 → L1 → L2 → L3 → L4 → L5 → L6; L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 is the review-ready L4 offline qualification with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, no production diff and no Phase-B amendment. L5 remains separately gated; no further runtime or Provider authorization is permitted. Important frontend work uses applicable taste skills; local Kimi Code + Kimi K3 remains a narrow later exact-contract exception, not an L0/L2 call or Luna / Terra fallback. PR #299 is open / unmerged and is not production evidence.
+DEC-082 supplies the accepted product and frontend baseline. DEC-083's P0–P5 predecessor execution is complete; PR #315 made `MVP0P_GOAL_COMPLETE` current historical truth. DEC-084 and DEC-085 sequence the successor as L0 → L1 → L2 → L3 → L4 → L5 → L6; L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 is the review-ready L4 offline qualification with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, no production diff and no Phase-B amendment. Issue #335's Phase-A harness is `L5_HARNESS_REVIEW_READY`; owner authorization is pending and no live success is claimed. Important frontend work uses applicable taste skills; local Kimi Code + Kimi K3 remains a narrow later exact-contract exception, not an L0/L2 call or Luna / Terra fallback. PR #299 is open / unmerged and is not production evidence.
 
 ## 6. Quality readiness
 
@@ -120,7 +121,7 @@ FL-1 uses them proportionally:
 - no new private-module AST scanner, exact file inventory or recursive every-field matrix without a reproduced risk;
 - real PostgreSQL only when the vertical changes persistence;
 - deterministic model substitute for ordinary PRs;
-- bounded real-provider evidence only at FL-2; the two authorized runs are terminal failures and no further run is authorized;
+- bounded real-provider evidence only at FL-2; the two authorized runs are terminal failures, and any new run requires the separate L5 owner Gate;
 - Phase A offline diagnosis uses synthetic / fictional sanitized fixtures only and cannot silently become a Provider test matrix.
 
 See the concise [Testing Strategy](../development/testing-strategy.md).
@@ -153,7 +154,7 @@ FL-0 Planning rebaseline: COMPLETE
 FL-1 Deterministic vertical loop: COMPLETE (merged PRs #250/#252/#254)
 FL-2 DeepSeek provider amendment: ACCEPTED (Issue #268 / PR #269)
 FL-2 DeepSeek adapter/smoke seam: IMPLEMENTED_OFFLINE_NOT_LIVE_VERIFIED (Issue #270 / PR #271)
-FL-2 DeepSeek live proof: TERMINAL GOAL_BLOCKED (first run failed after five calls; second #281 run failed after one Product Intake call; no further Provider run authorized)
+FL-2 DeepSeek live proof: TERMINAL GOAL_BLOCKED (first run failed after five calls; second #281 run failed after one Product Intake call; both authorizations consumed; any new run requires the separate L5 Gate)
 FL-2 bounded repair: MERGED_OFFLINE (PR #280 / Issue #277 / DEC-080)
 FL-2 first-stage offline diagnosis: COMPLETED_INSUFFICIENT_SANITIZED_EVIDENCE (DEC-081; observational ambiguity only; no production repair or Phase B contract)
 FL-3 one-command local demo rehearsal: COMPLETE (Issue #257)
@@ -172,5 +173,6 @@ Successor MVP-0L L1 Needs Input backend: `MERGED_CURRENT_REVIEW_PASS` (Issue #31
 Successor MVP-0L L2 minimum persistence: `MERGED_CURRENT_REVIEW_PASS` (Issue #329 / PR #330; exact merge-effective base `dbccacacc54cb21c393987a8612dfc6aa825093b`; six-test provider-free runtime `6/6 in 1.41s`; stale revision/idempotency resolution test-only; independent five-axis `PASS`; fresh Required Checks `12/12`; Issue #329 closed)
 Successor MVP-0L L3 Docker-only local Web lifecycle: `MERGED_CURRENT_REVIEW_PASS` (Issue #331 / PR #332; exact merge-effective base `2124a9bb20d6b7b327c828331bdc8293ec76577e`; 22-path allowlist; first image-build-only `HOLD` on unpublished `uv==0.12.8`; tests-first `uv==0.12.6` repair; one corrected-pin provider-free `--ephemeral` runtime `PASS` with images/health/browser/bounded `/tasks`/Ctrl-C 130/exact cleanup; independent five-axis review `PASS` at `f831519`; fresh Required Checks `12/12`; L3 merged/current)
 Successor MVP-0L L4 DeepSeek offline qualification: `REVIEW_READY` (Issue #333; exact base `2124a9bb20d6b7b327c828331bdc8293ec76577e`; provider-free Phase A; disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`; production diff zero; no Phase-B amendment; no live Provider or Secret action)
+Successor MVP-0L L5 Phase-A harness: `L5_HARNESS_REVIEW_READY` (Issue #335; exact base `ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`; tests-first export preservation/preflight only; owner authorization pending; no live Provider or Secret action)
 Successor Stage order: L0 → L1 → L2 → L3 → L4 → L5 → L6; only one active Stage; next Issue after prior independently reviewed PR reaches `main`
 ```

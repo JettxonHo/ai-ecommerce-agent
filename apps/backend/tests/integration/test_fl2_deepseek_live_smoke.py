@@ -99,6 +99,7 @@ _BACKEND_ROOT = Path(__file__).resolve().parents[2]
 _REPOSITORY_ROOT = _BACKEND_ROOT.parents[1]
 _SCHEMA = "mvp0_fl2_deepseek_live"
 _URL_ENV = "MVP0_TASK_HTTP_DATABASE_URL"
+_EXPORT_ENV = "FL2_DEEPSEEK_LIVE_EXPORT_DIR"
 _DEFAULT_URL = URL.create(
     "postgresql+psycopg",
     username="mvp0_business",
@@ -121,6 +122,11 @@ _FALSE_GATES = {
     "marketing_export_immutable": False,
     "xiaohongshu_export_immutable": False,
     "downloads_utf8_no_bom_one_final_lf": False,
+}
+
+_EXPORT_FILENAMES = {
+    "marketing": "marketing-brief.md",
+    "xiaohongshu": "xiaohongshu-brief.md",
 }
 
 
@@ -162,8 +168,28 @@ def _evidence_path() -> Path:
     return resolved
 
 
+def _export_dir() -> Path:
+    configured = os.environ.get(_EXPORT_ENV, "").strip()
+    if not configured:
+        pytest.fail("the live smoke requires an operator-selected export directory")
+    path = Path(configured).expanduser()
+    if not path.is_absolute():
+        pytest.fail("the live export directory must be absolute")
+    resolved = path.resolve()
+    try:
+        resolved.relative_to(_REPOSITORY_ROOT)
+    except ValueError:
+        pass
+    else:
+        pytest.fail("the live export directory must be outside tracked source")
+    if resolved.exists():
+        pytest.fail("the live export directory must not already exist")
+    return resolved
+
+
 _COMMIT = _validated_commit()
 _EVIDENCE_PATH = _evidence_path()
+_EXPORT_DIR = _export_dir()
 
 
 def _database_url() -> str:
@@ -296,6 +322,38 @@ def _write_evidence(
     write_live_smoke_evidence(_EVIDENCE_PATH, serialized)
 
 
+def _validate_download(content: bytes) -> bytes:
+    try:
+        content.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise AssertionError("download must be valid UTF-8") from error
+    if content.startswith(b"\xef\xbb\xbf"):
+        raise AssertionError("download must not contain a UTF-8 BOM")
+    if not content.endswith(b"\n") or content.endswith(b"\n\n"):
+        raise AssertionError("download must contain exactly one final newline")
+    return content
+
+
+def _preserve_downloads(downloads: dict[str, bytes]) -> None:
+    if set(downloads) != set(_EXPORT_FILENAMES):
+        raise AssertionError("only the two user-facing downloads may be preserved")
+
+    created = False
+    try:
+        _EXPORT_DIR.mkdir(mode=0o700)
+        created = True
+        for brief_kind, file_name in _EXPORT_FILENAMES.items():
+            content = _validate_download(downloads[brief_kind])
+            with (_EXPORT_DIR / file_name).open("xb") as export_file:
+                export_file.write(content)
+    except BaseException:
+        if created:
+            for file_name in _EXPORT_FILENAMES.values():
+                (_EXPORT_DIR / file_name).unlink(missing_ok=True)
+            _EXPORT_DIR.rmdir()
+        raise
+
+
 def test_one_deepseek_task_to_export_smoke(postgres_engine: Engine) -> None:
     """Run exactly one fictional sufficient-input path with five calls."""
 
@@ -387,10 +445,7 @@ def test_one_deepseek_task_to_export_smoke(postgres_engine: Engine) -> None:
             gates["marketing_export_immutable"] = True
             gates["xiaohongshu_export_immutable"] = True
             for content in downloads.values():
-                content.decode("utf-8")
-                assert not content.startswith(b"\xef\xbb\xbf")
-                assert content.endswith(b"\n")
-                assert not content.endswith(b"\n\n")
+                _validate_download(content)
             gates["downloads_utf8_no_bom_one_final_lf"] = True
             metadata = tuple(
                 item for runtime in runtimes for item in runtime.metadata_records
@@ -409,6 +464,7 @@ def test_one_deepseek_task_to_export_smoke(postgres_engine: Engine) -> None:
             assert [
                 item.version_tuple.execution_profile_version for item in metadata
             ] == ["v1", "v1", "v1", "v1", "v2"]
+            _preserve_downloads(downloads)
         _write_evidence(
             started_at=started_at,
             started_clock=started_clock,

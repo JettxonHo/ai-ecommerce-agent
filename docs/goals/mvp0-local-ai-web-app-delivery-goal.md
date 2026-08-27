@@ -1,6 +1,6 @@
 # MVP-0L Local AI Web App Delivery Goal
 
-> **Status on this branch:** `ACTIVE` — L0–L3 are merged/current through PRs #317, #328, #330 and #332; L3 is merge-effective at `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. L4 [Issue #333](https://github.com/JettxonHo/ai-ecommerce-agent/issues/333) is review-ready with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. L5 remains gated.
+> **Status on this branch:** `ACTIVE` — L0–L3 are merged/current through PRs #317, #328, #330 and #332; L3 is merge-effective at `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. L4 [Issue #333](https://github.com/JettxonHo/ai-ecommerce-agent/issues/333) is review-ready with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. L5 Phase A [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) is `L5_HARNESS_REVIEW_READY`; owner authorization remains pending and no live success is claimed.
 >
 > **Decision authority:** [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) · [DEC-085](../decisions/dec-085-docker-only-local-web-lifecycle.md) · [Session-009](../sessions/session-009-local-ai-web-app-goal-activation.md)
 >
@@ -12,7 +12,7 @@
 
 Deliver a real-AI local Web App for a single operator on Apple Silicon Mac. The first release runs locally with user-installed Docker Desktop and opens in the system default browser. It builds on the completed deterministic Action Workbench, then closes the explicitly staged Needs Input, persistence, lifecycle, offline DeepSeek diagnosis, paid DeepSeek acceptance and clean-Mac review gates.
 
-The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 completes the provider-free L4 Phase-A qualification with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`: current seams and official contract are coherent, retained sanitized evidence is ambiguous, and production diff is zero. No Provider/model call or Secret access was made; L5 remains a new human Gate. Documentation validation and ordinary Git/GitHub branch, push, PR and CI transport remain workflow activity, not product-runtime activity.
+The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 completes the provider-free L4 Phase-A qualification with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`: current seams and official contract are coherent, retained sanitized evidence is ambiguous, and production diff is zero. Issue #335's L5 Phase-A harness is review-ready only: it prepares a fail-closed external export directory for a future one-time run, with owner authorization pending. No Provider/model call or Secret access was made. Documentation validation and ordinary Git/GitHub branch, push, PR and CI transport remain workflow activity, not product-runtime activity.
 
 ## 2. Activation and operating rule
 
@@ -61,9 +61,9 @@ Within the successor's product delivery, the owner-confirmed MBL-first sequence 
 
 ### L5 — Real DeepSeek acceptance
 
-**Result:** after L4 reaches `main`, execute exactly one separately reviewed, exact-commit paid acceptance contract for official DeepSeek `deepseek-v4-pro` using fictional/sanitized material.
+**Result:** Issue #335 Phase A prepares the retained smoke seam to preserve exactly the two final Markdown downloads outside tracked source. Its current disposition is `L5_HARNESS_REVIEW_READY` with owner authorization pending; no live call or success is claimed.
 
-**Gate:** this is a new human Gate. The two historical DeepSeek authorizations and any previous smoke result do not carry forward; no retry, second Task or unbounded live matrix is implied.
+**Gate:** after the Phase-A PR is independently reviewed, reaches `main` with fresh Required Checks, and the owner explicitly authorizes the exact one-time run, execute one exact-commit paid acceptance for official DeepSeek `deepseek-v4-pro` using fictional/sanitized material. No prior authorization carries forward, and no second Task, retry or repair is implied.
 
 ### L6 — Clean-Mac acceptance and final Goal Review
 
@@ -106,7 +106,7 @@ The official DeepSeek API and `deepseek-v4-pro` remain the sole future real-AI c
 
 ## 6. Evidence and acceptance
 
-Use proportional evidence under [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md): one representative normal path, the primary recoverable failure and a critical invariant for each changed boundary, plus applicable Required Checks and independent review. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333's provider-free Phase-A evidence and first-party contract recheck are recorded in the [L4 review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. No further runtime or Provider authorization is permitted.
+Use proportional evidence under [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md): one representative normal path, the primary recoverable failure and a critical invariant for each changed boundary, plus applicable Required Checks and independent review. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333's provider-free Phase-A evidence and first-party contract recheck are recorded in the [L4 review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. Issue #335's tests-first harness evidence and pending authorization are recorded in the [L5 Phase-A review](../reviews/mvp0l-l5-deepseek-live-acceptance.md). No live runtime or Provider action occurred in Phase A.
 
 L0 acceptance requires:
 
@@ -139,7 +139,8 @@ Executable implementation in later Stages is routed to exact custom `luna-worker
 - **Current L2 Issue:** [Issue #329](https://github.com/JettxonHo/ai-ecommerce-agent/issues/329)
 - **Current L3 Issue:** [Issue #331](https://github.com/JettxonHo/ai-ecommerce-agent/issues/331)
 - **Current L4 Issue:** [Issue #333](https://github.com/JettxonHo/ai-ecommerce-agent/issues/333) · [L4 qualification review](../reviews/mvp0l-l4-deepseek-offline-qualification.md)
+- **Current L5 Issue:** [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) · [L5 Phase-A harness review](../reviews/mvp0l-l5-deepseek-live-acceptance.md)
 
 ## 10. Authorization boundary
 
-L0's docs-only activation contract is complete. L1, L2 and L3 are merged/current through PRs #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 completes provider-free L4 Phase A with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment; independent review/merge remains required. No Provider/model/live call, Secret/.env access, public contract, migration/schema expansion, dependency/lockfile change, native App work, public deployment or Spider_XHS action is authorized. L5 remains a separate exact-commit human Gate.
+L0's docs-only activation contract is complete. L1, L2 and L3 are merged/current through PRs #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 completes provider-free L4 Phase A with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment; independent review/merge remains required. Issue #335 completes only L5 Phase-A harness preparation with `L5_HARNESS_REVIEW_READY`; owner authorization remains pending and no live success is claimed. No Provider/model/live call, Secret/.env access, public contract, migration/schema expansion, dependency/lockfile change, native App work, public deployment or Spider_XHS action is authorized in this Phase-A delivery.

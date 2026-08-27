@@ -19,7 +19,9 @@ The successor [MVP-0L Local AI Web App Delivery Goal](../../docs/goals/mvp0-loca
 is `ACTIVE`; L0–L3 are merged/current through PRs #317, #328, #330 and #332 at
 exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 records
 the L4 offline qualification as `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, with
-production diff zero and no Phase-B amendment. L5 remains separately gated.
+production diff zero and no Phase-B amendment. Issue #335 records the L5
+Phase-A export-preservation harness as `L5_HARNESS_REVIEW_READY`; owner
+authorization is pending and no live success is claimed.
 Its exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6, with the owner-confirmed
 MBL-first sequence L2 → L3 → L4 → L5 → Agent UI → L6. L0 was docs-only; the
 existing Issue #318 adds no Provider acceptance or authorization. Issue #329's test-only
@@ -102,8 +104,9 @@ exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`; Issue #333 and the
 [L4 qualification review](../../docs/reviews/mvp0l-l4-deepseek-offline-qualification.md)
 record provider-free offline evidence and disposition
 `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`. The reviewed direct DeepSeek adapter
-and opt-in smoke seam are backend capabilities, not Provider acceptance. Both
-historical DeepSeek authorizations are consumed; no paid/provider run is
-authorized until a later L5 exact-commit human Gate. The later project-root
+and opt-in smoke seam are backend capabilities, not Provider acceptance. Issue
+#335's Phase-A harness is review-ready only and does not perform a Provider
+call. Both historical DeepSeek authorizations are consumed; owner
+authorization for the new L5 exact-commit human Gate is pending. The later project-root
 Git-ignored `.env` convention contains `DEEPSEEK_API_KEY`, but no Stage may
 create, read or inspect it.
