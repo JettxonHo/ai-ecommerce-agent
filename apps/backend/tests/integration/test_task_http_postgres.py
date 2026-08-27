@@ -972,6 +972,26 @@ def test_anchor_persistence_survives_recomposition_and_newer_cycle(
                     "content": newer_anchor_input,
                 },
             )
+            stale_generate = client.post(
+                f"/api/v1/tasks/{task_id}/commands/generate-result",
+                headers={"Idempotency-Key": "result-key-stale-v2"},
+                json={"expectedInputRevision": 0},
+            )
+            stale_result_replay = client.post(
+                f"/api/v1/tasks/{task_id}/commands/generate-result",
+                headers={"Idempotency-Key": "result-key-1"},
+                json={"expectedInputRevision": 0},
+            )
+            stale_confirmation_replay = client.post(
+                f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
+                headers={"Idempotency-Key": "confirm-key-1"},
+                json={
+                    "expectedResultRevision": 0,
+                    "marketingCoreMessage": "Confirmed commuter storage message",
+                    "xiaohongshuTitleDirection": "Confirmed commuter title direction",
+                },
+            )
+            stale_current = client.get(f"/api/v1/tasks/{task_id}/current-result")
             newer_generated = client.post(
                 f"/api/v1/tasks/{task_id}/commands/generate-result",
                 headers={"Idempotency-Key": "result-key-2"},
@@ -998,6 +1018,13 @@ def test_anchor_persistence_survives_recomposition_and_newer_cycle(
             "资料修订 v2：新增可逆运营备注，核心商品事实保持不变。"
             in newer_saved.json()["content"]
         )
+        assert stale_generate.status_code == 409, stale_generate.text
+        assert stale_result_replay.status_code == 409, stale_result_replay.text
+        assert stale_confirmation_replay.status_code == 409, (
+            stale_confirmation_replay.text
+        )
+        assert stale_current.status_code == 200, stale_current.text
+        assert stale_current.json() == confirmed_body
         assert newer_generated.status_code == 201, newer_generated.text
         newer_generated_body = newer_generated.json()
         assert newer_generated_body["status"] == "awaiting_review"
@@ -1045,6 +1072,25 @@ def test_anchor_persistence_survives_recomposition_and_newer_cycle(
                         ),
                     },
                 )
+                old_generate_after_v2 = final_client.post(
+                    f"/api/v1/tasks/{task_id}/commands/generate-result",
+                    headers={"Idempotency-Key": "result-key-1"},
+                    json={"expectedInputRevision": 0},
+                )
+                old_confirmation_after_v2 = final_client.post(
+                    f"/api/v1/tasks/{task_id}/commands/confirm-current-result",
+                    headers={"Idempotency-Key": "confirm-key-1"},
+                    json={
+                        "expectedResultRevision": 0,
+                        "marketingCoreMessage": ("Confirmed commuter storage message"),
+                        "xiaohongshuTitleDirection": (
+                            "Confirmed commuter title direction"
+                        ),
+                    },
+                )
+                current_after_old_replays = final_client.get(
+                    f"/api/v1/tasks/{task_id}/current-result"
+                )
                 old_marketing_download = final_client.get(
                     snapshot.json()["contentLocation"]
                 )
@@ -1063,6 +1109,14 @@ def test_anchor_persistence_survives_recomposition_and_newer_cycle(
                 newer_confirmation_replay.text
             )
             assert newer_confirmation_replay.json() == newer_confirmed_body
+            assert old_generate_after_v2.status_code == 409, old_generate_after_v2.text
+            assert old_confirmation_after_v2.status_code == 409, (
+                old_confirmation_after_v2.text
+            )
+            assert current_after_old_replays.status_code == 200, (
+                current_after_old_replays.text
+            )
+            assert current_after_old_replays.json() == newer_confirmed_body
             assert old_marketing_download.status_code == 200, (
                 old_marketing_download.text
             )
