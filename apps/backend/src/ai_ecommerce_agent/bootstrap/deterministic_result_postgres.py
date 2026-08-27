@@ -21,6 +21,14 @@ from ai_ecommerce_agent.modules.customer_insight.application.skills import (
 from ai_ecommerce_agent.modules.marketing_brief.application.skills import (
     marketing_brief_generation,
 )
+from ai_ecommerce_agent.modules.needs_input.application.errors import (
+    NeedsInputPersistenceError,
+    NeedsInputRevisionPersistenceError,
+)
+from ai_ecommerce_agent.modules.needs_input.infrastructure.repositories import (
+    NeedsInputPostgresRequestRepository,
+)
+from ai_ecommerce_agent.modules.needs_input.public import InsufficientResultEvidence
 from ai_ecommerce_agent.modules.product_intake.application.skills import (
     product_intake_fact_extraction,
 )
@@ -44,7 +52,7 @@ from ai_ecommerce_agent.platform.postgres import (
     PostgresEngineConfig,
     create_postgres_engine,
 )
-from ai_ecommerce_agent.shared_kernel import TaskId
+from ai_ecommerce_agent.shared_kernel import Revision, TaskId
 
 
 class DeterministicResultError(Exception):
@@ -221,13 +229,20 @@ def snapshot_from_row(row: Mapping[str, object]) -> DeterministicResultSnapshot:
 class DeterministicResultApplication:
     """Read and atomically publish one Task-owned deterministic result."""
 
-    def __init__(self, engine: Engine, *, schema: str = "public") -> None:
+    def __init__(
+        self,
+        engine: Engine,
+        *,
+        schema: str = "public",
+        needs_input_application: Any | None = None,
+    ) -> None:
         self._engine = engine.execution_options(
             schema_translate_map={TASK_MANAGEMENT_SCHEMA_TOKEN: schema}
         )
         self._sessions: sessionmaker[Session] = sessionmaker(
             bind=self._engine, class_=Session, expire_on_commit=False
         )
+        self._needs_input_application = needs_input_application
 
     def close(self) -> None:
         self._engine.dispose()
@@ -493,6 +508,56 @@ class DeterministicResultApplication:
                         )
                     values["result_revision"] = self._next_revision(session, task_id)
                     session.execute(TASK_RESULTS_TABLE.insert().values(values))
+                    if (
+                        generated.status == "insufficient_input"
+                        and self._needs_input_application is not None
+                    ):
+                        missing_information = tuple(
+                            str(item)
+                            for item in json.loads(str(values["missing_information"]))
+                        )
+                        evidence = InsufficientResultEvidence(
+                            task_id=task_id,
+                            input_revision=Revision(expected_input_revision),
+                            result_revision=Revision(int(values["result_revision"])),
+                            missing_information=missing_information,
+                            affected_stages=("product_intake_and_fact_extraction",),
+                            source_references=(),
+                            conflict_values=(),
+                        )
+                        publisher = getattr(
+                            self._needs_input_application,
+                            "publish_from_result_in_transaction",
+                            None,
+                        )
+                        if not callable(publisher):
+                            raise DeterministicResultError(
+                                "configuration_error",
+                                "The Needs Input composition is unavailable.",
+                            )
+                        publisher(
+                            NeedsInputPostgresRequestRepository(session), evidence
+                        )
+                    elif (
+                        generated.status == "awaiting_review"
+                        and self._needs_input_application is not None
+                    ):
+                        superseder = getattr(
+                            self._needs_input_application,
+                            "supersede_current_for_result_in_transaction",
+                            None,
+                        )
+                        if not callable(superseder):
+                            raise DeterministicResultError(
+                                "configuration_error",
+                                "The Needs Input composition is unavailable.",
+                            )
+                        superseder(
+                            NeedsInputPostgresRequestRepository(session),
+                            task_id=task_id,
+                            input_revision=Revision(expected_input_revision),
+                            result_revision=Revision(int(values["result_revision"])),
+                        )
                     inserted = (
                         session.execute(
                             select(TASK_RESULTS_TABLE).where(
@@ -507,6 +572,15 @@ class DeterministicResultApplication:
                     return _snapshot(_row(inserted)), False
         except DeterministicResultError:
             raise
+        except (
+            NeedsInputPersistenceError,
+            NeedsInputRevisionPersistenceError,
+        ) as error:
+            raise DeterministicResultError(
+                "persistence_error",
+                "The result service is temporarily unavailable",
+                retryability=True,
+            ) from error
         except (IntegrityError, SQLAlchemyError) as error:
             raise DeterministicResultError(
                 "persistence_error",
@@ -788,11 +862,16 @@ def compose_deterministic_result_postgres(
     *,
     schema: str = "public",
     coordinator: DeterministicPipelineCoordinator | None = None,
+    needs_input_application: Any | None = None,
 ) -> DeterministicResultPostgresComposition:
     """Build the result participant without reading process configuration."""
 
     engine = create_postgres_engine(config)
-    application = DeterministicResultApplication(engine, schema=schema)
+    application = DeterministicResultApplication(
+        engine,
+        schema=schema,
+        needs_input_application=needs_input_application,
+    )
     from .review_export_postgres import ReviewExportApplication
 
     export_application = ReviewExportApplication(engine, schema=schema)

@@ -7,17 +7,19 @@ generated OpenAPI client through a private Task gateway.
 
 The predecessor P0 → P1 → P2 → P3 → P4 → P5 Action Workbench chain is complete
 and historical `MVP0P_GOAL_COMPLETE` after PR #315 reached `main`. Its P3 UI and
-deterministic gateway remain evidence only: the current FastAPI task resource
-still projects `needsInputRequest: null` and does not implement the Needs Input
-read/resolve operations. The predecessor P4B result remains
+deterministic gateway remain evidence only. Issue #318 adds the real
+PostgreSQL-backed FastAPI Needs Input read/resolve boundary and bounded recovery
+projection consumed by this existing Workbench; OpenAPI and generated types
+remain unchanged. The predecessor P4B result remains
 `P4_LOCAL_RELEASE_ACCEPTED`; P5 docs/research remains independently reviewed as
 `P5_REUSE_FROZEN`, with direct Spider_XHS reuse and platform behavior frozen and
 unauthorized.
 
 The successor [MVP-0L Local AI Web App Delivery Goal](../../docs/goals/mvp0-local-ai-web-app-delivery-goal.md)
-is `ACTIVATION_PENDING` on the Issue #316 branch and becomes `ACTIVE` only when
-its L0 PR reaches `main`. Its exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6.
-L0 is docs-only; no Provider acceptance or authorization is created here. The
+is `ACTIVE` after L0 PR #317 reached `main`; Issue #318 is the active L1 Stage
+and remains pending independent review/merge. Its exact order is L0 → L1 → L2 →
+L3 → L4 → L5 → L6. L0 was docs-only; Issue #318 adds no Provider acceptance or
+authorization. The
 eventual real-AI contract is official DeepSeek `deepseek-v4-pro` for fictional
 or sanitized acceptance material. Apple Silicon is the first-release boundary;
 Docker Desktop is user-installed; the product remains a local Web App opened in
@@ -28,12 +30,14 @@ Intel support is Deferred; excluded from the first release.
 The completed deterministic loop consumes the real local API: create a Task,
 save pasted/TXT/Markdown input, run the scripted Facts → Insight → Positioning
 → Marketing Brief → Xiaohongshu Brief pipeline, make the bounded review
-correction, confirm once, and download both current Markdown exports. This is
-historical predecessor evidence, not the L0 activation result. Real FastAPI
-Needs Input/Recovery is still absent (`needsInputRequest: null`) and is the L1
-starting gap. The later L3 lifecycle will target Apple Silicon + user-installed
-Docker Desktop + system-default-browser opening; L0 does not launch the local
-stack, install dependencies, or inspect environment/Secret state.
+correction, confirm once, and download both current Markdown exports. Issue #318
+extends this existing page with an authority-first Chinese Needs Input panel on
+the selected Intake view, followed by the same editor/save/regenerate controls;
+the blocker remains authoritative until a sufficient generation clears it. The
+one-time provider-free runtime acceptance passed 6 backend integration cases and
+4 browser cases, including recomposition and reload. The later L3 lifecycle will
+target Apple Silicon + user-installed Docker Desktop + system-default-browser
+opening; no Provider/model or Secret access is part of this Stage.
 
 ## Toolchain
 
@@ -71,8 +75,9 @@ npm run api:check
 authority and must remain byte-identical after `npm run api:check`.
 
 The development server proxies `/api` to `http://127.0.0.1:8000`; the
-predecessor local stack and Chromium harness are retained as historical,
-provider-free evidence. L0 does not launch them. The reviewed direct DeepSeek
+predecessor local stack and Chromium harness are retained as provider-free
+evidence, and Issue #318's one-time local runtime acceptance is recorded in the
+L1 review. L0 did not launch them. The reviewed direct DeepSeek
 adapter and opt-in smoke seam are backend capabilities, not current Provider
 acceptance. Both historical DeepSeek authorizations are consumed; no further
 paid/provider run is authorized until a later L5 exact-commit human Gate. The

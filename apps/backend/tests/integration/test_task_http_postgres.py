@@ -26,6 +26,10 @@ from ai_ecommerce_agent.bootstrap.deterministic_result_postgres import (
     DeterministicResultPostgresComposition,
     compose_deterministic_result_postgres,
 )
+from ai_ecommerce_agent.bootstrap.needs_input_postgres import (
+    NeedsInputPostgresComposition,
+    compose_needs_input_postgres,
+)
 from ai_ecommerce_agent.entrypoints.http import (
     FixedWorkspaceHttpConfig,
     create_task_http_application,
@@ -184,6 +188,60 @@ def _result_client(
     )
 
 
+def _needs_input_result_client(
+    engine: Engine,
+) -> tuple[
+    TestClient,
+    DeterministicResultPostgresComposition,
+    NeedsInputPostgresComposition,
+]:
+    """Compose the real result and Needs Input participants over one schema."""
+
+    task_factory = TaskManagementPostgresUnitOfWorkFactory.from_engine(
+        engine, schema=SCHEMA
+    )
+    input_factory = PrimaryInputPostgresUnitOfWorkFactory.from_engine(
+        engine, schema=SCHEMA
+    )
+    needs_input_composition = compose_needs_input_postgres(
+        PostgresEngineConfig(
+            database_url=_database_url(),
+            pool_size=2,
+            max_overflow=0,
+            pool_timeout=5,
+        ),
+        schema=SCHEMA,
+    )
+    result_composition = compose_deterministic_result_postgres(
+        PostgresEngineConfig(
+            database_url=_database_url(),
+            pool_size=2,
+            max_overflow=0,
+            pool_timeout=5,
+        ),
+        schema=SCHEMA,
+        needs_input_application=needs_input_composition.application,
+    )
+    return (
+        TestClient(
+            create_task_http_application(
+                config=FixedWorkspaceHttpConfig(
+                    workspace_id="workspace-demo",
+                    workbench_origin="http://127.0.0.1:5173",
+                ),
+                task_application=TaskManagementApplicationService(task_factory),
+                primary_input_application=PrimaryInputApplicationService(input_factory),
+                result_application=result_composition.application,
+                pipeline_coordinator=result_composition.coordinator,
+                export_application=result_composition.export_application,
+                needs_input_application=needs_input_composition.application,
+            )
+        ),
+        result_composition,
+        needs_input_composition,
+    )
+
+
 def test_create_list_read_save_input_and_replay_survive_new_composition(
     postgres_engine: Engine,
 ) -> None:
@@ -287,6 +345,328 @@ def test_create_list_read_save_input_and_replay_survive_new_composition(
         )
     assert task_count == 1
     assert key_count == 1
+
+
+def test_insufficient_result_publishes_and_newer_sufficient_result_clears_authority(
+    postgres_engine: Engine,
+) -> None:
+    """A bounded result history keeps one current Needs Input request."""
+
+    task_body = {
+        "taskName": "Needs Input lifecycle",
+        "productCategory": "Backpack",
+        "promotionGoal": "Bounded recovery",
+    }
+    insufficient_input = "fixture-insufficient-v1 only"
+    newer_insufficient_input = (
+        "fixture-insufficient-v2 still incomplete with a materially newer draft"
+    )
+    sufficient_input = (
+        "fixture-sufficient-v1 fictional synthetic non-regulated\n"
+        "anchor-city-commuter-backpack CBP-SYN-001 城市通勤双肩包\n"
+        "工作日城市通勤时携带电脑、文件和日常随身物品，约 18 升，"
+        "可放入 14 英寸级别笔记本电脑。\n"
+        "表面有防泼水处理。source-sufficient-product-v1 product.json direct_source。"
+    )
+    client, result_composition, needs_input_composition = _needs_input_result_client(
+        postgres_engine
+    )
+    try:
+        with client:
+            created = client.post(
+                "/api/v1/tasks",
+                headers={"Idempotency-Key": "needs-input-lifecycle-task"},
+                json=task_body,
+            )
+            task_id = created.json()["taskId"]
+            saved_insufficient = client.put(
+                f"/api/v1/tasks/{task_id}/primary-input",
+                json={
+                    "inputKind": "pasted_text",
+                    "fileName": None,
+                    "content": insufficient_input,
+                },
+            )
+            generated_insufficient = client.post(
+                f"/api/v1/tasks/{task_id}/commands/generate-result",
+                headers={"Idempotency-Key": "needs-input-lifecycle-insufficient"},
+                json={"expectedInputRevision": 0},
+            )
+            first_overview = client.get(f"/api/v1/tasks/{task_id}")
+            first_action_request_id = first_overview.json()["needsInputRequest"][
+                "resourceId"
+            ]
+            first_request = client.get(
+                f"/api/v1/needs-input-requests/{first_action_request_id}"
+            )
+            saved_newer_insufficient = client.put(
+                f"/api/v1/tasks/{task_id}/primary-input",
+                json={
+                    "inputKind": "pasted_text",
+                    "fileName": None,
+                    "content": newer_insufficient_input,
+                },
+            )
+            generated_newer_insufficient = client.post(
+                f"/api/v1/tasks/{task_id}/commands/generate-result",
+                headers={"Idempotency-Key": "needs-input-lifecycle-insufficient-newer"},
+                json={"expectedInputRevision": 1},
+            )
+            second_overview = client.get(f"/api/v1/tasks/{task_id}")
+            second_action_request_id = second_overview.json()["needsInputRequest"][
+                "resourceId"
+            ]
+            first_after_second = client.get(
+                f"/api/v1/needs-input-requests/{first_action_request_id}"
+            )
+            second_request = client.get(
+                f"/api/v1/needs-input-requests/{second_action_request_id}"
+            )
+
+        assert created.status_code == 201, created.text
+        assert saved_insufficient.status_code == 200, saved_insufficient.text
+        assert generated_insufficient.status_code == 201, generated_insufficient.text
+        assert generated_insufficient.json()["status"] == "insufficient_input"
+        assert first_overview.status_code == 200, first_overview.text
+        assert first_overview.json()["needsInputRequest"] == {
+            "resourceKind": "needs_input",
+            "resourceId": first_action_request_id,
+            "revision": 0,
+        }
+        assert first_request.status_code == 200, first_request.text
+        assert first_request.json()["reasonType"] == "missing_information"
+        assert first_request.json()["affectedStages"] == [
+            "product_intake_and_fact_extraction"
+        ]
+        assert first_request.json()["allowedResolutionTypes"] == [
+            "provide_source_reference",
+            "submit_correction",
+            "confirm_known_limitation",
+            "cancel_path",
+        ]
+        assert saved_newer_insufficient.status_code == 200, (
+            saved_newer_insufficient.text
+        )
+        assert saved_newer_insufficient.json()["inputRevision"] == 1
+        assert generated_newer_insufficient.status_code == 201, (
+            generated_newer_insufficient.text
+        )
+        assert generated_newer_insufficient.json()["status"] == "insufficient_input"
+        assert (
+            generated_newer_insufficient.json()["resultRevision"]
+            != generated_insufficient.json()["resultRevision"]
+        )
+        assert second_overview.status_code == 200, second_overview.text
+        assert second_action_request_id != first_action_request_id
+        assert second_overview.json()["needsInputRequest"] == {
+            "resourceKind": "needs_input",
+            "resourceId": second_action_request_id,
+            "revision": 0,
+        }
+        assert first_after_second.status_code == 200, first_after_second.text
+        assert first_after_second.json()["status"] == "superseded"
+        assert first_after_second.json()["supersededBy"] == {
+            "resourceKind": "needs_input",
+            "resourceId": second_action_request_id,
+            "revision": 0,
+        }
+        assert second_request.status_code == 200, second_request.text
+        assert second_request.json()["status"] == "open"
+        assert second_request.json()["supersededBy"] is None
+
+        replay_client, replay_result, replay_needs_input = _needs_input_result_client(
+            postgres_engine
+        )
+        try:
+            with replay_client:
+                reloaded_overview = replay_client.get(f"/api/v1/tasks/{task_id}")
+                reloaded_result = replay_client.get(
+                    f"/api/v1/tasks/{task_id}/current-result"
+                )
+                reloaded_first_request = replay_client.get(
+                    f"/api/v1/needs-input-requests/{first_action_request_id}"
+                )
+                reloaded_second_request = replay_client.get(
+                    f"/api/v1/needs-input-requests/{second_action_request_id}"
+                )
+                saved_sufficient = replay_client.put(
+                    f"/api/v1/tasks/{task_id}/primary-input",
+                    json={
+                        "inputKind": "pasted_text",
+                        "fileName": None,
+                        "content": sufficient_input,
+                    },
+                )
+                generated_sufficient = replay_client.post(
+                    f"/api/v1/tasks/{task_id}/commands/generate-result",
+                    headers={"Idempotency-Key": "needs-input-lifecycle-sufficient"},
+                    json={"expectedInputRevision": 2},
+                )
+                after_sufficient = replay_client.get(f"/api/v1/tasks/{task_id}")
+                superseded_newer = replay_client.get(
+                    f"/api/v1/needs-input-requests/{second_action_request_id}"
+                )
+            assert reloaded_overview.status_code == 200, reloaded_overview.text
+            assert reloaded_overview.json()["needsInputRequest"] == {
+                "resourceKind": "needs_input",
+                "resourceId": second_action_request_id,
+                "revision": 0,
+            }
+            assert reloaded_result.status_code == 200, reloaded_result.text
+            assert reloaded_result.json()["status"] == "insufficient_input"
+            assert reloaded_result.json()["inputRevision"] == 1
+            assert reloaded_first_request.status_code == 200, (
+                reloaded_first_request.text
+            )
+            assert reloaded_first_request.json()["status"] == "superseded"
+            assert reloaded_second_request.status_code == 200, (
+                reloaded_second_request.text
+            )
+            assert reloaded_second_request.json()["status"] == "open"
+            assert saved_sufficient.status_code == 200, saved_sufficient.text
+            assert saved_sufficient.json()["inputRevision"] == 2
+            assert generated_sufficient.status_code == 201, generated_sufficient.text
+            assert generated_sufficient.json()["status"] == "awaiting_review"
+            assert after_sufficient.status_code == 200, after_sufficient.text
+            assert after_sufficient.json()["needsInputRequest"] is None
+            assert superseded_newer.status_code == 200, superseded_newer.text
+            assert superseded_newer.json()["status"] == "superseded"
+            assert superseded_newer.json()["supersededBy"] is None
+        finally:
+            replay_result.close()
+            replay_needs_input.close()
+
+        final_client, final_result, final_needs_input = _needs_input_result_client(
+            postgres_engine
+        )
+        try:
+            with final_client:
+                final_overview = final_client.get(f"/api/v1/tasks/{task_id}")
+                final_result_read = final_client.get(
+                    f"/api/v1/tasks/{task_id}/current-result"
+                )
+                final_first_request = final_client.get(
+                    f"/api/v1/needs-input-requests/{first_action_request_id}"
+                )
+                final_second_request = final_client.get(
+                    f"/api/v1/needs-input-requests/{second_action_request_id}"
+                )
+            assert final_overview.status_code == 200, final_overview.text
+            assert final_overview.json()["needsInputRequest"] is None
+            assert final_result_read.status_code == 200, final_result_read.text
+            assert final_result_read.json()["status"] == "awaiting_review"
+            assert final_result_read.json()["inputRevision"] == 2
+            assert final_first_request.status_code == 200, final_first_request.text
+            assert final_first_request.json()["status"] == "superseded"
+            assert final_first_request.json()["supersededBy"] == {
+                "resourceKind": "needs_input",
+                "resourceId": second_action_request_id,
+                "revision": 1,
+            }
+            assert final_second_request.status_code == 200, final_second_request.text
+            assert final_second_request.json()["status"] == "superseded"
+            assert final_second_request.json()["revision"] == 1
+            assert final_second_request.json()["supersededBy"] is None
+        finally:
+            final_result.close()
+            final_needs_input.close()
+    finally:
+        result_composition.close()
+        needs_input_composition.close()
+
+
+def test_real_needs_input_resolution_replays_and_clears_current_reference(
+    postgres_engine: Engine,
+) -> None:
+    """A supported bounded resolution is durable and idempotent after reload."""
+
+    task_body = {
+        "taskName": "Needs Input resolve",
+        "productCategory": "Backpack",
+        "promotionGoal": "Bounded recovery",
+    }
+    client, result_composition, needs_input_composition = _needs_input_result_client(
+        postgres_engine
+    )
+    try:
+        with client:
+            created = client.post(
+                "/api/v1/tasks",
+                headers={"Idempotency-Key": "needs-input-resolve-task"},
+                json=task_body,
+            )
+            task_id = created.json()["taskId"]
+            saved = client.put(
+                f"/api/v1/tasks/{task_id}/primary-input",
+                json={
+                    "inputKind": "pasted_text",
+                    "fileName": None,
+                    "content": "fixture-insufficient-v1 only",
+                },
+            )
+            generated = client.post(
+                f"/api/v1/tasks/{task_id}/commands/generate-result",
+                headers={"Idempotency-Key": "needs-input-resolve-result"},
+                json={"expectedInputRevision": 0},
+            )
+            reference = client.get(f"/api/v1/tasks/{task_id}").json()[
+                "needsInputRequest"
+            ]
+            body = {
+                "expectedRevision": reference["revision"],
+                "resolution": {
+                    "resolutionType": "confirm_known_limitation",
+                    "notes": "bounded fictional recovery acceptance",
+                },
+            }
+            resolved = client.post(
+                f"/api/v1/needs-input-requests/{reference['resourceId']}/commands/resolve",
+                headers={
+                    "Origin": "http://127.0.0.1:5173",
+                    "Idempotency-Key": "needs-input-resolve-key",
+                },
+                json=body,
+            )
+            after_resolve = client.get(f"/api/v1/tasks/{task_id}")
+
+        assert created.status_code == 201, created.text
+        assert saved.status_code == 200, saved.text
+        assert generated.status_code == 201, generated.text
+        assert resolved.status_code == 200, resolved.text
+        assert resolved.json()["actionRequest"]["status"] == "resolved"
+        assert resolved.json()["actionRequest"]["revision"] == 1
+        assert after_resolve.status_code == 200, after_resolve.text
+        assert after_resolve.json()["needsInputRequest"] is None
+
+        replay_client, replay_result, replay_needs_input = _needs_input_result_client(
+            postgres_engine
+        )
+        try:
+            with replay_client:
+                replay = replay_client.post(
+                    f"/api/v1/needs-input-requests/{reference['resourceId']}/commands/resolve",
+                    headers={
+                        "Origin": "http://127.0.0.1:5173",
+                        "Idempotency-Key": "needs-input-resolve-key",
+                    },
+                    json=body,
+                )
+                reloaded = replay_client.get(
+                    f"/api/v1/needs-input-requests/{reference['resourceId']}"
+                )
+                reloaded_overview = replay_client.get(f"/api/v1/tasks/{task_id}")
+            assert replay.status_code == 200, replay.text
+            assert replay.json() == resolved.json()
+            assert reloaded.status_code == 200, reloaded.text
+            assert reloaded.json()["status"] == "resolved"
+            assert reloaded_overview.status_code == 200, reloaded_overview.text
+            assert reloaded_overview.json()["needsInputRequest"] is None
+        finally:
+            replay_result.close()
+            replay_needs_input.close()
+    finally:
+        result_composition.close()
+        needs_input_composition.close()
 
 
 def test_generate_result_is_durable_atomic_and_revision_fenced(

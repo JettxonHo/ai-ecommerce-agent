@@ -72,6 +72,8 @@ def upgrade() -> None:
             ["task_id", "superseded_by_action_request_id"],
             [f"{schema}.{table}.task_id", f"{schema}.{table}.action_request_id"],
             name="fk_task_management_needs_input_requests_superseded_by",
+            deferrable=True,
+            initially="DEFERRED",
         ),
         sa.CheckConstraint(
             "length(btrim(action_request_id)) > 0",
@@ -150,7 +152,6 @@ def upgrade() -> None:
             "AND resolution_type IS NOT NULL AND resolution_payload IS NOT NULL "
             "AND resolved_at IS NOT NULL) OR "
             "(status = 'superseded' "
-            "AND superseded_by_action_request_id IS NOT NULL "
             "AND resolution_idempotency_key IS NULL AND resolution_type IS NULL "
             "AND resolution_payload IS NULL AND resolved_at IS NULL))",
             name="ck_task_management_needs_input_requests_state_projection",

@@ -1,6 +1,6 @@
 # MVP-0L Local AI Web App Delivery Goal
 
-> **Status on this branch:** `ACTIVATION_PENDING` — becomes `ACTIVE` only when the L0 PR for [Issue #316](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316) reaches `main`.
+> **Status on this branch:** `ACTIVE` — L0 PR #317 for [Issue #316](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316) reached `main`; L1 [Issue #318](https://github.com/JettxonHo/ai-ecommerce-agent/issues/318) is in final independent review on its implementation branch.
 >
 > **Decision authority:** [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) · [Session-009](../sessions/session-009-local-ai-web-app-goal-activation.md)
 >
@@ -12,12 +12,12 @@
 
 Deliver a real-AI local Web App for a single operator on Apple Silicon Mac. The first release runs locally with user-installed Docker Desktop and opens in the system default browser. It builds on the completed deterministic Action Workbench, then closes the explicitly staged Needs Input, persistence, lifecycle, offline DeepSeek diagnosis, paid DeepSeek acceptance and clean-Mac review gates.
 
-The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0 itself is governance-only: it creates or changes no code or test files, performs no product-runtime/Provider/API/platform action, launches no Docker, API or PostgreSQL runtime, accesses no `.env`, environment or Secret values, and performs no Provider/model/live action. Documentation validation and CI checks remain allowed; ordinary Git/GitHub branch, push, PR and CI transport is documentation workflow transport, not product-runtime activity. The current FastAPI task resource still projects `needsInputRequest: null`; L1 starts from that real backend gap.
+The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0 was governance-only and is merged/current. Issue #318 now provides the real FastAPI Needs Input read/resolve and bounded Recovery vertical through one additive Task-owned table and the existing Web consumer; its provider-free runtime acceptance passed the exact 6/6 backend and 4/4 browser gates. No Provider/model call or Secret access was made, and independent review/merge remains pending. Documentation validation and ordinary Git/GitHub branch, push, PR and CI transport remain allowed as workflow activity, not product-runtime activity.
 
 ## 2. Activation and operating rule
 
 - `MVP0P_GOAL_COMPLETE` is the merge-effective historical status of the predecessor and is not reopened.
-- This successor is `ACTIVATION_PENDING` on the L0 branch and becomes `ACTIVE` only when the L0 PR reaches `main`.
+- This successor is `ACTIVE` after the L0 PR reached `main`; Issue #318 is the active L1 Stage pending independent review/merge.
 - Only one Stage may be active at a time.
 - Create the next Stage Issue only after the previous Stage's independently reviewed PR reaches `main`.
 - Batch ordinary reversible follow-up fixes inside the active Stage/PR; do not pre-create speculative later Issues.
@@ -29,15 +29,15 @@ The exact order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**.
 
 ### L0 — Governance activation
 
-**Result:** this docs-only Issue records DEC-084, the successor Goal, predecessor completion and Session-009 using exactly the nine tracked paths in Issue #316. No implementation or product-runtime/Provider/API/platform action is authorized; ordinary documentation validation and Git/GitHub workflow transport remain allowed.
+**Result:** this docs-only Issue recorded DEC-084, the successor Goal, predecessor completion and Session-009 using exactly the nine tracked paths in Issue #316. It is merged/current through PR #317; no implementation or product-runtime/Provider/API/platform action was authorized in L0.
 
-**Exit:** the nine-path diff is clean, relative links are bidirectionally discoverable, predecessor/current status wording is truthful, and the Ready PR's Required Checks are terminal green. The Goal remains branch `ACTIVATION_PENDING` until that PR reaches `main`.
+**Exit:** the nine-path diff was clean, relative links were bidirectionally discoverable, predecessor/current status wording was truthful, and the Ready PR's Required Checks reached terminal green. The Goal is now `ACTIVE`.
 
 ### L1 — Real Needs Input backend
 
-**Result:** implement and independently review the real FastAPI Needs Input read/resolve boundary and bounded Recovery. Preserve the current `needsInputRequest: null` state as the starting gap until the accepted L1 result changes it.
+**Result:** Issue #318 implements the real FastAPI Needs Input read/resolve boundary and bounded Recovery over one additive Task-owned PostgreSQL table, with current-request projection, recomposition durability and the existing Web one-page Intake consumer. Its provider-free runtime acceptance passed 6/6 backend integration cases and 4/4 real-backend browser cases, including newer-request supersession, sufficient recovery and reload persistence.
 
-**Gate:** one L1 Issue/PR with a real consumer, representative behavior/error/invariant evidence and no unrelated persistence or public-contract expansion.
+**Gate:** one L1 Issue/PR with a real consumer, representative behavior/error/invariant evidence and no unrelated persistence or public-contract expansion; independent review/merge is still required before L1 is merge-effective.
 
 ### L2 — Minimum Source/Brief persistence
 
@@ -104,17 +104,19 @@ The official DeepSeek API and `deepseek-v4-pro` remain the sole future real-AI c
 
 ## 6. Evidence and acceptance
 
-Use proportional evidence under [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md): one representative normal path, the primary recoverable failure and a critical invariant for each changed boundary, plus applicable Required Checks and independent review. Do not call the deterministic predecessor foundation real-Provider acceptance, general production readiness, public deployment or a complete real FastAPI Needs Input backend.
+Use proportional evidence under [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md): one representative normal path, the primary recoverable failure and a critical invariant for each changed boundary, plus applicable Required Checks and independent review. Issue #318's provider-free runtime evidence is a bounded L1 acceptance input, not live Provider acceptance, general production readiness or public deployment; final merge still requires independent review.
 
 L0 acceptance requires:
 
 - exactly the nine allowlisted tracked paths and no tenth tracked path;
 - DEC-084 marked Accepted solely from the owner's explicit Codex conversation/session direction; the `ORCHESTRATOR_REVIEWER` durably recorded it in [Issue #316 comment](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316#issuecomment-5388616747);
 - bidirectional relative links among DEC-084, this Goal, Session-009 and the predecessor Goal;
-- predecessor `MVP0P_GOAL_COMPLETE` historical truth and successor branch `ACTIVATION_PENDING` truth;
-- preserved terminal Fast Lane / `P5_REUSE_FROZEN` language and current `needsInputRequest: null` gap;
+- predecessor `MVP0P_GOAL_COMPLETE` historical truth and successor `ACTIVE` truth after L0 PR #317;
+- preserved terminal Fast Lane / `P5_REUSE_FROZEN` language and recorded the pre-L1 `needsInputRequest: null` gap;
 - stale/conflict scan, Markdown heading/fence/link checks and `git diff --check`;
 - one Ready, non-draft PR closing Issue #316 with fresh Required Checks terminal green.
+
+Issue #318 L1 acceptance is recorded in the [current review](../reviews/mvp0l-l1-needs-input-backend.md) and [live Issue comment](https://github.com/JettxonHo/ai-ecommerce-agent/issues/318#issuecomment-5436381488): one additive migration, real PostgreSQL lifecycle, existing Web consumer, exact 6/6 backend and 4/4 browser runtime gates, and guarded cleanup. OpenAPI and generated Web types remain byte-identical.
 
 ## 7. Human gates and stop conditions
 
@@ -134,4 +136,4 @@ Executable implementation in later Stages is routed to exact custom `luna-worker
 
 ## 10. Authorization boundary
 
-This Goal authorizes only the L0 docs-only activation contract while its branch status is `ACTIVATION_PENDING`. No code, test, configuration, dependency, lockfile, migration, OpenAPI/generated client, Web implementation, Docker action, API/PostgreSQL launch, environment/Secret inspection, Provider/model/live call, Kimi/Terra action, native App work, public deployment or Spider_XHS action is authorized in L0. Later Stages require their own Issue/PR contract, independent review and applicable human Gate.
+L0's docs-only activation contract is complete. Issue #318 is the active, separately bounded L1 contract: it allows only the listed additive Needs Input backend/Web consumer/test paths and one provider-free runtime acceptance; no Provider/model/live call, Secret/.env access, OpenAPI/generated-client change, dependency/lockfile change, unrelated migration/schema expansion, native App work, public deployment or Spider_XHS action is authorized. Later Stages require their own Issue/PR contract, independent review and applicable human Gate.

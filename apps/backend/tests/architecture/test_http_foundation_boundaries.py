@@ -324,7 +324,7 @@ def test_http_adapter_does_not_import_business_or_provider_layers() -> None:
         "psycopg",
     }
     for path in (_SRC / "entrypoints" / "http").rglob("*.py"):
-        if path.name == "task_routes.py":
+        if path.name in {"task_routes.py", "needs_input_routes.py"}:
             continue
         imports = _imports(path)
         assert not any(

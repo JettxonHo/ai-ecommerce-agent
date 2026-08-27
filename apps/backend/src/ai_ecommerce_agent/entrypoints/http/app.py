@@ -7,6 +7,9 @@ from fastapi.exceptions import RequestValidationError
 
 from ai_ecommerce_agent.entrypoints.http.config import FixedWorkspaceHttpConfig
 from ai_ecommerce_agent.entrypoints.http.middleware import FixedWorkspaceMiddleware
+from ai_ecommerce_agent.entrypoints.http.needs_input_routes import (
+    register_needs_input_routes,
+)
 from ai_ecommerce_agent.entrypoints.http.problems import (
     not_found_problem,
     request_validation_problem,
@@ -51,6 +54,7 @@ def create_task_http_application(
     result_application: Any | None = None,
     pipeline_coordinator: Any | None = None,
     export_application: Any | None = None,
+    needs_input_application: Any | None = None,
 ) -> FastAPI:
     """Build the foundation and register the consumed Task/input routes."""
 
@@ -62,7 +66,13 @@ def create_task_http_application(
         result_application=result_application,
         pipeline_coordinator=pipeline_coordinator,
         export_application=export_application,
+        needs_input_application=needs_input_application,
     )
+    if needs_input_application is not None:
+        register_needs_input_routes(
+            application,
+            needs_input_application=needs_input_application,
+        )
     return application
 
 

@@ -16,6 +16,9 @@ from alembic.script import ScriptDirectory
 from sqlalchemy import Engine, text
 from sqlalchemy.exc import IntegrityError
 
+from ai_ecommerce_agent.modules.needs_input.infrastructure.tables import (
+    NEEDS_INPUT_REQUESTS_TABLE,
+)
 from ai_ecommerce_agent.platform.postgres import (
     PostgresEngineConfig,
     create_postgres_engine,
@@ -169,24 +172,6 @@ def _index_definition(engine: Engine, name: str) -> str:
     return str(value)
 
 
-def _constraints(engine: Engine) -> set[str]:
-    with engine.connect() as connection:
-        return set(
-            connection.scalars(
-                text(
-                    "SELECT con.conname FROM pg_constraint con "
-                    "JOIN pg_namespace n ON n.oid = con.connamespace "
-                    "WHERE n.nspname = :schema AND con.conrelid = "
-                    "to_regclass(:table)"
-                ),
-                {
-                    "schema": BUSINESS_SCHEMA,
-                    "table": f'"{BUSINESS_SCHEMA}"."{TABLE}"',
-                },
-            )
-        )
-
-
 def _seed_task(engine: Engine, *, task_id: str = "task-318") -> None:
     with engine.begin() as connection:
         connection.execute(
@@ -284,6 +269,41 @@ def test_terminal_resolution_status_mapping_is_database_enforced() -> None:
         "('provide_source_reference', 'choose_existing_value', "
         "'submit_correction', 'confirm_known_limitation'))))"
     ) in sql
+
+
+def test_sufficient_result_supersession_allows_null_successor() -> None:
+    """A sufficient result may supersede without inventing a replacement request."""
+
+    sql = _offline_sql()
+    assert (
+        "(status = 'superseded' "
+        "AND resolution_idempotency_key IS NULL AND resolution_type IS NULL "
+        "AND resolution_payload IS NULL AND resolved_at IS NULL)"
+    ) in sql
+
+
+def test_successor_fk_is_deferred_and_only_that_fk_is_deferred() -> None:
+    """Replacement ordering relies on a deferred same-Task successor FK."""
+
+    sql = _offline_sql()
+    assert (
+        "CONSTRAINT fk_task_management_needs_input_requests_superseded_by "
+        "FOREIGN KEY(task_id, superseded_by_action_request_id) REFERENCES "
+        f"{BUSINESS_SCHEMA}.task_management_needs_input_requests "
+        "(task_id, action_request_id) DEFERRABLE INITIALLY DEFERRED"
+    ) in sql
+
+    constraints = {
+        constraint.name: constraint
+        for constraint in NEEDS_INPUT_REQUESTS_TABLE.constraints
+        if constraint.name is not None
+    }
+    successor = constraints["fk_task_management_needs_input_requests_superseded_by"]
+    owner = constraints["fk_task_management_needs_input_requests_task_owner"]
+    assert successor.deferrable is True
+    assert successor.initially == "DEFERRED"
+    assert owner.deferrable is None
+    assert owner.initially is None
 
 
 def test_fresh_upgrade_creates_one_task_owned_table(
