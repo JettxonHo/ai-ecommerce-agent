@@ -396,7 +396,7 @@ def test_resolution_notes_use_utf8_bytes_before_application_call() -> None:
             "/api/v1/needs-input-requests/action-1/commands/resolve",
             headers={
                 "Origin": "http://127.0.0.1:5173",
-                "Idempotency-Key": "resolve-utf8-large",
+                "Idempotency-Key": "fixture-a",
             },
             json=oversized_body,
         )
@@ -419,7 +419,7 @@ def test_resolution_notes_use_utf8_bytes_before_application_call() -> None:
             "/api/v1/needs-input-requests/action-1/commands/resolve",
             headers={
                 "Origin": "http://127.0.0.1:5173",
-                "Idempotency-Key": "resolve-utf8-ok",
+                "Idempotency-Key": "fixture-b",
             },
             json=accepted_body,
         )
