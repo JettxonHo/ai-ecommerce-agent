@@ -21,10 +21,9 @@ The eventual real-AI contract remains the official DeepSeek API with model `deep
 - `MVP0P_GOAL_COMPLETE` is the merge-effective historical status of the predecessor and is not reopened.
 - On this branch the Goal is `REBASELINE_PENDING`. L1–L4 merged evidence and the exact L5 terminal failure remain preserved; L6 is `NOT_EXECUTED`, Agent UI frozen, and no new Provider or Secret action is authorized.
 - Only after the Issue #339 PR reaches `main` does the Goal become `TERMINAL_INCOMPLETE_L5_FAILED`. It does not become `COMPLETE`.
-- Only one Stage may be active at a time.
-- Create the next Stage Issue only after the previous Stage's independently reviewed PR reaches `main`.
-- Batch ordinary reversible follow-up fixes inside the active Stage/PR; do not pre-create speculative later Issues.
-- A Stage/PR must state its problem, solution, scope, evidence, risk, rollback and documentation impact and receive independent review.
+- Historical operating rule through L5: only one MVP-0L Stage could be active at a time, and a next Stage Issue waited for the previous Stage's independently reviewed PR to reach `main`.
+- Historical same-Stage rule through L5: ordinary reversible follow-up fixes stayed inside the active Stage/PR, whose problem, solution, scope, evidence, risk, rollback and documentation impact required independent review.
+- DEC-087 retires those rules after terminal L5. No L6 or next MVP-0L Stage Issue is authorized; L6 remains `NOT_EXECUTED` and Agent UI remains frozen.
 - The Real Product-to-Brief Pilot is `ACTIVATION_PENDING` on this branch and becomes `ACTIVE` only at the same merge-effective rebaseline event; P0 then becomes only `READY_NOT_STARTED`.
 
 ## 3. Frozen Stage order

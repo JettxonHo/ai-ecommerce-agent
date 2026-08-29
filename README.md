@@ -43,11 +43,11 @@ The repository already contains:
 
 The deterministic browser-to-backend loop remains provider-free evidence, not live Provider acceptance. Issue #318 closes the real FastAPI gap and PR #328 makes L1 merge-effective; Issue #329 / PR #330 records the bounded L2 persistence characterization and is merged/current. Issue #331 / PR #332 is the merged/current Docker-only local Web lifecycle at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`; its first build-only `HOLD`, tests-first pin repair, corrected-pin provider-free `PASS`, independent review and fresh checks remain recorded. Issue #333's new review records provider-free offline DeepSeek qualification: current seams and official contract are coherent, sanitized evidence is ambiguous, and no production behavior/public contract changed. The historical Fast Lane remains `GOAL_BLOCKED`, both old authorizations are consumed, and no Provider acceptance exists. Separate current L5 Issue #335 / PR #336 is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at its exact reviewed head; its authorization is consumed and no further run is authorized. The predecessor final review merged in PR #315; P5 remains independently reviewed `P5_REUSE_FROZEN` and unauthorized. The eventual real-AI contract is official DeepSeek `deepseek-v4-pro`; no Secret or Provider value was accessed outside the single authorized run, whose raw material was not retained.
 
-Advanced retrieval, distributed recovery and other deferred capabilities remain intentionally out of this release slice. The accepted Real Product-to-Brief Pilot is a separate inactive validation Goal and does not expand this MVP or alter current L5 truth.
+Advanced retrieval, distributed recovery and other deferred capabilities remain intentionally out of this release slice. On the Issue #339 branch, the accepted Real Product-to-Brief Pilot is a separate `ACTIVATION_PENDING` validation Goal; only after this PR reaches `main` does it become `ACTIVE`, with P0 only `READY_NOT_STARTED`. It does not expand this MVP or alter current L5 truth.
 
-## Delivery stages
+## Historical MVP-0L delivery stages
 
-The completed predecessor P0 → P1 → P2 → P3 → P4 → P5 chain is historical evidence. The successor Goal freezes the next serial order as **L0 → L1 → L2 → L3 → L4 → L5 → L6**:
+The completed predecessor P0 → P1 → P2 → P3 → P4 → P5 chain is historical evidence. DEC-084 originally froze **L0 → L1 → L2 → L3 → L4 → L5 → L6**; the records below preserve L0–L5, while DEC-087 terminates the continuation after failed L5:
 
 1. **L0 — Governance activation:** completed and merged through PR #317; its historical docs-only boundary remains unchanged.
 2. **L1 — Real Needs Input backend:** Issue #318 implements the real FastAPI read/resolve boundary and bounded Recovery with one additive Task-owned table, existing Web consumer and provider-free runtime acceptance; PR #328 is merged/current after independent five-axis review `PASS`.
@@ -55,9 +55,9 @@ The completed predecessor P0 → P1 → P2 → P3 → P4 → P5 chain is histori
 4. **L3 — Local Web lifecycle:** Issue #331 / PR #332 is merged/current at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e` after offline RED→GREEN, the historical build-only `HOLD`, corrected-pin provider-free runtime `PASS`, independent five-axis review `PASS` at `f831519` and fresh Required Checks `12/12`. Native App/WebView, signing/notarization and Intel support remain Deferred.
 5. **L4 — DeepSeek offline diagnosis/repair:** Issue #333 is closed via merged PR #334 at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`, preserving disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`; no production repair or Phase-B amendment exists, and no paid/live call or Secret access occurred in L4.
 6. **L5 — Real DeepSeek acceptance:** Issue #335 / PR #336 has terminal disposition `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is consumed and no further run is authorized.
-7. **L6 — Clean-Mac acceptance and final Goal Review:** another clean Apple Silicon Mac, then an independent completion decision.
+7. **L6 — Clean-Mac acceptance and final Goal Review:** `NOT_EXECUTED` and unauthorized after the terminal L5 no-export result.
 
-Only one successor Stage may be active at a time; the next Issue waits for the prior independently reviewed PR to reach `main`. Native App/WebView/signing/notarization, login/RBAC/multi-user/public deployment, Keychain/Secret UI, real data and Spider_XHS behavior are Deferred or Out of Scope; Intel support is Deferred; excluded from the first release.
+DEC-087 retires the historical next-Stage rule for MVP-0L: Agent UI remains frozen, L6 stays `NOT_EXECUTED`, and no L6 or next MVP-0L Stage Issue is authorized. Native App/WebView/signing/notarization, login/RBAC/multi-user/public deployment, Keychain/Secret UI, real data and Spider_XHS behavior are Deferred or Out of Scope; Intel support is Deferred; excluded from the first release.
 
 ## Real Product-to-Brief Pilot (activation pending)
 
