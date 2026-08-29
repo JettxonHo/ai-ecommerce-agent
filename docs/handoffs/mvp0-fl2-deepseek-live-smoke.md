@@ -12,7 +12,8 @@ implemented offline and merged as PR #280; the bounded legacy cleanup in Issue
 at exact `main@ac4edfed6e8e216e9938affdc734298c8630d2de`. It made exactly one
 `product_intake_v1 / v1` call and stopped on a fixed safe HTTP 500 during
 generate-result, before `awaiting_review`. Its authorization is consumed and
-the Issue is closed. No further Provider run is authorized.
+the Issue is closed. No further Provider run is authorized from that historical
+contract; a new L5 Stage must pass its own gates.
 
 The fifth call recorded 12,288 output tokens and 136,622 ms latency against the
 historical `xiaohongshu_mapping_v1 / v1` limit of 12,288 / 120 s. Sanitized
@@ -37,7 +38,9 @@ below the configured timeout.
 
 No rerun, repair, substitution, top-up or raw-material inspection occurred.
 Credential, bounded PostgreSQL and temporary checkout/cache cleanup completed;
-the exclusive sanitized evidence remains outside the repository.
+the exclusive sanitized evidence remains outside the repository. Those two
+authorizations are consumed; a new L5 Stage requires its own exact-commit
+contract and owner authorization.
 
 The historical #281 execution selected the retained live test only when all of
 these were explicit:
@@ -79,14 +82,50 @@ dependency, public contract or product-direction action.
 ## Current authorization boundary
 
 The #281 authorization is consumed and no additional Provider call is
-authorized. The retained opt-in seam is historical/testable code, not current
-execution authority. DEC-081 Phase A is complete with terminal
+authorized without a new L5 Gate. The retained opt-in seam is
+historical/testable code, not current execution authority. DEC-081 Phase A is complete with terminal
 `INSUFFICIENT_SANITIZED_EVIDENCE`; no production repair or Phase B contract
 exists. Any future real Provider run requires a separate exact-commit contract
 and fresh explicit user authorization.
 
 Neither controlled run establishes DeepSeek Provider acceptance. The MVP-0
 Fast Lane Goal remains `GOAL_BLOCKED`.
+
+## MVP-0L L5 acceptance (Issue #335)
+
+STATUS: `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` — terminal
+
+Issue #335 prepared the retained opt-in smoke seam for a separately authorized
+DeepSeek acceptance. The explicit control
+`FL2_DEEPSEEK_LIVE_EXPORT_DIR` must name an absolute target outside the
+repository that does not already exist. Module preflight rejects an invalid or
+existing target before private credential/runtime resolution, client creation,
+PostgreSQL setup or network activity.
+
+After the existing five-call Task-to-export path has passed all automated gates,
+Phase A preserves exactly `marketing-brief.md` and `xiaohongshu-brief.md` with
+exclusive/no-overwrite creation. Payloads remain UTF-8, BOM-free and exactly
+one final newline. Failed validation or smoke execution retains only the
+existing sanitized evidence record and does not fabricate review exports; raw
+Provider response/reasoning, prompts, context, candidates, tracebacks, Secrets,
+account data and database rows are not written.
+
+Tests-first evidence is recorded in the [L5 review](../reviews/mvp0l-l5-deepseek-live-acceptance.md): the unchanged harness produced
+`4 failed, 3 passed`, then the minimal edit produced `7 passed`, affected Ruff
+format/lint PASS and `git diff --check` PASS. The single owner-authorized run
+then executed from exact commit
+`2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f` and reached terminal disposition
+`L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS`. Sanitized evidence reports five ordered
+`deepseek-v4-pro` calls, `duration_ms=523230`, retry/recovery `0/0`,
+`validated_candidates=true`, `confirmed_result=true`, token totals
+`23845`/`43999`/`67844`, both immutable export gates false, and the UTF-8/download
+gate false. No export directory or file resulted, so no human usability
+judgment was possible. Authorization was consumed at the first Provider
+request; there was no rerun, repair, substitution or top-up. Exactly one
+Ctrl-C/SIGINT was attempted; the retained background lifecycle ignored it and
+one SIGTERM fallback was required. Final ports/resources, Secret environment
+state and checkout were clean. This cleanup fallback is disclosed as a
+contract deviation; no exact failure cause or Provider acceptance is claimed.
 
 ## MVP-0L L4 qualification (Issue #333)
 

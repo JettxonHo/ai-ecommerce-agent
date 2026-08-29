@@ -19,7 +19,10 @@ The successor [MVP-0L Local AI Web App Delivery Goal](../../docs/goals/mvp0-loca
 is `ACTIVE`; L0–L3 are merged/current through PRs #317, #328, #330 and #332 at
 exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 records
 the L4 offline qualification as `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, with
-production diff zero and no Phase-B amendment. L5 remains separately gated.
+production diff zero and no Phase-B amendment. Issue #335 records terminal
+`L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head
+`2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is
+consumed and no further run is authorized.
 Its exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6, with the owner-confirmed
 MBL-first sequence L2 → L3 → L4 → L5 → Agent UI → L6. L0 was docs-only; the
 existing Issue #318 adds no Provider acceptance or authorization. Issue #329's test-only
@@ -57,8 +60,8 @@ fictional input. Issue #331 / PR #332 is the merged/current L3 lifecycle at exac
 remain recorded. Issue #333's provider-free offline qualification confirms the
 current DeepSeek seams and official contract are coherent; the sanitized
 signature remains ambiguous and no production behavior changed. No further
-runtime, Provider/model or Secret access is authorized; Agent UI production is
-not part of L4.
+runtime, Provider/model or Secret access was authorized within L4; Agent UI
+production is not part of L4.
 
 ## Toolchain
 
@@ -102,8 +105,11 @@ exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`; Issue #333 and the
 [L4 qualification review](../../docs/reviews/mvp0l-l4-deepseek-offline-qualification.md)
 record provider-free offline evidence and disposition
 `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`. The reviewed direct DeepSeek adapter
-and opt-in smoke seam are backend capabilities, not Provider acceptance. Both
-historical DeepSeek authorizations are consumed; no paid/provider run is
-authorized until a later L5 exact-commit human Gate. The later project-root
-Git-ignored `.env` convention contains `DEEPSEEK_API_KEY`, but no Stage may
-create, read or inspect it.
+and opt-in smoke seam are backend capabilities, not Provider acceptance. Issue
+#335's Phase-A harness remains preserved as preparation evidence; the single
+authorized L5 run is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` with no
+export files and no Provider acceptance. Both historical DeepSeek authorizations
+and the #335 authorization are consumed; no further run is authorized. The
+later project-root Git-ignored `.env` convention contains `DEEPSEEK_API_KEY`;
+outside the single owner-authorized L5 run, no Stage may create, read or inspect
+it.
