@@ -48,7 +48,7 @@ authorizations remain consumed; no authorization carries forward from them.
   `HEAD=2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`.
 - Runtime preflight used disposable locked backend Python 3.13 hydration and
   one offline locked Web hydration; tracked backend/Web package and lock bytes
-  remained unchanged, with no package network access implied or used.
+  remained unchanged. Backend dependency-network absence was not established.
 - `/Users/ketchup/.codex/agents/luna-worker.toml` was parsed with Python 3.12
   `tomllib`: `name=luna-worker`, `model=gpt-5.6-luna`,
   `model_reasoning_effort=max`. This is `CONFIG_VERIFIED` only; runtime
