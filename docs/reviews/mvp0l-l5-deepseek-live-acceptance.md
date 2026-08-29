@@ -1,19 +1,39 @@
-# MVP-0L L5 DeepSeek live acceptance — Phase A harness review
+# MVP-0L L5 DeepSeek live acceptance — terminal reconciliation
 
 **Issue:** [#335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335)
 **Branch:** `codex/mvp0l-l5-deepseek-live-acceptance`
 **Reviewed base:** `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`
-**Status:** `L5_HARNESS_REVIEW_READY` — owner authorization pending
-**Scope:** Phase A offline harness preparation only
+**Status:** `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` — terminal
+**Scope:** Phase-A harness preparation plus the single owner-authorized L5 run
 
 ## Result
 
-Phase A adds an explicit operator-selected export-directory control to the
-retained opt-in DeepSeek smoke seam. A later, separately authorized L5 run may
-preserve the two already-generated user-facing Markdown downloads outside the
-repository for human review. This Phase-A result is not a Provider run, does
-not claim live success, and does not authorize Secret access or any runtime
-action.
+Phase A added an explicit operator-selected export-directory control to the
+retained opt-in DeepSeek smoke seam. Its harness-only result is preserved below
+as historical preparation evidence.
+
+The single owner-authorized L5 run then executed from exact commit
+`2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f` and has terminal disposition
+`L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS`. This is not Provider acceptance. The
+sanitized evidence record reports five ordered `deepseek-v4-pro` calls,
+`duration_ms=523230`, `retry_count=0`, `recovery_count=0`,
+`validated_candidates=true`, `confirmed_result=true`, input/output/total token
+totals of `23845`/`43999`/`67844`, both immutable export gates false, and the
+UTF-8/download gate false. No export directory or Markdown file was produced,
+so no human usability judgment was possible. The record intentionally does not
+identify an exact cause and contains no raw response, prompt, candidate,
+reasoning, traceback, account or balance material.
+
+The authorization was consumed at the first Provider request. There was no
+rerun, repair, substitution or top-up. Cleanup required exactly one Ctrl-C /
+SIGINT attempt; the retained background lifecycle ignored it, so one SIGTERM
+fallback was required. Final ports/resources, Secret environment state and
+checkout state were clean. The SIGTERM fallback is disclosed as a cleanup
+contract deviation.
+
+Sanitized evidence is retained at
+`/private/tmp/ai-ecommerce-issue335-l5-final2.aodiRX/evidence.json`; no other
+runtime/provider artifact is part of this reconciliation.
 
 The historical Fast Lane remains `GOAL_BLOCKED`. The two prior DeepSeek
 authorizations remain consumed; no authorization carries forward from them.
@@ -32,10 +52,11 @@ authorizations remain consumed; no authorization carries forward from them.
   orchestrator then explicitly accepted it. The harness edit began only after
   that acceptance; the late checkpoint is retained as process history, not
   hidden.
-- Eight of the nine Issue paths are changed in this Phase-A working tree: the
-  two test paths, this review document, `README.md`, `apps/web/README.md`, the
-  Goal, the implementation-readiness handoff and the live-smoke handoff. The
-  remaining `AGENTS.md` slot is untouched; no tenth path exists.
+- All nine allowlisted Issue paths are changed across the Phase-A harness and
+  this terminal reconciliation: the two test paths, this review document,
+  `README.md`, `apps/web/README.md`, `AGENTS.md`, the Goal, the
+  implementation-readiness handoff and the live-smoke handoff. No tenth path
+  exists.
 
 ## Phase-A implementation
 
@@ -56,9 +77,9 @@ authorizations remain consumed; no authorization carries forward from them.
    gates, confirmation and immutable export assertions have passed. The
    existing sanitized evidence writer remains the only failure evidence path.
 
-No provider request, profile, call count, prompt, schema, mapper, runtime,
-public API, database/evidence schema, dependency, migration or product behavior
-changed. The helper never receives or writes raw Provider response,
+Phase A itself made no provider request, profile, call, prompt, schema, mapper,
+runtime, public API, database/evidence schema, dependency, migration or product
+behavior change. The helper never receives or writes raw Provider response,
 reasoning, prompt, context, candidate, traceback, Secret, account or database
 row material; its exact key/file allowlist rejects anything beyond the two
 user-facing downloads.
@@ -130,13 +151,13 @@ no dependency installation or network package action was performed. The
 Pyright invocation reports the expected missing local `.venv` advisory for
 this disposable clone but completes with zero diagnostics.
 
-The changed-path audit reports 8 of the 9 Issue slots, all allowlisted. No
+The changed-path audit reports 9 of the 9 Issue slots, all allowlisted. No
 production/runtime or live-evidence-schema source file is changed; the
 relative-document link/fence audit passes for every changed document.
 
-## Pre-call boundary
+## Historical Phase-A pre-call boundary
 
-Before any later live action, this Phase-A PR still requires:
+Before the now-completed live action, the Phase-A PR required:
 
 - exact clean reviewed head and a non-draft Ready PR;
 - fresh Required Checks at `12/12 PASS`;
@@ -145,7 +166,7 @@ Before any later live action, this Phase-A PR still requires:
 - explicit owner authorization for the exact one-time paid run, including the
   new absolute evidence path and export directory.
 
-Until every gate is complete, the current truth is only
-`L5_HARNESS_REVIEW_READY` / authorization pending. No `.env` presence check,
-Secret access, Docker/PG/API/Web/browser runtime, Provider/model request,
-account/paid action, or live evidence is part of this Phase-A record.
+Those gates were completed for the single authorized run; the current truth is
+the terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` disposition recorded above.
+The Phase-A harness evidence itself contains no `.env` value, raw Secret,
+Provider material or live result.

@@ -91,12 +91,12 @@ and fresh explicit user authorization.
 Neither controlled run establishes DeepSeek Provider acceptance. The MVP-0
 Fast Lane Goal remains `GOAL_BLOCKED`.
 
-## MVP-0L L5 Phase A harness (Issue #335)
+## MVP-0L L5 acceptance (Issue #335)
 
-STATUS: `L5_HARNESS_REVIEW_READY` — owner authorization pending
+STATUS: `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` — terminal
 
-Issue #335 prepares the retained opt-in smoke seam for a future, separately
-authorized DeepSeek acceptance. The new explicit control
+Issue #335 prepared the retained opt-in smoke seam for a separately authorized
+DeepSeek acceptance. The explicit control
 `FL2_DEEPSEEK_LIVE_EXPORT_DIR` must name an absolute target outside the
 repository that does not already exist. Module preflight rejects an invalid or
 existing target before private credential/runtime resolution, client creation,
@@ -110,12 +110,22 @@ existing sanitized evidence record and does not fabricate review exports; raw
 Provider response/reasoning, prompts, context, candidates, tracebacks, Secrets,
 account data and database rows are not written.
 
-Tests-first evidence is recorded in the [L5 Phase-A review](../reviews/mvp0l-l5-deepseek-live-acceptance.md): the unchanged harness produced
+Tests-first evidence is recorded in the [L5 review](../reviews/mvp0l-l5-deepseek-live-acceptance.md): the unchanged harness produced
 `4 failed, 3 passed`, then the minimal edit produced `7 passed`, affected Ruff
-format/lint PASS and `git diff --check` PASS. No Provider, Secret, Docker,
-PostgreSQL, API/Web/browser or paid runtime action occurred. The current truth
-is harness review-ready only; no live success is claimed and no owner
-authorization is implied.
+format/lint PASS and `git diff --check` PASS. The single owner-authorized run
+then executed from exact commit
+`2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f` and reached terminal disposition
+`L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS`. Sanitized evidence reports five ordered
+`deepseek-v4-pro` calls, `duration_ms=523230`, retry/recovery `0/0`,
+`validated_candidates=true`, `confirmed_result=true`, token totals
+`23845`/`43999`/`67844`, both immutable export gates false, and the UTF-8/download
+gate false. No export directory or file resulted, so no human usability
+judgment was possible. Authorization was consumed at the first Provider
+request; there was no rerun, repair, substitution or top-up. Exactly one
+Ctrl-C/SIGINT was attempted; the retained background lifecycle ignored it and
+one SIGTERM fallback was required. Final ports/resources, Secret environment
+state and checkout were clean. This cleanup fallback is disclosed as a
+contract deviation; no exact failure cause or Provider acceptance is claimed.
 
 ## MVP-0L L4 qualification (Issue #333)
 

@@ -1,27 +1,30 @@
 # MVP-0L Local AI Web App Delivery Goal
 
-> **Status on this branch:** `ACTIVE` — L0–L3 are merged/current through PRs #317, #328, #330 and #332; L3 is merge-effective at `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. L4 [Issue #333](https://github.com/JettxonHo/ai-ecommerce-agent/issues/333) is review-ready with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. L5 Phase A [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) is `L5_HARNESS_REVIEW_READY`; owner authorization remains pending and no live success is claimed.
+> **Status on this branch:** `ACTIVE` — L0–L3 are merged/current through PRs #317, #328, #330 and #332; L3 is merge-effective at `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. L4 [Issue #333](https://github.com/JettxonHo/ai-ecommerce-agent/issues/333) is **closed** via merged PR #334 at `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`, preserving `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. L5 [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336) has terminal disposition `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` from exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is consumed and no further run is authorized.
 >
 > **Decision authority:** [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) · [DEC-085](../decisions/dec-085-docker-only-local-web-lifecycle.md) · [Session-009](../sessions/session-009-local-ai-web-app-goal-activation.md)
 >
 > **Predecessor:** [MVP-0P Local Action Workbench Productization Goal](mvp0-local-action-workbench-productization-goal.md), now historical `MVP0P_GOAL_COMPLETE` after final-review PR [#315](https://github.com/JettxonHo/ai-ecommerce-agent/pull/315) reached `main`.
 >
 > **Historical Fast Lane:** [MVP-0 Fast Lane Goal](mvp0-fast-lane-goal.md) remains terminal `GOAL_BLOCKED`; its two failed DeepSeek runs, `INSUFFICIENT_SANITIZED_EVIDENCE`, observational ambiguity, no Provider acceptance and no inherited live authorization are preserved.
+>
+> **Accepted successor validation (inactive):** [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) and its [Pilot Contract](../product/real-product-to-brief-pilot-contract.md) are `ACCEPTED / NOT ACTIVE` under [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md). Activation waits for this MVP-0L Goal to reach `COMPLETE` or an owner-approved formal rebaseline; the Pilot does not resume [#335 / PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) or authorize another run.
 
 ## 1. Goal outcome
 
 Deliver a real-AI local Web App for a single operator on Apple Silicon Mac. The first release runs locally with user-installed Docker Desktop and opens in the system default browser. It builds on the completed deterministic Action Workbench, then closes the explicitly staged Needs Input, persistence, lifecycle, offline DeepSeek diagnosis, paid DeepSeek acceptance and clean-Mac review gates.
 
-The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 completes the provider-free L4 Phase-A qualification with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`: current seams and official contract are coherent, retained sanitized evidence is ambiguous, and production diff is zero. Issue #335's L5 Phase-A harness is review-ready only: it prepares a fail-closed external export directory for a future one-time run, with owner authorization pending. No Provider/model call or Secret access was made. Documentation validation and ordinary Git/GitHub branch, push, PR and CI transport remain workflow activity, not product-runtime activity.
+The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 is closed via merged PR #334 at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060` with provider-free `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. No Provider/model call or Secret access was made in L4; the single authorized L5 #335 / PR #336 run has terminal disposition `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`, with authorization consumed and no further run authorized. Documentation validation and ordinary Git/GitHub branch, push, PR and CI transport remain workflow activity, not product-runtime activity.
 
 ## 2. Activation and operating rule
 
 - `MVP0P_GOAL_COMPLETE` is the merge-effective historical status of the predecessor and is not reopened.
-- This successor is `ACTIVE` after the L0 PR reached `main`; L1, L2 and L3 are merged/current through PRs #328, #330 and #332, with L3 merge-effective at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 is the review-ready L4 offline qualification with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. L5 remains separately gated; no Provider or Secret action is permitted.
+- This successor is `ACTIVE` after the L0 PR reached `main`; L1, L2 and L3 are merged/current through PRs #328, #330 and #332, with L3 merge-effective at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 is closed via merged PR #334 at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060` with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. Current #335 / PR #336 has terminal disposition `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is consumed and no further run is authorized. No new Provider or Secret action is authorized by this Goal.
 - Only one Stage may be active at a time.
 - Create the next Stage Issue only after the previous Stage's independently reviewed PR reaches `main`.
 - Batch ordinary reversible follow-up fixes inside the active Stage/PR; do not pre-create speculative later Issues.
 - A Stage/PR must state its problem, solution, scope, evidence, risk, rollback and documentation impact and receive independent review.
+- The accepted Real Product-to-Brief Pilot is not an active parallel Goal; its activation is blocked until this Goal is complete or formally rebaselined by the owner.
 
 ## 3. Frozen Stage order
 
@@ -39,7 +42,7 @@ Within the successor's product delivery, the owner-confirmed MBL-first sequence 
 
 **Result:** Issue #318 implements the real FastAPI Needs Input read/resolve boundary and bounded Recovery over one additive Task-owned PostgreSQL table, with current-request projection, recomposition durability and the existing Web one-page Intake consumer. Its provider-free runtime acceptance passed 6/6 backend integration cases and 4/4 real-backend browser cases, including newer-request supersession, sufficient recovery and reload persistence.
 
-**Gate:** one L1 Issue/PR with a real consumer, representative behavior/error/invariant evidence and no unrelated persistence or public-contract expansion; independent five-axis review is `PASS`, and PR #328 is merged/current. L2 is merged/current through PR #330; L3 is merged/current through PR #332. L4 Issue #333 is review-ready with its offline qualification disposition and no production repair.
+**Gate:** one L1 Issue/PR with a real consumer, representative behavior/error/invariant evidence and no unrelated persistence or public-contract expansion; independent five-axis review is `PASS`, and PR #328 is merged/current. L2 is merged/current through PR #330; L3 is merged/current through PR #332. L4 Issue #333 is closed via merged PR #334 at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060` with its offline qualification disposition and no production repair; L5 #335 / PR #336 is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` with no further run authorized.
 
 ### L2 — Minimum Source/Brief persistence
 
@@ -57,13 +60,13 @@ Within the successor's product delivery, the owner-confirmed MBL-first sequence 
 
 **Result:** Issue #333 completes the provider-free Phase-A diagnosis against the retained DeepSeek path. The current seams and first-party contract are coherent, the sanitized evidence remains observationally ambiguous, and no general correctness RED justified a production repair. Disposition: `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`; production diff is zero and no Phase-B amendment exists.
 
-**Gate:** L4 qualification is review-ready and requires independent five-axis review/merge. No paid/live Provider call, Secret value access, Phase-B repair, or inherited authorization occurred. L5 remains a separate exact-commit human Gate.
+**Gate:** L4 qualification is closed via merged PR #334 at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`; its independent review/merge is complete, with no paid/live Provider call, Secret value access, Phase-B repair or inherited authorization. L5 #335 / PR #336 is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; no further run is authorized.
 
 ### L5 — Real DeepSeek acceptance
 
-**Result:** Issue #335 Phase A prepares the retained smoke seam to preserve exactly the two final Markdown downloads outside tracked source. Its current disposition is `L5_HARNESS_REVIEW_READY` with owner authorization pending; no live call or success is claimed.
+**Result:** the single owner-authorized #335 / PR #336 exact-commit paid acceptance run for official DeepSeek `deepseek-v4-pro` at head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f` has terminal disposition `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS`. It made five ordered calls with retry/recovery `0/0`; sanitized evidence records token totals `23845`/`43999`/`67844`, `validated_candidates=true`, `confirmed_result=true`, both immutable export gates false and the UTF-8/download gate false. No export directory/file resulted, so no human usability judgment was possible. Authorization is consumed; no rerun, repair, substitution, top-up or further run is authorized. The fictional/sanitized material is engineering/L5 evidence only, not Pilot business-cohort material.
 
-**Gate:** after the Phase-A PR is independently reviewed, reaches `main` with fresh Required Checks, and the owner explicitly authorizes the exact one-time run, execute one exact-commit paid acceptance for official DeepSeek `deepseek-v4-pro` using fictional/sanitized material. No prior authorization carries forward, and no second Task, retry or repair is implied.
+**Gate:** the #335 authorization was scoped only to that exact contract and is consumed by its single run. The two historical Fast Lane DeepSeek authorizations and any previous smoke result did not carry forward; no retry, second Task, repair, substitution, top-up or unbounded live matrix is implied.
 
 ### L6 — Clean-Mac acceptance and final Goal Review
 
@@ -106,7 +109,7 @@ The official DeepSeek API and `deepseek-v4-pro` remain the sole future real-AI c
 
 ## 6. Evidence and acceptance
 
-Use proportional evidence under [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md): one representative normal path, the primary recoverable failure and a critical invariant for each changed boundary, plus applicable Required Checks and independent review. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333's provider-free Phase-A evidence and first-party contract recheck are recorded in the [L4 review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. Issue #335's tests-first harness evidence and pending authorization are recorded in the [L5 Phase-A review](../reviews/mvp0l-l5-deepseek-live-acceptance.md). No live runtime or Provider action occurred in Phase A.
+Use proportional evidence under [DEC-039](../decisions/dec-039-proportional-validation-and-review-governance.md): one representative normal path, the primary recoverable failure and a critical invariant for each changed boundary, plus applicable Required Checks and independent review. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333's provider-free Phase-A evidence and first-party contract recheck are recorded in the [L4 review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment; PR #334 merged and closed #333 at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`. Current #335 / PR #336 records terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; no further run is authorized. G0 creates no new runtime or Provider authorization.
 
 L0 acceptance requires:
 
@@ -118,7 +121,7 @@ L0 acceptance requires:
 - stale/conflict scan, Markdown heading/fence/link checks and `git diff --check`;
 - one Ready, non-draft PR closing Issue #316 with fresh Required Checks terminal green.
 
-Issue #318 L1 acceptance is recorded in the [current review](../reviews/mvp0l-l1-needs-input-backend.md); Issue #329 / PR #330 records the bounded L2 persistence acceptance; Issue #331 / PR #332 records the merged/current L3 lifecycle at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`; and Issue #333 / the [L4 review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) records provider-free offline qualification with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`. No live Provider acceptance is claimed.
+Issue #318 L1 acceptance is recorded in the [current review](../reviews/mvp0l-l1-needs-input-backend.md); Issue #329 / PR #330 records the bounded L2 persistence acceptance; Issue #331 / PR #332 records the merged/current L3 lifecycle at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`; and Issue #333 / the [L4 review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) records provider-free offline qualification with `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, closed by merged PR #334 at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`. Current L5 #335 / PR #336 records terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS`; no Provider acceptance or further run is claimed.
 
 ## 7. Human gates and stop conditions
 
@@ -139,8 +142,8 @@ Executable implementation in later Stages is routed to exact custom `luna-worker
 - **Current L2 Issue:** [Issue #329](https://github.com/JettxonHo/ai-ecommerce-agent/issues/329)
 - **Current L3 Issue:** [Issue #331](https://github.com/JettxonHo/ai-ecommerce-agent/issues/331)
 - **Current L4 Issue:** [Issue #333](https://github.com/JettxonHo/ai-ecommerce-agent/issues/333) · [L4 qualification review](../reviews/mvp0l-l4-deepseek-offline-qualification.md)
-- **Current L5 Issue:** [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) · [L5 Phase-A harness review](../reviews/mvp0l-l5-deepseek-live-acceptance.md)
+- **Accepted inactive successor validation:** [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) · [Pilot Contract](../product/real-product-to-brief-pilot-contract.md) · [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) · [Session-010](../sessions/session-010-real-product-to-brief-pilot.md)
 
 ## 10. Authorization boundary
 
-L0's docs-only activation contract is complete. L1, L2 and L3 are merged/current through PRs #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 completes provider-free L4 Phase A with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment; independent review/merge remains required. Issue #335 completes only L5 Phase-A harness preparation with `L5_HARNESS_REVIEW_READY`; owner authorization remains pending and no live success is claimed. No Provider/model/live call, Secret/.env access, public contract, migration/schema expansion, dependency/lockfile change, native App work, public deployment or Spider_XHS action is authorized in this Phase-A delivery.
+L0's docs-only activation contract is complete. L1, L2 and L3 are merged/current through PRs #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 completes provider-free L4 Phase A with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment; merged PR #334 closed it at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`. No Provider/model/live call or Secret/.env access occurred in L4. Current L5 #335 / PR #336 records terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is consumed and no further run is authorized. No new Provider/model/live call, Secret/.env access, public contract, migration/schema expansion, dependency/lockfile change, native App work, public deployment or Spider_XHS action is authorized by this Goal. The accepted [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) is `ACCEPTED / NOT ACTIVE` until this Goal is `COMPLETE` or formally rebaselined; it does not create a second active Goal or resume #335 / PR #336.
