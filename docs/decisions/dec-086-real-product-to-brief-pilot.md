@@ -9,6 +9,9 @@
 - **Decision Session:** [Session-010](../sessions/session-010-real-product-to-brief-pilot.md)
 - **Successor Goal:** [Real Product-to-Brief Pilot](../goals/real-product-to-brief-pilot-goal.md)
 - **Pilot Contract:** [Real Product-to-Brief Pilot Contract](../product/real-product-to-brief-pilot-contract.md)
+- **Amended by:** [DEC-087](dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) — formal terminal rebaseline and merge-effective Pilot activation
+
+> **Amendment trace:** The body below remains the historical accepted state at DEC-086 creation. [DEC-087](dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) later amends only the inactive prerequisite: on the Issue #339 branch MVP-0L is `REBASELINE_PENDING`, the Pilot is `ACTIVATION_PENDING`, and P0 is `NOT_STARTED`; only after that reviewed PR reaches `main` do MVP-0L `TERMINAL_INCOMPLETE_L5_FAILED`, Pilot `ACTIVE`, and P0 `READY_NOT_STARTED` become effective. DEC-087 preserves the P0→P6 order and denominator and authorizes no P0 or Provider action.
 
 ## Context
 
