@@ -40,10 +40,15 @@ authorizations remain consumed; no authorization carries forward from them.
 
 ## Isolation and routing evidence
 
-- Work was performed in the fresh clone `/private/tmp/ai-ecommerce-agent-issue335`;
-  the shared checkout was not modified.
-- The branch started clean at exact `HEAD=origin/main=
-  ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`.
+- Phase-A harness work was performed in the historical fresh clone
+  `/private/tmp/ai-ecommerce-agent-issue335`; the shared checkout was not
+  modified.
+- The authorized L5 runtime then ran in the fresh detached checkout
+  `/private/tmp/ai-ecommerce-issue335-resume.qzlnzM/repo` at exact
+  `HEAD=2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`.
+- Runtime preflight used disposable locked backend Python 3.13 hydration and
+  one offline locked Web hydration; tracked backend/Web package and lock bytes
+  remained unchanged, with no package network access implied or used.
 - `/Users/ketchup/.codex/agents/luna-worker.toml` was parsed with Python 3.12
   `tomllib`: `name=luna-worker`, `model=gpt-5.6-luna`,
   `model_reasoning_effort=max`. This is `CONFIG_VERIFIED` only; runtime
