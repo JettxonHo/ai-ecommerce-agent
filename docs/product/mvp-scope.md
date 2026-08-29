@@ -2,6 +2,7 @@
 
 > **Status: ACCEPTED CURRENT TRUTH — Product Specification accepted; DEC-082 local Action Workbench direction synchronized**
 > 本文件是 Current Truth Layer 的一部分。其内容只能来自用户明确接受的 Decision。
+> **DEC-086 同步：** [Real Product-to-Brief Pilot Goal](../goals/real-product-to-brief-pilot-goal.md) 与其 [Pilot Contract](real-product-to-brief-pilot-contract.md) 是已接受但 `NOT ACTIVE` 的 successor validation；激活须等待当前 [MVP-0L Goal](../goals/mvp0-local-ai-web-app-delivery-goal.md) `COMPLETE` 或 owner-approved formal rebaseline。它不改变当前 MVP 范围，不恢复 #335 / PR #336，也不继承 Provider authorization。
 > 当前已确认：MVP 核心任务与交付物（DEC-003）、平台与输入输出边界（DEC-004～006）、Human Review / 证据 / 失效重跑（DEC-007～009）、三维评价（DEC-010）、本地演示包络（DEC-041）、行为型成功边界（DEC-042）、单任务工作台与确认式局部重跑（DEC-044）、最小输入、文件限制与冲突分级（DEC-045）、审核 / Brief / 版本 / 导出产品契约（DEC-046）、证据披露、编辑意图、阶段进度和恢复交互（DEC-047）、代表性验收包、行为门禁、人工验收与 Markdown-first 用户导出（DEC-048）、产品 / 技术契约权威边界（DEC-057）、虚构 Anchor SKU 验收策略（DEC-058）、有限结构化 Needs Input 行动请求（DEC-059）、证据约束声明完整性（DEC-060）、Task 范围资料与可逆移除（DEC-061）、最小最近任务入口与稳定深链（DEC-062），以及 Frontend Architecture（DEC-055 / 056）。公共 Schema、Fixture 物理文件与 E2E 证据格式属于下游 RFC / Testing Strategy，不得在产品文档擅自补全。
 > **DEC-041 同步：** 首个本地演示只接收结构化表单、文本、TXT / Markdown、文本型 PDF 与评论 CSV；不做 OCR、图片理解或扫描文档。下文 DEC-005 的旧“图片或文字”示例按此最新边界修订。
 > **DEC-042 同步：** 产品定位为证据驱动商品上新策略工作台；复合 Persona / JTBD 作为演示期假设；成功以端到端行为与人工可用性判断，不使用机械总分自动接受。
@@ -105,6 +106,8 @@
 >
 > **已关闭的产品策划项：** DEC-060 已冻结声明完整性与高风险表达的最小边界；DEC-061 已冻结受控本地演示的数据生命周期体验；DEC-062 已冻结跨会话返回持久 Task 的最小入口；DEC-082 已冻结固定本地单用户 Action Workbench 方向。产品层当前无未接受 Proposal；下一步是独立前端设计 Issue，不是本文件中的实现授权。
 >
+> **后续验证边界：** DEC-086 接受了 Real Product-to-Brief Pilot 的独立验证合同，但 Goal 保持 `ACCEPTED / NOT ACTIVE`，直到 MVP-0L 完成或正式 rebaseline；Pilot 的 5–10 个 permitted products（仅限获准的真实产品资料或获准的脱敏真实产品资料）、两类目、非 author、真实 Provider、采纳输出、三次连续成功、80% approved-export、clean-Mac、metrics、sanitized evidence pack 与 2–4 分钟 demo 条件不属于当前 MVP 的完成事实。P0 须在观察前固定全部 P0-admitted product/attempt 单元的 denominator（导出前一旦失败也计入），numerator 仅计入至少一个人工批准的不可变 Marketing 或 Xiaohongshu 导出；P0 只登记 denominator/formula，不登记未来 numerator。每个有界 paid execution/cohort 都需新的 exact-commit owner authorization，明确 maximum tasks/calls/cost/stop rules，且不得继承既有 authorization。虚构“城市通勤双肩包” Anchor 仅用于工程/L5 证据，永不计入 Pilot business cohort。
+>
 > 根据 DEC-057，公共字段、传输、状态 / 错误、并发、Markdown 模板和下载协议分别由 RFC-004 / 005 作为下游权威，不再列为产品开放问题。
 > - 技术实现：RFC-003～007 与 Frontend Architecture 覆盖的 Checkpointer、API、Retrieval、LLM Provider、Observability 和前端方案。
 > - 评价：代表性验收包、行为硬门禁、非机械人工判断、Live Smoke 边界与 Frontend 核心测试工具已确认；Fixture 实例和最终 E2E 步骤 / 证据格式待 Testing Strategy 补全。Rubric 只辅助判断，不作为机械接受器。
@@ -124,9 +127,10 @@
 
 ## 当前状态
 
-- 项目处于 MVP-0 Fast Lane `GOAL_BLOCKED`；FL-1 deterministic foundation 已实现，DEC-082 的本地单用户 Action Workbench 方向已接受，具体视觉设计与实现尚未授权。
+- 当前唯一 active Goal 是 MVP-0L Local AI Web App Delivery Goal（`ACTIVE`）；L0–L3 merged/current，L4 Issue #333 已由合并 PR #334 在 `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060` 关闭，保留 `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR` 与 production diff zero；当前 L5 为 #335 / PR #336 held at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`，owner authorization 未消耗且尚无 Provider request。历史 MVP-0 Fast Lane 保持 `GOAL_BLOCKED`；其 deterministic foundation、两次失败与 `INSUFFICIENT_SANITIZED_EVIDENCE` 不等于 Provider acceptance。
+- Real Product-to-Brief Pilot Goal 与 Contract 已由 DEC-086 接受但保持 `ACCEPTED / NOT ACTIVE`，激活等待 MVP-0L `COMPLETE` 或 owner-approved formal rebaseline；G0 不恢复 #335 / PR #336 或其未消耗的一次授权。
 - 已确认产品定位、复合 Persona / JTBD 假设策略、核心任务、平台与输入输出范围、Human Review、证据、阶段失效、单任务工作台、输入门禁、确认式局部重跑、审核 / Brief / 版本、证据 / 编辑 / 进度 / 恢复交互、Anchor SKU 验收策略、Markdown-first 用户导出、产品 / 技术权威边界、声明完整性、Task 范围资料生命周期、行动首页与 Frontend Architecture（DEC-003～010 / DEC-041 / DEC-042 / DEC-044～062 / DEC-082）。
-- 后续具体设计、实现或范围扩展必须位于独立 Issue / Task Contract；未接受内容不得写成 Current Truth。
+- 后续具体设计、实现或范围扩展必须位于独立 Issue / Task Contract；未接受内容不得写成 Current Truth。Pilot 只有在 inactive-to-active Gate 通过后才能创建 P0 Issue。
 
 ---
 
