@@ -12,8 +12,8 @@
 
 当前 Goal：
 
-- [MVP-0L Local AI Web App Delivery Goal](mvp0-local-ai-web-app-delivery-goal.md) — `ACTIVE`（L0–L3 merged/current；L4 Issue #333 已由合并 PR #334 关闭并在 `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060` 保留 `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`；当前 L5 #335 / PR #336 held at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`，owner authorization 未消耗）
-- [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) — `ACCEPTED / NOT ACTIVE`（activation blocked until MVP-0L `COMPLETE` or owner-approved formal rebaseline）
+- [MVP-0L Local AI Web App Delivery Goal](mvp0-local-ai-web-app-delivery-goal.md) — branch `REBASELINE_PENDING`；only after the Issue #339 PR reaches `main`: `TERMINAL_INCOMPLETE_L5_FAILED`（L0–L4 preserved；L5 `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` / no exports；L6 `NOT_EXECUTED`；Agent UI frozen）
+- [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) — branch `ACTIVATION_PENDING`, P0 `NOT_STARTED`；only after that PR reaches `main`: Pilot `ACTIVE`, P0 `READY_NOT_STARTED`（[DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md)）
 - [MVP-0P Local Action Workbench Productization Goal](mvp0-local-action-workbench-productization-goal.md) — historical `MVP0P_GOAL_COMPLETE`
 - [MVP-0 Fast Lane Goal](mvp0-fast-lane-goal.md) — historical terminal `GOAL_BLOCKED`
 

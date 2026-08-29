@@ -16,15 +16,18 @@ remain unchanged. The predecessor P4B result remains
 unauthorized.
 
 The successor [MVP-0L Local AI Web App Delivery Goal](../../docs/goals/mvp0-local-ai-web-app-delivery-goal.md)
-is `ACTIVE`; L0–L3 are merged/current through PRs #317, #328, #330 and #332 at
+is `REBASELINE_PENDING` on the Issue #339 branch; L0–L3 are merged/current through PRs #317, #328, #330 and #332 at
 exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 records
 the L4 offline qualification as `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, with
 production diff zero and no Phase-B amendment. Issue #335 records terminal
 `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head
 `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is
-consumed and no further run is authorized.
-Its exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6, with the owner-confirmed
-MBL-first sequence L2 → L3 → L4 → L5 → Agent UI → L6. L0 was docs-only; the
+consumed and no further run is authorized. L6 is `NOT_EXECUTED`, and Agent UI
+remains frozen. Only after the reviewed [DEC-087](../../docs/decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md)
+documentation PR reaches `main` does MVP-0L become `TERMINAL_INCOMPLETE_L5_FAILED`,
+the Pilot become `ACTIVE`, and P0 become `READY_NOT_STARTED`; P0 is `NOT_STARTED`
+on this branch. Its historical exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6.
+L0 was docs-only; the
 existing Issue #318 adds no Provider acceptance or authorization. Issue #329's test-only
 follow-up restores stale revision/idempotency rejections before and after
 recomposition; it adds no production behavior or public-contract change. The
@@ -61,7 +64,8 @@ remain recorded. Issue #333's provider-free offline qualification confirms the
 current DeepSeek seams and official contract are coherent; the sanitized
 signature remains ambiguous and no production behavior changed. No further
 runtime, Provider/model or Secret access was authorized within L4; Agent UI
-production is not part of L4.
+production remains frozen. Future Pilot P1 carries the post-confirm/no-export
+boundary as a provider-free characterization target, not an approved repair.
 
 ## Toolchain
 

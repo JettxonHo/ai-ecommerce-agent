@@ -1,36 +1,37 @@
 # MVP-0L Local AI Web App Delivery Goal
 
-> **Status on this branch:** `ACTIVE` — L0–L3 are merged/current through PRs #317, #328, #330 and #332; L3 is merge-effective at `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. L4 [Issue #333](https://github.com/JettxonHo/ai-ecommerce-agent/issues/333) is **closed** via merged PR #334 at `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`, preserving `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. L5 [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336) has terminal disposition `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` from exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is consumed and no further run is authorized.
+> **Status on this branch:** `REBASELINE_PENDING`. L0–L4 accepted evidence remains preserved. L5 [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336) is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`, with no export files; authorization is consumed and no further run is authorized. L6 is `NOT_EXECUTED`; Agent UI remains frozen. **Only after the Issue #339 PR reaches `main`** does this Goal become `TERMINAL_INCOMPLETE_L5_FAILED`.
 >
-> **Decision authority:** [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) · [DEC-085](../decisions/dec-085-docker-only-local-web-lifecycle.md) · [Session-009](../sessions/session-009-local-ai-web-app-goal-activation.md)
+> **Decision authority:** [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) · [DEC-085](../decisions/dec-085-docker-only-local-web-lifecycle.md) · [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) · [Session-009](../sessions/session-009-local-ai-web-app-goal-activation.md) · [Session-011](../sessions/session-011-mvp0l-terminal-rebaseline.md)
 >
 > **Predecessor:** [MVP-0P Local Action Workbench Productization Goal](mvp0-local-action-workbench-productization-goal.md), now historical `MVP0P_GOAL_COMPLETE` after final-review PR [#315](https://github.com/JettxonHo/ai-ecommerce-agent/pull/315) reached `main`.
 >
 > **Historical Fast Lane:** [MVP-0 Fast Lane Goal](mvp0-fast-lane-goal.md) remains terminal `GOAL_BLOCKED`; its two failed DeepSeek runs, `INSUFFICIENT_SANITIZED_EVIDENCE`, observational ambiguity, no Provider acceptance and no inherited live authorization are preserved.
 >
-> **Accepted successor validation (inactive):** [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) and its [Pilot Contract](../product/real-product-to-brief-pilot-contract.md) are `ACCEPTED / NOT ACTIVE` under [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md). Activation waits for this MVP-0L Goal to reach `COMPLETE` or an owner-approved formal rebaseline; the Pilot does not resume [#335 / PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) or authorize another run.
+> **Successor validation:** [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) is `ACTIVATION_PENDING` and P0 `NOT_STARTED` on this branch. Only after the same PR reaches `main` does Pilot become `ACTIVE` and P0 `READY_NOT_STARTED`; the Pilot does not resume [#335 / PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) or authorize another run.
 
 ## 1. Goal outcome
 
-Deliver a real-AI local Web App for a single operator on Apple Silicon Mac. The first release runs locally with user-installed Docker Desktop and opens in the system default browser. It builds on the completed deterministic Action Workbench, then closes the explicitly staged Needs Input, persistence, lifecycle, offline DeepSeek diagnosis, paid DeepSeek acceptance and clean-Mac review gates.
+The Goal attempted to deliver a real-AI local Web App for a single operator on Apple Silicon Mac. It preserved the completed deterministic Action Workbench and closed L0–L4, but the paid L5 attempt ended without exports. DEC-087 therefore terminally rebaselines the Goal instead of continuing repair, Agent UI or L6.
 
 The eventual real-AI contract remains the official DeepSeek API with model `deepseek-v4-pro`. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 is closed via merged PR #334 at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060` with provider-free `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. No Provider/model call or Secret access was made in L4; the single authorized L5 #335 / PR #336 run has terminal disposition `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`, with authorization consumed and no further run authorized. Documentation validation and ordinary Git/GitHub branch, push, PR and CI transport remain workflow activity, not product-runtime activity.
 
 ## 2. Activation and operating rule
 
 - `MVP0P_GOAL_COMPLETE` is the merge-effective historical status of the predecessor and is not reopened.
-- This successor is `ACTIVE` after the L0 PR reached `main`; L1, L2 and L3 are merged/current through PRs #328, #330 and #332, with L3 merge-effective at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 is closed via merged PR #334 at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060` with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment. Current #335 / PR #336 has terminal disposition `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is consumed and no further run is authorized. No new Provider or Secret action is authorized by this Goal.
+- On this branch the Goal is `REBASELINE_PENDING`. L1–L4 merged evidence and the exact L5 terminal failure remain preserved; L6 is `NOT_EXECUTED`, Agent UI frozen, and no new Provider or Secret action is authorized.
+- Only after the Issue #339 PR reaches `main` does the Goal become `TERMINAL_INCOMPLETE_L5_FAILED`. It does not become `COMPLETE`.
 - Only one Stage may be active at a time.
 - Create the next Stage Issue only after the previous Stage's independently reviewed PR reaches `main`.
 - Batch ordinary reversible follow-up fixes inside the active Stage/PR; do not pre-create speculative later Issues.
 - A Stage/PR must state its problem, solution, scope, evidence, risk, rollback and documentation impact and receive independent review.
-- The accepted Real Product-to-Brief Pilot is not an active parallel Goal; its activation is blocked until this Goal is complete or formally rebaselined by the owner.
+- The Real Product-to-Brief Pilot is `ACTIVATION_PENDING` on this branch and becomes `ACTIVE` only at the same merge-effective rebaseline event; P0 then becomes only `READY_NOT_STARTED`.
 
 ## 3. Frozen Stage order
 
 The exact order is **L0 → L1 → L2 → L3 → L4 → L5 → L6**.
 
-Within the successor's product delivery, the owner-confirmed MBL-first sequence is **L2 → L3 → L4 → L5 → Agent UI → L6**. The Agent UI remains gated until the real-AI MBL is accepted; it is not production scope in L2.
+The historical planned sequence was **L2 → L3 → L4 → L5 → Agent UI → L6**. DEC-087 terminates that continuation after failed L5: Agent UI stays frozen and L6 stays `NOT_EXECUTED`.
 
 ### L0 — Governance activation
 
@@ -70,9 +71,9 @@ Within the successor's product delivery, the owner-confirmed MBL-first sequence 
 
 ### L6 — Clean-Mac acceptance and final Goal Review
 
-**Result:** validate the reviewed result on another clean Apple Silicon Mac with the user-installed Docker Desktop prerequisite, then conduct an independent final Goal Review.
+**Result:** `NOT_EXECUTED`. The terminal L5 no-export result left no accepted reviewed result for clean-Mac validation.
 
-**Gate:** only the independent review can decide Goal completion; passing local CI, a screenshot or a single HTTP response is not sufficient by itself.
+**Gate:** DEC-087 does not authorize L6. The Goal becomes `TERMINAL_INCOMPLETE_L5_FAILED`, never `COMPLETE`, only after the Issue #339 PR reaches `main`.
 
 ## 4. Product boundary
 
@@ -133,17 +134,17 @@ Executable implementation in later Stages is routed to exact custom `luna-worker
 
 ## 9. Relationships
 
-- **Decision:** [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md)
+- **Decisions:** [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) · [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md)
 - **L3 Decision:** [DEC-085](../decisions/dec-085-docker-only-local-web-lifecycle.md)
-- **Session:** [Session-009](../sessions/session-009-local-ai-web-app-goal-activation.md)
+- **Sessions:** [Session-009](../sessions/session-009-local-ai-web-app-goal-activation.md) · [Session-011](../sessions/session-011-mvp0l-terminal-rebaseline.md)
 - **Predecessor Goal:** [MVP-0P Local Action Workbench Productization Goal](mvp0-local-action-workbench-productization-goal.md)
 - **Historical Fast Lane:** [MVP-0 Fast Lane Goal](mvp0-fast-lane-goal.md)
 - **Activation Issue:** [Issue #316](https://github.com/JettxonHo/ai-ecommerce-agent/issues/316)
 - **Current L2 Issue:** [Issue #329](https://github.com/JettxonHo/ai-ecommerce-agent/issues/329)
 - **Current L3 Issue:** [Issue #331](https://github.com/JettxonHo/ai-ecommerce-agent/issues/331)
 - **Current L4 Issue:** [Issue #333](https://github.com/JettxonHo/ai-ecommerce-agent/issues/333) · [L4 qualification review](../reviews/mvp0l-l4-deepseek-offline-qualification.md)
-- **Accepted inactive successor validation:** [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) · [Pilot Contract](../product/real-product-to-brief-pilot-contract.md) · [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) · [Session-010](../sessions/session-010-real-product-to-brief-pilot.md)
+- **Activation-pending successor validation:** [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) · [Pilot Contract](../product/real-product-to-brief-pilot-contract.md) · [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) · [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md)
 
 ## 10. Authorization boundary
 
-L0's docs-only activation contract is complete. L1, L2 and L3 are merged/current through PRs #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 completes provider-free L4 Phase A with disposition `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, production diff zero and no Phase-B amendment; merged PR #334 closed it at exact `origin/main@ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`. No Provider/model/live call or Secret/.env access occurred in L4. Current L5 #335 / PR #336 records terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is consumed and no further run is authorized. No new Provider/model/live call, Secret/.env access, public contract, migration/schema expansion, dependency/lockfile change, native App work, public deployment or Spider_XHS action is authorized by this Goal. The accepted [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) is `ACCEPTED / NOT ACTIVE` until this Goal is `COMPLETE` or formally rebaselined; it does not create a second active Goal or resume #335 / PR #336.
+L0–L4 accepted evidence remains preserved. L5 #335 / PR #336 is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its authorization is consumed and no further run is authorized. L6 is `NOT_EXECUTED`; Agent UI is frozen. On this branch MVP-0L is `REBASELINE_PENDING`, Pilot `ACTIVATION_PENDING`, P0 `NOT_STARTED`. Only after the Issue #339 PR reaches `main` do MVP-0L `TERMINAL_INCOMPLETE_L5_FAILED`, Pilot `ACTIVE` and P0 `READY_NOT_STARTED` become effective. No new Provider/model/live call, Secret/.env access, P0 execution, real input, public contract, migration/schema expansion, dependency/lockfile change, native App, public deployment or Spider_XHS action is authorized.

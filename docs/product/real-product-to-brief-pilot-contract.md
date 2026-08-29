@@ -1,14 +1,14 @@
 # Real Product-to-Brief Pilot Contract
 
-> **Status: ACCEPTED / NOT ACTIVE**
+> **Status on this branch: ACTIVATION_PENDING · P0 NOT_STARTED**
 >
-> This is the normative contract for the future [Real Product-to-Brief Pilot Goal](../goals/real-product-to-brief-pilot-goal.md). It is authorized by [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md), recorded in [Session-010](../sessions/session-010-real-product-to-brief-pilot.md), and formalized by [Issue #337](https://github.com/JettxonHo/ai-ecommerce-agent/issues/337). It cannot be executed until the current [MVP-0L Goal](../goals/mvp0-local-ai-web-app-delivery-goal.md) is `COMPLETE` or formally rebaselined by the owner.
+> This is the normative contract for the [Real Product-to-Brief Pilot Goal](../goals/real-product-to-brief-pilot-goal.md). [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) accepted it; [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) records the owner-approved rebaseline. Only after the Issue #339 PR reaches `main` does the Pilot become `ACTIVE` and P0 `READY_NOT_STARTED`; Issue #339 does not execute this Contract.
 
 ## 1. Purpose and contract state
 
 The Pilot validates a bounded real Product-to-Brief loop for a small ecommerce operator: permitted product material enters the existing local workbench, a real Provider produces the bounded stage outputs, a human reviews them, and at least one usable Marketing or Xiaohongshu Markdown export is available for adoption.
 
-The contract is accepted but inactive. G0 is documentation-only and does not run P0, resume the held MVP-0L L5 work, consume the one-time authorization for [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336), or call a Provider. The current #335 / #336 reviewed head is `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f` over `ef5ac0d4b372c1478ee2541ee3ec5318e72a1060`, and its authorization remains unconsumed because no Provider request has been made.
+On this branch the contract is `ACTIVATION_PENDING` and P0 is `NOT_STARTED`. The #335 / #336 run at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f` is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS`: five ordered `deepseek-v4-pro` calls, retry/recovery `0/0`, confirmed result true, export gates false, UTF-8/download false and no export files. Its authorization is consumed and no further run is authorized. L6 is `NOT_EXECUTED`; Agent UI remains frozen.
 
 ## 2. Admission and permitted material
 
@@ -49,7 +49,7 @@ Reconcile the current MVP-0L status or owner-approved formal rebaseline; registe
 
 ### P1 — Minimal evidence readiness
 
-Use tests-first, provider-free characterization to establish the smallest evidence and acceptance harness. Implement only a proven gap. Mock/fixture/fake material is allowed for harness behavior but is never business acceptance evidence.
+Use tests-first, provider-free characterization to establish the smallest evidence and acceptance harness. The observed post-confirm/no-export L5 boundary is a required characterization target, not an approved repair or retry. Implement only a proven gap under a later bounded contract. Mock/fixture/fake material is allowed for harness behavior but is never business acceptance evidence.
 
 ### P2 — First permitted real-product run
 
@@ -84,13 +84,13 @@ Stop and return to the owner if: the prerequisite is not complete/rebaselined; a
 
 ## 7. Relationships
 
-- **Decision:** [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md)
+- **Decisions:** [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) · [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md)
 - **Goal:** [Real Product-to-Brief Pilot Goal](../goals/real-product-to-brief-pilot-goal.md)
-- **Session:** [Session-010](../sessions/session-010-real-product-to-brief-pilot.md)
-- **Activation Issue:** [Issue #337](https://github.com/JettxonHo/ai-ecommerce-agent/issues/337)
-- **Current active prerequisite:** [MVP-0L Local AI Web App Delivery Goal](../goals/mvp0-local-ai-web-app-delivery-goal.md)
-- **Current held L5:** [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336)
+- **Sessions:** [Session-010](../sessions/session-010-real-product-to-brief-pilot.md) · [Session-011](../sessions/session-011-mvp0l-terminal-rebaseline.md)
+- **Activation Issue:** [Issue #339](https://github.com/JettxonHo/ai-ecommerce-agent/issues/339)
+- **Terminal prerequisite:** [MVP-0L Local AI Web App Delivery Goal](../goals/mvp0-local-ai-web-app-delivery-goal.md)
+- **Terminal L5:** [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336)
 
 ## 8. Authorization boundary
 
-This contract records an accepted future Pilot and does not itself authorize execution. Issue #337 authorizes only the eleven-path documentation change. Any P0–P6 implementation, product-runtime, Provider/model/platform network call or irreversible external behavior, Secret access, real-data handling, runtime launch, code/test/configuration/dependency/migration/public-contract change or Agent capability requires the inactive-to-active prerequisite and its own exact Stage contract and human/independent Review gates. Ordinary Git/GitHub docs workflow transport remains allowed.
+This contract does not itself authorize execution. Issue #339 authorizes only the 13-path documentation rebaseline; it records P0 `NOT_STARTED` on the branch and `READY_NOT_STARTED` only after merge. Any P0–P6 implementation, product-runtime, Provider/model/platform network call or irreversible external behavior, Secret access, real-data handling, runtime launch, code/test/configuration/dependency/migration/public-contract change or Agent capability requires its own exact Stage contract and human/independent Review gates. Ordinary Git/GitHub docs workflow transport remains allowed.
