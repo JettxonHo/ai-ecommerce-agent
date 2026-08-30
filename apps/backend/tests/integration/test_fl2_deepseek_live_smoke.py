@@ -444,7 +444,7 @@ def test_one_deepseek_task_to_export_smoke(postgres_engine: Engine) -> None:
                     json={"basis": preview.json()["basis"]},
                 )
                 assert snapshot.status_code == 201, snapshot.text
-                snapshot_ids.add(snapshot.json()["snapshotId"])
+                snapshot_ids.add(snapshot.json()["exportSnapshotId"])
                 downloaded = client.get(snapshot.json()["contentLocation"])
                 assert downloaded.status_code == 200, downloaded.text
                 downloads[brief_kind] = downloaded.content

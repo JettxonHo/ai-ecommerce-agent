@@ -109,6 +109,132 @@ module["_preserve_downloads"]({{
     )
 
 
+def test_live_smoke_uses_public_export_snapshot_id_before_download(
+    tmp_path: Path,
+) -> None:
+    repository_root = Path(__file__).resolve().parents[4]
+    evidence_path = tmp_path / "evidence.json"
+    export_dir = tmp_path / "exports"
+    script = f"""
+import runpy
+from types import SimpleNamespace
+
+module = runpy.run_path(
+    {str(_smoke_module_path(repository_root))!r},
+    run_name="deepseek_smoke_response_key",
+)
+smoke = module["test_one_deepseek_task_to_export_smoke"]
+smoke_globals = smoke.__globals__
+
+class Response:
+    def __init__(self, status_code, payload=None, content=b""):
+        self.status_code = status_code
+        self._payload = payload
+        self.content = content
+        self.text = ""
+
+    def json(self):
+        return self._payload
+
+class Client:
+    def __init__(self):
+        self.snapshot_count = 0
+        self.download_paths = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def post(self, path, **kwargs):
+        if path == "/api/v1/tasks":
+            return Response(201, {{"taskId": "task-1"}})
+        if path.endswith("/commands/generate-result"):
+            return Response(201, {{"status": "awaiting_review"}})
+        if path.endswith("/commands/confirm-current-result"):
+            return Response(201, {{"status": "confirmed"}})
+        if path.endswith("/export-previews"):
+            return Response(200, {{"basis": kwargs["json"]}})
+        if path == "/api/v1/export-snapshots":
+            self.snapshot_count += 1
+            payload = {{
+                "exportSnapshotId": f"export-{{self.snapshot_count}}",
+                "contentLocation": f"/download-{{self.snapshot_count}}",
+            }}
+            assert set(payload) == {{"exportSnapshotId", "contentLocation"}}
+            return Response(201, payload)
+        raise AssertionError(path)
+
+    def put(self, path, **kwargs):
+        return Response(200, {{}})
+
+    def get(self, path, **kwargs):
+        if path.endswith("/current-result"):
+            return Response(
+                200,
+                {{
+                    "status": "awaiting_review",
+                    "productIntake": {{}},
+                    "customerInsight": {{}},
+                    "productPositioning": {{}},
+                    "marketingBrief": {{}},
+                    "xiaohongshuBrief": {{}},
+                }},
+            )
+        self.download_paths.append(path)
+        return Response(200, content=b"# Export\\n")
+
+profiles = (
+    "product_intake_v1",
+    "customer_insight_v1",
+    "product_positioning_v1",
+    "marketing_brief_v1",
+    "xiaohongshu_mapping_v1",
+)
+metadata = tuple(
+    SimpleNamespace(
+        version_tuple=SimpleNamespace(
+            provider_id="deepseek",
+            execution_profile_id=profile,
+            execution_profile_version=(
+                "v2" if profile.endswith("mapping_v1") else "v1"
+            ),
+        )
+    )
+    for profile in profiles
+)
+clients = []
+
+def result_client(_engine, runtimes):
+    client = Client()
+    clients.append(client)
+    runtimes.append(
+        SimpleNamespace(metadata_records=metadata, retry_count=0, close=lambda: None)
+    )
+    return client, SimpleNamespace(close=lambda: None)
+
+smoke_globals["_result_client"] = result_client
+smoke_globals["_write_evidence"] = lambda **kwargs: None
+try:
+    smoke(None)
+except KeyError as error:
+    assert error.args == ("snapshotId",)
+    assert clients[0].download_paths == []
+    raise
+else:
+    assert clients[0].download_paths == ["/download-1", "/download-2"]
+    module["_remove_preserved_downloads"]()
+"""
+    result = _run_smoke_module(
+        repository_root,
+        evidence_path=evidence_path,
+        export_dir=export_dir,
+        script=script,
+    )
+    assert result.returncode == 0, result.stderr
+
+
 def test_existing_export_target_fails_before_private_runtime_or_resource_seams(
     tmp_path: Path,
 ) -> None:
@@ -250,7 +376,7 @@ class Client:
             return Response(
                 201,
                 {{
-                    "snapshotId": f"snapshot-{{self.snapshot_count}}",
+                    "exportSnapshotId": f"snapshot-{{self.snapshot_count}}",
                     "contentLocation": f"/download-{{self.snapshot_count}}",
                 }},
             )
