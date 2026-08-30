@@ -1,8 +1,8 @@
 # Real Product-to-Brief Pilot Goal
 
-> **Status on this branch: `ACTIVATION_PENDING` · P0 `NOT_STARTED`** — only after the Issue #339 documentation PR reaches `main` does this Goal become `ACTIVE` and P0 become `READY_NOT_STARTED`. The same event makes [MVP-0L](mvp0-local-ai-web-app-delivery-goal.md) `TERMINAL_INCOMPLETE_L5_FAILED`; no P0 execution is part of this branch.
+> **Current status:** this Goal is `ACTIVE` after DEC-087's merge-effective rebaseline; MVP-0L is `TERMINAL_INCOMPLETE_L5_FAILED`. For Issue #341, before the P0 record reaches `main`, P01–P08 are `ADMISSION_PENDING_REVIEW`, the denominator is `FREEZE_PENDING_REVIEW`, and P0 is `CONTRACT_FREEZE_PENDING`. Once the record is present on `main`, P01–P08 are `ADMITTED`, the denominator is exactly eight frozen units, P0 is `P0_CONTRACT_FROZEN`, and P1 is `READY_NOT_STARTED`. No P0 execution is part of this docs workflow.
 >
-> **Authority:** [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) · [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) · [Real Product-to-Brief Pilot Contract](../product/real-product-to-brief-pilot-contract.md) · [Session-010](../sessions/session-010-real-product-to-brief-pilot.md) · [Session-011](../sessions/session-011-mvp0l-terminal-rebaseline.md) · [Issue #339](https://github.com/JettxonHo/ai-ecommerce-agent/issues/339)
+> **Authority:** [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) · [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) · [Real Product-to-Brief Pilot Contract](../product/real-product-to-brief-pilot-contract.md) · [P0 admission/contract-freeze plan](../product/real-product-to-brief-pilot-p0-plan.md) · [Session-010](../sessions/session-010-real-product-to-brief-pilot.md) · [Session-011](../sessions/session-011-mvp0l-terminal-rebaseline.md) · [Session-012](../sessions/session-012-real-product-to-brief-pilot-p0.md) · [Issue #341](https://github.com/JettxonHo/ai-ecommerce-agent/issues/341)
 >
 > **Current prerequisite truth:** [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336) is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; the one-time authorization is consumed, no export exists and no further run is authorized. L6 is `NOT_EXECUTED`; Agent UI remains frozen.
 
@@ -14,9 +14,9 @@ This is a successor validation Goal, not a claim that the deterministic foundati
 
 ## 2. Activation and operating rule
 
-- On this branch the Goal is `ACTIVATION_PENDING` and P0 is `NOT_STARTED`; MVP-0L is `REBASELINE_PENDING`.
-- Only after the reviewed Issue #339 documentation PR reaches `main` does the owner-approved formal rebaseline make this Goal `ACTIVE` and P0 `READY_NOT_STARTED`.
-- Issue #339 does not execute P0, register cohort data, use real inputs, resume #335 / PR #336 or call a Provider.
+- The Goal is `ACTIVE` and MVP-0L is `TERMINAL_INCOMPLETE_L5_FAILED` after DEC-087's merge-effective rebaseline.
+- Issue #341 is the single P0 admission/contract-freeze docs workflow. Before its record reaches `main`, P0 remains `CONTRACT_FREEZE_PENDING`; once present on `main`, P0 is `P0_CONTRACT_FROZEN` and P1 is `READY_NOT_STARTED`.
+- Issue #341 does not execute P0, observe products, calculate a numerator, use real inputs in a run, resume #335 / PR #336 or call a Provider.
 - Pilot stages run serially. Only one Stage may be active at a time, and one Issue/PR delivers one observable outcome.
 - The implementer uses exact `luna-worker` for executable work; the independent reviewer is Sol `ORCHESTRATOR_REVIEWER`. No Terra or Kimi fallback is implied.
 
@@ -28,7 +28,7 @@ Every Pilot Stage uses the frozen lifecycle **Plan → Implementation → Automa
 
 ### P0 — Pilot readiness and permitted-input gate
 
-Reconcile the active prerequisite and the Pilot Contract. Register the permitted 5–10 product cohort, at least two categories, participant roles, human approval points, evidence locations, metric definitions, the approved-export denominator/formula and stop conditions. The denominator is fixed before observation; P0 registers denominator/formula only, not a future numerator. P0 has no Provider call and no business acceptance.
+Reconcile the active prerequisite and the Pilot Contract. The [P0 admission/contract-freeze plan](../product/real-product-to-brief-pilot-p0-plan.md) registers the exact eight-product cohort (Category A/B, 4+4), participant roles, human approval points, evidence locations, metric definitions, the approved-export denominator/formula and stop conditions. Before the record reaches `main`, its statuses are P01–P08 `ADMISSION_PENDING_REVIEW`, denominator `FREEZE_PENDING_REVIEW` and P0 `CONTRACT_FREEZE_PENDING`; once present on `main`, the cohort is `ADMITTED`, the denominator is frozen at eight product/attempt units, and P0 is `P0_CONTRACT_FROZEN`. P0 registers the denominator/formula only, not a future numerator, and has no Provider call or business acceptance.
 
 ### P1 — Minimal evidence readiness
 
@@ -82,7 +82,9 @@ Stop and return to the owner for: activation before the prerequisite is complete
 
 - **Decisions:** [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) · [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md)
 - **Pilot Contract:** [Real Product-to-Brief Pilot Contract](../product/real-product-to-brief-pilot-contract.md)
+- **P0 plan:** [Real Product-to-Brief Pilot P0 Plan](../product/real-product-to-brief-pilot-p0-plan.md)
 - **Sessions:** [Session-010](../sessions/session-010-real-product-to-brief-pilot.md) · [Session-011](../sessions/session-011-mvp0l-terminal-rebaseline.md)
+- **P0 Session:** [Session-012](../sessions/session-012-real-product-to-brief-pilot-p0.md)
 - **Activation Issue:** [Issue #339](https://github.com/JettxonHo/ai-ecommerce-agent/issues/339)
 - **Terminal prerequisite:** [MVP-0L Local AI Web App Delivery Goal](mvp0-local-ai-web-app-delivery-goal.md)
 - **Terminal L5:** [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336)
@@ -90,4 +92,4 @@ Stop and return to the owner for: activation before the prerequisite is complete
 
 ## 8. Authorization boundary
 
-Issue #339 authorizes only the docs-only activation transition. On this branch Pilot is `ACTIVATION_PENDING` and P0 `NOT_STARTED`; after merge Pilot is `ACTIVE` and P0 only `READY_NOT_STARTED`. It authorizes no business code, tests, configuration, dependency or lockfile changes, migrations, OpenAPI/public contracts, Web/runtime actions, Docker/PostgreSQL/browser launch, product-runtime, Provider/model/platform network calls or irreversible external behavior, `.env`/Secret access, external publishing or Agent capability. Ordinary Git/GitHub docs workflow transport remains allowed. Every P0–P6 Stage still requires its own contract and independent review.
+Issue #341 authorizes only the exact seven-path P0 admission/denominator/contract-freeze docs workflow. It authorizes no business code, tests, configuration, dependency or lockfile changes, migrations, OpenAPI/public contracts, Web/runtime actions, Docker/PostgreSQL/browser launch, product-runtime, Provider/model/platform network calls or irreversible external behavior, `.env`/Secret access, external publishing or Agent capability. `PILOT_EXECUTION_AUTHORIZATION` remains `NOT_AUTHORIZED`. Ordinary Git/GitHub docs workflow transport remains allowed. Every P0–P6 Stage still requires its own contract and independent review.

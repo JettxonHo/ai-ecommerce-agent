@@ -12,8 +12,8 @@
 
 当前 Goal：
 
-- [MVP-0L Local AI Web App Delivery Goal](mvp0-local-ai-web-app-delivery-goal.md) — branch `REBASELINE_PENDING`；only after the Issue #339 PR reaches `main`: `TERMINAL_INCOMPLETE_L5_FAILED`（L0–L4 preserved；L5 `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` / no exports；L6 `NOT_EXECUTED`；Agent UI frozen）
-- [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) — branch `ACTIVATION_PENDING`, P0 `NOT_STARTED`；only after that PR reaches `main`: Pilot `ACTIVE`, P0 `READY_NOT_STARTED`（[DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md)）
+- [MVP-0L Local AI Web App Delivery Goal](mvp0-local-ai-web-app-delivery-goal.md) — `TERMINAL_INCOMPLETE_L5_FAILED`（L0–L4 preserved；L5 `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` / no exports；L6 `NOT_EXECUTED`；Agent UI frozen）
+- [Real Product-to-Brief Pilot Goal](real-product-to-brief-pilot-goal.md) — `ACTIVE` under [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md); Issue #341 P0 is `CONTRACT_FREEZE_PENDING` with P01–P08 `ADMISSION_PENDING_REVIEW` and denominator `FREEZE_PENDING_REVIEW` before this record reaches `main`, then `P0_CONTRACT_FROZEN` with exact denominator 8 and P1 `READY_NOT_STARTED` once present on `main`（[P0 plan](../product/real-product-to-brief-pilot-p0-plan.md)）
 - [MVP-0P Local Action Workbench Productization Goal](mvp0-local-action-workbench-productization-goal.md) — historical `MVP0P_GOAL_COMPLETE`
 - [MVP-0 Fast Lane Goal](mvp0-fast-lane-goal.md) — historical terminal `GOAL_BLOCKED`
 
