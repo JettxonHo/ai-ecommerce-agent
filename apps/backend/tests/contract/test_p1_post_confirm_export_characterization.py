@@ -16,6 +16,7 @@ import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any, Literal, cast
 
 import pytest
@@ -58,6 +59,7 @@ pytestmark = pytest.mark.contract
 
 NOW = datetime(2026, 8, 30, 0, 0, tzinfo=UTC)
 TASK_ID = TaskId("task-p1-characterization")
+REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
 
 
 @pytest.fixture(autouse=True)
@@ -408,7 +410,7 @@ class _Driver:
         }
     )
 
-    def run(self) -> _HarnessMetadata:
+    def run(self, *, preservation_root: Path) -> _HarnessMetadata:
         application = create_task_http_application(
             config=FixedWorkspaceHttpConfig(
                 workspace_id="workspace-p1",
@@ -529,7 +531,7 @@ class _Driver:
                     last_completed,
                     CHECKPOINT_PROBLEM,
                 )
-            self._preserve_downloads(contents)
+            self._preserve_downloads(preservation_root, contents)
             last_completed = "OUTSIDE_REPO_PRESERVE"
 
             self.operations.append("COMPLETE")
@@ -552,18 +554,48 @@ class _Driver:
             raise _InjectedFailure("download newline shape is invalid")
 
     @staticmethod
-    def _preserve_downloads(contents: Mapping[str, bytes]) -> tuple[str, ...]:
+    def _preserve_downloads(
+        preservation_root: Path, contents: Mapping[str, bytes]
+    ) -> tuple[str, ...]:
         """Model the harness-only outside-repository two-file preservation."""
 
+        if not preservation_root.is_absolute():
+            raise _InjectedFailure("preservation path is not absolute")
+        try:
+            preservation_root.relative_to(REPOSITORY_ROOT)
+        except ValueError:
+            pass
+        else:
+            raise _InjectedFailure("preservation path is inside repository")
+        if preservation_root.exists():
+            raise _InjectedFailure("preservation path already exists")
         if set(contents) != {"marketing", "xiaohongshu"}:
             raise _InjectedFailure("unexpected preservation keys")
         files = {
             "marketing-brief.md": contents["marketing"],
             "xiaohongshu-brief.md": contents["xiaohongshu"],
         }
-        if any(not isinstance(value, bytes) for value in files.values()):
-            raise _InjectedFailure("preserved content is not bytes")
-        return tuple(sorted(files))
+        created = False
+        try:
+            preservation_root.mkdir(mode=0o700)
+            created = True
+            for file_name, content in files.items():
+                with (preservation_root / file_name).open("xb") as export_file:
+                    export_file.write(content)
+            if sorted(path.name for path in preservation_root.iterdir()) != sorted(
+                files
+            ):
+                raise _InjectedFailure("unexpected preserved files")
+            for file_name, content in files.items():
+                if (preservation_root / file_name).read_bytes() != content:
+                    raise _InjectedFailure("preserved content changed")
+            return tuple(sorted(files))
+        except BaseException:
+            if created:
+                for file_name in files:
+                    (preservation_root / file_name).unlink(missing_ok=True)
+                preservation_root.rmdir()
+            raise
 
     def _failure(
         self,
@@ -630,8 +662,14 @@ def _expected_brief_kind(stage: Stage) -> str | None:
     return None
 
 
-def test_normal_provider_free_public_path_reaches_complete() -> None:
-    result = _Driver(None).run()
+def test_normal_provider_free_public_path_reaches_complete(tmp_path: Path) -> None:
+    preservation_root = (tmp_path / "exports").resolve()
+    assert preservation_root.is_absolute()
+    with pytest.raises(ValueError):
+        preservation_root.relative_to(REPOSITORY_ROOT)
+    assert not preservation_root.exists()
+
+    result = _Driver(None).run(preservation_root=preservation_root)
 
     assert result.failed_stage is None
     assert result.last_completed_stage == "COMPLETE"
@@ -646,6 +684,71 @@ def test_normal_provider_free_public_path_reaches_complete() -> None:
     }
     assert "营销内容" not in repr(result)
     assert "小红书内容" not in repr(result)
+    assert sorted(path.name for path in preservation_root.iterdir()) == [
+        "marketing-brief.md",
+        "xiaohongshu-brief.md",
+    ]
+    assert (preservation_root / "marketing-brief.md").read_bytes() == (
+        "# Marketing Brief\n营销内容：界\n".encode()
+    )
+    assert (preservation_root / "xiaohongshu-brief.md").read_bytes() == (
+        "# Xiaohongshu Brief\n小红书内容：界\n".encode()
+    )
+
+
+def test_historical_snapshot_id_key_mismatch_stops_before_download() -> None:
+    """The live harness key cannot consume the actual public snapshot shape."""
+
+    operations: list[Stage] = []
+    application = create_task_http_application(
+        config=FixedWorkspaceHttpConfig(
+            workspace_id="workspace-p1",
+            workbench_origin="http://127.0.0.1:5173",
+        ),
+        task_application=_Tasks(),
+        primary_input_application=_PrimaryInputs(),
+        result_application=_Results(None, operations),
+        pipeline_coordinator=_Coordinator(),
+        export_application=_Exports(None, operations),
+    )
+    with TestClient(application) as client:
+        confirmed = client.post(
+            f"/api/v1/tasks/{TASK_ID}/commands/confirm-current-result",
+            headers={"Idempotency-Key": "p1-key-mismatch-confirm"},
+            json={
+                "expectedResultRevision": 0,
+                "marketingCoreMessage": "confirmed synthetic message",
+                "xiaohongshuTitleDirection": "confirmed synthetic title",
+            },
+        )
+        assert confirmed.status_code == 201
+        preview = client.post(
+            f"/api/v1/tasks/{TASK_ID}/export-previews",
+            json={"briefKind": "marketing"},
+        )
+        assert preview.status_code == 200
+        snapshot = client.post(
+            "/api/v1/export-snapshots",
+            headers={"Idempotency-Key": "p1-key-mismatch-snapshot"},
+            json={"basis": preview.json()["basis"]},
+        )
+        assert snapshot.status_code == 201
+        payload = snapshot.json()
+        assert "exportSnapshotId" in payload
+        assert "snapshotId" not in payload
+
+        # This is the historical live-harness lookup, retained here only as a
+        # provider-free characterization of the response-shape mismatch.
+        with pytest.raises(KeyError):
+            payload["snapshotId"]
+
+    assert operations == [
+        "CONFIRM",
+        "PREVIEW_MARKETING",
+        "SNAPSHOT_MARKETING",
+    ]
+    assert "DOWNLOAD_MARKETING" not in operations
+    assert "PREVIEW_XIAOHONGSHU" not in operations
 
 
 @pytest.mark.parametrize(
@@ -663,8 +766,12 @@ def test_each_injected_checkpoint_has_unique_attribution_and_stops(
     stage: Stage,
     expected_failed_stage: Stage | None,
     expected_last_completed: Stage | None,
+    tmp_path: Path,
 ) -> None:
-    result = _Driver(None if stage == "COMPLETE" else stage).run()
+    preservation_root = (tmp_path / "exports").resolve()
+    result = _Driver(None if stage == "COMPLETE" else stage).run(
+        preservation_root=preservation_root
+    )
 
     assert result.failed_stage == expected_failed_stage
     assert result.brief_kind == (
@@ -677,12 +784,18 @@ def test_each_injected_checkpoint_has_unique_attribution_and_stops(
     else:
         assert result.problem is not None
         assert set(result.problem) == {"status", "type", "title"}
+        assert not preservation_root.exists()
     assert "营销内容" not in repr(result)
     assert "小红书内容" not in repr(result)
 
 
-def test_legacy_five_gate_vector_collapses_post_confirm_checkpoints() -> None:
-    results = {stage: _Driver(stage).run() for stage in ALL_STAGES}
+def test_legacy_five_gate_vector_collapses_post_confirm_checkpoints(
+    tmp_path: Path,
+) -> None:
+    results = {
+        stage: _Driver(stage).run(preservation_root=(tmp_path / stage).resolve())
+        for stage in ALL_STAGES
+    }
     compatible = {
         stage
         for stage, result in results.items()

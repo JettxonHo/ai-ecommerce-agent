@@ -69,7 +69,9 @@ The RED proves the historical aggregate is not a unique checkpoint attribution.
 ### Facts
 
 The final test-only driver injects interface-shaped fakes into the real FastAPI
-HTTP adapter. It exercises exactly:
+HTTP adapter. Its normal case is explicitly an injected HTTP-adapter fake path,
+not a fresh PostgreSQL or product-runtime run; existing provider-free suites
+cover the persisted path. It exercises exactly:
 
 1. `POST /api/v1/tasks/{taskId}/commands/confirm-current-result`
 2. `POST /api/v1/tasks/{taskId}/export-previews`
@@ -99,29 +101,75 @@ For every failure the driver records only `failed_stage`, optional
 status/problem metadata. Equality with the expected operation prefix proves no
 later operation executes. UTF-8/BOM/final-line-feed and outside-repository
 preservation remain harness checks after content download; the latter is not an
-HTTP endpoint. No production helper is imported, and no content is retained in
-the metadata record.
+HTTP endpoint. The normal case uses an absolute `tmp_path` outside the
+repository, exclusive `xb` writes of exactly `marketing-brief.md` and
+`xiaohongshu-brief.md`, and byte-for-byte rereads. `OUTSIDE_REPO_PRESERVE`
+fails before directory creation and no later stage runs. No production helper is
+imported, and no content is retained in the metadata record.
 
 ### Observation — final GREEN
 
 ```text
 uv run --offline --project apps/backend python -m pytest \
   apps/backend/tests/contract/test_p1_post_confirm_export_characterization.py -q
-14 passed in 0.33s
+15 passed in 0.33s
 ```
 
 The seven post-confirm preview/snapshot/download/distinct-ID failures produce
 the exact historical vector; `CONFIRM` differs because confirmation is false,
 and UTF-8/preservation failures happen after immutable gates have turned true.
 
+### Observation — preservation follow-up RED
+
+Independent review found that the first callback was in-memory only. Before the
+follow-up implementation, a temporary tests-only assertion against unchanged
+production failed:
+
+```text
+uv run --offline --project apps/backend python -m pytest \
+  apps/backend/tests/contract/test_p1_post_confirm_export_characterization.py::test_preservation_red_shows_in_memory_driver_writes_no_export_directory -q
+1 failed in 0.16s
+AssertionError: assert False
+```
+
+That temporary RED-only assertion was removed after the driver gained guarded
+outside-repository `tmp_path` preservation; the final focused run remains
+`15 passed`.
+
+### Observation — confirmed response-shape blocker
+
+The current public HTTP snapshot projection returns `exportSnapshotId`, while
+the retained live smoke expects `snapshotId`. A provider-free regression drives
+the same public projection, receives a successful snapshot response, then
+applies the historical lookup and gets `KeyError` before download or any later
+operation. The exact code remains unchanged in this Issue; the mismatch existed
+at the historical run commit as well.
+
+```text
+uv run --offline --project apps/backend python -m pytest \
+  apps/backend/tests/contract/test_p1_post_confirm_export_characterization.py::test_historical_snapshot_id_key_mismatch_stops_before_download -q
+1 passed in 0.16s
+```
+
+This confirms a live-harness consumer defect. It does not prove the historical
+L5 run reached this lookup: an earlier preview or snapshot conversion/commit
+failure remains compatible with the sanitized five-gate vector.
+
 ## Result and interpretation
 
-### Disposition: `INCONCLUSIVE`
+### Disposition: `CONFIRMED`
 
-The historical no-export occurrence is confirmed as a sanitized record, but its
-exact root cause is unlocatable. Seven distinct post-confirm checkpoints are
-compatible with the same legacy vector, while the normal public path passes.
-No production defect is reproduced or excluded for future Provider output.
+The response-shape blocker is confirmed: the live harness reads `snapshotId`,
+but the public projection emits `exportSnapshotId`, so a successful snapshot
+response raises `KeyError` before download. The seven injected post-confirm
+checkpoints remain compatible with the historical legacy vector, and the exact
+historical first-failure attribution remains `INCONCLUSIVE` because an earlier
+preview/snapshot failure could have occurred. The normal path is an injected
+HTTP-adapter fake path, not fresh PostgreSQL or product-runtime evidence.
+
+The response-key mismatch is one concrete `SNAPSHOT_MARKETING`-boundary variant
+within the seven compatible post-confirm checkpoints; it occurs after a
+successful snapshot response and before the download lookup.
 
 ### Pilot impact
 
@@ -132,13 +180,22 @@ Session performs no Pilot run, outcome classification or numerator calculation.
 
 ### Repair boundary
 
-`REPAIR_REQUIRED = NO`. No production repair is justified or implemented.
+`REPAIR_REQUIRED = YES` for the retained live-harness consumer; no repair is
+implemented in Issue #343.
 
-**Proposal (not accepted):** a later owner-gated evidence-only Issue may add
-sanitized `failed_stage`, optional `brief_kind`, `last_completed_stage` and
-generic `problem_type` to a future run record. It must not retain raw Provider
-payload, prompt, reasoning, Secret or personal data. This is an attribution
-proposal, not a product-logic repair.
+`MUST_FIX_BEFORE_PILOT_EXECUTION = YES` because the harness must be repaired
+before it can support a later Pilot attempt. The split is explicit:
+`PRODUCTION_FIX_REQUIRED_BEFORE_PILOT_EXECUTION = NO` (no product export logic
+defect was reproduced) and `HARNESS_FIX_REQUIRED_BEFORE_PILOT_EXECUTION = YES`
+(the response-key consumer is broken). The unresolved historical first-failure
+attribution remains a known risk and must be disclosed at any fresh exact-commit
+Owner Gate; this PR does not authorize P2, retries or substitutions.
+
+**Proposal (not accepted):** create one separate bounded provider-free
+harness-repair Issue that changes only the retained live-smoke response lookup
+from `snapshotId` to the public `exportSnapshotId` and adds a regression for the
+response shape. Do not alter product export logic, public contracts, evidence
+schema or raw-material retention.
 
 ## Validation and archive result
 
@@ -180,10 +237,14 @@ PILOT_EXECUTION_AUTHORIZATION = NOT_AUTHORIZED
 ```
 
 If the independently reviewed PR reaches `main`, its exact disposition is
-`INCONCLUSIVE`; P0 remains frozen, no Provider acceptance is inferred, and P2
-still requires a separate exact-commit Owner authorization and Issue. The next
-one action is independent Sol five-axis review plus fresh Required Checks for
-this PR. The implementer does not review, approve or merge.
+`CONFIRMED` for the harness blocker (historical first-failure attribution
+remains `INCONCLUSIVE`); P0 remains frozen, no Provider acceptance is inferred,
+and P2 still requires a separate exact-commit Owner authorization and Issue.
+The pre-merge next action is independent Sol five-axis review plus fresh
+Required Checks for this PR. After merge, the single next action is
+`OWNER_AUTHORIZES_ONE_BOUNDED_PROVIDER_FREE_HARNESS_REPAIR_ISSUE`; that Owner
+authorization does not auto-start the repair or P2. The implementer does not
+review, approve or merge.
 
 ## Relationships
 
