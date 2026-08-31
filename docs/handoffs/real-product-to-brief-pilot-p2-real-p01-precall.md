@@ -46,10 +46,11 @@ including the two provider-free control modules and their tests:
 The PostgreSQL composition test remains unchanged; no PostgreSQL/API/Docker
 lifecycle is authorized.
 
-The protected `PilotP2Operator`, artifact service, cost gate,
+Issue #355 changes the `PilotP2Operator` execution-control module and the
+artifact service's internal identity evidence seam. The cost gate,
 PostgreSQL/FastAPI composition, migrations/schema, OpenAPI/generated client,
-dependencies/locks, private roots, `.env`, Secret and Provider paths are
-unchanged.
+dependencies/locks, private roots, `.env`, Secret and Provider paths remain
+unchanged and protected.
 
 ## Pre-call controls
 
