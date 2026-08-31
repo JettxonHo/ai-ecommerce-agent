@@ -93,7 +93,7 @@ def _validate_artifact_geometry(controls: P2LiveControlConfig) -> None:
         root = Path(controls.artifact_root)
     except (TypeError, ValueError):
         _fail("artifact_root_invalid")
-    if not parent.is_absolute() or parent.name == "p2":
+    if parent != P2_PRIVATE_ARTIFACT_PARENT:
         _fail("artifact_root_invalid")
     expected = parent / "p2" / P2_SAMPLE_ID / P2_ATTEMPT_ID
     if root != expected:

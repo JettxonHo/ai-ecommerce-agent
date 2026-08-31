@@ -258,6 +258,47 @@ def test_old_double_p2_artifact_geometry_rejects_before_binder(
     assert not old_shape.artifact_root.exists()
 
 
+def test_alternate_canonical_shaped_parent_rejects_before_binder(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository_root = Path(__file__).resolve().parents[3]
+    controls = _controls(tmp_path, repository_root)
+    alternate_parent = tmp_path / "not-the-approved-ai-ecommerce-pilot-parent"
+    alternate_parent.mkdir()
+    alternate_shape = replace(
+        controls,
+        approved_artifact_parent=alternate_parent,
+        artifact_root=alternate_parent
+        / "p2"
+        / runner.P2_SAMPLE_ID
+        / runner.P2_ATTEMPT_ID,
+    )
+    monkeypatch.setattr(runner, "P2_PRIVATE_INPUTS_ROOT", controls.input_path.parent)
+    monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
+    monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
+    monkeypatch.setenv(
+        "MVP0_TASK_HTTP_DATABASE_URL", "postgresql+psycopg://test:test@127.0.0.1/p2"
+    )
+    captured: list[object] = []
+
+    class _UnexpectedBinder:
+        def __init__(self, **_kwargs: object) -> None:
+            captured.append("constructed")
+
+        def apply(self, _command: object) -> str:
+            return "unexpected-binder-call"
+
+    from ai_ecommerce_agent.bootstrap import pilot_p2_operator
+
+    monkeypatch.setattr(pilot_p2_operator, "PilotP2Operator", _UnexpectedBinder)
+    with pytest.raises(runner.P2LiveControlError) as error:
+        runner.run_p2_operator(alternate_shape)
+    assert error.value.code == "artifact_root_invalid"
+    assert captured == []
+    assert not alternate_shape.artifact_root.exists()
+
+
 def test_missing_exact_input_handoff_rejects_before_binder(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -266,6 +307,9 @@ def test_missing_exact_input_handoff_rejects_before_binder(
     controls = _controls(tmp_path, repository_root)
     controls.input_path.unlink()
     monkeypatch.setattr(runner, "P2_PRIVATE_INPUTS_ROOT", controls.input_path.parent)
+    monkeypatch.setattr(
+        runner, "P2_PRIVATE_ARTIFACT_PARENT", controls.approved_artifact_parent
+    )
     monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
     monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
     monkeypatch.setenv(
@@ -299,6 +343,9 @@ def test_noncanonical_input_handoff_rejects_without_search_or_fallback(
     alternate.write_text("synthetic alternate fixture", encoding="utf-8")
     noncanonical = replace(controls, input_path=alternate)
     monkeypatch.setattr(runner, "P2_PRIVATE_INPUTS_ROOT", controls.input_path.parent)
+    monkeypatch.setattr(
+        runner, "P2_PRIVATE_ARTIFACT_PARENT", controls.approved_artifact_parent
+    )
     monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
     monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
     monkeypatch.setenv(
