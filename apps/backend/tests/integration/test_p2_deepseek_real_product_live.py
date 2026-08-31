@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass
 from inspect import signature
 from pathlib import Path
@@ -20,20 +21,21 @@ P2_COLOR: Final[str] = "Black Stone"
 P2_VARIANT: Final[str] = "42733233766550"
 P2_CATEGORY: Final[str] = "A"
 P2_MAX_CALLS: Final[int] = 5
-P2_GIT_COMMIT: Final[str] = "cb77de2f96954a2d63ef00eead2f93bea1197649"
 P2_PRICING_RECORD_ID: Final[str] = "deepseek-v4-pro-2026-08-30-peak-v1"
 P2_RESERVATION_MICRO_USD: Final[int] = 6_783_834
 P2_PRIVATE_INPUTS_ROOT: Final[Path] = Path(
     "/Users/ketchup/Private/ai-ecommerce-pilot/inputs"
 )
 P2_PRIVATE_ARTIFACT_PARENT: Final[Path] = Path(
-    "/Users/ketchup/Private/ai-ecommerce-pilot/p2"
+    "/Users/ketchup/Private/ai-ecommerce-pilot"
 )
 P2_PRIVATE_ARTIFACT_ROOT: Final[Path] = (
-    P2_PRIVATE_ARTIFACT_PARENT / P2_SAMPLE_ID / P2_ATTEMPT_ID
+    P2_PRIVATE_ARTIFACT_PARENT / "p2" / P2_SAMPLE_ID / P2_ATTEMPT_ID
 )
 P2_FUTURE_GRANT_ENVIRONMENT: Final[str] = "AI_ECOMMERCE_P2_REAL_GRANT"
 _DATABASE_URL_ENV: Final[str] = "MVP0_TASK_HTTP_DATABASE_URL"
+_GIT_COMMIT_ENV: Final[str] = "GIT_COMMIT"
+_INPUT_FILENAME: Final[str] = "p01-public.txt"
 
 
 class P2LiveControlError(ValueError):
@@ -66,7 +68,7 @@ class P2LiveControlConfig:
     manual_intervention_count: int
     input_path: Path
     artifact_root: Path
-    approved_artifact_root: Path
+    approved_artifact_parent: Path
     repository_root: Path
 
 
@@ -74,11 +76,45 @@ def _fail(code: str) -> NoReturn:
     raise P2LiveControlError(code)
 
 
-def _required_environment_value(name: str) -> str:
+def _required_environment_value(
+    name: str, *, error_code: str = "live_environment_incomplete"
+) -> str:
     value = os.environ.get(name, "")
     if not value.strip():
-        _fail("live_environment_incomplete")
+        _fail(error_code)
     return value
+
+
+def _validate_artifact_geometry(controls: P2LiveControlConfig) -> None:
+    """Reject non-canonical roots before constructing the production binder."""
+
+    try:
+        parent = Path(controls.approved_artifact_parent)
+        root = Path(controls.artifact_root)
+    except (TypeError, ValueError):
+        _fail("artifact_root_invalid")
+    if not parent.is_absolute() or parent.name == "p2":
+        _fail("artifact_root_invalid")
+    expected = parent / "p2" / P2_SAMPLE_ID / P2_ATTEMPT_ID
+    if root != expected:
+        _fail("artifact_root_invalid")
+
+
+def _validate_input_handoff(controls: P2LiveControlConfig) -> None:
+    """Require the one exact owner-prepared input without reading its content."""
+
+    try:
+        configured = Path(controls.input_path)
+    except (TypeError, ValueError):
+        _fail("input_handoff_required")
+    expected = P2_PRIVATE_INPUTS_ROOT / _INPUT_FILENAME
+    if (
+        configured != expected
+        or not expected.is_absolute()
+        or expected.is_symlink()
+        or not expected.is_file()
+    ):
+        _fail("input_handoff_required")
 
 
 def test_thin_live_entrypoint_requires_a_future_grant_before_binder(
@@ -93,7 +129,7 @@ def test_thin_live_entrypoint_requires_a_future_grant_before_binder(
     controls = P2LiveControlConfig(
         sample_id=P2_SAMPLE_ID,
         attempt_id=P2_ATTEMPT_ID,
-        git_commit=P2_GIT_COMMIT,
+        git_commit="control-field-is-not-the-owner-handoff",
         product_name=P2_PRODUCT_NAME,
         model_designation=P2_MODEL_DESIGNATION,
         color=P2_COLOR,
@@ -109,7 +145,7 @@ def test_thin_live_entrypoint_requires_a_future_grant_before_binder(
         manual_intervention_count=0,
         input_path=P2_PRIVATE_INPUTS_ROOT / "p01-public.txt",
         artifact_root=P2_PRIVATE_ARTIFACT_ROOT,
-        approved_artifact_root=P2_PRIVATE_ARTIFACT_PARENT,
+        approved_artifact_parent=P2_PRIVATE_ARTIFACT_PARENT,
         repository_root=Path(__file__).resolve().parents[3],
     )
 
@@ -126,6 +162,7 @@ def test_legacy_injected_runner_is_retired() -> None:
 
 
 def test_future_grant_entrypoint_delegates_to_production_binder_without_secret(
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A synthetic future Grant reaches only the production operator seam."""
@@ -134,11 +171,21 @@ def test_future_grant_entrypoint_delegates_to_production_binder_without_secret(
     from ai_ecommerce_agent.bootstrap.pilot_p2_operator import StartAttempt
 
     monkeypatch.setenv(P2_FUTURE_GRANT_ENVIRONMENT, "1")
+    monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
     monkeypatch.setenv(_DATABASE_URL_ENV, "postgresql+psycopg://test:test@127.0.0.1/p2")
+    inputs_root = tmp_path / "synthetic-inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(
+        "synthetic permitted input; content is never read", encoding="utf-8"
+    )
+    artifact_parent = tmp_path / "synthetic-artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / P2_SAMPLE_ID / P2_ATTEMPT_ID
     controls = P2LiveControlConfig(
         sample_id=P2_SAMPLE_ID,
         attempt_id=P2_ATTEMPT_ID,
-        git_commit=P2_GIT_COMMIT,
+        git_commit="control-field-is-not-the-owner-handoff",
         product_name=P2_PRODUCT_NAME,
         model_designation=P2_MODEL_DESIGNATION,
         color=P2_COLOR,
@@ -152,9 +199,9 @@ def test_future_grant_entrypoint_delegates_to_production_binder_without_secret(
         replay_count=0,
         fallback_count=0,
         manual_intervention_count=0,
-        input_path=P2_PRIVATE_INPUTS_ROOT / "p01-public.txt",
-        artifact_root=P2_PRIVATE_ARTIFACT_ROOT,
-        approved_artifact_root=P2_PRIVATE_ARTIFACT_PARENT,
+        input_path=input_path,
+        artifact_root=artifact_root,
+        approved_artifact_parent=artifact_parent,
         repository_root=Path(__file__).resolve().parents[3],
     )
     captured: list[StartAttempt] = []
@@ -168,6 +215,10 @@ def test_future_grant_entrypoint_delegates_to_production_binder_without_secret(
             return "provider-free-synthetic"
 
     monkeypatch.setattr(pilot_p2_operator, "PilotP2Operator", _FakeProductionOperator)
+    monkeypatch.setattr(sys.modules[__name__], "P2_PRIVATE_INPUTS_ROOT", inputs_root)
+    monkeypatch.setattr(
+        sys.modules[__name__], "P2_PRIVATE_ARTIFACT_PARENT", artifact_parent
+    )
     result = run_p2_operator(controls)
 
     assert result == "provider-free-synthetic"
@@ -183,6 +234,11 @@ def run_p2_operator(
 
     if os.environ.get(P2_FUTURE_GRANT_ENVIRONMENT) != "1":
         _fail("future_owner_grant_required")
+    git_commit = _required_environment_value(
+        _GIT_COMMIT_ENV, error_code="git_commit_required"
+    )
+    _validate_artifact_geometry(controls)
+    _validate_input_handoff(controls)
     from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
         PilotP2Operator,
     )
@@ -196,7 +252,7 @@ def run_p2_operator(
     operator = PilotP2Operator(
         repository_root=controls.repository_root,
         approved_inputs_root=P2_PRIVATE_INPUTS_ROOT,
-        approved_artifact_parent=controls.approved_artifact_root,
+        approved_artifact_parent=controls.approved_artifact_parent,
         postgres_config=PostgresEngineConfig(database_url),
         http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
     )
@@ -204,9 +260,9 @@ def run_p2_operator(
         _OperatorStartAttempt(
             input_path=controls.input_path,
             artifact_root=controls.artifact_root,
-            authorized_commit=controls.git_commit,
-            git_commit=controls.git_commit,
-            git_head=controls.git_commit,
+            authorized_commit=git_commit,
+            git_commit=git_commit,
+            git_head=git_commit,
             owner_cap_micro_usd=controls.owner_cap_micro_usd,
             pricing_record_id=controls.pricing_record_id,
             max_calls=controls.max_calls,

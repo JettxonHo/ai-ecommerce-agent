@@ -7,12 +7,12 @@
 ## 1. 当前阶段
 
 - **项目名称：** AI Ecommerce Agent
-- **当前阶段：** [DEC-087](docs/decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) 已在 `main` 生效：MVP-0L 为 `TERMINAL_INCOMPLETE_L5_FAILED`、Real Product-to-Brief Pilot 为 `ACTIVE`。Issue #341 / PR #342 已合并，P01–P08 为 `ADMITTED`、denominator exact 8 frozen、P0 为 `P0_CONTRACT_FROZEN`。Issue #343 / PR #344 已合并并使 P1 provider-free characterization `CONFIRMED`（历史首失败归因仍为 `INCONCLUSIVE`）；Issue #345 / PR #346 的 response-key harness repair 已合并并修复，当前基线为 `8c43068038d4c3859383d68263f0ab0336480f6a`。Issue #347 / PR #349 已合并，P2 provider-free readiness 已在 `main@cb77de2f96954a2d63ef00eead2f93bea1197649` 生效。当前 Issue #350 分支状态为 `OPERATOR_BINDER_IMPLEMENTATION_PENDING_REVIEW`；仅在经独立审阅的 PR 到达 `main` 后，`OPERATOR_BINDER_IMPLEMENTED = YES` 才成为 merge-effective truth。
+- **当前阶段：** [DEC-087](docs/decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) 已在 `main` 生效：MVP-0L 为 `TERMINAL_INCOMPLETE_L5_FAILED`、Real Product-to-Brief Pilot 为 `ACTIVE`。Issue #341 / PR #342 已合并，P01–P08 为 `ADMITTED`、denominator exact 8 frozen、P0 为 `P0_CONTRACT_FROZEN`。Issue #343 / PR #344 已合并并使 P1 provider-free characterization `CONFIRMED`（历史首失败归因仍为 `INCONCLUSIVE`）；Issue #345 / PR #346 的 response-key harness repair 已合并并修复，当前基线为 `8c43068038d4c3859383d68263f0ab0336480f6a`。Issue #347 / PR #349 已合并，P2 provider-free readiness 已在 `main@cb77de2f96954a2d63ef00eead2f93bea1197649` 生效。Issue #350 / PR #351 已合并，`OPERATOR_BINDER_IMPLEMENTED = YES` 已在 `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a` 生效。当前 Issue #352 分支状态为 `REAL_P01_EXECUTION_CONTROL_ALIGNED_PROVIDER_FREE` pending independent review；仅在经独立审阅的 PR 到达 `main` 后，控制对齐结果才成为 merge-effective truth。
 - **开发状态：** MVP-0L L0–L4 accepted evidence remains preserved. L5 [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336) is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`: five ordered `deepseek-v4-pro` calls with retry/recovery `0/0`, confirmed result true, export gates false, UTF-8/download false and no export files. Its authorization is consumed; no further Provider run is authorized. L6 is `NOT_EXECUTED`; Agent UI remains frozen. The historical Fast Lane remains `GOAL_BLOCKED`, and `P5_REUSE_FROZEN` remains unchanged.
-- **最小目标：** preserve the working deterministic/local foundation and maintain the bounded Real Product-to-Brief business Pilot. Issue #347's provider-free P2 readiness is merge-effective; Issue #350 binds it into one provider-free operator lifecycle on this branch. No Pilot observation or execution, paid Provider/Secret action, participant run, numerator or Goal completion is implied.
+- **最小目标：** preserve the working deterministic/local foundation and maintain the bounded Real Product-to-Brief business Pilot. Issue #347's provider-free P2 readiness and Issue #350 / PR #351's provider-free operator binder are merge-effective; Issue #352 aligns only the exact-commit, artifact-root and input-handoff pre-call controls on this branch. No Pilot observation or execution, paid Provider/Secret action, participant run, numerator or Goal completion is implied.
 - **当前事实：** the repository has Task/Source persistence, fixed-workspace routes, generated client, Workbench projection, deterministic scripted pipeline and local demo path. Issue #318 provides the real PostgreSQL-backed Needs Input read/resolve boundary, current-request projection, bounded recovery reconciliation and the existing Web one-page Intake consumer without changing OpenAPI/generated types. Issue #329's test-only characterization proves the existing Task primary input, generated/confirmed Marketing and Xiaohongshu results, and both immutable Markdown export snapshots survive recomposition/replay and a materially newer fictional input; stale revision/idempotency replays remain rejected with `409` before and after recomposition. Acceptance uses fictional/sanitized data only. Native macOS App/WebView, signing/notarization, login/RBAC/multi-user/public deployment and Keychain/Secret UI are Deferred. Intel support is Deferred; excluded from the first release. The later project-root Git-ignored `.env` convention is accepted; outside the single owner-authorized L5 run, no Stage may create/read/inspect it or any Secret, and no Secret value is retained in repository/evidence material.
-- **当前 Gate：** Issue #347 / PR #349 is the merge-effective provider-free P2 readiness base at `main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 is the sole bounded operator-binder delivery on this branch with an exact 18-path allowlist; its binder result remains merge-conditional pending independent review and a Ready PR. No Pilot execution, paid Provider/model call, Secret access, migration/schema, local-demo change, public-contract/generated-client change, numerator or business outcome is authorized. `REAL_P01_GRANT=NOT_CONSUMED` and `P01_ATTEMPT_EXECUTED=NO` remain current.
-- **Pilot Gate：** [Real Product-to-Brief Pilot Goal](docs/goals/real-product-to-brief-pilot-goal.md), its [Pilot Contract](docs/product/real-product-to-brief-pilot-contract.md), and the [P0 admission/contract-freeze plan](docs/product/real-product-to-brief-pilot-p0-plan.md) retain the exact **P0 → P1 → P2 → P3 → P4 → P5 → P6** order and accepted denominator. Issue #341 / PR #342 is merge-effective: P0 is `P0_CONTRACT_FROZEN`, P01–P08 are `ADMITTED`, denominator exact 8 is frozen. Issue #343 / PR #344, Issue #345 / PR #346 and Issue #347 / PR #349 are merge-effective provider-free characterization/repair/readiness evidence. Issue #350's binder is pending independent review on this branch; only a reviewed PR on `main` may make `OPERATOR_BINDER_IMPLEMENTED = YES`. `PILOT_EXECUTION_AUTHORIZATION=NOT_AUTHORIZED`; the real P01 Grant is `NOT_CONSUMED` and no Pilot run is authorized.
+- **当前 Gate：** Issue #347 / PR #349 is the merge-effective provider-free P2 readiness base at `main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 / PR #351 is merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`; Issue #352 is the sole bounded control-alignment delivery on this branch with an exact eight-path allowlist and remains pending independent review. No Pilot execution, paid Provider/model call, Secret access, migration/schema, local-demo change, public-contract/generated-client change, numerator or business outcome is authorized. The historical Grant remains `NOT_CONSUMED`; after #351's merge it is `STALE_FOR_NEW_MAIN`. `REAL_P01_INPUT_FILE_READY=NO` is recorded from Owner/pre-call authority only; the private input root was not inspected. `P01_ATTEMPT_EXECUTED=NO` remains current.
+- **Pilot Gate：** [Real Product-to-Brief Pilot Goal](docs/goals/real-product-to-brief-pilot-goal.md), its [Pilot Contract](docs/product/real-product-to-brief-pilot-contract.md), and the [P0 admission/contract-freeze plan](docs/product/real-product-to-brief-pilot-p0-plan.md) retain the exact **P0 → P1 → P2 → P3 → P4 → P5 → P6** order and accepted denominator. Issue #341 / PR #342 is merge-effective: P0 is `P0_CONTRACT_FROZEN`, P01–P08 are `ADMITTED`, denominator exact 8 is frozen. Issue #343 / PR #344, Issue #345 / PR #346 and Issue #347 / PR #349 are merge-effective provider-free characterization/repair/readiness evidence. Issue #350 / PR #351's binder is merge-effective at the exact main above. Issue #352's exact-commit/artifact-root/input-handoff alignment remains pending independent review; only a reviewed PR on `main` may make `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`. `PILOT_EXECUTION_AUTHORIZATION=NOT_AUTHORIZED`; no Pilot run is authorized.
 - **质量方向：** strictly apply [DEC-039](docs/decisions/dec-039-proportional-validation-and-review-governance.md): representative behavior, boundary and required-check evidence proportional to risk; do not add speculative defensive test matrices.
 - **前端产品方向：** the accepted A+C baseline is Chinese-first “运营编辑部 / 策略桌”: stable business/status reading order, wide-desktop horizontal five-stage rail, one dominant action, progressive disclosure, Context Rail and 1024/320 reflow. Issue #303, #305 and #247 are merged/current P1–P3 deliveries; Issue #308 reconciles the real-backend harness and Issue #310 records the predecessor journey. Issue #318 keeps the one-page authority-first Needs Input panel before the existing Intake editor and records a 4/4 real-backend recovery/reload pass; Issue #329 changes no UI and records only backend persistence evidence, including the restored stale revision/idempotency fences. No modal, wizard or new page was added.
 
@@ -51,15 +51,17 @@ and [Session-015](docs/sessions/session-015-real-product-to-brief-pilot-p2-readi
 
 ### Issue #350 provider-free operator binder
 
-Issue #350 is the bounded follow-up to the merge-effective #347 / PR #349
-readiness seams. On this branch its status is
-`OPERATOR_BINDER_IMPLEMENTATION_PENDING_REVIEW`; only a reviewed Ready PR
-reaching `main` may record `OPERATOR_BINDER_IMPLEMENTED = YES`. The production
-seam is the deep `PilotP2Operator` module with `apply(command)` and `read()`
-for `StartAttempt`, `ConfirmAndCapture`, `SubmitHumanReview` and
-`FinalizeAttempt`. It composes the existing PostgreSQL/FastAPI Task → Primary
-Input → Result → Review/Export lifecycle, persists sanitized outside-Git
-attempt evidence and keeps P2 runtime construction lazy.
+Issue #350 was the bounded follow-up to the merge-effective #347 / PR #349
+readiness seams. PR #351 is merge-effective at
+`main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`, so
+`OPERATOR_BINDER_IMPLEMENTED = YES` is current; the former
+`OPERATOR_BINDER_IMPLEMENTATION_PENDING_REVIEW` value is historical branch
+truth. The production seam is the deep `PilotP2Operator` module with
+`apply(command)` and `read()` for `StartAttempt`, `ConfirmAndCapture`,
+`SubmitHumanReview` and `FinalizeAttempt`. It composes the existing
+PostgreSQL/FastAPI Task → Primary Input → Result → Review/Export lifecycle,
+persists sanitized outside-Git attempt evidence and keeps P2 runtime
+construction lazy.
 
 Provider-free evidence is limited to synthetic input/fake runtime fixtures and
 an isolated guarded PostgreSQL/API lifecycle. It proves actual persisted
@@ -69,14 +71,17 @@ sidecars, explicit Human Review and PASS/FAIL finalization. Run evidence does
 not predeclare a later export; actual invoice cost remains typed
 `NOT_EXPOSED`/`NOT_DERIVABLE` when current metadata cannot reproduce it.
 
-The branch changes only the exact Issue #350 allowlist. No migration/schema,
+The merged #351 change remains provider-free and does not authorize a real P01
+run. Issue #352 is the follow-up control-alignment branch with its own exact
+eight-path allowlist; it changes no production lifecycle. No migration/schema,
 OpenAPI/generated client/public route, dependency/lockfile, local-demo/default
 composition, private P01 material, Secret, Provider, participant or Pilot
 execution is involved. Current external-action truth remains:
 
 ```text
-OPERATOR_BINDER_IMPLEMENTED = PENDING_INDEPENDENT_REVIEW
-REAL_P01_GRANT = NOT_CONSUMED
+OPERATOR_BINDER_IMPLEMENTED = YES (merge-effective at main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a)
+REAL_P01_GRANT = NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN
+REAL_P01_INPUT_FILE_READY = NO (Owner/pre-call authority only; root not inspected)
 P01_ATTEMPT_EXECUTED = NO
 P01_RESULT = NOT_EXECUTED
 P02_PLUS = NOT_AUTHORIZED
@@ -85,6 +90,30 @@ SECRET_STATUS = NOT_CHECKED
 
 See [Issue #350 operator-binder review](docs/reviews/real-product-to-brief-pilot-p2-operator-binder.md)
 and [Session-016](docs/sessions/session-016-real-product-to-brief-pilot-p2-operator-binder.md).
+
+### Issue #352 exact REAL-P01 execution-control alignment
+
+Issue #352 is the current branch-level follow-up to the merge-effective
+operator binder. Its provider-free outcome is
+`REAL_P01_EXECUTION_CONTROL_ALIGNED_PROVIDER_FREE`; the branch remains pending
+independent review. The runner now requires a non-secret `GIT_COMMIT` handoff
+and forwards that exact value unchanged as `authorized_commit`, `git_commit`
+and `git_head`; stale values are rejected by the protected core actual-HEAD
+check before side effects. Artifact geometry is the single owner parent
+`/Users/ketchup/Private/ai-ecommerce-pilot` plus `p2/P01/P2-P01-A1`, and the
+only input handoff is
+`/Users/ketchup/Private/ai-ecommerce-pilot/inputs/p01-public.txt`. Missing or
+non-canonical controls fail before binder/artifact work; no search, synthesis,
+fallback, retry, recovery or replay is permitted.
+
+This branch does not inspect or create the private input/artifact roots. The
+historical Grant remains `NOT_CONSUMED`, but is `STALE_FOR_NEW_MAIN` after
+PR #351; `REAL_P01_INPUT_FILE_READY=NO` is based only on Owner/pre-call
+authority. Provider calls, paid calls, Secret reads/injections, Pilot samples,
+participant executions and actual charge remain zero. Only after an
+independently reviewed PR reaches `main` may
+`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES` become merge-effective. The next
+action is `WAIT_FOR_REAL_P01_INPUT_HANDOFF_AND_NEW_EXACT_MAIN_OWNER_GRANT`.
 
 ---
 
