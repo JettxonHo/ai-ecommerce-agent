@@ -1,15 +1,17 @@
 # Real Product-to-Brief Pilot P2 REAL-P01 Pre-call Handoff
 
-**Branch status:** `REAL_P01_EXECUTION_CONTROL_ALIGNED_PROVIDER_FREE` pending
-independent review for Issue [#352](https://github.com/JettxonHo/ai-ecommerce-agent/issues/352).
-The branch is based on merge-effective `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`,
-which includes Issue #350 / PR #351 and
-`OPERATOR_BINDER_IMPLEMENTED = YES`. This handoff records controls only; it is
-not a Provider Grant, a Pilot run, or business acceptance.
+**Main status:** Issue [#352](https://github.com/JettxonHo/ai-ecommerce-agent/issues/352)
+and PR #353 are merge-effective at
+`main@87f5315074bb3858ff09163c38c84b6e1e834577`, with durable main truth
+`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`. **Current branch status:** this
+branch carries only a docs-only closure follow-up for the same Issue #352
+record; its follow-up PR is pending review. This handoff records controls only;
+it is not a Provider Grant, a Pilot run, or business acceptance.
 
 ## Scope and allowlist
 
-Issue #352 changes exactly these eight paths:
+The historical Issue #352 / PR #353 implementation changed exactly these eight
+paths:
 
 1. `apps/backend/tests/integration/test_p2_deepseek_real_product_live.py`
 2. `apps/backend/tests/unit/test_p2_live_controls.py`
@@ -19,6 +21,17 @@ Issue #352 changes exactly these eight paths:
 6. `docs/goals/real-product-to-brief-pilot-goal.md`
 7. `docs/handoffs/implementation-readiness.md`
 8. this handoff
+
+The current closure follow-up changes only these six already-allowlisted docs:
+
+1. `AGENTS.md`
+2. `README.md`
+3. `apps/web/README.md`
+4. `docs/goals/real-product-to-brief-pilot-goal.md`
+5. `docs/handoffs/implementation-readiness.md`
+6. this handoff
+
+The code and tests remain byte-identical to merge-effective `main`.
 
 The protected `PilotP2Operator`, artifact service, cost gate,
 PostgreSQL/FastAPI composition, migrations/schema, OpenAPI/generated client,
@@ -50,17 +63,19 @@ unchanged.
 
 ## Current truth and stop boundary
 
-The historical held Grant remains `NOT_CONSUMED`; because PR #351 is already
-merge-effective, it is `STALE_FOR_NEW_MAIN` for any future exact-main run.
+The historical held Grant remains `NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN` for
+any future exact-main run. The pre-merge branch wording that marked alignment
+pending independent review is historical only; PR #353 is now on main.
 `REAL_P01_INPUT_FILE_READY=NO` is based only on Owner/pre-call authority. This
 provider-free implementation run did not inspect or create the private input
 or artifact roots, and no real P01 content is retained. A future run with a
 new Grant may perform only the metadata pre-call checks described above.
 
 ```text
-REAL_P01_EXECUTION_CONTROL_ALIGNED = PENDING_INDEPENDENT_REVIEW
+REAL_P01_EXECUTION_CONTROL_ALIGNED = YES
 REAL_P01_GRANT = NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN
 REAL_P01_INPUT_FILE_READY = NO
+AUTHORIZATION_STATUS = REQUIRES_NEW_OWNER_GRANT
 PILOT_EXECUTION_AUTHORIZATION = NOT_AUTHORIZED
 P01_ATTEMPT_EXECUTED = NO
 P01_RESULT = NOT_EXECUTED
@@ -74,7 +89,7 @@ Input/artifact creation = 0
 Actual charge = USD 0
 ```
 
-Only an independent review, fresh Required Checks (including
-secret-detection), and a Ready PR reaching `main` may make
-`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`. The next single action is
+The current docs-only closure follow-up still needs independent review and
+fresh Required Checks (including secret-detection), but it does not change the
+already merge-effective alignment. The next single action is
 `WAIT_FOR_REAL_P01_INPUT_HANDOFF_AND_NEW_EXACT_MAIN_OWNER_GRANT`.

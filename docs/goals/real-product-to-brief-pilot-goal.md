@@ -1,6 +1,6 @@
 # Real Product-to-Brief Pilot Goal
 
-> **Current status:** this Goal is `ACTIVE` after DEC-087's merge-effective rebaseline; MVP-0L is `TERMINAL_INCOMPLETE_L5_FAILED`. Issue #341 / PR #342 is merge-effective: P01–P08 are `ADMITTED`, the denominator is exactly eight frozen units, and P0 is `P0_CONTRACT_FROZEN`. Issue #343 / PR #344 and Issue #345 / PR #346 are merge-effective provider-free characterization/repair evidence; the accepted base is `8c43068038d4c3859383d68263f0ab0336480f6a`. Issue #347 / PR #349 is merge-effective provider-free P2 readiness at `main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 / PR #351 is merge-effective operator-binder readiness at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`, with `OPERATOR_BINDER_IMPLEMENTED = YES` current. Issue #352 is the current exact-commit, artifact-root and input-handoff control-alignment branch, pending independent review. Canonical status: `P0_CONTRACT_FROZEN = YES`; `P1_CHARACTERIZATION = COMPLETE`; `PILOT_EXECUTION_AUTHORIZATION = NOT_AUTHORIZED`; historical real P01 Grant = `NOT_CONSUMED`, now `STALE_FOR_NEW_MAIN` after #351; `REAL_P01_INPUT_FILE_READY = NO` from Owner/pre-call authority only (private root not inspected); `P01_ATTEMPT_EXECUTED = NO`. No P0 observation or Pilot execution is part of this workflow.
+> **Current status:** this Goal is `ACTIVE` after DEC-087's merge-effective rebaseline; MVP-0L is `TERMINAL_INCOMPLETE_L5_FAILED`. Issue #341 / PR #342 is merge-effective: P01–P08 are `ADMITTED`, the denominator is exactly eight frozen units, and P0 is `P0_CONTRACT_FROZEN`. Issue #343 / PR #344 and Issue #345 / PR #346 are merge-effective provider-free characterization/repair evidence; the accepted base is `8c43068038d4c3859383d68263f0ab0336480f6a`. Issue #347 / PR #349 is merge-effective provider-free P2 readiness at `main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 / PR #351 is merge-effective operator-binder readiness at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`, with `OPERATOR_BINDER_IMPLEMENTED = YES` current. Issue #352 / PR #353 is merge-effective control alignment at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with durable main truth `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`; the current branch carries only a docs-only closure follow-up, pending review. Canonical status: `P0_CONTRACT_FROZEN = YES`; `P1_CHARACTERIZATION = COMPLETE`; `PILOT_EXECUTION_AUTHORIZATION = NOT_AUTHORIZED`; historical real P01 Grant = `NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN`; `REAL_P01_INPUT_FILE_READY = NO` from Owner/pre-call authority only (private root not inspected); `AUTHORIZATION_STATUS = REQUIRES_NEW_OWNER_GRANT`; `P01_ATTEMPT_EXECUTED = NO`. No P0 observation or Pilot execution is part of this workflow.
 >
 > **Authority:** [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) · [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) · [Real Product-to-Brief Pilot Contract](../product/real-product-to-brief-pilot-contract.md) · [P0 admission/contract-freeze plan](../product/real-product-to-brief-pilot-p0-plan.md) · [Session-010](../sessions/session-010-real-product-to-brief-pilot.md) · [Session-011](../sessions/session-011-mvp0l-terminal-rebaseline.md) · [Session-012](../sessions/session-012-real-product-to-brief-pilot-p0.md) · [Session-013](../sessions/session-013-real-product-to-brief-pilot-p1.md) · [Issue #341](https://github.com/JettxonHo/ai-ecommerce-agent/issues/341) · [Issue #343](https://github.com/JettxonHo/ai-ecommerce-agent/issues/343)
 >
@@ -16,7 +16,7 @@ This is a successor validation Goal, not a claim that the deterministic foundati
 
 - The Goal is `ACTIVE` and MVP-0L is `TERMINAL_INCOMPLETE_L5_FAILED` after DEC-087's merge-effective rebaseline.
 - Issue #341 / PR #342 is the completed P0 admission/contract-freeze workflow. P0 is now `P0_CONTRACT_FROZEN`, P01–P08 are `ADMITTED`, and the denominator is exactly eight frozen units.
-- Issue #343 / PR #344 is the completed P1 provider-free characterization: `CONFIRMED` for the retained harness blocker and `INCONCLUSIVE` for historical first-failure attribution, with no P0 observation, Pilot numerator, real input, #335 / PR #336 continuation or Provider call. Issue #345 / PR #346 is the completed response-key repair and is merge-effective at the accepted base. Issue #347 / PR #349 is the completed merge-effective provider-free P2 readiness implementation. Issue #350 / PR #351 made the operator binder merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`; Issue #352 is the follow-up exact pre-call control-alignment branch, with no Pilot execution or business acceptance.
+- Issue #343 / PR #344 is the completed P1 provider-free characterization: `CONFIRMED` for the retained harness blocker and `INCONCLUSIVE` for historical first-failure attribution, with no P0 observation, Pilot numerator, real input, #335 / PR #336 continuation or Provider call. Issue #345 / PR #346 is the completed response-key repair and is merge-effective at the accepted base. Issue #347 / PR #349 is the completed merge-effective provider-free P2 readiness implementation. Issue #350 / PR #351 made the operator binder merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`; Issue #352 / PR #353 made the exact pre-call control alignment merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`. The current branch carries only a docs-only closure follow-up, with no Pilot execution or business acceptance.
 - Pilot stages run serially. Only one Stage may be active at a time, and one Issue/PR delivers one observable outcome.
 - The implementer uses exact `luna-worker` for executable work; the independent reviewer is Sol `ORCHESTRATOR_REVIEWER`. No Terra or Kimi fallback is implied.
 
@@ -67,10 +67,12 @@ PostgreSQL validation/cleanup record. None is a real P01 business run.
 `P2_READINESS_IMPLEMENTED = YES` is merge-effective at `main@cb77de2f96954a2d63ef00eead2f93bea1197649`.
 Issue #350 / PR #351 is merge-effective at
 `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`, with
-`OPERATOR_BINDER_IMPLEMENTED = YES` current. Issue #352 is the current
-provider-free control-alignment branch and remains pending independent review;
-Pilot execution, the real P01 Grant, participant work, numerator/ratio, and
-business acceptance remain unauthorized.
+`OPERATOR_BINDER_IMPLEMENTED = YES` current. Issue #352 / PR #353 is
+merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with
+`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES` durable on main. The current branch
+carries only a docs-only closure follow-up pending review; Pilot execution, the
+real P01 Grant, participant work, numerator/ratio, and business acceptance
+remain unauthorized.
 
 ### P2 operator-binder record (Issue #350)
 
@@ -93,15 +95,19 @@ persisted when exposed, while actual invoice cost is typed
 Provider-free evidence uses synthetic fixtures/fake runtime and a guarded
 isolated PostgreSQL/API lifecycle only. It does not authorize or execute real
 P01, read Secret/private material, change migrations/schema/public contracts,
-or alter the Pilot denominator. PR #351 is merge-effective; Issue #352's
-pre-call alignment remains pending independent review. Its exact future input
-handoff is `/Users/ketchup/Private/ai-ecommerce-pilot/inputs/p01-public.txt`,
+or alter the Pilot denominator. PR #351 is merge-effective; Issue #352 / PR #353
+is merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with
+`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES` durable on main. The current branch
+carries only a docs-only closure follow-up pending review. Its exact future
+input handoff is `/Users/ketchup/Private/ai-ecommerce-pilot/inputs/p01-public.txt`,
 and its artifact root is
 `/Users/ketchup/Private/ai-ecommerce-pilot/p2/P01/P2-P01-A1`. The live control
 field is `approved_artifact_parent`; stale commits, old double-`p2` geometry or
 a missing/non-canonical input fail before binder/artifact work. But
 `REAL_P01_INPUT_FILE_READY=NO` is based only on Owner/pre-call authority; the
-private root is not inspected.
+private root is not inspected. The historical Grant is
+`NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN`, and
+`AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT` remains current.
 
 ### P3 — Cohort and three-run stability
 
@@ -158,4 +164,4 @@ Stop and return to the owner for: activation before the prerequisite is complete
 
 ## 8. Authorization boundary
 
-Issue #343 / PR #344 authorized and completed only the exact seven-path P1 provider-free characterization workflow; its report and historical evidence remain unchanged. Issue #345 / PR #346 completed the exact eight-path provider-free harness-repair workflow and is merge-effective at the accepted base. Issue #347 / PR #349 completed its revised 24-path P2 readiness allowlist and is merge-effective at `main@cb77de2`; its historical report remains unchanged. Issue #350 / PR #351 completed the exact 18-path operator-binder allowlist and is merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. Issue #352 is authorized only for its exact eight-path provider-free control-alignment allowlist and remains pending independent review on this branch. Required reservation evidence is the fixed DeepSeek reservation, not an owner-cap guess. No migration/schema, `local_demo.py`, public contract/generated client, dependency/lockfile, Provider/model call, Secret access, P0/Pilot observation, numerator, real input, business export or publishing is authorized. The historical Grant remains `NOT_CONSUMED` but is `STALE_FOR_NEW_MAIN` after #351; `REAL_P01_INPUT_FILE_READY=NO` is based only on Owner/pre-call authority, without private-root inspection. `PILOT_EXECUTION_AUTHORIZATION` remains `NOT_AUTHORIZED`, and the next action is `WAIT_FOR_REAL_P01_INPUT_HANDOFF_AND_NEW_EXACT_MAIN_OWNER_GRANT`. The historical L5 evidence and the Issue #343 P1 report remain unchanged.
+Issue #343 / PR #344 authorized and completed only the exact seven-path P1 provider-free characterization workflow; its report and historical evidence remain unchanged. Issue #345 / PR #346 completed the exact eight-path provider-free harness-repair workflow and is merge-effective at the accepted base. Issue #347 / PR #349 completed its revised 24-path P2 readiness allowlist and is merge-effective at `main@cb77de2`; its historical report remains unchanged. Issue #350 / PR #351 completed the exact 18-path operator-binder allowlist and is merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. Issue #352 / PR #353 completed its exact eight-path provider-free control-alignment allowlist and is merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES` durable on main. The current follow-up is docs-only and remains pending review. Required reservation evidence is the fixed DeepSeek reservation, not an owner-cap guess. No migration/schema, `local_demo.py`, public contract/generated client, dependency/lockfile, Provider/model call, Secret access, P0/Pilot observation, numerator, real input, business export or publishing is authorized. The historical Grant is `NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN`; `REAL_P01_INPUT_FILE_READY=NO` is based only on Owner/pre-call authority, without private-root inspection. `AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT`; `PILOT_EXECUTION_AUTHORIZATION` remains `NOT_AUTHORIZED`, and the next action is `WAIT_FOR_REAL_P01_INPUT_HANDOFF_AND_NEW_EXACT_MAIN_OWNER_GRANT`. The historical L5 evidence and the Issue #343 P1 report remain unchanged.
