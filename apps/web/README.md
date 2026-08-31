@@ -30,10 +30,12 @@ PR #349 is merge-effective provider-free P2 readiness at
 `main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 / PR #351 is
 merge-effective operator-binder readiness at
 `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`, so
-`OPERATOR_BINDER_IMPLEMENTED = YES` is current. Issue #352 is the current
-provider-free exact-commit, artifact-root and input-handoff control-alignment
-branch, pending independent review. The real P01 Grant and Pilot execution
-remain unauthorized; this Web README records no business outcome.
+`OPERATOR_BINDER_IMPLEMENTED = YES` is current. Issue #352 / PR #353 is
+merge-effective control alignment at
+`main@87f5315074bb3858ff09163c38c84b6e1e834577`; the current branch carries
+only the docs-only closure follow-up, pending review. The real P01 Grant and
+Pilot execution remain unauthorized; this Web README records no business
+outcome.
 L0 was docs-only; the
 existing Issue #318 adds no Provider acceptance or authorization. Issue #329's test-only
 follow-up restores stale revision/idempotency rejections before and after
@@ -81,11 +83,13 @@ Issue #347 / PR #349 is merge-effective at
 `8c43068038d4c3859383d68263f0ab0336480f6a`); Issue #345 / PR #346 is already
 merge-effective. Issue #350 / PR #351 is merge-effective at
 `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a` and
-`OPERATOR_BINDER_IMPLEMENTED = YES` is current. Issue #352 is pending
-independent review on this branch. P2 readiness, binder and control-alignment
-evidence are provider-free implementation and composition evidence only. They
-do not authorize a real P01 run, participant execution, Secret or Provider
-access, numerator, ratio or business outcome. The fixed reservation, immutable
+`OPERATOR_BINDER_IMPLEMENTED = YES` is current. Issue #352 / PR #353 is
+merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577` with
+`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`; the current branch carries only a
+docs-only closure follow-up pending review. P2 readiness, binder and
+control-alignment evidence are provider-free implementation and composition
+evidence only. They do not authorize a real P01 run, participant execution,
+Secret or Provider access, numerator, ratio or business outcome. The fixed reservation, immutable
 PilotAttemptArtifacts, explicit Human Review and qualifying-export rules stay
 separate from this frontend foundation. Four allowlisted PostgreSQL/FastAPI
 composition paths remain byte-identical; `deterministic_result_postgres.py` is
@@ -101,11 +105,13 @@ Issue #352 requires a non-secret `GIT_COMMIT` handoff and forwards it unchanged
 to the protected core head fields; stale values fail before side effects. The
 artifact parent is `/Users/ketchup/Private/ai-ecommerce-pilot` with root
 `p2/P01/P2-P01-A1`, and the only future input handoff is
-`/Users/ketchup/Private/ai-ecommerce-pilot/inputs/p01-public.txt`. The branch
-does not inspect or create private roots, search or synthesize input, or retry,
-recover or replay. The historical Grant remains `NOT_CONSUMED` but is
-`STALE_FOR_NEW_MAIN` after #351; `REAL_P01_INPUT_FILE_READY=NO` is based only
-on Owner/pre-call authority. The next action is
+`/Users/ketchup/Private/ai-ecommerce-pilot/inputs/p01-public.txt`. The former
+pending-review branch wording is historical only; the current follow-up is
+docs-only. The implementation did not inspect or create private roots, search
+or synthesize input, or retry, recover or replay. The historical Grant is
+`NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN`; `REAL_P01_INPUT_FILE_READY=NO` is based
+only on Owner/pre-call authority, and
+`AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT`. The next action is
 `WAIT_FOR_REAL_P01_INPUT_HANDOFF_AND_NEW_EXACT_MAIN_OWNER_GRANT`.
 
 ## Toolchain
