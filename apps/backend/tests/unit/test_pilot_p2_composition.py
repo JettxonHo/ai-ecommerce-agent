@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import subprocess
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, NoReturn, cast
@@ -62,6 +63,14 @@ SPEC_FACTORIES: tuple[SpecFactory, ...] = (
     marketing_brief_generation.marketing_brief_candidate_output_spec,
     xiaohongshu_brief_mapping.xiaohongshu_brief_candidate_output_spec,
 )
+
+
+def _actual_repository_head() -> str:
+    return subprocess.check_output(
+        ["git", "rev-parse", "HEAD"],
+        cwd=Path(__file__).resolve().parents[4],
+        text=True,
+    ).strip()
 
 
 def test_operator_binder_start_persists_observed_generation_without_review(
@@ -161,7 +170,7 @@ def test_operator_binder_start_persists_observed_generation_without_review(
         StartAttempt(
             input_path=input_path,
             artifact_root=artifact_root,
-            authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+            authorized_commit=_actual_repository_head(),
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )
@@ -260,7 +269,7 @@ def test_operator_binder_stage_three_failure_is_durable_and_terminal(
         StartAttempt(
             input_path=input_path,
             artifact_root=artifact_root,
-            authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+            authorized_commit=_actual_repository_head(),
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )
@@ -332,7 +341,7 @@ def test_operator_binder_rejects_controls_before_any_side_effect(
     start_kwargs: dict[str, object] = {
         "input_path": input_path,
         "artifact_root": artifact_root,
-        "authorized_commit": "cb77de2f96954a2d63ef00eead2f93bea1197649",
+        "authorized_commit": _actual_repository_head(),
         "owner_cap_micro_usd": DEEPSEEK_P2_RESERVATION_MICRO_USD,
         "pricing_record_id": DEEPSEEK_PRICING_RECORD.record_id,
     }
@@ -395,7 +404,7 @@ def test_operator_binder_rejects_wrong_artifact_root_before_composition(
             StartAttempt(
                 input_path=input_path,
                 artifact_root=artifact_parent / "wrong-root",
-                authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+                authorized_commit=_actual_repository_head(),
                 owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
                 pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
             )
@@ -443,7 +452,7 @@ def test_operator_binder_rejects_mismatched_caller_head_even_with_authorized_com
             StartAttempt(
                 input_path=input_path,
                 artifact_root=artifact_root,
-                authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+                authorized_commit=_actual_repository_head(),
                 git_commit="caller-supplied-wrong-head",
                 owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
                 pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
@@ -615,7 +624,7 @@ def test_operator_binder_confirm_and_capture_recomposes_without_runtime_calls(
         StartAttempt(
             input_path=input_path,
             artifact_root=artifact_root,
-            authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+            authorized_commit=_actual_repository_head(),
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )

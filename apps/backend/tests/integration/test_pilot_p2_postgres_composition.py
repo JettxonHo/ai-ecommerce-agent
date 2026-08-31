@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import socket
+import subprocess
 import warnings
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
@@ -52,6 +53,12 @@ variant: 42733233766550
 category: A
 sanitized permitted public product identity only
 """
+
+
+def _actual_repository_head() -> str:
+    return subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=_BACKEND_ROOT, text=True
+    ).strip()
 
 
 class _HttpResponse(Protocol):
@@ -828,7 +835,7 @@ def test_p2_operator_binder_drives_full_provider_free_postgres_lifecycle(
         StartAttempt(
             input_path=input_path,
             artifact_root=artifact_root,
-            authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+            authorized_commit=_actual_repository_head(),
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )
