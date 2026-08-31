@@ -943,6 +943,21 @@ def test_attempt_finalization_qualifies_only_approved_export(tmp_path: Path) -> 
     assert outcome_path.read_bytes() == outcome_before_mutation
 
 
+def test_pass_rejects_durable_phase_metadata() -> None:
+    """Phase-specific failure metadata is only valid on non-PASS outcomes."""
+
+    command = cast(Any, FinalizeAttempt)(
+        outcome=FinalDisposition.PASS,
+        reason_code="qualifying_approved_export",
+        error_category="operator_failure",
+        terminal_stage="confirmation",
+    )
+    with pytest.raises(AttemptArtifactError):
+        PilotAttemptArtifacts._validate_finalize(  # pyright: ignore[reportPrivateUsage]
+            command
+        )
+
+
 @pytest.mark.parametrize(
     ("reserved_micro_usd", "owner_cap_micro_usd", "reject"),
     (

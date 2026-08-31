@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
@@ -896,6 +897,8 @@ def test_operator_binder_stage_three_failure_is_durable_and_terminal(
     assert snapshot.outcome == "FAIL"
     assert snapshot.outcome_record is not None
     assert snapshot.outcome_record["reason_code"] == "execution_not_qualified"
+    assert snapshot.outcome_record["error_category"] == "operator_failure"
+    assert snapshot.outcome_record["terminal_stage"] == "stage-3"
     assert "traceback" not in str(snapshot.outcome_record).casefold()
     assert [method for method, _path in client.calls] == ["POST", "PUT", "POST"]
 
@@ -1283,6 +1286,163 @@ def test_operator_binder_confirm_and_capture_recomposes_without_runtime_calls(
         "POST",
         "GET",
     ]
+
+
+@pytest.mark.parametrize("failure_phase", ("confirmation", "export"))
+def test_confirm_failure_durable_phase_and_fresh_read(
+    failure_phase: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A later confirmation failure survives a new binder instance."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        ConfirmAndCapture,
+        PilotP2Operator,
+        StartAttempt,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[4]
+
+    class _Client:
+        def create_task(self, *, idempotency_key: str) -> dict[str, object]:
+            del idempotency_key
+            return {"taskId": "task-confirm-failure", "revision": 1}
+
+        def save_primary_input(
+            self, *, task_id: str, content: str, file_name: str
+        ) -> dict[str, object]:
+            del content, file_name
+            return {"taskId": task_id, "inputRevision": 1}
+
+        def generate_result(
+            self, *, task_id: str, input_revision: int, idempotency_key: str
+        ) -> dict[str, object]:
+            del idempotency_key
+            return {
+                "taskId": task_id,
+                "inputRevision": input_revision,
+                "resultRevision": 1,
+                "status": "awaiting_review",
+            }
+
+        def current_result(self, *, task_id: str) -> dict[str, object]:
+            return {
+                "taskId": task_id,
+                "inputRevision": 1,
+                "resultRevision": 1,
+                "status": "awaiting_review",
+            }
+
+        def confirm_result(
+            self,
+            *,
+            task_id: str,
+            result_revision: int,
+            marketing_core_message: str,
+            xiaohongshu_title_direction: str,
+            idempotency_key: str,
+        ) -> dict[str, object]:
+            del (
+                task_id,
+                result_revision,
+                marketing_core_message,
+                xiaohongshu_title_direction,
+                idempotency_key,
+            )
+            if failure_phase == "confirmation":
+                raise ValueError("synthetic confirmation failure")
+            return {"taskId": "task-confirm-failure", "resultRevision": 1}
+
+        def preview_export(self, *, task_id: str, brief_kind: str) -> dict[str, object]:
+            del task_id, brief_kind
+            if failure_phase == "export":
+                raise ValueError("synthetic export failure")
+            return {}
+
+    class _Composition:
+        application = object()
+        observer = _StaticObserver(
+            {
+                "attempted_count": 5,
+                "completed_count": 5,
+                "calls": tuple(
+                    {
+                        "model_call_id": f"P2-P01-A1-stage-{index}",
+                        "status": "COMPLETED",
+                    }
+                    for index in range(1, 6)
+                ),
+            }
+        )
+
+        def close(self) -> None:
+            return None
+
+    client = _Client()
+
+    def compose_fake(*_args: object, **_kwargs: object) -> object:
+        return _Composition()
+
+    def http_fake(_application: object) -> object:
+        return client
+
+    _set_operator_test_dependencies(
+        monkeypatch,
+        composition_factory=compose_fake,
+        http_client_factory=http_fake,
+    )
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://user:password@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+    )
+    started = operator.apply(
+        StartAttempt(
+            input_path=input_path,
+            artifact_root=artifact_root,
+            authorized_commit=_actual_repository_head(),
+            owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+            pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+        )
+    )
+    assert started.status == "AWAITING_CONFIRMATION"
+
+    failed = operator.apply(
+        ConfirmAndCapture(
+            brief_kinds=("marketing",),
+            marketing_core_message="Reviewed product message",
+            xiaohongshu_title_direction="Reviewed title direction",
+        )
+    )
+    assert failed.status == "FAIL"
+    outcome = json.loads((artifact_root / "outcome.json").read_text(encoding="utf-8"))
+    assert outcome["error_category"] == "operator_failure"
+    assert outcome["terminal_stage"] == failure_phase
+
+    fresh = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://user:password@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+    ).read()
+    assert fresh.status == "FAIL"
+    assert fresh.error_category == outcome["error_category"]
+    assert fresh.terminal_stage == outcome["terminal_stage"]
 
 
 def test_operator_binder_explicit_review_and_finalize_qualifies_unknown_actual_cost(

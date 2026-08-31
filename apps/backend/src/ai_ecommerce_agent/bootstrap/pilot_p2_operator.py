@@ -93,6 +93,21 @@ _SAFE_FAILURE_CATEGORIES = frozenset(
         "operator_failure",
     }
 )
+_SAFE_LIFECYCLE_PHASES = frozenset({"generation", "confirmation", "export"})
+_SAFE_TERMINAL_STAGES = frozenset(
+    {
+        "generation",
+        "confirmation",
+        "export",
+        "review",
+        "finalization",
+        "stage-1",
+        "stage-2",
+        "stage-3",
+        "stage-4",
+        "stage-5",
+    }
+)
 
 
 class OperatorErrorCode(StrEnum):
@@ -873,6 +888,7 @@ class PilotP2Operator:
                     result_id=result_id,
                     result_revision=result_revision,
                     input_revision=input_revision,
+                    lifecycle_phase="generation",
                     owner_cap_micro_usd=owner_cap,
                     pricing_record_id=pricing_record_id,
                     error=error,
@@ -925,6 +941,7 @@ class PilotP2Operator:
             raise PilotP2OperatorError(OperatorErrorCode.RESUME_NOT_AVAILABLE)
         composition: Any | None = None
         observer: _ObserverLike = P2RuntimeObserver()
+        lifecycle_phase = "confirmation"
         primary_failure: PilotP2OperatorError | None = None
         try:
             composition, observer = self._compose(
@@ -953,6 +970,7 @@ class PilotP2Operator:
                 xiaohongshu_title_direction=command.xiaohongshu_title_direction,
                 idempotency_key=f"operator-{_ATTEMPT_ID}-confirm",
             )
+            lifecycle_phase = "export"
             for kind in kinds:
                 preview = client.preview_export(task_id=task_id, brief_kind=kind)
                 basis = self._mapping(preview, "basis")
@@ -991,6 +1009,7 @@ class PilotP2Operator:
                     result_id=current.result_id,
                     result_revision=result_revision,
                     input_revision=current.input_revision,
+                    lifecycle_phase=lifecycle_phase,
                     owner_cap_micro_usd=cap,
                     pricing_record_id=pricing,
                     error=error,
@@ -1277,11 +1296,17 @@ class PilotP2Operator:
         result_id: str | None,
         result_revision: int | None,
         input_revision: int | None,
+        lifecycle_phase: str,
         owner_cap_micro_usd: int,
         pricing_record_id: str,
         error: BaseException,
     ) -> None:
         category = self._error_category(error)
+        phase_stage = (
+            lifecycle_phase
+            if lifecycle_phase in _SAFE_LIFECYCLE_PHASES
+            else "generation"
+        )
         current_run: Mapping[str, object] | None = None
         current_outcome: str | None = None
         try:
@@ -1361,6 +1386,16 @@ class PilotP2Operator:
                 if isinstance(result, Mapping)
                 else result_revision
             )
+            current_calls = tuple(
+                cast(Mapping[str, object], value)
+                for value in cast(Sequence[object], current_run.get("calls", ()))
+                if isinstance(value, Mapping)
+            )
+            terminal_stage = (
+                self._failure_stage(current_calls)
+                if phase_stage == "generation"
+                else phase_stage
+            )
             artifacts.apply(
                 ArtifactFinalizeAttempt(
                     task_id=resolved_task_id,
@@ -1383,18 +1418,14 @@ class PilotP2Operator:
                         call_count=call_count,
                         manual_intervention_count=0,
                     ),
+                    error_category=category,
+                    terminal_stage=terminal_stage,
                 )
             )
         except (AttemptArtifactError, PilotP2OperatorError):
             raise PilotP2OperatorError(OperatorErrorCode.DURABILITY_FAILED) from None
         self._last_error_category = category
-        self._terminal_stage = self._failure_stage(
-            tuple(
-                cast(Mapping[str, object], value)
-                for value in cast(Sequence[object], current_run.get("calls", ()))
-                if isinstance(value, Mapping)
-            )
-        )
+        self._terminal_stage = terminal_stage
 
     def _capture_export(
         self,
@@ -1560,6 +1591,16 @@ class PilotP2Operator:
         observation: Mapping[str, object] = {}
         error_category = self._last_error_category
         terminal_stage = self._terminal_stage
+        if isinstance(artifact.outcome_record, Mapping):
+            durable_category = artifact.outcome_record.get("error_category")
+            if (
+                type(durable_category) is str
+                and durable_category in _SAFE_FAILURE_CATEGORIES
+            ):
+                error_category = durable_category
+            durable_stage = artifact.outcome_record.get("terminal_stage")
+            if type(durable_stage) is str and durable_stage in _SAFE_TERMINAL_STAGES:
+                terminal_stage = durable_stage
         if run is not None:
             task = run.get("task")
             result = run.get("result")
@@ -1617,7 +1658,7 @@ class PilotP2Operator:
                         == "failure_category"
                     ):
                         value = cast(Mapping[str, object], ref).get("value")
-                        if type(value) is str:
+                        if error_category is None and type(value) is str:
                             error_category = value
                     if (
                         isinstance(ref, Mapping)
@@ -1625,7 +1666,7 @@ class PilotP2Operator:
                         == "terminal_stage"
                     ):
                         value = cast(Mapping[str, object], ref).get("value")
-                        if type(value) is str:
+                        if terminal_stage is None and type(value) is str:
                             terminal_stage = value
                     if (
                         isinstance(ref, Mapping)

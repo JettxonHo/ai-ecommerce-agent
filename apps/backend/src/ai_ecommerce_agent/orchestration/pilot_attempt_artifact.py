@@ -150,6 +150,33 @@ _FINAL_REASON_CODES: Final[frozenset[str]] = frozenset(
         "missing_export",
     }
 )
+_SAFE_ERROR_CATEGORIES: Final[frozenset[str]] = frozenset(
+    {
+        "configuration_or_access",
+        "invalid_request",
+        "transient_provider_failure",
+        "refusal",
+        "incomplete_output",
+        "invalid_candidate",
+        "cancelled_or_superseded",
+        "unknown_runtime_failure",
+        "operator_failure",
+    }
+)
+_SAFE_TERMINAL_STAGES: Final[frozenset[str]] = frozenset(
+    {
+        "generation",
+        "confirmation",
+        "export",
+        "review",
+        "finalization",
+        "stage-1",
+        "stage-2",
+        "stage-3",
+        "stage-4",
+        "stage-5",
+    }
+)
 _SAFE_ID_CHARS: Final[str] = (
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:-"
 )
@@ -1012,6 +1039,8 @@ class FinalizeAttempt:
     automated_gates: FinalizationGates | None = None
     cost: FinalizationCost | None = None
     execution: FinalizationExecution | None = None
+    error_category: str | None = None
+    terminal_stage: str | None = None
     immutable: bool = True
 
     def to_mapping(self) -> dict[str, object]:
@@ -1020,7 +1049,7 @@ class FinalizeAttempt:
             if isinstance(self.outcome, FinalDisposition)
             else self.outcome
         )
-        return {
+        record: dict[str, object] = {
             "record_type": "attempt_outcome",
             "sample_id": self.sample_id,
             "attempt_id": self.attempt_id,
@@ -1069,6 +1098,11 @@ class FinalizeAttempt:
             },
             "immutable": self.immutable,
         }
+        if self.error_category is not None:
+            record["error_category"] = self.error_category
+        if self.terminal_stage is not None:
+            record["terminal_stage"] = self.terminal_stage
+        return record
 
 
 def _final_disposition(value: FinalDisposition | str) -> FinalDisposition:
@@ -1612,6 +1646,22 @@ class PilotAttemptArtifacts:
             _safe_id(command.reason_code, "reason_code")
             if command.reason_code not in _FINAL_REASON_CODES:
                 raise ValueError("reason_code is not fixed")
+            if command.error_category is not None:
+                if (
+                    type(command.error_category) is not str
+                    or command.error_category not in _SAFE_ERROR_CATEGORIES
+                ):
+                    raise ValueError("error_category is not fixed")
+            if command.terminal_stage is not None:
+                if (
+                    type(command.terminal_stage) is not str
+                    or command.terminal_stage not in _SAFE_TERMINAL_STAGES
+                ):
+                    raise ValueError("terminal_stage is not fixed")
+            if disposition == FinalDisposition.PASS and (
+                command.error_category is not None or command.terminal_stage is not None
+            ):
+                raise ValueError("PASS cannot carry failure metadata")
             if (
                 disposition != FinalDisposition.PASS
                 and (command.task_id is None or command.result_id is None)
@@ -1724,6 +1774,10 @@ class PilotAttemptArtifacts:
         if command.outcome is None:
             raise AttemptArtifactError(ArtifactErrorCode.INVALID_COMMAND, "finalize")
         disposition = _final_disposition(command.outcome)
+        if disposition == FinalDisposition.PASS and (
+            command.error_category is not None or command.terminal_stage is not None
+        ):
+            raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         gates = command.automated_gates
         cost = command.cost
         execution = command.execution

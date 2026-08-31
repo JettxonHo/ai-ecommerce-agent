@@ -121,6 +121,15 @@ generated client/public routes, dependencies/locks, `local_demo.py`, default
 scripted path, Pilot Contract/P0 plan, private P01 material, `.env`, Secret,
 Provider, participant and UI behavior remain protected.
 
+## Independent re-review follow-up
+
+The first independent Sol/xhigh review at `e6cc9d1` identified eight required
+findings (R1–R8). Follow-up commit `34cc3a4` addressed those findings and the
+fresh re-review identified two required durability/scope follow-ups. This
+follow-up adds durable phase-specific Confirm/export failure metadata with
+fresh-reader parity and records the cumulative changed subset below; the
+branch remains pending final independent re-review.
+
 ## Verification
 
 Provider-free local evidence on this branch:
@@ -134,7 +143,7 @@ Provider-free local evidence on this branch:
 - `uv build`: source distribution and wheel PASS;
 - guarded PostgreSQL/API binder lifecycle: one PASS through repository
   lifecycle helpers, fake runtime, exact loopback and paired-volume cleanup;
-- exact 13-path changed subset is within the Issue #350 18-path allowlist;
+- exact 15-path changed subset is within the Issue #350 18-path allowlist;
   protected paths are untouched, docs links/fences resolve, and
   `git diff --check` passes.
 
