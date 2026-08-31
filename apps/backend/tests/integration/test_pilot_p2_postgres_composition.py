@@ -743,7 +743,7 @@ def test_p2_postgres_http_rejects_wrong_frozen_identity_before_runtime(
             saved_body = _json_object(saved)
             generated = client.post(
                 f"/api/v1/tasks/{task_id}/commands/generate-result",
-                headers={"Idempotency-Key": "p2-invalid-generate"},
+                headers={"Idempotency-Key": "test"},
                 json={"expectedInputRevision": _json_int(saved_body, "inputRevision")},
             )
             current = client.get(f"/api/v1/tasks/{task_id}/current-result")
