@@ -53,8 +53,9 @@ unchanged.
 The historical held Grant remains `NOT_CONSUMED`; because PR #351 is already
 merge-effective, it is `STALE_FOR_NEW_MAIN` for any future exact-main run.
 `REAL_P01_INPUT_FILE_READY=NO` is based only on Owner/pre-call authority. This
-workflow does not inspect, create or validate the private input or artifact
-roots, and no real P01 content is retained.
+provider-free implementation run did not inspect or create the private input
+or artifact roots, and no real P01 content is retained. A future run with a
+new Grant may perform only the metadata pre-call checks described above.
 
 ```text
 REAL_P01_EXECUTION_CONTROL_ALIGNED = PENDING_INDEPENDENT_REVIEW
