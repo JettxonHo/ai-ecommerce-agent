@@ -16,17 +16,19 @@ remain unchanged. The predecessor P4B result remains
 unauthorized.
 
 The successor [MVP-0L Local AI Web App Delivery Goal](../../docs/goals/mvp0-local-ai-web-app-delivery-goal.md)
-is `REBASELINE_PENDING` on the Issue #339 branch; L0–L3 are merged/current through PRs #317, #328, #330 and #332 at
-exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 records
-the L4 offline qualification as `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, with
+is `TERMINAL_INCOMPLETE_L5_FAILED` after the merge-effective DEC-087 rebaseline;
+L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact
+`origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`. Issue #333 records the L4
+offline qualification as `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, with
 production diff zero and no Phase-B amendment. Issue #335 records terminal
 `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head
 `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is
 consumed and no further run is authorized. L6 is `NOT_EXECUTED`, and Agent UI
-remains frozen. Only after the reviewed [DEC-087](../../docs/decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md)
-documentation PR reaches `main` does MVP-0L become `TERMINAL_INCOMPLETE_L5_FAILED`,
-the Pilot become `ACTIVE`, and P0 become `READY_NOT_STARTED`; P0 is `NOT_STARTED`
-on this branch. Its historical exact order is L0 → L1 → L2 → L3 → L4 → L5 → L6.
+remains frozen. Issue #345 / PR #346's response-key harness repair is
+merge-effective at base `8c43068038d4c3859383d68263f0ab0336480f6a`. Issue #347 is
+`P2_READINESS_IMPLEMENTATION_IN_PROGRESS`; only a reviewed PR reaching `main`
+may set `P2_READINESS_IMPLEMENTED = YES`. The real P01 Grant and Pilot execution
+remain `NOT_AUTHORIZED`; this Web README records no business outcome.
 L0 was docs-only; the
 existing Issue #318 adds no Provider acceptance or authorization. Issue #329's test-only
 follow-up restores stale revision/idempotency rejections before and after
@@ -66,6 +68,25 @@ signature remains ambiguous and no production behavior changed. No further
 runtime, Provider/model or Secret access was authorized within L4; Agent UI
 production remains frozen. Future Pilot P1 carries the post-confirm/no-export
 boundary as a provider-free characterization target, not an approved repair.
+
+## P2 readiness boundary
+
+Issue #347 is currently `P2_READINESS_IMPLEMENTATION_IN_PROGRESS` on this
+branch. The accepted base is
+`8c43068038d4c3859383d68263f0ab0336480f6a`; Issue #345 / PR #346 is already
+merge-effective. P2 readiness evidence is provider-free implementation and
+composition evidence only. It does not authorize a real P01 run, participant
+execution, Secret or Provider access, numerator, ratio or business outcome.
+Only a reviewed Issue #347 PR reaching `main` may set
+`P2_READINESS_IMPLEMENTED = YES`. The fixed reservation, immutable
+PilotAttemptArtifacts, explicit Human Review and qualifying-export rules stay
+separate from this frontend foundation. Four allowlisted PostgreSQL/FastAPI
+composition paths remain byte-identical; `deterministic_result_postgres.py` is
+the accepted architecture-RED exception and changes only to expose the
+canonical factory helper. The outside-Git artifact layout persists sanitized
+export metadata sidecars beside fixed Markdown files for fresh-reader
+reconstruction; no migration, local-demo, public API or default-composition
+change is implied.
 
 ## Toolchain
 
