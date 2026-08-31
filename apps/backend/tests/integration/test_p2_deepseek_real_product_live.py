@@ -27,8 +27,11 @@ P2_RESERVATION_MICRO_USD: Final[int] = 6_783_834
 P2_PRIVATE_INPUTS_ROOT: Final[Path] = Path(
     "/Users/ketchup/Private/ai-ecommerce-pilot/inputs"
 )
-P2_PRIVATE_ARTIFACT_ROOT: Final[Path] = Path(
-    "/Users/ketchup/Private/ai-ecommerce-pilot/p2/P01"
+P2_PRIVATE_ARTIFACT_PARENT: Final[Path] = Path(
+    "/Users/ketchup/Private/ai-ecommerce-pilot/p2"
+)
+P2_PRIVATE_ARTIFACT_ROOT: Final[Path] = (
+    P2_PRIVATE_ARTIFACT_PARENT / P2_SAMPLE_ID / P2_ATTEMPT_ID
 )
 P2_OPT_IN_ENVIRONMENT: Final[str] = "AI_ECOMMERCE_RUN_P2_REAL"
 
@@ -260,7 +263,7 @@ def _preflight_controls(
         _fail("artifact_root_invalid")
     if artifact_root.is_symlink() or artifact_root.exists():
         _fail("artifact_root_must_be_absent")
-    if artifact_root != approved_artifact_root / P2_SAMPLE_ID:
+    if artifact_root != approved_artifact_root / P2_SAMPLE_ID / P2_ATTEMPT_ID:
         _fail("artifact_root_mismatch")
     try:
         artifact_root.relative_to(repository_root)
@@ -360,7 +363,7 @@ def _controls_from_environment() -> P2LiveControlConfig:
         input_path=Path(_required_environment_value("AI_ECOMMERCE_P2_INPUT_PATH")),
         approved_inputs_root=P2_PRIVATE_INPUTS_ROOT,
         artifact_root=P2_PRIVATE_ARTIFACT_ROOT,
-        approved_artifact_root=P2_PRIVATE_ARTIFACT_ROOT.parent,
+        approved_artifact_root=P2_PRIVATE_ARTIFACT_PARENT,
         repository_root=repository_root,
     )
 
@@ -369,13 +372,23 @@ def _validate_run_evidence(run: P2RunEvidence, controls: P2LiveControlConfig) ->
     if type(run) is not P2RunEvidence:
         _fail("run_evidence_invalid")
     if (
-        run.task_id != "task-P01"
-        or run.task_revision != 1
-        or run.result_id != "result-P01"
-        or run.result_revision != 1
-        or run.provider_id != "deepseek"
-        or run.call_ids
-        != tuple(f"P2-P01-A1-stage-{index}" for index in range(1, P2_MAX_CALLS + 1))
+        type(run.task_id) is not str
+        or not run.task_id.strip()
+        or any(character in run.task_id for character in "\r\n")
+        or type(run.result_id) is not str
+        or not run.result_id.strip()
+        or any(character in run.result_id for character in "\r\n")
+        or type(run.task_revision) is not int
+        or isinstance(run.task_revision, bool)
+        or run.task_revision < 0
+        or type(run.result_revision) is not int
+        or isinstance(run.result_revision, bool)
+        or run.result_revision < 0
+        or run.result_id != f"{run.task_id}:r{run.result_revision}"
+    ):
+        _fail("run_identity_or_provider_mismatch")
+    if run.provider_id != "deepseek" or run.call_ids != tuple(
+        f"P2-P01-A1-stage-{index}" for index in range(1, P2_MAX_CALLS + 1)
     ):
         _fail("run_identity_or_provider_mismatch")
     if len(run.call_ids) != controls.max_calls:
@@ -417,7 +430,7 @@ def _validate_export_evidence(
             export.content_bytes.decode("utf-8")
         except UnicodeDecodeError:
             _fail("export_bytes_invalid")
-    if run.task_id != "task-P01" or controls.sample_id != P2_SAMPLE_ID:
+    if controls.sample_id != P2_SAMPLE_ID:
         _fail("export_identity_mismatch")
 
 

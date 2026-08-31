@@ -269,6 +269,52 @@ def test_p2_bootstrap_rejects_identity_or_cost_before_factory(
     assert factory_calls == 0
 
 
+@pytest.mark.parametrize(
+    ("label", "wrong_line"),
+    (
+        ("product", "product: Anker Nano Power Bankx"),
+        ("model", "model/designation: A1258"),
+        ("color", "color: White"),
+        ("variant", "variant: 42733233766551"),
+        ("category", "category: B"),
+    ),
+)
+def test_p2_rejects_wrong_frozen_product_identity_before_cost_gate(
+    monkeypatch: pytest.MonkeyPatch, label: str, wrong_line: str
+) -> None:
+    """The P01 content contract is checked before any cost/runtime seam."""
+
+    del label
+    factory_calls = 0
+
+    def never_create(
+        _requests: tuple[ModelCallRequest, ...], _payloads: tuple[str, ...]
+    ) -> NoReturn:
+        nonlocal factory_calls
+        factory_calls += 1
+        raise AssertionError("runtime factory must not run for an identity mismatch")
+
+    monkeypatch.setattr(pilot_p2, "_create_deepseek_runtime", never_create)
+    input_text = P01_SANITIZED_INPUT
+    original_line = next(
+        line
+        for line in input_text.splitlines()
+        if line.split(":", 1)[0] in wrong_line.split(":", 1)[0]
+    )
+    invalid_input = input_text.replace(original_line, wrong_line)
+
+    with pytest.raises(ValueError, match="P2 input identity"):
+        pilot_p2.compose_pilot_p2_pipeline(
+            sample_id="P01",
+            attempt_id="P2-P01-A1",
+            input_text=invalid_input,
+            owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+            pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+        )
+
+    assert factory_calls == 0
+
+
 def test_non_pilot_scripted_coordinator_remains_valid() -> None:
     result = DeterministicPipelineCoordinator(
         SPEC_FACTORIES,
@@ -372,3 +418,26 @@ def test_p2_missing_runtime_admission_fails_closed_before_factory_or_calls() -> 
         0,
         0,
     )
+
+
+def test_p2_composition_preserves_generation_error_when_runtime_close_also_fails() -> (
+    None
+):
+    class _FailingCoordinator:
+        def generate(self, *, input_text: str) -> object:
+            del input_text
+            raise RuntimeError("generation-primary")
+
+    class _FailingRuntime:
+        def close(self) -> None:
+            raise RuntimeError("close-secondary")
+
+    composition = pilot_p2.PilotP2Composition(
+        sample_id="P01",
+        attempt_id="P2-P01-A1",
+        input_text=P01_SANITIZED_INPUT,
+        _coordinator=_FailingCoordinator(),  # type: ignore[arg-type]
+        _runtime_holder=[_FailingRuntime()],  # type: ignore[list-item]
+    )
+    with pytest.raises(RuntimeError, match="generation-primary"):
+        composition.generate()

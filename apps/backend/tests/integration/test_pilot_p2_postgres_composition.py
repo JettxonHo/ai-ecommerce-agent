@@ -26,6 +26,9 @@ from ai_ecommerce_agent.application.model_runtime import (
     ModelCallResult,
 )
 from ai_ecommerce_agent.bootstrap import pilot_p2
+from ai_ecommerce_agent.bootstrap.deterministic_result_postgres import (
+    DeterministicResultPostgresComposition,
+)
 from ai_ecommerce_agent.entrypoints.http import FixedWorkspaceHttpConfig
 from ai_ecommerce_agent.platform.model_runtime.deepseek._cost_gate import (
     DEEPSEEK_P2_RESERVATION_MICRO_USD,
@@ -318,6 +321,80 @@ def test_p2_postgres_composition_is_lazy_and_owns_existing_seams(
     assert all(participant.close_calls == 1 for participant in participants)
 
 
+def test_p2_postgres_close_attempts_every_owned_participant_after_primary_error() -> (
+    None
+):
+    class _RaisingParticipant:
+        def __init__(self, message: str = "primary-close") -> None:
+            self.calls = 0
+            self.message = message
+
+        def close(self) -> None:
+            self.calls += 1
+            raise RuntimeError(self.message)
+
+    class _ClosableParticipant:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def close(self) -> None:
+            self.calls += 1
+
+    coordinator = _RaisingParticipant()
+    result = _ClosableParticipant()
+    primary = _ClosableParticipant()
+    task = _ClosableParticipant()
+    composition = pilot_p2.PilotP2PostgresComposition(
+        application=object(),
+        task=task,  # type: ignore[arg-type]
+        primary_input=primary,  # type: ignore[arg-type]
+        result=result,  # type: ignore[arg-type]
+        coordinator=coordinator,  # type: ignore[arg-type]
+    )
+
+    with pytest.raises(RuntimeError, match="primary-close"):
+        composition.close()
+    assert coordinator.calls == 1
+    assert result.calls == 1
+    assert primary.calls == 1
+    assert task.calls == 1
+    composition.close()
+    assert coordinator.calls == 1
+    assert result.calls == 1
+    assert primary.calls == 1
+    assert task.calls == 1
+
+
+def test_result_participant_close_attempts_export_after_application_error() -> None:
+    class _RaisingParticipant:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def close(self) -> None:
+            self.calls += 1
+            raise RuntimeError("result-close")
+
+    class _ClosableParticipant:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def close(self) -> None:
+            self.calls += 1
+
+    application = _RaisingParticipant()
+    export_application = _ClosableParticipant()
+    participant = DeterministicResultPostgresComposition(
+        engine=object(),  # type: ignore[arg-type]
+        application=application,  # type: ignore[arg-type]
+        export_application=export_application,
+        coordinator=object(),  # type: ignore[arg-type]
+    )
+    with pytest.raises(RuntimeError, match="result-close"):
+        participant.close()
+    assert application.calls == 1
+    assert export_application.calls == 1
+
+
 @pytest.mark.parametrize("brief_kind", ("marketing", "xiaohongshu"))
 @pytest.mark.skipif(
     not _RUN_POSTGRES,
@@ -499,7 +576,7 @@ def test_p2_postgres_current_head_lifecycle_uses_real_ids_and_export_bytes(
             },
             cost={
                 "reserved_micro_usd": DEEPSEEK_P2_RESERVATION_MICRO_USD,
-                "actual_micro_usd": DEEPSEEK_P2_RESERVATION_MICRO_USD,
+                "actual_micro_usd": 0,
             },
         )
     )
@@ -567,6 +644,8 @@ def test_p2_postgres_current_head_lifecycle_uses_real_ids_and_export_bytes(
         captured_export_snapshot_ids=(_json_string(snapshot_body, "exportSnapshotId"),),
         reviewed_at=reviewed_at,
         dimensions=dimensions,
+        overall="APPROVED",
+        rationale="approved_all_applicable_critical_dimensions_pass",
     )
     artifacts.apply(review)
     outcome = artifacts.apply(
@@ -582,7 +661,7 @@ def test_p2_postgres_current_head_lifecycle_uses_real_ids_and_export_bytes(
             ),
             automated_gates=FinalizationGates(),
             cost=FinalizationCost(
-                actual_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+                actual_micro_usd=0,
                 owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
                 reservation_ref=DEEPSEEK_PRICING_RECORD.record_id,
             ),
@@ -592,3 +671,86 @@ def test_p2_postgres_current_head_lifecycle_uses_real_ids_and_export_bytes(
     assert outcome is not None
     assert outcome["outcome"] == "PASS"
     recomposed.close()
+
+
+@pytest.mark.skipif(
+    not _RUN_POSTGRES,
+    reason="set MVP0_RUN_TASK_HTTP_POSTGRES=1 for the opt-in P2 PostgreSQL lifecycle",
+)
+def test_p2_postgres_http_rejects_wrong_frozen_identity_before_runtime(
+    postgres_engine: Engine,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Persisted content mismatches fail before cost admission or runtime calls."""
+
+    from ai_ecommerce_agent.orchestration.deterministic_pipeline import (
+        build_scripted_runtime,
+    )
+
+    factory_calls = 0
+
+    class _RecordingRuntime:
+        def __init__(
+            self,
+            requests: tuple[ModelCallRequest, ...],
+            payloads: tuple[str, ...],
+        ) -> None:
+            self._delegate = build_scripted_runtime(requests, payloads)
+
+        def execute(self, request: ModelCallRequest) -> ModelCallResult:
+            return self._delegate.execute(request)
+
+    def fake_create(
+        requests: tuple[ModelCallRequest, ...], payloads: tuple[str, ...]
+    ) -> _RecordingRuntime:
+        nonlocal factory_calls
+        factory_calls += 1
+        return _RecordingRuntime(requests, payloads)
+
+    monkeypatch.setattr(pilot_p2, "_create_deepseek_runtime", fake_create)
+    database_url = os.environ[_DATABASE_URL_ENV]
+    composition = pilot_p2.compose_pilot_p2_postgres(
+        PostgresEngineConfig(database_url=database_url, pool_size=2, max_overflow=0),
+        FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+        schema=_SCHEMA,
+        owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+        pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+    )
+    invalid_input = P01_SANITIZED_INPUT.replace(
+        "product: Anker Nano Power Bank", "product: Not The Admitted Product"
+    )
+    try:
+        with _http_client(composition.application) as client:
+            created = client.post(
+                "/api/v1/tasks",
+                headers={"Idempotency-Key": "p2-invalid-task"},
+                json={
+                    "taskName": "P2 invalid identity",
+                    "productCategory": "Power bank",
+                    "promotionGoal": "Product launch",
+                },
+            )
+            created_body = _json_object(created)
+            task_id = _json_string(created_body, "taskId")
+            saved = client.put(
+                f"/api/v1/tasks/{task_id}/primary-input",
+                json={
+                    "inputKind": "pasted_text",
+                    "fileName": None,
+                    "content": invalid_input,
+                },
+            )
+            saved_body = _json_object(saved)
+            generated = client.post(
+                f"/api/v1/tasks/{task_id}/commands/generate-result",
+                headers={"Idempotency-Key": "p2-invalid-generate"},
+                json={"expectedInputRevision": _json_int(saved_body, "inputRevision")},
+            )
+            current = client.get(f"/api/v1/tasks/{task_id}/current-result")
+        assert created.status_code == 201
+        assert saved.status_code == 200
+        assert generated.status_code >= 400
+        assert current.status_code == 404
+        assert factory_calls == 0
+    finally:
+        composition.close()

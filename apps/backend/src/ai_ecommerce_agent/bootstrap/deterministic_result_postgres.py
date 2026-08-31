@@ -854,8 +854,15 @@ class DeterministicResultPostgresComposition:
     coordinator: DeterministicPipelineCoordinator
 
     def close(self) -> None:
-        self.application.close()
-        self.export_application.close()
+        first_error: BaseException | None = None
+        for participant in (self.application, self.export_application):
+            try:
+                participant.close()
+            except BaseException as error:
+                if first_error is None:
+                    first_error = error
+        if first_error is not None:
+            raise first_error
 
 
 _DEFAULT_SPEC_FACTORIES: tuple[SpecFactory, ...] = (

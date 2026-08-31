@@ -46,6 +46,7 @@ __all__ = [
     "TaskReference",
     "ResultReference",
     "UsageSummary",
+    "UnknownValue",
 ]
 
 
@@ -89,6 +90,19 @@ class AttemptArtifactError(Exception):
         return f"{self.error_code}:{self.operation}"
 
 
+class UnknownValue(StrEnum):
+    """Typed values for metadata that is unavailable or cannot be derived."""
+
+    UNKNOWN = "UNKNOWN"
+    NOT_EXPOSED = "NOT_EXPOSED"
+    NOT_DERIVABLE = "NOT_DERIVABLE"
+
+
+_UNKNOWN_VALUES: Final[frozenset[str]] = frozenset(
+    value.value for value in UnknownValue
+)
+
+
 _SAMPLE_ID: Final[str] = "P01"
 _ATTEMPT_ID: Final[str] = "P2-P01-A1"
 _IDENTITY_RECORD_TYPE: Final[str] = "attempt_identity"
@@ -102,6 +116,9 @@ _EXPORT_SERVER_FILE_NAME_MAX_LENGTH: Final[int] = 128
 _EXPORT_FILE_NAMES: Final[dict[str, str]] = {
     "marketing": "marketing-brief.md",
     "xiaohongshu": "xiaohongshu-brief.md",
+}
+_EXPORT_METADATA_FILE_NAMES: Final[dict[str, str]] = {
+    kind: f"{kind}-export.json" for kind in _EXPORT_FILE_NAMES
 }
 _REVIEW_RECORD_TYPE: Final[str] = "human_review"
 _REVIEW_ROLES: Final[frozenset[str]] = frozenset(
@@ -197,6 +214,28 @@ def _optional_nonnegative_int(value: object, field_name: str) -> int | None:
     if value is None:
         return None
     return _nonnegative_int(value, field_name)
+
+
+def _observed_value(value: object, field_name: str) -> int | UnknownValue:
+    if value is None:
+        return UnknownValue.NOT_EXPOSED
+    if isinstance(value, UnknownValue):
+        return value
+    if type(value) is str and value in _UNKNOWN_VALUES:
+        return UnknownValue(value)
+    return _nonnegative_int(value, field_name)
+
+
+def _serialize_observed(value: int | UnknownValue | None) -> int | str:
+    if value is None:
+        return UnknownValue.UNKNOWN.value
+    return value.value if isinstance(value, UnknownValue) else value
+
+
+def _serialize_unknown(value: str | UnknownValue | None) -> str:
+    if value is None:
+        return UnknownValue.UNKNOWN.value
+    return value.value if isinstance(value, UnknownValue) else value
 
 
 def _timestamp(value: object, field_name: str) -> str | None:
@@ -355,16 +394,16 @@ class GateSummary:
 class UsageSummary:
     """Optional observed token usage; absent values remain ``None``."""
 
-    input_tokens: int | None = None
-    output_tokens: int | None = None
-    total_tokens: int | None = None
+    input_tokens: int | UnknownValue | None = UnknownValue.NOT_EXPOSED
+    output_tokens: int | UnknownValue | None = UnknownValue.NOT_EXPOSED
+    total_tokens: int | UnknownValue | None = UnknownValue.NOT_EXPOSED
 
     def __post_init__(self) -> None:
         for field_name in ("input_tokens", "output_tokens", "total_tokens"):
             object.__setattr__(
                 self,
                 field_name,
-                _optional_nonnegative_int(getattr(self, field_name), field_name),
+                _observed_value(getattr(self, field_name), field_name),
             )
 
     @classmethod
@@ -378,16 +417,16 @@ class UsageSummary:
         if set(mapping) - allowed:
             raise ValueError("usage contains unsupported fields")
         return cls(
-            input_tokens=cast(int | None, mapping.get("input_tokens")),
-            output_tokens=cast(int | None, mapping.get("output_tokens")),
-            total_tokens=cast(int | None, mapping.get("total_tokens")),
+            input_tokens=cast(int | UnknownValue | None, mapping.get("input_tokens")),
+            output_tokens=cast(int | UnknownValue | None, mapping.get("output_tokens")),
+            total_tokens=cast(int | UnknownValue | None, mapping.get("total_tokens")),
         )
 
-    def to_mapping(self) -> dict[str, int | None]:
+    def to_mapping(self) -> dict[str, int | str]:
         return {
-            "input_tokens": self.input_tokens,
-            "output_tokens": self.output_tokens,
-            "total_tokens": self.total_tokens,
+            "input_tokens": _serialize_observed(self.input_tokens),
+            "output_tokens": _serialize_observed(self.output_tokens),
+            "total_tokens": _serialize_observed(self.total_tokens),
         }
 
 
@@ -395,19 +434,25 @@ class UsageSummary:
 class CostSummary:
     """Optional integer micro-USD reservation/observation."""
 
-    reserved_micro_usd: int | None = None
-    actual_micro_usd: int | None = None
-    currency: str | None = None
+    reserved_micro_usd: int | UnknownValue | None = UnknownValue.UNKNOWN
+    actual_micro_usd: int | UnknownValue | None = UnknownValue.NOT_EXPOSED
+    currency: str | UnknownValue | None = UnknownValue.NOT_DERIVABLE
 
     def __post_init__(self) -> None:
         for field_name in ("reserved_micro_usd", "actual_micro_usd"):
             object.__setattr__(
                 self,
                 field_name,
-                _optional_nonnegative_int(getattr(self, field_name), field_name),
+                _observed_value(getattr(self, field_name), field_name),
             )
-        if self.currency is not None:
+        if type(self.currency) is str and self.currency in _UNKNOWN_VALUES:
+            object.__setattr__(self, "currency", UnknownValue(self.currency))
+        elif type(self.currency) is str:
             object.__setattr__(self, "currency", _safe_id(self.currency, "currency"))
+        elif self.currency is None:
+            object.__setattr__(self, "currency", UnknownValue.NOT_DERIVABLE)
+        elif not isinstance(self.currency, UnknownValue):
+            raise TypeError("currency must be a safe id or typed unknown")
 
     @classmethod
     def from_value(cls, value: object) -> CostSummary | None:
@@ -420,16 +465,20 @@ class CostSummary:
         if set(mapping) - allowed:
             raise ValueError("cost contains unsupported fields")
         return cls(
-            reserved_micro_usd=cast(int | None, mapping.get("reserved_micro_usd")),
-            actual_micro_usd=cast(int | None, mapping.get("actual_micro_usd")),
-            currency=cast(str | None, mapping.get("currency")),
+            reserved_micro_usd=cast(
+                int | UnknownValue | None, mapping.get("reserved_micro_usd")
+            ),
+            actual_micro_usd=cast(
+                int | UnknownValue | None, mapping.get("actual_micro_usd")
+            ),
+            currency=cast(str | UnknownValue | None, mapping.get("currency")),
         )
 
     def to_mapping(self) -> dict[str, object]:
         return {
-            "reserved_micro_usd": self.reserved_micro_usd,
-            "actual_micro_usd": self.actual_micro_usd,
-            "currency": self.currency,
+            "reserved_micro_usd": _serialize_observed(self.reserved_micro_usd),
+            "actual_micro_usd": _serialize_observed(self.actual_micro_usd),
+            "currency": _serialize_unknown(self.currency),
         }
 
 
@@ -541,7 +590,9 @@ class CallRecord:
             "provider_request_id": self.provider_request_id,
             "latency_ms": self.latency_ms,
             "status": self.status,
-            "usage": None if self.usage is None else self.usage.to_mapping(),
+            "usage": UsageSummary().to_mapping()
+            if self.usage is None
+            else self.usage.to_mapping(),
         }
 
 
@@ -707,8 +758,10 @@ class RecordRun:
             "gates": None if gates is None else gates.to_mapping(),
             "call_count": self.call_count,
             "calls": [value.to_mapping() for value in call_records],
-            "usage": None if usage is None else usage.to_mapping(),
-            "cost": None if cost is None else cost.to_mapping(),
+            "usage": UsageSummary().to_mapping()
+            if usage is None
+            else usage.to_mapping(),
+            "cost": CostSummary().to_mapping() if cost is None else cost.to_mapping(),
             "refs": [value.to_mapping() for value in references],
         }
 
@@ -840,18 +893,6 @@ class ReviewDimension:
         }
 
 
-def _default_review_dimensions() -> tuple[ReviewDimension, ...]:
-    return (
-        ReviewDimension("product_fact_correctness", "PASS", True),
-        ReviewDimension("mandatory_messages", "PASS", True),
-        ReviewDimension("prohibited_claims", "PASS", True),
-        ReviewDimension("fabrication_misleading_content", "PASS", True),
-        ReviewDimension("marketing_brief_usability", "PASS", True),
-        ReviewDimension("xiaohongshu_consistency", "NOT_APPLICABLE", False),
-        ReviewDimension("markdown_delivery", "PASS", True),
-    )
-
-
 @dataclass(frozen=True, slots=True)
 class RecordReview:
     """Command carrying one immutable, sanitized P0 human review."""
@@ -863,14 +904,12 @@ class RecordReview:
     result_id: str | None = None
     result_revision: int | None = None
     review_id: str = "review-P2-P01-A1"
-    captured_export_snapshot_ids: tuple[str, ...] = ("export-P2-P01-A1",)
+    captured_export_snapshot_ids: tuple[str, ...] = ()
     reviewer_role: str = "author_operator"
     reviewed_at: datetime | str = "2026-08-31T00:03:00Z"
-    dimensions: tuple[ReviewDimension, ...] = field(
-        default_factory=_default_review_dimensions
-    )
-    overall: str = "APPROVED"
-    rationale: str = "approved_all_applicable_critical_dimensions_pass"
+    dimensions: tuple[ReviewDimension, ...] | None = None
+    overall: str | None = None
+    rationale: str | None = None
     notes: tuple[str, ...] = ()
     material_edits: tuple[str, ...] = ()
     record_type: str = _REVIEW_RECORD_TYPE
@@ -893,7 +932,9 @@ class RecordReview:
             "captured_export_snapshot_ids": list(self.captured_export_snapshot_ids),
             "reviewer_role": self.reviewer_role,
             "reviewed_at": _timestamp(self.reviewed_at, "reviewed_at"),
-            "dimensions": [value.to_mapping() for value in self.dimensions],
+            "dimensions": []
+            if self.dimensions is None
+            else [value.to_mapping() for value in self.dimensions],
             "overall": self.overall,
             "rationale": self.rationale,
             "notes": list(self.notes),
@@ -924,9 +965,23 @@ class FinalizationGates:
 class FinalizationCost:
     """Known actual cost and owner cap bound to one pricing reservation."""
 
-    actual_micro_usd: int
-    owner_cap_micro_usd: int
+    actual_micro_usd: int | UnknownValue
+    owner_cap_micro_usd: int | None
     reservation_ref: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "actual_micro_usd",
+            _observed_value(self.actual_micro_usd, "actual_micro_usd"),
+        )
+        owner_cap = _nonnegative_int(self.owner_cap_micro_usd, "owner_cap_micro_usd")
+        if owner_cap <= 0:
+            raise ValueError("owner_cap_micro_usd must be positive")
+        object.__setattr__(self, "owner_cap_micro_usd", owner_cap)
+        object.__setattr__(
+            self, "reservation_ref", _safe_id(self.reservation_ref, "reservation_ref")
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -951,19 +1006,13 @@ class FinalizeAttempt:
     task_revision: int | None = None
     result_id: str | None = None
     result_revision: int | None = None
-    outcome: FinalDisposition | str = FinalDisposition.PASS
-    reason_code: str = "qualifying_approved_export"
-    approved_review_id: str | None = "review-P2-P01-A1"
-    selected_export_snapshot_ids: tuple[str, ...] = ("export-P2-P01-A1",)
-    automated_gates: FinalizationGates = field(default_factory=FinalizationGates)
-    cost: FinalizationCost = field(
-        default_factory=lambda: FinalizationCost(
-            actual_micro_usd=6_783_834,
-            owner_cap_micro_usd=7_000_000,
-            reservation_ref="deepseek-v4-pro-2026-08-30-peak-v1",
-        )
-    )
-    execution: FinalizationExecution = field(default_factory=FinalizationExecution)
+    outcome: FinalDisposition | str | None = None
+    reason_code: str | None = None
+    approved_review_id: str | None = None
+    selected_export_snapshot_ids: tuple[str, ...] = ()
+    automated_gates: FinalizationGates | None = None
+    cost: FinalizationCost | None = None
+    execution: FinalizationExecution | None = None
     immutable: bool = True
 
     def to_mapping(self) -> dict[str, object]:
@@ -988,18 +1037,30 @@ class FinalizeAttempt:
             "reason_code": self.reason_code,
             "approved_review_id": self.approved_review_id,
             "selected_export_snapshot_ids": list(self.selected_export_snapshot_ids),
-            "automated_gates": {
+            "automated_gates": None
+            if self.automated_gates is None
+            else {
                 "schema": self.automated_gates.schema,
                 "domain": self.automated_gates.domain,
                 "persistence": self.automated_gates.persistence,
                 "export": self.automated_gates.export,
             },
             "cost": {
-                "actual_micro_usd": self.cost.actual_micro_usd,
-                "owner_cap_micro_usd": self.cost.owner_cap_micro_usd,
-                "reservation_ref": self.cost.reservation_ref,
+                "actual_micro_usd": _serialize_observed(
+                    UnknownValue.NOT_EXPOSED
+                    if self.cost is None
+                    else self.cost.actual_micro_usd
+                ),
+                "owner_cap_micro_usd": _serialize_observed(
+                    None if self.cost is None else self.cost.owner_cap_micro_usd
+                ),
+                "reservation_ref": _serialize_unknown(
+                    None if self.cost is None else self.cost.reservation_ref
+                ),
             },
-            "execution": {
+            "execution": None
+            if self.execution is None
+            else {
                 "call_count": self.execution.call_count,
                 "retry_count": self.execution.retry_count,
                 "recovery_count": self.execution.recovery_count,
@@ -1234,7 +1295,7 @@ class PilotAttemptArtifacts:
         raise AttemptArtifactError(ArtifactErrorCode.INVALID_COMMAND, "apply")
 
     def read(self, attempt_id: str) -> AttemptArtifactSnapshot:
-        """Read identity/run and project review as ``PENDING`` only."""
+        """Read durable identity/run/export/review/outcome metadata."""
 
         safe_attempt_id = _safe_id(attempt_id, "attempt_id")
         root = self._roots.get(safe_attempt_id)
@@ -1245,11 +1306,7 @@ class PilotAttemptArtifacts:
         identity = _safe_read_json(root / "identity.json")
         run_path = root / "run.json"
         run = None if not run_path.exists() else _safe_read_json(run_path)
-        exports = {
-            kind: projection
-            for (stored_attempt_id, kind), projection in self._exports.items()
-            if stored_attempt_id == safe_attempt_id
-        }
+        exports = self._load_exports(root, safe_attempt_id)
         review_path = root / "review.json"
         review_record: dict[str, object] | None = None
         review_state = "PENDING"
@@ -1357,6 +1414,8 @@ class PilotAttemptArtifacts:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "capture")
         self._ensure_not_terminal(root, "capture")
 
+        self._load_exports(root, command.attempt_id)
+
         kind = command.brief_kind
         key = (command.attempt_id, kind)
         existing = self._exports.get(key)
@@ -1373,10 +1432,14 @@ class PilotAttemptArtifacts:
         export_path = root / command.content_reference.value
         if export_path.exists() or _is_symlink(export_path):
             raise AttemptArtifactError(ArtifactErrorCode.RECORD_EXISTS, "capture")
+        metadata_path = root / "exports" / _EXPORT_METADATA_FILE_NAMES[kind]
+        if metadata_path.exists() or _is_symlink(metadata_path):
+            raise AttemptArtifactError(ArtifactErrorCode.RECORD_EXISTS, "capture")
         _exclusive_write_bytes(export_path, command.content_bytes)
         projection = command.to_mapping()
+        _exclusive_write(metadata_path, projection)
         self._exports[key] = projection
-        exports = {kind: projection}
+        exports = self._load_exports(root, command.attempt_id)
         return AttemptArtifactSnapshot(identity, run, "PENDING", root, exports)
 
     def _record_review(self, command: RecordReview) -> AttemptArtifactSnapshot:
@@ -1400,11 +1463,7 @@ class PilotAttemptArtifacts:
         if not self._run_matches_review(run, command):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "review")
 
-        exports = {
-            kind: projection
-            for (stored_attempt_id, kind), projection in self._exports.items()
-            if stored_attempt_id == command.attempt_id
-        }
+        exports = self._load_exports(root, command.attempt_id)
         selected_exports = self._review_export_selection(command, exports)
         self._validate_review_dimensions(command, selected_exports)
         reviewed_at = _timestamp(command.reviewed_at, "reviewed_at")
@@ -1471,11 +1530,7 @@ class PilotAttemptArtifacts:
         if not self._run_matches_finalize(run, command):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
 
-        exports = {
-            kind: projection
-            for (stored_attempt_id, kind), projection in self._exports.items()
-            if stored_attempt_id == command.attempt_id
-        }
+        exports = self._load_exports(root, command.attempt_id)
         selected_exports = self._finalize_export_selection(
             command.selected_export_snapshot_ids, exports
         )
@@ -1542,11 +1597,15 @@ class PilotAttemptArtifacts:
             _safe_id(command.result_id, "result_id")
             _nonnegative_int(command.task_revision, "task_revision")
             _nonnegative_int(command.result_revision, "result_revision")
-            _final_disposition(command.outcome)
+            if command.outcome is None:
+                raise ValueError("outcome is required")
+            disposition = _final_disposition(command.outcome)
+            if command.reason_code is None:
+                raise ValueError("reason_code is required")
             _safe_id(command.reason_code, "reason_code")
             if command.reason_code not in _FINAL_REASON_CODES:
                 raise ValueError("reason_code is not fixed")
-            if command.outcome == FinalDisposition.PASS:
+            if disposition == FinalDisposition.PASS:
                 if command.reason_code != "qualifying_approved_export":
                     raise ValueError("PASS reason_code is invalid")
             elif command.reason_code == "qualifying_approved_export":
@@ -1568,8 +1627,20 @@ class PilotAttemptArtifacts:
                     raise TypeError("automated gates must be bool")
             if type(command.cost) is not FinalizationCost:
                 raise TypeError("cost must be typed")
-            _nonnegative_int(command.cost.actual_micro_usd, "actual_micro_usd")
-            _nonnegative_int(command.cost.owner_cap_micro_usd, "owner_cap_micro_usd")
+            if type(command.cost.actual_micro_usd) not in (int, UnknownValue):
+                raise TypeError("actual_micro_usd must be observed or typed unknown")
+            if type(command.cost.owner_cap_micro_usd) is not int:
+                raise TypeError("owner_cap_micro_usd must be a known int")
+            if (
+                type(command.cost.actual_micro_usd) is int
+                and command.cost.actual_micro_usd < 0
+            ):
+                raise ValueError("actual_micro_usd must not be negative")
+            if (
+                type(command.cost.owner_cap_micro_usd) is int
+                and command.cost.owner_cap_micro_usd < 0
+            ):
+                raise ValueError("owner_cap_micro_usd must not be negative")
             _safe_id(command.cost.reservation_ref, "reservation_ref")
             if type(command.execution) is not FinalizationExecution:
                 raise TypeError("execution must be typed")
@@ -1635,7 +1706,18 @@ class PilotAttemptArtifacts:
         selected_exports: tuple[Mapping[str, object], ...],
         root: Path,
     ) -> None:
+        if command.outcome is None:
+            raise AttemptArtifactError(ArtifactErrorCode.INVALID_COMMAND, "finalize")
         disposition = _final_disposition(command.outcome)
+        gates = command.automated_gates
+        cost = command.cost
+        execution = command.execution
+        if (
+            type(gates) is not FinalizationGates
+            or type(cost) is not FinalizationCost
+            or type(execution) is not FinalizationExecution
+        ):
+            raise AttemptArtifactError(ArtifactErrorCode.INVALID_COMMAND, "finalize")
         if disposition != FinalDisposition.PASS:
             if (
                 command.selected_export_snapshot_ids
@@ -1644,6 +1726,121 @@ class PilotAttemptArtifacts:
                 raise AttemptArtifactError(
                     ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
                 )
+            reason_code = command.reason_code
+            if reason_code == "cost_cap_exceeded":
+                if disposition != FinalDisposition.BLOCKED:
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+            elif (
+                reason_code
+                in {
+                    "review_rejected",
+                    "automated_gate_failed",
+                    "execution_not_qualified",
+                    "missing_export",
+                }
+                and disposition != FinalDisposition.FAIL
+            ):
+                raise AttemptArtifactError(
+                    ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                )
+            if reason_code == "review_rejected":
+                reviewed_exports = (
+                    None
+                    if review_record is None
+                    else review_record.get("captured_export_snapshot_ids")
+                )
+                if (
+                    review_record is None
+                    or review_record.get("overall") != "REJECTED"
+                    or type(reviewed_exports) is not list
+                    or not reviewed_exports
+                ):
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+            elif reason_code == "automated_gate_failed":
+                run_gates = run.get("gates")
+                if not isinstance(run_gates, Mapping):
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+                run_gate_values = cast(Mapping[str, object], run_gates)
+                if (
+                    all((gates.schema, gates.domain, gates.persistence, gates.export))
+                    or all(
+                        run_gate_values.get(name) is True
+                        for name in ("schema", "domain", "persistence", "export")
+                    )
+                    or any(
+                        getattr(gates, name) is not run_gate_values.get(name)
+                        for name in ("schema", "domain", "persistence", "export")
+                    )
+                ):
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+            elif reason_code == "cost_cap_exceeded":
+                pricing = run.get("pricing")
+                run_cost = run.get("cost")
+                run_pricing = None
+                if isinstance(pricing, Mapping):
+                    run_pricing = cast(Mapping[str, object], pricing).get("record_id")
+                run_actual = (
+                    None
+                    if not isinstance(run_cost, Mapping)
+                    else cast(Mapping[str, object], run_cost).get("actual_micro_usd")
+                )
+                if (
+                    type(cost.actual_micro_usd) is not int
+                    or type(cost.owner_cap_micro_usd) is not int
+                    or cost.actual_micro_usd <= cost.owner_cap_micro_usd
+                    or run_pricing != cost.reservation_ref
+                    or run_actual != cost.actual_micro_usd
+                ):
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+            elif reason_code == "execution_not_qualified":
+                run_call_count = run.get("call_count")
+                run_calls = run.get("calls")
+                run_not_qualified = (
+                    type(run_call_count) is not int
+                    or run_call_count != 5
+                    or type(run_calls) not in (list, tuple)
+                    or len(cast(list[object] | tuple[object, ...], run_calls)) != 5
+                )
+                command_qualified = (
+                    execution.call_count == 5
+                    and execution.retry_count == 0
+                    and execution.recovery_count == 0
+                    and execution.replay_count == 0
+                    and execution.fallback_count == 0
+                    and execution.manual_intervention_count == 0
+                )
+                if not run_not_qualified and command_qualified:
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+            elif reason_code == "missing_export":
+                run_gates = run.get("gates")
+                if not isinstance(run_gates, Mapping):
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+                run_gate_values = cast(Mapping[str, object], run_gates)
+                if (
+                    run_gate_values.get("export") is not False
+                    or gates.export is not False
+                    or any(
+                        (root / "exports" / file_name).exists()
+                        for file_name in _EXPORT_METADATA_FILE_NAMES.values()
+                    )
+                ):
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
             return
         if not selected_exports or command.approved_review_id is None:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
@@ -1662,10 +1859,8 @@ class PilotAttemptArtifacts:
         )
         if set(reviewed_export_ids) != set(command.selected_export_snapshot_ids):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
-        gates = command.automated_gates
         if not all((gates.schema, gates.domain, gates.persistence, gates.export)):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
-        execution = command.execution
         if (
             execution.call_count != 5
             or execution.retry_count != 0
@@ -1705,11 +1900,14 @@ class PilotAttemptArtifacts:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         pricing_values = cast(Mapping[str, object], pricing)
         run_cost_values = cast(Mapping[str, object], run_cost)
-        if pricing_values.get("record_id") != command.cost.reservation_ref:
+        if pricing_values.get("record_id") != cost.reservation_ref:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
-        if run_cost_values.get("actual_micro_usd") != command.cost.actual_micro_usd:
+        if type(cost.actual_micro_usd) is not int:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
-        if command.cost.actual_micro_usd > command.cost.owner_cap_micro_usd:
+        if run_cost_values.get("actual_micro_usd") != cost.actual_micro_usd:
+            raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
+        owner_cap = cost.owner_cap_micro_usd
+        if type(owner_cap) is not int or cost.actual_micro_usd > owner_cap:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         for export in selected_exports:
             if export.get("immutable") is not True:
@@ -1744,20 +1942,33 @@ class PilotAttemptArtifacts:
 
     @staticmethod
     def _export_basis(value: Mapping[str, object]) -> tuple[object, ...]:
+        def canonical(item: object) -> object:
+            if isinstance(item, Mapping):
+                mapping = cast(Mapping[object, object], item)
+                return tuple(
+                    sorted(
+                        (str(key), canonical(nested)) for key, nested in mapping.items()
+                    )
+                )
+            if isinstance(item, (list, tuple)):
+                sequence = cast(Sequence[object], item)
+                return tuple(canonical(nested) for nested in sequence)
+            return item
+
         return (
-            value.get("sample_id"),
-            value.get("attempt_id"),
-            value.get("task"),
-            value.get("result"),
-            value.get("export_snapshot_id"),
-            value.get("brief_kind"),
-            value.get("brief_version"),
-            value.get("upstream_versions"),
-            value.get("exported_at"),
-            value.get("file_name"),
-            value.get("server_file_name"),
-            value.get("template_version"),
-            value.get("media_type"),
+            canonical(value.get("sample_id")),
+            canonical(value.get("attempt_id")),
+            canonical(value.get("task")),
+            canonical(value.get("result")),
+            canonical(value.get("export_snapshot_id")),
+            canonical(value.get("brief_kind")),
+            canonical(value.get("brief_version")),
+            canonical(value.get("upstream_versions")),
+            canonical(value.get("exported_at")),
+            canonical(value.get("file_name")),
+            canonical(value.get("server_file_name")),
+            canonical(value.get("template_version")),
+            canonical(value.get("media_type")),
         )
 
     @staticmethod
@@ -1887,6 +2098,10 @@ class PilotAttemptArtifacts:
                 raise ValueError("reviewer_role is not an approved role")
             if _timestamp(command.reviewed_at, "reviewed_at") is None:
                 raise ValueError("reviewed_at must not be blank")
+            if command.dimensions is None:
+                raise ValueError("review dimensions are required")
+            if command.overall is None or command.rationale is None:
+                raise ValueError("review decision and rationale are required")
             if type(command.dimensions) is not tuple:
                 raise TypeError("dimensions must be an exact tuple")
             if len(command.dimensions) != len(_REVIEW_DIMENSION_NAMES):
@@ -1999,13 +2214,19 @@ class PilotAttemptArtifacts:
     def _validate_review_dimensions(
         command: RecordReview, selected_exports: tuple[Mapping[str, object], ...]
     ) -> None:
+        if command.dimensions is None:
+            raise AttemptArtifactError(ArtifactErrorCode.INVALID_COMMAND, "review")
+        dimensions = command.dimensions
         xiaohongshu_selected = any(
             export.get("brief_kind") == "xiaohongshu" for export in selected_exports
         )
-        for dimension in command.dimensions:
+        for dimension in dimensions:
             if dimension.name == "xiaohongshu_consistency":
                 if xiaohongshu_selected:
-                    if dimension.decision != "PASS" or not dimension.critical:
+                    if (
+                        dimension.decision not in {"PASS", "FAIL"}
+                        or not dimension.critical
+                    ):
                         raise AttemptArtifactError(
                             ArtifactErrorCode.IDENTITY_MISMATCH, "review"
                         )
@@ -2018,15 +2239,20 @@ class PilotAttemptArtifacts:
                 raise AttemptArtifactError(
                     ArtifactErrorCode.IDENTITY_MISMATCH, "review"
                 )
+        if not selected_exports:
+            raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "review")
         if command.overall == "APPROVED":
-            if not selected_exports or any(
+            if any(
                 dimension.critical and dimension.decision != "PASS"
-                for dimension in command.dimensions
+                for dimension in dimensions
             ):
                 raise AttemptArtifactError(
                     ArtifactErrorCode.IDENTITY_MISMATCH, "review"
                 )
-        elif command.captured_export_snapshot_ids:
+        elif not any(
+            dimension.critical and dimension.decision == "FAIL"
+            for dimension in dimensions
+        ):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "review")
 
     def _validate_attempt_root(self, root: Path) -> Path:
@@ -2046,6 +2272,8 @@ class PilotAttemptArtifacts:
         if not relative.parts or any(
             part in {"", ".", ".."} for part in relative.parts
         ):
+            raise AttemptArtifactError(ArtifactErrorCode.ROOT_NOT_ALLOWED, "reserve")
+        if relative.parts != ("p2", _SAMPLE_ID, _ATTEMPT_ID):
             raise AttemptArtifactError(ArtifactErrorCode.ROOT_NOT_ALLOWED, "reserve")
         try:
             resolved = lexical.resolve(strict=False)
@@ -2076,6 +2304,79 @@ class PilotAttemptArtifacts:
                 raise AttemptArtifactError(
                     ArtifactErrorCode.ROOT_NOT_ALLOWED, "reserve"
                 )
+
+    def _load_exports(
+        self, root: Path, attempt_id: str
+    ) -> dict[str, Mapping[str, object]]:
+        """Load immutable export metadata so a fresh service can reconstruct it."""
+
+        for key in tuple(self._exports):
+            if key[0] == attempt_id:
+                del self._exports[key]
+        loaded: dict[str, Mapping[str, object]] = {}
+        exports_dir = root / "exports"
+        if _is_symlink(exports_dir) or not exports_dir.is_dir():
+            raise AttemptArtifactError(ArtifactErrorCode.ARTIFACT_CORRUPT, "read")
+        for kind, file_name in _EXPORT_FILE_NAMES.items():
+            metadata_path = exports_dir / _EXPORT_METADATA_FILE_NAMES[kind]
+            content_path = exports_dir / file_name
+            metadata_exists = metadata_path.exists() or _is_symlink(metadata_path)
+            content_exists = content_path.exists() or _is_symlink(content_path)
+            if not metadata_exists:
+                if content_exists:
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.ARTIFACT_CORRUPT, "read"
+                    )
+                continue
+            if _is_symlink(metadata_path) or _is_symlink(content_path):
+                raise AttemptArtifactError(ArtifactErrorCode.ARTIFACT_CORRUPT, "read")
+            if (
+                not metadata_path.is_file()
+                or stat.S_IMODE(metadata_path.stat().st_mode) != stat.S_IRUSR
+            ):
+                raise AttemptArtifactError(ArtifactErrorCode.ARTIFACT_CORRUPT, "read")
+            projection = _safe_read_json(metadata_path)
+            if (
+                projection.get("record_type") != _EXPORT_RECORD_TYPE
+                or projection.get("sample_id") != _SAMPLE_ID
+                or projection.get("attempt_id") != attempt_id
+                or projection.get("brief_kind") != kind
+                or projection.get("immutable") is not True
+            ):
+                raise AttemptArtifactError(ArtifactErrorCode.ARTIFACT_CORRUPT, "read")
+            reference = projection.get("content_reference")
+            if not isinstance(reference, Mapping):
+                raise AttemptArtifactError(ArtifactErrorCode.ARTIFACT_CORRUPT, "read")
+            reference_values = cast(Mapping[str, object], reference)
+            value = reference_values.get("value")
+            if (
+                type(value) is not str
+                or Path(value).is_absolute()
+                or value != f"exports/{file_name}"
+            ):
+                raise AttemptArtifactError(ArtifactErrorCode.ARTIFACT_CORRUPT, "read")
+            byte_count = projection.get("byte_count")
+            if (
+                type(byte_count) is not int
+                or byte_count < 1
+                or not content_path.is_file()
+            ):
+                raise AttemptArtifactError(ArtifactErrorCode.ARTIFACT_CORRUPT, "read")
+            try:
+                content = content_path.read_bytes()
+                content.decode("utf-8")
+            except (OSError, UnicodeError):
+                raise AttemptArtifactError(
+                    ArtifactErrorCode.ARTIFACT_CORRUPT, "read"
+                ) from None
+            if (
+                len(content) != byte_count
+                or stat.S_IMODE(content_path.stat().st_mode) != stat.S_IRUSR
+            ):
+                raise AttemptArtifactError(ArtifactErrorCode.ARTIFACT_CORRUPT, "read")
+            loaded[kind] = projection
+            self._exports[(attempt_id, kind)] = projection
+        return loaded
 
     def _mkdir_parents(self, path: Path) -> None:
         try:

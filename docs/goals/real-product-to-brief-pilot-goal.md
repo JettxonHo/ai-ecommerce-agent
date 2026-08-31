@@ -45,11 +45,14 @@ base is `8c43068038d4c3859383d68263f0ab0336480f6a`, after Issue #345 / PR #346's
 merge-effective response-key repair. The owner amendment recorded in Issue #347
 comment [5473654628](https://github.com/JettxonHo/ai-ecommerce-agent/issues/347#issuecomment-5473654628)
 adds six paths to the original 18-path allowlist, for a fixed 24-path boundary.
-The five existing PostgreSQL/FastAPI composition paths are allowlisted for reuse
-but remain byte-identical and are not changed. The actual changed subset is the
-P2 bootstrap/artifact/runtime implementation and tests, plus the seven
-synchronized docs; no migration, `local_demo.py`, public API or default
-composition change is included.
+Four existing PostgreSQL/FastAPI composition paths remain byte-identical;
+`deterministic_result_postgres.py` is the accepted architecture-RED exception
+and changes only to expose the canonical factory helper. The actual changed
+subset is the P2 bootstrap/artifact/runtime implementation and tests, plus the
+seven synchronized docs; no migration, `local_demo.py`, public API or default
+composition change is included. The outside-Git artifact layout persists
+sanitized export metadata sidecars beside the fixed Markdown files so fresh
+readers can reconstruct metadata.
 
 The implementation evidence is provider-free: exact DeepSeek reservation (not
 an owner-cap guess), P2-only lazy composition, immutable outside-Git
@@ -120,4 +123,4 @@ Stop and return to the owner for: activation before the prerequisite is complete
 
 ## 8. Authorization boundary
 
-Issue #343 / PR #344 authorized and completed only the exact seven-path P1 provider-free characterization workflow; its report and historical evidence remain unchanged. Issue #345 / PR #346 completed the exact eight-path provider-free harness-repair workflow and is merge-effective at the accepted base. Issue #347 is authorized only for its revised 24-path P2 readiness allowlist, including the actual P2 bootstrap/artifact/runtime test subset. The five existing PostgreSQL/FastAPI composition seams are allowlisted for reuse but remain byte-identical and are not changed. Required reservation evidence is the fixed DeepSeek reservation, not an owner-cap guess. No migration/schema, `local_demo.py`, public contract/generated client, dependency/lockfile, Provider/model call, Secret access, P0/Pilot observation, numerator, real input, business export or publishing is authorized. `P2_READINESS_IMPLEMENTATION_IN_PROGRESS` remains current; `P2_READINESS_IMPLEMENTED = YES` becomes merge-effective only after a reviewed PR reaches `main`. `PILOT_EXECUTION_AUTHORIZATION` and the real P01 Grant remain `NOT_AUTHORIZED`. The historical L5 evidence and the Issue #343 P1 report remain unchanged.
+Issue #343 / PR #344 authorized and completed only the exact seven-path P1 provider-free characterization workflow; its report and historical evidence remain unchanged. Issue #345 / PR #346 completed the exact eight-path provider-free harness-repair workflow and is merge-effective at the accepted base. Issue #347 is authorized only for its revised 24-path P2 readiness allowlist, including the actual P2 bootstrap/artifact/runtime test subset. Four existing PostgreSQL/FastAPI composition seams remain byte-identical; `deterministic_result_postgres.py` is the accepted architecture-RED exception and changes only to expose the canonical factory helper. Required reservation evidence is the fixed DeepSeek reservation, not an owner-cap guess. No migration/schema, `local_demo.py`, public contract/generated client, dependency/lockfile, Provider/model call, Secret access, P0/Pilot observation, numerator, real input, business export or publishing is authorized. `P2_READINESS_IMPLEMENTATION_IN_PROGRESS` remains current; `P2_READINESS_IMPLEMENTED = YES` becomes merge-effective only after a reviewed PR reaches `main`. `PILOT_EXECUTION_AUTHORIZATION` and the real P01 Grant remain `NOT_AUTHORIZED`. The historical L5 evidence and the Issue #343 P1 report remain unchanged.

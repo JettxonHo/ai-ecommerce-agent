@@ -20,7 +20,7 @@ Issue #341 / PR #342 is the completed P0 admission/contract-freeze record. Its [
 - denominator formula/threshold (`>= 80%`, count-once, BLOCKED in denominator, EXCLUDED pre-admission/observation only), seven human-review dimensions and evidence fields/destinations;
 - private roots `/Users/ketchup/Private/ai-ecommerce-pilot/{inputs,evidence,reviews,exports,summary}/` outside Git; this workflow creates no directories and retains no raw private material.
 
-The Issue #341 seven-path allowlist is merge-effective and unchanged. Issue #343 / PR #344 has its own exact seven-path allowlist and its characterization report remains byte-identical. Issue #345 / PR #346 had the exact eight-path provider-free repair allowlist and is now merge-effective at the accepted base. Issue #347 uses the owner-amended 24-path allowlist (the original 18 plus six PostgreSQL/FastAPI composition paths); those five existing composition paths are reused byte-identically and are not changed. The actual changed subset is the P2 bootstrap/artifact/runtime implementation and tests, with the seven synchronized docs tracked separately. The fixed DeepSeek reservation, not an owner-cap guess, is the cost boundary. No migration, `local_demo.py`, public API/generated client, default composition, P0/Pilot observation, Provider/Secret action, numerator or business outcome is authorized. `P2_READINESS_IMPLEMENTATION_IN_PROGRESS` remains current until a reviewed PR reaches `main`.
+The Issue #341 seven-path allowlist is merge-effective and unchanged. Issue #343 / PR #344 has its own exact seven-path allowlist and its characterization report remains byte-identical. Issue #345 / PR #346 had the exact eight-path provider-free repair allowlist and is now merge-effective at the accepted base. Issue #347 uses the owner-amended 24-path allowlist (the original 18 plus six PostgreSQL/FastAPI composition paths); four existing composition paths remain byte-identical, while `deterministic_result_postgres.py` is the accepted architecture-RED exception and changes only to expose the canonical factory helper. The actual changed subset is the P2 bootstrap/artifact/runtime implementation and tests, with the seven synchronized docs tracked separately. The outside-Git artifact layout persists sanitized export metadata sidecars beside fixed Markdown files for fresh-reader reconstruction. The fixed DeepSeek reservation, not an owner-cap guess, is the cost boundary. No migration, `local_demo.py`, public API/generated client, default composition, P0/Pilot observation, Provider/Secret action, numerator or business outcome is authorized. `P2_READINESS_IMPLEMENTATION_IN_PROGRESS` remains current until a reviewed PR reaches `main`.
 
 ## P2 readiness implementation handoff
 
@@ -32,8 +32,10 @@ The Issue #341 seven-path allowlist is merge-effective and unchanged. Issue #343
 The owner amendment in [Issue #347 comment 5473654628](https://github.com/JettxonHo/ai-ecommerce-agent/issues/347#issuecomment-5473654628)
 fixes a 24-path allowlist: the original 18 paths plus Task Management,
 Primary Input, Deterministic Result, Review/Export, HTTP application and the
-P2 PostgreSQL composition test. The five existing PostgreSQL/FastAPI paths are
-reused byte-identically and are not changed. The actual changed subset remains
+P2 PostgreSQL composition test. Four existing PostgreSQL/FastAPI paths remain
+byte-identical; `deterministic_result_postgres.py` is the accepted
+architecture-RED exception and changes only to expose the canonical factory
+helper. The actual changed subset remains
 limited to the P2 bootstrap/artifact/runtime implementation and tests; these
 seven synchronized records are documentation edits tracked separately. No
 migration, `local_demo.py`, public API/generated client or default composition

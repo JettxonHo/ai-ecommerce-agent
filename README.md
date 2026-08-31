@@ -69,13 +69,18 @@ Issue #347 is `P2_READINESS_IMPLEMENTATION_IN_PROGRESS` at base
 `8c43068038d4c3859383d68263f0ab0336480f6a`. The owner amendment in [comment
 5473654628](https://github.com/JettxonHo/ai-ecommerce-agent/issues/347#issuecomment-5473654628)
 fixes a 24-path allowlist (the original 18 plus the five existing
-PostgreSQL/FastAPI composition paths and one integration test). Those five
-existing paths are reused byte-identically and are not changed. The actual
-#347 implementation/test subset, together with these seven synchronized docs,
+PostgreSQL/FastAPI composition paths and one integration test). Four existing
+composition paths remain byte-identical; `deterministic_result_postgres.py` is
+the accepted architecture-RED exception and changes only to expose the
+canonical factory helper. The actual #347 implementation/test subset, together
+with these seven synchronized docs,
 is recorded in the [P2 readiness review](docs/reviews/real-product-to-brief-pilot-p2-readiness.md)
 and [Session-015](docs/sessions/session-015-real-product-to-brief-pilot-p2-readiness.md).
 Evidence is provider-free and uses the required DeepSeek reservation, immutable
 PilotAttemptArtifacts, explicit Human Review and qualifying-export semantics.
+The outside-Git artifact layout persists sanitized export metadata sidecars
+beside fixed Markdown files so a fresh artifact reader can reconstruct them;
+this does not change the DB/schema/public contract.
 No migration, `local_demo.py`, public API/default-composition change, real P01
 run, participant execution, numerator/ratio or business acceptance is claimed.
 Only a reviewed PR reaching `main` may set `P2_READINESS_IMPLEMENTED = YES`.

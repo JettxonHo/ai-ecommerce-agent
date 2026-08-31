@@ -80,9 +80,13 @@ execution, Secret or Provider access, numerator, ratio or business outcome.
 Only a reviewed Issue #347 PR reaching `main` may set
 `P2_READINESS_IMPLEMENTED = YES`. The fixed reservation, immutable
 PilotAttemptArtifacts, explicit Human Review and qualifying-export rules stay
-separate from this frontend foundation. The five allowlisted PostgreSQL/FastAPI
-composition paths are reused byte-identically, not changed; no migration,
-local-demo, public API or default-composition change is implied.
+separate from this frontend foundation. Four allowlisted PostgreSQL/FastAPI
+composition paths remain byte-identical; `deterministic_result_postgres.py` is
+the accepted architecture-RED exception and changes only to expose the
+canonical factory helper. The outside-Git artifact layout persists sanitized
+export metadata sidecars beside fixed Markdown files for fresh-reader
+reconstruction; no migration, local-demo, public API or default-composition
+change is implied.
 
 ## Toolchain
 

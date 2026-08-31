@@ -23,12 +23,14 @@ real P01 Grant, participant work and business observation remain
 ## Actual changed subset
 
 The implementation subset is limited to the P2 bootstrap/artifact/runtime
-seams and their tests. The five existing PostgreSQL/FastAPI composition paths
-are allowlisted for reuse but remain byte-identical and are not changed. The
-seven synchronized docs are documentation edits tracked outside the 24-path
-implementation allowlist:
+seams and their tests. Four existing PostgreSQL/FastAPI composition paths
+remain byte-identical; `deterministic_result_postgres.py` is the accepted
+architecture-RED exception and changes only to expose the canonical factory
+helper. The seven synchronized docs are documentation edits tracked outside
+the 24-path implementation allowlist:
 
 - `apps/backend/src/ai_ecommerce_agent/orchestration/deterministic_pipeline.py`
+- `apps/backend/src/ai_ecommerce_agent/bootstrap/deterministic_result_postgres.py`
 - `apps/backend/src/ai_ecommerce_agent/orchestration/pilot_attempt_artifact.py`
 - `apps/backend/src/ai_ecommerce_agent/platform/model_runtime/deepseek/_cost_gate.py`
 - `apps/backend/src/ai_ecommerce_agent/bootstrap/pilot_p2.py`
@@ -40,9 +42,12 @@ implementation allowlist:
 - `apps/backend/tests/unit/test_p2_live_controls.py`
 - `apps/backend/tests/unit/test_pilot_p2_composition.py`
 
-The five existing PostgreSQL/FastAPI composition files from the amendment are
-reused without changing their bytes. `local_demo.py`, migrations, the public
-API/generated client and the default composition remain unchanged.
+The four unchanged PostgreSQL/FastAPI composition files from the amendment are
+reused byte-identically. The private evidence layout additionally persists
+sanitized `marketing-export.json` or `xiaohongshu-export.json` sidecars beside
+the fixed Markdown files so a fresh artifact reader can reconstruct metadata;
+this does not change the DB/schema/public contract. `local_demo.py`, migrations,
+the public API/generated client and the default composition remain unchanged.
 
 ## Readiness evidence
 
@@ -108,7 +113,12 @@ The evidence below is provider-free and not a real P01/business outcome:
 ## Decision
 
 **Observation:** the implementation and existing lifecycle seams are coherent
-for provider-free P2 readiness evidence. **Decision boundary:** this review does
+for provider-free P2 readiness evidence. The follow-up addressed the ten
+independent review findings (identity/content admission, dynamic persisted
+identities, exact artifact destination, durable metadata, explicit review/cost
+state, rejected-review evidence, reason-code evidence, close cleanup, typed
+unknowns and documentation truth). No guarded PostgreSQL runtime was rerun in
+the follow-up. **Decision boundary:** this review does
 not accept the Pilot, a real P01 run, a human business outcome, a numerator or a
 Goal completion. Only a reviewed PR reaching `main` may change the readiness
 status to `P2_READINESS_IMPLEMENTED = YES`.

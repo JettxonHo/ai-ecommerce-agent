@@ -9,13 +9,16 @@
 The owner amendment in [Issue #347 comment 5473654628](https://github.com/JettxonHo/ai-ecommerce-agent/issues/347#issuecomment-5473654628)
 records Issue #345 / PR #346 as merged and repaired, and authorizes a fixed
 24-path Issue #347 scope: the original 18 paths plus five existing
-PostgreSQL/FastAPI composition paths and the new integration test. The five
-existing composition paths are reused byte-identically and are not changed. The
-actual changed subset is the P2 bootstrap, DeepSeek cost/runtime,
+PostgreSQL/FastAPI composition paths and the new integration test. Four existing
+paths remain byte-identical; `deterministic_result_postgres.py`
+is the accepted architecture-RED exception and changes only to expose the
+canonical factory helper. The actual changed subset is the P2 bootstrap, DeepSeek cost/runtime,
 PilotAttemptArtifacts, deterministic P2 wiring and their bounded tests, plus the
 new PostgreSQL/FastAPI composition test; the seven synchronized docs are
 documentation edits tracked separately. Migrations, `local_demo.py`, public
-API/generated client and default composition remain unchanged.
+API/generated client and default composition remain unchanged. The private
+outside-Git artifact layout now persists sanitized export metadata sidecars
+beside fixed Markdown files; no DB/schema/public contract changes.
 
 The required cost boundary is the fixed DeepSeek reservation, not an owner-cap
 guess. Pilot execution and the real P01 Grant remain `NOT_AUTHORIZED`.
@@ -38,6 +41,12 @@ guess. Pilot execution and the real P01 Grant remain `NOT_AUTHORIZED`.
   fallback was removed.
 - PostgreSQL/FastAPI composition RED→GREEN added a no-migration P2 composition
   over the existing Task, Primary Input, Result/Review-Export and HTTP factories.
+- Follow-up RED→GREEN addressed the ten independent review findings, including
+  exact P01 content admission, dynamic persisted identities, fixed artifact
+  destination, durable sidecar reconstruction, explicit review/cost state,
+  rejected-review evidence, evidence-bound terminal reasons, complete cleanup,
+  typed unknown usage/cost and synchronized documentation truth. The guarded
+  PostgreSQL runtime was not rerun for this follow-up.
 
 ## Observation: provider-free PostgreSQL harness chronology
 

@@ -63,7 +63,9 @@ def _valid_controls(tmp_path: Path, repository_root: Path) -> dict[str, object]:
         "manual_intervention_count": 0,
         "input_path": input_path,
         "approved_inputs_root": inputs_root,
-        "artifact_root": approved_artifact_root / runner.P2_SAMPLE_ID,
+        "artifact_root": approved_artifact_root
+        / runner.P2_SAMPLE_ID
+        / runner.P2_ATTEMPT_ID,
         "approved_artifact_root": approved_artifact_root,
         "repository_root": repository_root,
     }
@@ -149,10 +151,10 @@ def test_prepared_p2_attempt_executes_only_injected_ordered_seam(
         events.append("deepseek_factory")
         events.extend(f"deepseek_call_{index}" for index in range(1, 6))
         return runner.P2RunEvidence(
-            task_id="task-P01",
-            task_revision=1,
-            result_id="result-P01",
-            result_revision=1,
+            task_id="task-opaque-1",
+            task_revision=0,
+            result_id="task-opaque-1:r0",
+            result_revision=0,
             call_ids=tuple(f"P2-P01-A1-stage-{index}" for index in range(1, 6)),
         )
 
@@ -260,6 +262,23 @@ def test_prepared_p2_attempt_failure_is_terminal_without_retry(tmp_path: Path) -
         "deepseek_factory",
         "runtime_close",
     ]
+
+
+def test_run_evidence_accepts_actual_postgres_task_and_result_id_pair(
+    tmp_path: Path,
+) -> None:
+    repository_root = Path(__file__).resolve().parents[3]
+    config = runner._preflight_controls(**_valid_controls(tmp_path, repository_root))
+    run = runner.P2RunEvidence(
+        task_id="task-opaque-42",
+        task_revision=0,
+        result_id="task-opaque-42:r0",
+        result_revision=0,
+        call_ids=tuple(
+            f"P2-P01-A1-stage-{index}" for index in range(1, runner.P2_MAX_CALLS + 1)
+        ),
+    )
+    runner._validate_run_evidence(run, config)
 
 
 def test_prepare_requires_explicit_dependencies_before_any_fallback(

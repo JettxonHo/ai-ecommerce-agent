@@ -54,9 +54,14 @@ __all__ = [
 _P2_SAMPLE_ID: Final[str] = "P01"
 _P2_ATTEMPT_ID: Final[str] = "P2-P01-A1"
 _P2_CONTEXT_ASSEMBLY_VERSION: Final[str] = "pilot-p2-v1"
-_P2_INPUT_ID_MARKERS: Final[tuple[str, ...]] = (
-    "sample_id: P01",
-    "attempt_id: P2-P01-A1",
+_P2_INPUT_FIELDS: Final[tuple[tuple[str, str], ...]] = (
+    ("sample_id", _P2_SAMPLE_ID),
+    ("attempt_id", _P2_ATTEMPT_ID),
+    ("product", "Anker Nano Power Bank"),
+    ("model/designation", "A1259"),
+    ("color", "Black Stone"),
+    ("variant", "42733233766550"),
+    ("category", "A"),
 )
 
 _SPEC_FACTORIES: Final[tuple[SpecFactory, ...]] = default_spec_factories()
@@ -78,9 +83,29 @@ def _validate_p2_input(*, sample_id: str, attempt_id: str, input_text: str) -> N
         raise ValueError("P2 composition requires attempt P2-P01-A1")
     if type(input_text) is not str or not input_text.strip():
         raise ValueError("P2 input must be non-empty text")
-    lines = frozenset(line.strip() for line in input_text.splitlines())
-    if any(marker not in lines for marker in _P2_INPUT_ID_MARKERS):
+    expected_fields = dict(_P2_INPUT_FIELDS)
+    observed: dict[str, str] = {}
+    for raw_line in input_text.splitlines():
+        line = raw_line.strip()
+        key, separator, value = line.partition(":")
+        if not separator or key not in expected_fields:
+            continue
+        if key in observed or value.strip() != expected_fields[key]:
+            raise ValueError("P2 input identity markers are invalid")
+        observed[key] = value.strip()
+    if observed != expected_fields:
         raise ValueError("P2 input identity markers are invalid")
+
+
+def _p2_input_preflight(
+    *, sample_id: str, attempt_id: str, input_text: str
+) -> tuple[str, ...]:
+    _validate_p2_input(
+        sample_id=sample_id,
+        attempt_id=attempt_id,
+        input_text=input_text,
+    )
+    return ()
 
 
 def _validate_authorization(
@@ -131,7 +156,11 @@ def _build_p2_coordinator(
     coordinator = DeterministicPipelineCoordinator(
         _SPEC_FACTORIES,
         runtime_factory=admission.runtime_factory,
-        input_preflight=lambda _input_text: (),
+        input_preflight=lambda input_text: _p2_input_preflight(
+            sample_id=sample_id,
+            attempt_id=attempt_id,
+            input_text=input_text,
+        ),
         pipeline_invocation=PipelineInvocation(
             sample_id=sample_id,
             attempt_id=attempt_id,
@@ -142,16 +171,30 @@ def _build_p2_coordinator(
     return coordinator, runtime_holder, close_state
 
 
+def _close_all(*closables: object | None) -> None:
+    first_error: BaseException | None = None
+    for closable in closables:
+        if closable is None:
+            continue
+        close = getattr(closable, "close", None)
+        if not callable(close):
+            continue
+        try:
+            close()
+        except BaseException as error:
+            if first_error is None:
+                first_error = error
+    if first_error is not None:
+        raise first_error
+
+
 def _close_runtime_once(
     runtime_holder: list[ModelRuntimePort], close_state: list[bool]
 ) -> None:
     if close_state[0]:
         return
+    _close_all(*runtime_holder)
     close_state[0] = True
-    for runtime in runtime_holder:
-        close = getattr(runtime, "close", None)
-        if callable(close):
-            close()
 
 
 @dataclass(frozen=True, slots=True)
@@ -173,9 +216,15 @@ class PilotP2Composition:
         """Execute the one authorized P2 composition and close its runtime."""
 
         try:
-            return self._coordinator.generate(input_text=self.input_text)
-        finally:
-            self._close_runtime_once()
+            result = self._coordinator.generate(input_text=self.input_text)
+        except BaseException:
+            try:
+                self._close_runtime_once()
+            except BaseException:
+                pass
+            raise
+        self._close_runtime_once()
+        return result
 
     def _close_runtime_once(self) -> None:
         if self._closed[0]:
@@ -198,9 +247,15 @@ class PilotP2Coordinator(DeterministicPipelineCoordinator):
 
     def generate(self, *, input_text: str) -> PipelineResult:
         try:
-            return self._delegate.generate(input_text=input_text)
-        finally:
-            _close_runtime_once(self._runtime_holder, self._close_state)
+            result = self._delegate.generate(input_text=input_text)
+        except BaseException:
+            try:
+                _close_runtime_once(self._runtime_holder, self._close_state)
+            except BaseException:
+                pass
+            raise
+        _close_runtime_once(self._runtime_holder, self._close_state)
+        return result
 
     def close(self) -> None:
         _close_runtime_once(self._runtime_holder, self._close_state)
@@ -221,16 +276,7 @@ class PilotP2PostgresComposition:
         if self._closed:
             return
         object.__setattr__(self, "_closed", True)
-        first_error: BaseException | None = None
-        self.coordinator.close()
-        for participant in (self.result, self.primary_input, self.task):
-            try:
-                participant.close()
-            except BaseException as error:
-                if first_error is None:
-                    first_error = error
-        if first_error is not None:
-            raise first_error
+        _close_all(self.coordinator, self.result, self.primary_input, self.task)
 
 
 def compose_pilot_p2_pipeline(
@@ -324,8 +370,8 @@ def compose_pilot_p2_postgres(
             coordinator=coordinator,
         )
     except BaseException:
-        coordinator.close()
-        for participant in (result, primary_input, task):
-            if participant is not None:
-                participant.close()
+        try:
+            _close_all(coordinator, result, primary_input, task)
+        except BaseException:
+            pass
         raise
