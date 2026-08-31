@@ -1,6 +1,6 @@
 # Real Product-to-Brief Pilot Goal
 
-> **Current status:** this Goal is `ACTIVE` after DEC-087's merge-effective rebaseline; MVP-0L is `TERMINAL_INCOMPLETE_L5_FAILED`. Issue #341 / PR #342 is merge-effective: P01–P08 are `ADMITTED`, the denominator is exactly eight frozen units, and P0 is `P0_CONTRACT_FROZEN`. Issue #343 / PR #344 is merge-effective P1 provider-free characterization `CONFIRMED`; historical first-failure attribution remains `INCONCLUSIVE`. This Issue #345 branch performs the bounded response-key harness repair with status `P1R_HARNESS_REPAIR_IN_PROGRESS`; `HARNESS_BLOCKER = REPAIRED` becomes merge-effective only when this PR reaches `main`. Canonical status: `P0_CONTRACT_FROZEN = YES`; `P1_CHARACTERIZATION = COMPLETE`; `PILOT_EXECUTION_AUTHORIZATION = NOT_AUTHORIZED`. No P0 observation or Pilot execution is part of either workflow.
+> **Current status:** this Goal is `ACTIVE` after DEC-087's merge-effective rebaseline; MVP-0L is `TERMINAL_INCOMPLETE_L5_FAILED`. Issue #341 / PR #342 is merge-effective: P01–P08 are `ADMITTED`, the denominator is exactly eight frozen units, and P0 is `P0_CONTRACT_FROZEN`. Issue #343 / PR #344 and Issue #345 / PR #346 are merge-effective provider-free characterization/repair evidence; the accepted base is `8c43068038d4c3859383d68263f0ab0336480f6a`. Issue #347 is `P2_READINESS_IMPLEMENTATION_IN_PROGRESS`; `P2_READINESS_IMPLEMENTED = YES` becomes merge-effective only after a reviewed PR reaches `main`. Canonical status: `P0_CONTRACT_FROZEN = YES`; `P1_CHARACTERIZATION = COMPLETE`; `PILOT_EXECUTION_AUTHORIZATION = NOT_AUTHORIZED`; real P01 Grant = `NOT_AUTHORIZED`. No P0 observation or Pilot execution is part of this workflow.
 >
 > **Authority:** [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) · [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) · [Real Product-to-Brief Pilot Contract](../product/real-product-to-brief-pilot-contract.md) · [P0 admission/contract-freeze plan](../product/real-product-to-brief-pilot-p0-plan.md) · [Session-010](../sessions/session-010-real-product-to-brief-pilot.md) · [Session-011](../sessions/session-011-mvp0l-terminal-rebaseline.md) · [Session-012](../sessions/session-012-real-product-to-brief-pilot-p0.md) · [Session-013](../sessions/session-013-real-product-to-brief-pilot-p1.md) · [Issue #341](https://github.com/JettxonHo/ai-ecommerce-agent/issues/341) · [Issue #343](https://github.com/JettxonHo/ai-ecommerce-agent/issues/343)
 >
@@ -16,7 +16,7 @@ This is a successor validation Goal, not a claim that the deterministic foundati
 
 - The Goal is `ACTIVE` and MVP-0L is `TERMINAL_INCOMPLETE_L5_FAILED` after DEC-087's merge-effective rebaseline.
 - Issue #341 / PR #342 is the completed P0 admission/contract-freeze workflow. P0 is now `P0_CONTRACT_FROZEN`, P01–P08 are `ADMITTED`, and the denominator is exactly eight frozen units.
-- Issue #343 / PR #344 is the completed P1 provider-free characterization: `CONFIRMED` for the retained harness blocker and `INCONCLUSIVE` for historical first-failure attribution, with no P0 observation, Pilot numerator, real input, #335 / PR #336 continuation or Provider call. Issue #345 is the single bounded P1R response-key repair; on this branch it is `P1R_HARNESS_REPAIR_IN_PROGRESS`, and `HARNESS_BLOCKER = REPAIRED` is merge-effective only after this PR reaches `main`.
+- Issue #343 / PR #344 is the completed P1 provider-free characterization: `CONFIRMED` for the retained harness blocker and `INCONCLUSIVE` for historical first-failure attribution, with no P0 observation, Pilot numerator, real input, #335 / PR #336 continuation or Provider call. Issue #345 / PR #346 is the completed response-key repair and is merge-effective at the accepted base. Issue #347 is the current P2 readiness implementation; it records provider-free composition, artifact, review and lifecycle evidence only, with no Pilot execution or business acceptance.
 - Pilot stages run serially. Only one Stage may be active at a time, and one Issue/PR delivers one observable outcome.
 - The implementer uses exact `luna-worker` for executable work; the independent reviewer is Sol `ORCHESTRATOR_REVIEWER`. No Terra or Kimi fallback is implied.
 
@@ -32,11 +32,39 @@ Reconcile the active prerequisite and the Pilot Contract. The [P0 admission/cont
 
 ### P1 — Minimal evidence readiness
 
-Build or verify only the smallest provider-free evidence and acceptance harness needed by the Contract. Issue #343 / PR #344 characterized the observed L5 post-confirm/no-export boundary through the existing public HTTP seam (`confirm-current-result` → `export-previews` → `export-snapshots` → content download) with one normal path and one injected failure per checkpoint; its blocker disposition is merge-effective `CONFIRMED`, while the historical sanitized vector remains ambiguous. Issue #345 performs only the separately bounded response-key repair from the public `exportSnapshotId` field to the retained smoke's download seam, with a provider-free regression; on this branch the repair remains merge-conditional. Mock, fixture and fake evidence can exercise the harness but are excluded from business acceptance. No speculative Agent Runtime, generic RAG or platform action is introduced.
+Build or verify only the smallest provider-free evidence and acceptance harness needed by the Contract. Issue #343 / PR #344 characterized the observed L5 post-confirm/no-export boundary through the existing public HTTP seam (`confirm-current-result` → `export-previews` → `export-snapshots` → content download) with one normal path and one injected failure per checkpoint; its blocker disposition is merge-effective `CONFIRMED`, while the historical sanitized vector remains ambiguous. Issue #345 / PR #346 completed the separately bounded response-key repair from the public `exportSnapshotId` field to the retained smoke's download seam, with a provider-free regression. Issue #347 is the current P2 readiness implementation: it proves the exact DeepSeek reservation, P2-only composition, immutable PilotAttemptArtifacts, seven-dimension Human Review and qualifying export semantics, plus the no-migration PostgreSQL/FastAPI composition boundary. These are provider-free readiness evidence only; they do not authorize a real P01 run, Grant, numerator or business acceptance. Mock, fixture and fake evidence remain excluded from business acceptance.
 
 ### P2 — First permitted real-product run
 
 After the P0/P1 gates and the required authorization, run the first permitted real-product or permitted sanitized-real-product material through the complete bounded Product-to-Brief path. Preserve real Provider evidence, human Review, usable Markdown export evidence and failure evidence under the Contract. A failed attempt is terminal; no silent retry, repair, substitution or scope widening follows.
+
+### P2 readiness implementation record
+
+Issue #347 is currently `P2_READINESS_IMPLEMENTATION_IN_PROGRESS`. Its accepted
+base is `8c43068038d4c3859383d68263f0ab0336480f6a`, after Issue #345 / PR #346's
+merge-effective response-key repair. The owner amendment recorded in Issue #347
+comment [5473654628](https://github.com/JettxonHo/ai-ecommerce-agent/issues/347#issuecomment-5473654628)
+adds six paths to the original 18-path allowlist, for a fixed 24-path boundary.
+The five existing PostgreSQL/FastAPI composition paths are allowlisted for reuse
+but remain byte-identical and are not changed. The actual changed subset is the
+P2 bootstrap/artifact/runtime implementation and tests, plus the seven
+synchronized docs; no migration, `local_demo.py`, public API or default
+composition change is included.
+
+The implementation evidence is provider-free: exact DeepSeek reservation (not
+an owner-cap guess), P2-only lazy composition, immutable outside-Git
+PilotAttemptArtifacts, seven-dimension Human Review, qualifying immutable
+Marketing/Xiaohongshu export, and no-shortcut PostgreSQL/FastAPI lifecycle
+composition. The preserved chronology includes export/review/finalization
+RED→GREEN, P2 scripted-binding RED→GREEN, live-control and runner RED→GREEN,
+PostgreSQL composition RED→GREEN, TestClient warning and AF_UNIX boundary
+repairs, server/local filename separation, and the guarded provider-free
+PostgreSQL validation/cleanup record. None is a real P01 business run.
+
+Only after a reviewed Issue #347 PR reaches `main` may the merge-effective
+record become `P2_READINESS_IMPLEMENTED = YES`. Pilot execution, the real P01
+Grant, participant work, numerator/ratio, and business acceptance remain
+`NOT_AUTHORIZED`.
 
 ### P3 — Cohort and three-run stability
 
@@ -92,4 +120,4 @@ Stop and return to the owner for: activation before the prerequisite is complete
 
 ## 8. Authorization boundary
 
-Issue #343 / PR #344 authorized and completed only the exact seven-path P1 provider-free characterization workflow; its report and historical evidence remain unchanged. Issue #345 authorizes only the exact eight-path provider-free harness-repair workflow: the retained live-smoke response-key consumer, its provider-free regression, and merge-conditional updates to `AGENTS.md`, `README.md`, this Goal, the implementation-readiness handoff, one review and one Session. It authorizes no production export API/projection, public contract/generated client, migration/schema, dependency/lockfile, Web/browser/runtime/PostgreSQL action, Provider/model/platform network call, `.env`/Secret access, P0/Pilot observation, numerator, real input, export artifact, publishing or Agent capability. `PILOT_EXECUTION_AUTHORIZATION` remains `NOT_AUTHORIZED`; `HARNESS_BLOCKER = REPAIRED` is current truth only after this PR reaches `main`. The historical L5 evidence and the Issue #343 P1 report remain unchanged.
+Issue #343 / PR #344 authorized and completed only the exact seven-path P1 provider-free characterization workflow; its report and historical evidence remain unchanged. Issue #345 / PR #346 completed the exact eight-path provider-free harness-repair workflow and is merge-effective at the accepted base. Issue #347 is authorized only for its revised 24-path P2 readiness allowlist, including the actual P2 bootstrap/artifact/runtime test subset. The five existing PostgreSQL/FastAPI composition seams are allowlisted for reuse but remain byte-identical and are not changed. Required reservation evidence is the fixed DeepSeek reservation, not an owner-cap guess. No migration/schema, `local_demo.py`, public contract/generated client, dependency/lockfile, Provider/model call, Secret access, P0/Pilot observation, numerator, real input, business export or publishing is authorized. `P2_READINESS_IMPLEMENTATION_IN_PROGRESS` remains current; `P2_READINESS_IMPLEMENTED = YES` becomes merge-effective only after a reviewed PR reaches `main`. `PILOT_EXECUTION_AUTHORIZATION` and the real P01 Grant remain `NOT_AUTHORIZED`. The historical L5 evidence and the Issue #343 P1 report remain unchanged.
