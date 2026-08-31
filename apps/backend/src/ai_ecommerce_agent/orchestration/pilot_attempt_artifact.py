@@ -150,6 +150,33 @@ _FINAL_REASON_CODES: Final[frozenset[str]] = frozenset(
         "missing_export",
     }
 )
+_SAFE_ERROR_CATEGORIES: Final[frozenset[str]] = frozenset(
+    {
+        "configuration_or_access",
+        "invalid_request",
+        "transient_provider_failure",
+        "refusal",
+        "incomplete_output",
+        "invalid_candidate",
+        "cancelled_or_superseded",
+        "unknown_runtime_failure",
+        "operator_failure",
+    }
+)
+_SAFE_TERMINAL_STAGES: Final[frozenset[str]] = frozenset(
+    {
+        "generation",
+        "confirmation",
+        "export",
+        "review",
+        "finalization",
+        "stage-1",
+        "stage-2",
+        "stage-3",
+        "stage-4",
+        "stage-5",
+    }
+)
 _SAFE_ID_CHARS: Final[str] = (
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:-"
 )
@@ -1012,6 +1039,8 @@ class FinalizeAttempt:
     automated_gates: FinalizationGates | None = None
     cost: FinalizationCost | None = None
     execution: FinalizationExecution | None = None
+    error_category: str | None = None
+    terminal_stage: str | None = None
     immutable: bool = True
 
     def to_mapping(self) -> dict[str, object]:
@@ -1020,7 +1049,7 @@ class FinalizeAttempt:
             if isinstance(self.outcome, FinalDisposition)
             else self.outcome
         )
-        return {
+        record: dict[str, object] = {
             "record_type": "attempt_outcome",
             "sample_id": self.sample_id,
             "attempt_id": self.attempt_id,
@@ -1069,6 +1098,11 @@ class FinalizeAttempt:
             },
             "immutable": self.immutable,
         }
+        if self.error_category is not None:
+            record["error_category"] = self.error_category
+        if self.terminal_stage is not None:
+            record["terminal_stage"] = self.terminal_stage
+        return record
 
 
 def _final_disposition(value: FinalDisposition | str) -> FinalDisposition:
@@ -1588,22 +1622,54 @@ class PilotAttemptArtifacts:
                 )
             _safe_id(command.sample_id, "sample_id")
             _safe_id(command.attempt_id, "attempt_id")
-            if command.task_id is None or command.result_id is None:
-                raise AttemptArtifactError(
-                    ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
-                )
-            _safe_id(command.task_id, "task_id")
-            _safe_id(command.result_id, "result_id")
-            _nonnegative_int(command.task_revision, "task_revision")
-            _nonnegative_int(command.result_revision, "result_revision")
             if command.outcome is None:
                 raise ValueError("outcome is required")
             disposition = _final_disposition(command.outcome)
+            if command.task_id is None:
+                if disposition == FinalDisposition.PASS:
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+            else:
+                _safe_id(command.task_id, "task_id")
+                _nonnegative_int(command.task_revision, "task_revision")
+            if command.result_id is None:
+                if disposition == FinalDisposition.PASS:
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+            else:
+                _safe_id(command.result_id, "result_id")
+                _nonnegative_int(command.result_revision, "result_revision")
             if command.reason_code is None:
                 raise ValueError("reason_code is required")
             _safe_id(command.reason_code, "reason_code")
             if command.reason_code not in _FINAL_REASON_CODES:
                 raise ValueError("reason_code is not fixed")
+            if command.error_category is not None:
+                if (
+                    type(command.error_category) is not str
+                    or command.error_category not in _SAFE_ERROR_CATEGORIES
+                ):
+                    raise ValueError("error_category is not fixed")
+            if command.terminal_stage is not None:
+                if (
+                    type(command.terminal_stage) is not str
+                    or command.terminal_stage not in _SAFE_TERMINAL_STAGES
+                ):
+                    raise ValueError("terminal_stage is not fixed")
+            if disposition == FinalDisposition.PASS and (
+                command.error_category is not None or command.terminal_stage is not None
+            ):
+                raise ValueError("PASS cannot carry failure metadata")
+            if (
+                disposition != FinalDisposition.PASS
+                and (command.task_id is None or command.result_id is None)
+                and command.reason_code != "execution_not_qualified"
+            ):
+                raise AttemptArtifactError(
+                    ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                )
             if disposition == FinalDisposition.PASS:
                 if command.reason_code != "qualifying_approved_export":
                     raise ValueError("PASS reason_code is invalid")
@@ -1708,6 +1774,10 @@ class PilotAttemptArtifacts:
         if command.outcome is None:
             raise AttemptArtifactError(ArtifactErrorCode.INVALID_COMMAND, "finalize")
         disposition = _final_disposition(command.outcome)
+        if disposition == FinalDisposition.PASS and (
+            command.error_category is not None or command.terminal_stage is not None
+        ):
+            raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         gates = command.automated_gates
         cost = command.cost
         execution = command.execution
@@ -1804,11 +1874,17 @@ class PilotAttemptArtifacts:
             elif reason_code == "execution_not_qualified":
                 run_call_count = run.get("call_count")
                 run_calls = run.get("calls")
+                run_result = run.get("result")
+                result_missing = (
+                    not isinstance(run_result, Mapping)
+                    or cast(Mapping[str, object], run_result).get("result_id") is None
+                )
                 run_not_qualified = (
                     type(run_call_count) is not int
                     or run_call_count != 5
                     or type(run_calls) not in (list, tuple)
                     or len(cast(list[object] | tuple[object, ...], run_calls)) != 5
+                    or result_missing
                 )
                 command_qualified = (
                     execution.call_count == 5
@@ -1884,11 +1960,28 @@ class PilotAttemptArtifacts:
             or len(run_call_entries) != 5
         ):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
+        expected_call_ids = tuple(f"P2-P01-A1-stage-{index}" for index in range(1, 6))
+        for index, call_entry in enumerate(run_call_entries):
+            if not isinstance(call_entry, Mapping):
+                raise AttemptArtifactError(
+                    ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                )
+            call_values = cast(Mapping[str, object], call_entry)
+            if (
+                call_values.get("model_call_id") != expected_call_ids[index]
+                or call_values.get("status") != "COMPLETED"
+            ):
+                raise AttemptArtifactError(
+                    ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                )
         run_gates = run.get("gates")
         if not isinstance(run_gates, Mapping):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         run_gate_values = cast(Mapping[str, object], run_gates)
-        for gate_name in ("schema", "domain", "persistence", "export"):
+        # Run evidence is written before export capture, so the export gate
+        # may remain false here; qualification is derived from immutable
+        # captured sidecars selected above.
+        for gate_name in ("schema", "domain", "persistence"):
             if run_gate_values.get(gate_name) is not True:
                 raise AttemptArtifactError(
                     ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
@@ -1901,12 +1994,25 @@ class PilotAttemptArtifacts:
         run_cost_values = cast(Mapping[str, object], run_cost)
         if pricing_values.get("record_id") != cost.reservation_ref:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
-        if type(cost.actual_micro_usd) is not int:
+        if type(cost.actual_micro_usd) is int:
+            actual_value: int | str = cost.actual_micro_usd
+        elif isinstance(cost.actual_micro_usd, UnknownValue):
+            actual_value = cost.actual_micro_usd.value
+        else:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
-        if run_cost_values.get("actual_micro_usd") != cost.actual_micro_usd:
+        if run_cost_values.get("actual_micro_usd") != actual_value:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         owner_cap = cost.owner_cap_micro_usd
-        if type(owner_cap) is not int or cost.actual_micro_usd > owner_cap:
+        if type(owner_cap) is not int:
+            raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
+        if type(cost.actual_micro_usd) is int and cost.actual_micro_usd > owner_cap:
+            raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
+        reserved_value = run_cost_values.get("reserved_micro_usd")
+        if (
+            type(reserved_value) is not int
+            or reserved_value < 0
+            or reserved_value > owner_cap
+        ):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         for export in selected_exports:
             if export.get("immutable") is not True:

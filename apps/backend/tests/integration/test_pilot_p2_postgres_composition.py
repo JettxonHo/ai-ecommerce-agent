@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import socket
+import subprocess
 import warnings
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
@@ -52,6 +53,12 @@ variant: 42733233766550
 category: A
 sanitized permitted public product identity only
 """
+
+
+def _actual_repository_head() -> str:
+    return subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=_BACKEND_ROOT, text=True
+    ).strip()
 
 
 class _HttpResponse(Protocol):
@@ -566,7 +573,12 @@ def test_p2_postgres_current_head_lifecycle_uses_real_ids_and_export_bytes(
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
             call_count=5,
             calls=tuple(
-                {"model_call_id": call_id, "latency_ms": 0} for call_id in call_ids
+                {
+                    "model_call_id": call_id,
+                    "latency_ms": 0,
+                    "status": "COMPLETED",
+                }
+                for call_id in call_ids
             ),
             gates={
                 "schema": True,
@@ -755,3 +767,145 @@ def test_p2_postgres_http_rejects_wrong_frozen_identity_before_runtime(
         assert factory_calls == 0
     finally:
         composition.close()
+
+
+@pytest.mark.skipif(
+    not _RUN_POSTGRES,
+    reason="set MVP0_RUN_TASK_HTTP_POSTGRES=1 for the opt-in P2 operator lifecycle",
+)
+def test_p2_operator_binder_drives_full_provider_free_postgres_lifecycle(
+    postgres_engine: Engine,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The production binder owns Start, resume, review and finalization."""
+
+    del postgres_engine
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        ConfirmAndCapture,
+        FinalizeAttempt,
+        PilotP2Operator,
+        StartAttempt,
+        SubmitHumanReview,
+    )
+    from ai_ecommerce_agent.orchestration.deterministic_pipeline import (
+        build_scripted_runtime,
+    )
+    from ai_ecommerce_agent.orchestration.pilot_attempt_artifact import (
+        ReviewDimension,
+    )
+
+    class _RecordingRuntime:
+        def __init__(
+            self,
+            requests: tuple[ModelCallRequest, ...],
+            payloads: tuple[str, ...],
+        ) -> None:
+            self._delegate = build_scripted_runtime(requests, payloads)
+            self.requests: list[ModelCallRequest] = []
+
+        def execute(self, request: ModelCallRequest) -> ModelCallResult:
+            self.requests.append(request)
+            return self._delegate.execute(request)
+
+    runtimes: list[_RecordingRuntime] = []
+
+    def fake_create(
+        requests: tuple[ModelCallRequest, ...], payloads: tuple[str, ...]
+    ) -> _RecordingRuntime:
+        runtime = _RecordingRuntime(requests, payloads)
+        runtimes.append(runtime)
+        return runtime
+
+    monkeypatch.setattr(pilot_p2, "_create_deepseek_runtime", fake_create)
+    database_url = os.environ[_DATABASE_URL_ENV]
+    inputs_root = tmp_path / "operator-inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "operator-artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[3]
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            database_url=database_url,
+            pool_size=2,
+            max_overflow=0,
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+        schema=_SCHEMA,
+    )
+    started = operator.apply(
+        StartAttempt(
+            input_path=input_path,
+            artifact_root=artifact_root,
+            authorized_commit=_actual_repository_head(),
+            owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+            pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+        )
+    )
+    resumed = operator.apply(
+        ConfirmAndCapture(
+            brief_kinds=("marketing",),
+            marketing_core_message="Reviewed product message",
+            xiaohongshu_title_direction="Reviewed title direction",
+        )
+    )
+    reviewed = operator.apply(
+        SubmitHumanReview(
+            overall="APPROVED",
+            rationale="approved_all_applicable_critical_dimensions_pass",
+            review_id="review-P2-P01-A1",
+            captured_export_snapshot_ids=(
+                str(resumed.exports[0]["export_snapshot_id"]),
+            ),
+            reviewer_role="author_operator",
+            reviewed_at=datetime.now(UTC),
+            dimensions=(
+                ReviewDimension("product_fact_correctness", "PASS", True),
+                ReviewDimension("mandatory_messages", "PASS", True),
+                ReviewDimension("prohibited_claims", "PASS", True),
+                ReviewDimension("fabrication_misleading_content", "PASS", True),
+                ReviewDimension("marketing_brief_usability", "PASS", True),
+                ReviewDimension("xiaohongshu_consistency", "NOT_APPLICABLE", False),
+                ReviewDimension("markdown_delivery", "PASS", True),
+            ),
+        )
+    )
+    export_id = str(resumed.exports[0]["export_snapshot_id"])
+    assert reviewed.review_record is not None
+    review_record = reviewed.review_record
+    finalized = operator.apply(
+        FinalizeAttempt(
+            outcome="PASS",
+            reason_code="qualifying_approved_export",
+            approved_review_id=str(review_record["review_id"]),
+            selected_export_snapshot_ids=(export_id,),
+        )
+    )
+
+    assert started.status == "AWAITING_CONFIRMATION"
+    assert started.task_id is not None
+    assert started.result_id == f"{started.task_id}:r{started.result_revision}"
+    assert started.attempted_call_count == 5
+    assert started.completed_call_count == 5
+    assert len(runtimes) == 1
+    assert [
+        request.identity.model_call_id.value for request in runtimes[0].requests
+    ] == [f"P2-P01-A1-stage-{index}" for index in range(1, 6)]
+    assert resumed.status == "PENDING_HUMAN_REVIEW"
+    assert resumed.review_status == "PENDING"
+    assert len(resumed.exports) == 1
+    assert reviewed.review_status == "APPROVED"
+    assert finalized.status == "PASS"
+    assert finalized.outcome == "PASS"
+    assert finalized.run is not None
+    assert cast(Mapping[str, object], finalized.run["gates"])["export"] is False
+    assert cast(Mapping[str, object], finalized.run["cost"])["actual_micro_usd"] in {
+        "NOT_EXPOSED",
+        "NOT_DERIVABLE",
+    }
