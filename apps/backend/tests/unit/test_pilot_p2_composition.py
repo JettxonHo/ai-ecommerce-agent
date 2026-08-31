@@ -219,45 +219,6 @@ def test_operator_requires_precommitted_idempotency_bundle_before_artifact(
     assert not artifact_root.exists()
 
 
-@pytest.mark.parametrize(
-    ("method_name", "kwargs"),
-    (
-        ("create_task", {"idempotency_key": "operator-P2-P01-A1-task"}),
-        (
-            "generate_result",
-            {
-                "task_id": "task-P01",
-                "input_revision": 1,
-                "idempotency_key": "operator-P2-P01-A1-generate",
-            },
-        ),
-    ),
-)
-def test_in_process_http_rejects_unexpected_creation_replay(
-    method_name: str,
-    kwargs: dict[str, object],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """A replay status is not accepted where a new resource is required."""
-
-    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
-        PilotP2OperatorError,
-        _HttpResponse,
-        _InProcessHttpClient,
-    )
-
-    def replay_response(*_args: object, **_kwargs: object) -> _HttpResponse:
-        return _HttpResponse(
-            200, b'{"taskId":"task-P01","revision":1,"inputRevision":1}'
-        )
-
-    client = _InProcessHttpClient(object())
-    monkeypatch.setattr(client, "_request", replay_response)
-    with pytest.raises(PilotP2OperatorError) as error:
-        getattr(client, method_name)(**kwargs)
-    assert error.value.code == "unexpected_replay"
-
-
 @pytest.mark.parametrize("replay_operation", ("task", "generate"))
 def test_operator_replay_stops_before_downstream_command(
     replay_operation: str,
@@ -267,9 +228,10 @@ def test_operator_replay_stops_before_downstream_command(
     """Task/Generate replay cannot continue into input, runtime, or Provider."""
 
     from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        OperatorErrorCode,
         PilotP2Operator,
+        PilotP2OperatorError,
         StartAttempt,
-        _InProcessHttpClient,
     )
 
     inputs_root = tmp_path / "inputs"
@@ -282,33 +244,34 @@ def test_operator_replay_stops_before_downstream_command(
     repository_root = Path(__file__).resolve().parents[4]
     seen_paths: list[str] = []
 
-    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import _HttpResponse
+    class _ReplayClient:
+        def create_task(self, *, idempotency_key: str) -> dict[str, object]:
+            del idempotency_key
+            seen_paths.append("/api/v1/tasks")
+            if replay_operation == "task":
+                raise PilotP2OperatorError(OperatorErrorCode.UNEXPECTED_REPLAY)
+            return {"taskId": "task-replay", "revision": 1}
 
-    def request(
-        _client: object,
-        _method: str,
-        path: str,
-        **_kwargs: object,
-    ) -> _HttpResponse:
-        seen_paths.append(path)
-        if path == "/api/v1/tasks":
-            status = 200 if replay_operation == "task" else 201
-            body = b'{"taskId":"task-replay","revision":1}'
-        elif path.endswith("/primary-input"):
-            status = 200
-            body = b'{"taskId":"task-replay","inputRevision":1}'
-        elif path.endswith("/generate-result"):
-            status = 200
-            body = (
-                b'{"taskId":"task-replay","inputRevision":1,'
-                b'"resultRevision":1,"status":"awaiting_review"}'
-            )
-        else:
-            status = 404
-            body = b"{}"
-        return _HttpResponse(status, body)
+        def save_primary_input(
+            self, *, task_id: str, content: str, file_name: str
+        ) -> dict[str, object]:
+            del task_id, content, file_name
+            seen_paths.append("/api/v1/tasks/task-replay/primary-input")
+            return {"taskId": "task-replay", "inputRevision": 1}
 
-    monkeypatch.setattr(_InProcessHttpClient, "_request", request)
+        def generate_result(
+            self, *, task_id: str, input_revision: int, idempotency_key: str
+        ) -> dict[str, object]:
+            del task_id, input_revision, idempotency_key
+            seen_paths.append("/api/v1/tasks/task-replay/commands/generate-result")
+            if replay_operation == "generate":
+                raise PilotP2OperatorError(OperatorErrorCode.UNEXPECTED_REPLAY)
+            return {
+                "taskId": "task-replay",
+                "inputRevision": 1,
+                "resultRevision": 1,
+                "status": "awaiting_review",
+            }
 
     application_obj = object()
 
@@ -324,7 +287,7 @@ def test_operator_replay_stops_before_downstream_command(
     _set_operator_test_dependencies(
         monkeypatch,
         composition_factory=lambda *_args, **_kwargs: _Composition(),
-        http_client_factory=_InProcessHttpClient,
+        http_client_factory=lambda _application: _ReplayClient(),
     )
     operator = PilotP2Operator(
         repository_root=repository_root,

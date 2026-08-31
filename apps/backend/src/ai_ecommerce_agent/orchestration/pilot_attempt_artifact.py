@@ -1490,7 +1490,10 @@ class PilotAttemptArtifacts:
     def _reserve(self, command: ReserveAttempt) -> AttemptArtifactSnapshot:
         if command.sample_id != _SAMPLE_ID or command.attempt_id != _ATTEMPT_ID:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "reserve")
-        bundle = command.idempotency_bundle
+        bundle_value = command.idempotency_bundle
+        bundle = (
+            None if bundle_value is None else IdempotencyBundle.from_value(bundle_value)
+        )
         if bundle is not None and bundle != IdempotencyBundle.for_identity(
             command.sample_id, command.attempt_id
         ):
@@ -1510,7 +1513,7 @@ class PilotAttemptArtifacts:
         try:
             exports = root / "exports"
             exports.mkdir(mode=0o700, exist_ok=False)
-            identity = {
+            identity: dict[str, object] = {
                 "record_type": _IDENTITY_RECORD_TYPE,
                 "sample_id": command.sample_id,
                 "attempt_id": command.attempt_id,

@@ -89,9 +89,8 @@ def test_reservation_persists_bundle_for_fresh_read(tmp_path: Path) -> None:
     identity = json.loads((attempt_root / "identity.json").read_text())
     assert identity["idempotency_bundle"] == bundle.to_mapping()
     fresh = PilotAttemptArtifacts(Path(__file__).resolve().parents[4], approved_parent)
-    assert (
-        fresh.read("P2-P01-A1")["identity"]["idempotency_bundle"] == bundle.to_mapping()
-    )
+    fresh_identity = cast(Mapping[str, object], fresh.read("P2-P01-A1")["identity"])
+    assert fresh_identity["idempotency_bundle"] == bundle.to_mapping()
 
 
 def _approved_review_kwargs() -> dict[str, Any]:

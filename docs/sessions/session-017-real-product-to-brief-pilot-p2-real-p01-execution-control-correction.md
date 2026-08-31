@@ -40,8 +40,9 @@ The vertical slices are complete on the replacement branch: explicit identity
 and exact-HEAD/static preflight, the five-key immutable bundle and durable
 identity evidence, strict-new Task/Generate replay handling, and current-truth
 reconciliation. Focused controls/composition/artifact/runner/architecture
-tests pass (`99 passed, 4 skipped`); the
-PostgreSQL composition file remains unchanged and skipped. Ruff, Pyright,
+tests pass (`97 passed, 4 skipped`); the PostgreSQL composition test carries
+only explicit P01/A1 identity and typed bundle alignment and remains skipped.
+Ruff, Pyright,
 Import Linter and package build pass; no PostgreSQL/API/Docker lifecycle ran.
 
 ## Merge-conditional next state

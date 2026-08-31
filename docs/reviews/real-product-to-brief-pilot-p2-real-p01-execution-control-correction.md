@@ -40,16 +40,18 @@ real P01 run or Grant.
 ## Provider-free validation
 
 - Focused control, composition, artifact, runner and architecture tests:
-  `99 passed, 4 skipped`.
+  `97 passed, 4 skipped`.
 - Backend non-live regression (`-m "not live and not slow"`):
-  `2189 passed, 22 skipped, 4 deselected`.
+  `2187 passed, 22 skipped, 4 deselected`.
+- Backend non-live regression (`-m "not live and not slow"`):
 - Ruff format/check, Pyright and Import Linter (`10 kept, 0 broken`) pass.
 - `uv build` passes.
-- The PostgreSQL composition integration file is unchanged and remains
-  opt-in/skipped; no PostgreSQL/API/Docker lifecycle was run.
+- The PostgreSQL composition integration file receives only the explicit
+  P01/A1 identity and typed bundle alignment; it remains opt-in/skipped and no
+  PostgreSQL/API/Docker lifecycle was run.
 - Current-truth marker and stale-assertion checks pass across all six
-  synchronized surfaces. Fourteen paths changed; the unchanged PG test is the
-  fifteenth allowlisted path.
+  synchronized surfaces. Fifteen allowlisted paths are now aligned, with no
+  path outside the Issue #355 contract.
 
 ## External-action truth
 
