@@ -7,19 +7,21 @@
 ## 1. 当前阶段
 
 - **项目名称：** AI Ecommerce Agent
-- **当前阶段：** [DEC-087](docs/decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) 已在 `main` 生效：MVP-0L 为 `TERMINAL_INCOMPLETE_L5_FAILED`、Real Product-to-Brief Pilot 为 `ACTIVE`。Issue #341 / PR #342 已合并，P01–P08 为 `ADMITTED`、denominator exact 8 frozen、P0 为 `P0_CONTRACT_FROZEN`。Issue #343 / PR #344 已合并并使 P1 provider-free characterization `CONFIRMED`（历史首失败归因仍为 `INCONCLUSIVE`）；Issue #345 / PR #346 的 response-key harness repair 已合并并修复，当前基线为 `8c43068038d4c3859383d68263f0ab0336480f6a`。Issue #347 当前为 `P2_READINESS_IMPLEMENTATION_IN_PROGRESS`；仅在经审阅 PR 到达 `main` 后，`P2_READINESS_IMPLEMENTED = YES` 才成为 merge-effective truth。
+- **当前阶段：** [DEC-087](docs/decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) 已在 `main` 生效：MVP-0L 为 `TERMINAL_INCOMPLETE_L5_FAILED`、Real Product-to-Brief Pilot 为 `ACTIVE`。Issue #341 / PR #342 已合并，P01–P08 为 `ADMITTED`、denominator exact 8 frozen、P0 为 `P0_CONTRACT_FROZEN`。Issue #343 / PR #344 已合并并使 P1 provider-free characterization `CONFIRMED`（历史首失败归因仍为 `INCONCLUSIVE`）；Issue #345 / PR #346 的 response-key harness repair 已合并并修复，当前基线为 `8c43068038d4c3859383d68263f0ab0336480f6a`。Issue #347 / PR #349 已合并，P2 provider-free readiness 已在 `main@cb77de2f96954a2d63ef00eead2f93bea1197649` 生效。当前 Issue #350 分支状态为 `OPERATOR_BINDER_IMPLEMENTATION_PENDING_REVIEW`；仅在经独立审阅的 PR 到达 `main` 后，`OPERATOR_BINDER_IMPLEMENTED = YES` 才成为 merge-effective truth。
 - **开发状态：** MVP-0L L0–L4 accepted evidence remains preserved. L5 [Issue #335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336) is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at exact head `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`: five ordered `deepseek-v4-pro` calls with retry/recovery `0/0`, confirmed result true, export gates false, UTF-8/download false and no export files. Its authorization is consumed; no further Provider run is authorized. L6 is `NOT_EXECUTED`; Agent UI remains frozen. The historical Fast Lane remains `GOAL_BLOCKED`, and `P5_REUSE_FROZEN` remains unchanged.
-- **最小目标：** preserve the working deterministic/local foundation and maintain the bounded Real Product-to-Brief business Pilot. Issue #347 performs only the accepted P2 readiness implementation and evidence work; no Pilot observation or execution, paid Provider/Secret action, participant run, numerator or Goal completion is implied.
+- **最小目标：** preserve the working deterministic/local foundation and maintain the bounded Real Product-to-Brief business Pilot. Issue #347's provider-free P2 readiness is merge-effective; Issue #350 binds it into one provider-free operator lifecycle on this branch. No Pilot observation or execution, paid Provider/Secret action, participant run, numerator or Goal completion is implied.
 - **当前事实：** the repository has Task/Source persistence, fixed-workspace routes, generated client, Workbench projection, deterministic scripted pipeline and local demo path. Issue #318 provides the real PostgreSQL-backed Needs Input read/resolve boundary, current-request projection, bounded recovery reconciliation and the existing Web one-page Intake consumer without changing OpenAPI/generated types. Issue #329's test-only characterization proves the existing Task primary input, generated/confirmed Marketing and Xiaohongshu results, and both immutable Markdown export snapshots survive recomposition/replay and a materially newer fictional input; stale revision/idempotency replays remain rejected with `409` before and after recomposition. Acceptance uses fictional/sanitized data only. Native macOS App/WebView, signing/notarization, login/RBAC/multi-user/public deployment and Keychain/Secret UI are Deferred. Intel support is Deferred; excluded from the first release. The later project-root Git-ignored `.env` convention is accepted; outside the single owner-authorized L5 run, no Stage may create/read/inspect it or any Secret, and no Secret value is retained in repository/evidence material.
-- **当前 Gate：** Issue #347 is the single bounded P2 readiness Issue after the merge-effective Issue #345 / PR #346 repair. Its 24-path allowlist is fixed by the owner amendment; the actual changed subset is limited to the P2 implementation and tests enumerated in the review/session records. Four existing PostgreSQL/FastAPI composition paths remain byte-identical; `deterministic_result_postgres.py` is the accepted architecture-RED exception and changes only to expose the canonical factory helper. Required reservation is the approved DeepSeek reservation, not an owner-cap guess. No Pilot execution, paid Provider/model call, Secret access, migration/schema, local-demo change, public-contract/generated-client change, numerator or business outcome is authorized. `P2_READINESS_IMPLEMENTED = YES` remains merge-conditional on a reviewed PR reaching `main`.
-- **Pilot Gate：** [Real Product-to-Brief Pilot Goal](docs/goals/real-product-to-brief-pilot-goal.md), its [Pilot Contract](docs/product/real-product-to-brief-pilot-contract.md), and the [P0 admission/contract-freeze plan](docs/product/real-product-to-brief-pilot-p0-plan.md) retain the exact **P0 → P1 → P2 → P3 → P4 → P5 → P6** order and accepted denominator. Issue #341 / PR #342 is merge-effective: P0 is `P0_CONTRACT_FROZEN`, P01–P08 are `ADMITTED`, denominator exact 8 is frozen. Issue #343 / PR #344 and Issue #345 / PR #346 are merge-effective provider-free characterization/repair evidence. Issue #347 is `P2_READINESS_IMPLEMENTATION_IN_PROGRESS`; only a reviewed PR on `main` may make `P2_READINESS_IMPLEMENTED = YES`. `PILOT_EXECUTION_AUTHORIZATION=NOT_AUTHORIZED` and the real P01 Grant remain `NOT_AUTHORIZED` in all states.
+- **当前 Gate：** Issue #347 / PR #349 is the merge-effective provider-free P2 readiness base at `main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 is the sole bounded operator-binder delivery on this branch with an exact 18-path allowlist; its binder result remains merge-conditional pending independent review and a Ready PR. No Pilot execution, paid Provider/model call, Secret access, migration/schema, local-demo change, public-contract/generated-client change, numerator or business outcome is authorized. `REAL_P01_GRANT=NOT_CONSUMED` and `P01_ATTEMPT_EXECUTED=NO` remain current.
+- **Pilot Gate：** [Real Product-to-Brief Pilot Goal](docs/goals/real-product-to-brief-pilot-goal.md), its [Pilot Contract](docs/product/real-product-to-brief-pilot-contract.md), and the [P0 admission/contract-freeze plan](docs/product/real-product-to-brief-pilot-p0-plan.md) retain the exact **P0 → P1 → P2 → P3 → P4 → P5 → P6** order and accepted denominator. Issue #341 / PR #342 is merge-effective: P0 is `P0_CONTRACT_FROZEN`, P01–P08 are `ADMITTED`, denominator exact 8 is frozen. Issue #343 / PR #344, Issue #345 / PR #346 and Issue #347 / PR #349 are merge-effective provider-free characterization/repair/readiness evidence. Issue #350's binder is pending independent review on this branch; only a reviewed PR on `main` may make `OPERATOR_BINDER_IMPLEMENTED = YES`. `PILOT_EXECUTION_AUTHORIZATION=NOT_AUTHORIZED`; the real P01 Grant is `NOT_CONSUMED` and no Pilot run is authorized.
 - **质量方向：** strictly apply [DEC-039](docs/decisions/dec-039-proportional-validation-and-review-governance.md): representative behavior, boundary and required-check evidence proportional to risk; do not add speculative defensive test matrices.
 - **前端产品方向：** the accepted A+C baseline is Chinese-first “运营编辑部 / 策略桌”: stable business/status reading order, wide-desktop horizontal five-stage rail, one dominant action, progressive disclosure, Context Rail and 1024/320 reflow. Issue #303, #305 and #247 are merged/current P1–P3 deliveries; Issue #308 reconciles the real-backend harness and Issue #310 records the predecessor journey. Issue #318 keeps the one-page authority-first Needs Input panel before the existing Intake editor and records a 4/4 real-backend recovery/reload pass; Issue #329 changes no UI and records only backend persistence evidence, including the restored stale revision/idempotency fences. No modal, wizard or new page was added.
 
 ### Issue #347 P2 readiness record
 
-Issue #347 is currently `P2_READINESS_IMPLEMENTATION_IN_PROGRESS` on the
-accepted base `8c43068038d4c3859383d68263f0ab0336480f6a`. The owner amendment
+The historical Issue #347 branch record was
+`P2_READINESS_IMPLEMENTATION_IN_PROGRESS` on the accepted base
+`8c43068038d4c3859383d68263f0ab0336480f6a`; PR #349 is now merge-effective.
+The owner amendment
 ([comment 5473654628](https://github.com/JettxonHo/ai-ecommerce-agent/issues/347#issuecomment-5473654628))
 sets a fixed 24-path allowlist: the original 18 paths plus five existing
 PostgreSQL/FastAPI composition paths and one new integration test. Four existing
@@ -43,9 +45,46 @@ Primary Input → Result → confirmation/Review-Export lifecycle.
 
 No migration, `local_demo.py`, public API/generated-client, default-composition,
 real Provider, Secret or Pilot execution change is implied. `P2_READINESS_IMPLEMENTED = YES`
-is merge-effective only after a reviewed PR reaches `main`; Pilot execution and
-the real P01 Grant remain `NOT_AUTHORIZED`. See [P2 readiness review](docs/reviews/real-product-to-brief-pilot-p2-readiness.md)
+is merge-effective at `main@cb77de2`; Pilot execution and the real P01 Grant
+remain unauthorized. See [P2 readiness review](docs/reviews/real-product-to-brief-pilot-p2-readiness.md)
 and [Session-015](docs/sessions/session-015-real-product-to-brief-pilot-p2-readiness.md).
+
+### Issue #350 provider-free operator binder
+
+Issue #350 is the bounded follow-up to the merge-effective #347 / PR #349
+readiness seams. On this branch its status is
+`OPERATOR_BINDER_IMPLEMENTATION_PENDING_REVIEW`; only a reviewed Ready PR
+reaching `main` may record `OPERATOR_BINDER_IMPLEMENTED = YES`. The production
+seam is the deep `PilotP2Operator` module with `apply(command)` and `read()`
+for `StartAttempt`, `ConfirmAndCapture`, `SubmitHumanReview` and
+`FinalizeAttempt`. It composes the existing PostgreSQL/FastAPI Task → Primary
+Input → Result → Review/Export lifecycle, persists sanitized outside-Git
+attempt evidence and keeps P2 runtime construction lazy.
+
+Provider-free evidence is limited to synthetic input/fake runtime fixtures and
+an isolated guarded PostgreSQL/API lifecycle. It proves actual persisted
+Task/Input/Result identities, five ordered observed calls, durable terminal
+failure, close/recompose resume with zero runtime calls, immutable export
+sidecars, explicit Human Review and PASS/FAIL finalization. Run evidence does
+not predeclare a later export; actual invoice cost remains typed
+`NOT_EXPOSED`/`NOT_DERIVABLE` when current metadata cannot reproduce it.
+
+The branch changes only the exact Issue #350 allowlist. No migration/schema,
+OpenAPI/generated client/public route, dependency/lockfile, local-demo/default
+composition, private P01 material, Secret, Provider, participant or Pilot
+execution is involved. Current external-action truth remains:
+
+```text
+OPERATOR_BINDER_IMPLEMENTED = PENDING_INDEPENDENT_REVIEW
+REAL_P01_GRANT = NOT_CONSUMED
+P01_ATTEMPT_EXECUTED = NO
+P01_RESULT = NOT_EXECUTED
+P02_PLUS = NOT_AUTHORIZED
+SECRET_STATUS = NOT_CHECKED
+```
+
+See [Issue #350 operator-binder review](docs/reviews/real-product-to-brief-pilot-p2-operator-binder.md)
+and [Session-016](docs/sessions/session-016-real-product-to-brief-pilot-p2-operator-binder.md).
 
 ---
 

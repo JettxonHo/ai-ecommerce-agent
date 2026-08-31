@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from typing import NoReturn
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import Any, NoReturn, cast
 
 import pytest
 
@@ -11,6 +13,7 @@ from ai_ecommerce_agent.application.model_runtime import (
     ModelCallResult,
 )
 from ai_ecommerce_agent.bootstrap import pilot_p2
+from ai_ecommerce_agent.entrypoints.http import FixedWorkspaceHttpConfig
 from ai_ecommerce_agent.modules.customer_insight.application.skills import (
     customer_insight_analysis,
 )
@@ -37,6 +40,7 @@ from ai_ecommerce_agent.platform.model_runtime.deepseek._cost_gate import (
     DEEPSEEK_PRICING_RECORD,
     DeepSeekRuntimeAdmissionGate,
 )
+from ai_ecommerce_agent.platform.postgres import PostgresEngineConfig
 
 pytestmark = pytest.mark.unit
 
@@ -58,6 +62,805 @@ SPEC_FACTORIES: tuple[SpecFactory, ...] = (
     marketing_brief_generation.marketing_brief_candidate_output_spec,
     xiaohongshu_brief_mapping.xiaohongshu_brief_candidate_output_spec,
 )
+
+
+def test_operator_binder_start_persists_observed_generation_without_review(
+    tmp_path: Path,
+) -> None:
+    """The production operator seam owns one provider-free Start lifecycle."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        PilotP2Operator,
+        StartAttempt,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[4]
+
+    class _FakeClient:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, str]] = []
+            self._input_revision = 0
+
+        def create_task(self, *, idempotency_key: str) -> dict[str, object]:
+            del idempotency_key
+            self.calls.append(("POST", "/api/v1/tasks"))
+            return {"taskId": "task-real-01", "revision": 1}
+
+        def save_primary_input(
+            self, *, task_id: str, content: str, file_name: str
+        ) -> dict[str, object]:
+            assert task_id == "task-real-01"
+            assert content == P01_SANITIZED_INPUT
+            assert file_name == input_path.name
+            self.calls.append(("PUT", "/api/v1/tasks/task-real-01/primary-input"))
+            self._input_revision = 1
+            return {"taskId": task_id, "inputRevision": 1}
+
+        def generate_result(
+            self, *, task_id: str, input_revision: int, idempotency_key: str
+        ) -> dict[str, object]:
+            del idempotency_key
+            assert task_id == "task-real-01"
+            assert input_revision == self._input_revision
+            self.calls.append(
+                ("POST", "/api/v1/tasks/task-real-01/commands/generate-result")
+            )
+            return {
+                "taskId": task_id,
+                "resultRevision": 1,
+                "inputRevision": input_revision,
+                "status": "awaiting_review",
+            }
+
+    client = _FakeClient()
+
+    class _FakeComposition:
+        application = object()
+        observation = {
+            "attempted_count": 5,
+            "completed_count": 5,
+            "calls": tuple(
+                {
+                    "model_call_id": f"P2-P01-A1-stage-{index}",
+                    "status": "COMPLETED",
+                }
+                for index in range(1, 6)
+            ),
+            "provider_id": "deepseek",
+            "configured_model_id": "deepseek-v4-pro",
+            "resolved_model_id": "deepseek-v4-pro",
+        }
+        close_calls = 0
+
+        def close(self) -> None:
+            self.close_calls += 1
+
+    def compose_fake(*_args: object, **_kwargs: object) -> _FakeComposition:
+        return _FakeComposition()
+
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://user:password@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+        composition_factory=compose_fake,
+        http_client_factory=lambda _application: client,
+    )
+
+    snapshot = operator.apply(
+        StartAttempt(
+            input_path=input_path,
+            artifact_root=artifact_root,
+            authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+            owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+            pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+        )
+    )
+
+    assert snapshot.status == "AWAITING_CONFIRMATION"
+    assert snapshot.task_id == "task-real-01"
+    assert snapshot.result_id == "task-real-01:r1"
+    assert snapshot.result_revision == 1
+    assert snapshot.observation["attempted_count"] == 5
+    assert snapshot.observation["completed_count"] == 5
+    assert [method for method, _path in client.calls] == ["POST", "PUT", "POST"]
+    assert snapshot.review_status == "PENDING"
+    assert snapshot.outcome is None
+
+
+def test_operator_binder_stage_three_failure_is_durable_and_terminal(
+    tmp_path: Path,
+) -> None:
+    """A mid-stage failure records only safe attempted/completed evidence."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        PilotP2Operator,
+        StartAttempt,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[4]
+
+    class _FailingClient:
+        calls: list[tuple[str, str]] = []
+
+        def create_task(self, *, idempotency_key: str) -> dict[str, object]:
+            del idempotency_key
+            self.calls.append(("POST", "/api/v1/tasks"))
+            return {"taskId": "task-real-03", "revision": 1}
+
+        def save_primary_input(
+            self, *, task_id: str, content: str, file_name: str
+        ) -> dict[str, object]:
+            del content, file_name
+            self.calls.append(("PUT", f"/api/v1/tasks/{task_id}/primary-input"))
+            return {"taskId": task_id, "inputRevision": 1}
+
+        def generate_result(
+            self, *, task_id: str, input_revision: int, idempotency_key: str
+        ) -> dict[str, object]:
+            del task_id, input_revision, idempotency_key
+            self.calls.append(("POST", "/commands/generate-result"))
+            raise ValueError("synthetic stage three failure")
+
+    client = _FailingClient()
+
+    class _FailingComposition:
+        application = object()
+        observation = {
+            "attempted_count": 3,
+            "completed_count": 2,
+            "calls": (
+                {"model_call_id": "P2-P01-A1-stage-1", "status": "COMPLETED"},
+                {"model_call_id": "P2-P01-A1-stage-2", "status": "COMPLETED"},
+                {
+                    "model_call_id": "P2-P01-A1-stage-3",
+                    "status": "FAILED",
+                    "error_category": "invalid_candidate",
+                },
+            ),
+            "provider_id": "deepseek",
+            "configured_model_id": "deepseek-v4-pro",
+            "resolved_model_id": "deepseek-v4-pro",
+        }
+
+        def close(self) -> None:
+            return None
+
+    def compose_fake(*_args: object, **_kwargs: object) -> _FailingComposition:
+        return _FailingComposition()
+
+    snapshot = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://user:password@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+        composition_factory=compose_fake,
+        http_client_factory=lambda _application: client,
+    ).apply(
+        StartAttempt(
+            input_path=input_path,
+            artifact_root=artifact_root,
+            authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+            owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+            pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+        )
+    )
+
+    assert snapshot.status == "FAIL"
+    assert snapshot.attempted_call_count == 3
+    assert snapshot.completed_call_count == 2
+    assert snapshot.run is not None
+    assert snapshot.run["call_count"] == 3
+    assert len(cast(Sequence[object], snapshot.run["calls"])) == 3
+    assert snapshot.review_status == "PENDING"
+    assert snapshot.exports == ()
+    assert snapshot.outcome == "FAIL"
+    assert snapshot.outcome_record is not None
+    assert snapshot.outcome_record["reason_code"] == "execution_not_qualified"
+    assert "traceback" not in str(snapshot.outcome_record).casefold()
+    assert [method for method, _path in client.calls] == ["POST", "PUT", "POST"]
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "expected_code"),
+    (
+        ("authorized_commit", "not-the-current-head", "git_head_mismatch"),
+        ("owner_cap_micro_usd", None, "owner_cap_invalid"),
+        (
+            "owner_cap_micro_usd",
+            DEEPSEEK_P2_RESERVATION_MICRO_USD - 1,
+            "owner_cap_underfunded",
+        ),
+        ("pricing_record_id", "wrong-pricing-record", "pricing_record_mismatch"),
+    ),
+)
+def test_operator_binder_rejects_controls_before_any_side_effect(
+    tmp_path: Path,
+    field: str,
+    value: object,
+    expected_code: str,
+) -> None:
+    """Every exact pre-call control rejects before artifact/PG/runtime/client."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        PilotP2Operator,
+        PilotP2OperatorError,
+        StartAttempt,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[4]
+    composition_calls = 0
+    client_calls = 0
+
+    def never_compose(*_args: object, **_kwargs: object) -> NoReturn:
+        nonlocal composition_calls
+        composition_calls += 1
+        raise AssertionError("composition must not run after pre-call rejection")
+
+    def never_client(_application: object) -> NoReturn:
+        nonlocal client_calls
+        client_calls += 1
+        raise AssertionError("HTTP client must not run after pre-call rejection")
+
+    start_kwargs: dict[str, object] = {
+        "input_path": input_path,
+        "artifact_root": artifact_root,
+        "authorized_commit": "cb77de2f96954a2d63ef00eead2f93bea1197649",
+        "owner_cap_micro_usd": DEEPSEEK_P2_RESERVATION_MICRO_USD,
+        "pricing_record_id": DEEPSEEK_PRICING_RECORD.record_id,
+    }
+    start_kwargs[field] = value
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://user:password@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+        composition_factory=never_compose,
+        http_client_factory=never_client,
+    )
+
+    with pytest.raises(PilotP2OperatorError) as error:
+        operator.apply(StartAttempt(**cast(Any, start_kwargs)))
+    assert error.value.code == expected_code
+    assert not artifact_root.exists()
+    assert composition_calls == 0
+    assert client_calls == 0
+
+
+def test_operator_binder_rejects_wrong_artifact_root_before_composition(
+    tmp_path: Path,
+) -> None:
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        PilotP2Operator,
+        PilotP2OperatorError,
+        StartAttempt,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    repository_root = Path(__file__).resolve().parents[4]
+    composition_calls = 0
+
+    def never_compose(*_args: object, **_kwargs: object) -> NoReturn:
+        nonlocal composition_calls
+        composition_calls += 1
+        raise AssertionError("composition must not run after root rejection")
+
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://user:password@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+        composition_factory=never_compose,
+    )
+    with pytest.raises(PilotP2OperatorError) as error:
+        operator.apply(
+            StartAttempt(
+                input_path=input_path,
+                artifact_root=artifact_parent / "wrong-root",
+                authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+                owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+                pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+            )
+        )
+    assert error.value.code == "artifact_root_invalid"
+    assert composition_calls == 0
+
+
+def test_operator_binder_rejects_mismatched_caller_head_even_with_authorized_commit(
+    tmp_path: Path,
+) -> None:
+    """All supplied head assertions must agree with the repository reader."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        PilotP2Operator,
+        PilotP2OperatorError,
+        StartAttempt,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[4]
+
+    def never_compose(*_args: object, **_kwargs: object) -> NoReturn:
+        raise AssertionError("composition must not run before caller-head validation")
+
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://user:password@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+        composition_factory=never_compose,
+    )
+
+    with pytest.raises(PilotP2OperatorError) as error:
+        operator.apply(
+            StartAttempt(
+                input_path=input_path,
+                artifact_root=artifact_root,
+                authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+                git_commit="caller-supplied-wrong-head",
+                owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+                pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+            )
+        )
+    assert error.value.code == "git_head_mismatch"
+    assert not artifact_root.exists()
+
+
+def test_operator_binder_confirm_and_capture_recomposes_without_runtime_calls(
+    tmp_path: Path,
+) -> None:
+    """Resume captures one immutable export and leaves Human Review pending."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        ConfirmAndCapture,
+        PilotP2Operator,
+        StartAttempt,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[4]
+
+    class _ResumeClient:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, str]] = []
+
+        def create_task(self, *, idempotency_key: str) -> dict[str, object]:
+            del idempotency_key
+            self.calls.append(("POST", "/api/v1/tasks"))
+            return {"taskId": "task-resume-01", "revision": 1}
+
+        def save_primary_input(
+            self, *, task_id: str, content: str, file_name: str
+        ) -> dict[str, object]:
+            del content, file_name
+            self.calls.append(("PUT", f"/api/v1/tasks/{task_id}/primary-input"))
+            return {"taskId": task_id, "inputRevision": 1}
+
+        def generate_result(
+            self, *, task_id: str, input_revision: int, idempotency_key: str
+        ) -> dict[str, object]:
+            del input_revision, idempotency_key
+            self.calls.append(
+                ("POST", f"/api/v1/tasks/{task_id}/commands/generate-result")
+            )
+            return {
+                "taskId": task_id,
+                "resultRevision": 1,
+                "inputRevision": 1,
+                "status": "awaiting_review",
+            }
+
+        def current_result(self, *, task_id: str) -> dict[str, object]:
+            self.calls.append(("GET", f"/api/v1/tasks/{task_id}/current-result"))
+            return {"taskId": task_id, "resultRevision": 1, "status": "awaiting_review"}
+
+        def confirm_result(
+            self,
+            *,
+            task_id: str,
+            result_revision: int,
+            marketing_core_message: str,
+            xiaohongshu_title_direction: str,
+            idempotency_key: str,
+        ) -> dict[str, object]:
+            del (
+                result_revision,
+                marketing_core_message,
+                xiaohongshu_title_direction,
+                idempotency_key,
+            )
+            self.calls.append(
+                ("POST", f"/api/v1/tasks/{task_id}/commands/confirm-current-result")
+            )
+            return {"taskId": task_id, "resultRevision": 1, "status": "confirmed"}
+
+        def preview_export(self, *, task_id: str, brief_kind: str) -> dict[str, object]:
+            self.calls.append(("POST", f"/api/v1/tasks/{task_id}/export-previews"))
+            return {
+                "basis": {
+                    "taskId": task_id,
+                    "taskRevision": 1,
+                    "briefKind": brief_kind,
+                    "briefVersion": {
+                        "resourceKind": f"{brief_kind}_brief",
+                        "resourceVersionId": "brief-resume-01",
+                        "versionNumber": 1,
+                    },
+                    "upstreamVersions": [],
+                    "hypotheses": [],
+                    "evidenceLimitations": [],
+                    "risks": [],
+                },
+                "templateVersion": "mvp0-markdown-v1",
+                "fileName": f"task-{task_id}-{brief_kind}-v1-20260831T000000Z.md",
+                "mediaType": "text/markdown; charset=utf-8",
+            }
+
+        def create_export_snapshot(
+            self, *, basis: Mapping[str, object], idempotency_key: str
+        ) -> dict[str, object]:
+            del idempotency_key
+            task_id = str(basis["taskId"])
+            brief_kind = str(basis["briefKind"])
+            self.calls.append(("POST", "/api/v1/export-snapshots"))
+            return {
+                "exportSnapshotId": f"export-{brief_kind}-resume-01",
+                "taskId": task_id,
+                "briefKind": brief_kind,
+                "briefVersion": basis["briefVersion"],
+                "upstreamVersions": [],
+                "exportedAt": "2026-08-31T00:02:00Z",
+                "fileName": f"task-{task_id}-{brief_kind}-v1-20260831T000000Z.md",
+                "mediaType": "text/markdown; charset=utf-8",
+                "contentLocation": (
+                    f"/api/v1/export-snapshots/export-{brief_kind}-resume-01/content"
+                ),
+                "templateVersion": "mvp0-markdown-v1",
+            }
+
+        def download_export(self, *, content_location: str) -> bytes:
+            self.calls.append(("GET", content_location))
+            return b"# Marketing Brief\n"
+
+    client = _ResumeClient()
+
+    class _ResumeComposition:
+        application = object()
+        observation = {
+            "attempted_count": 5,
+            "completed_count": 5,
+            "calls": tuple(
+                {
+                    "model_call_id": f"P2-P01-A1-stage-{index}",
+                    "status": "COMPLETED",
+                }
+                for index in range(1, 6)
+            ),
+            "provider_id": "deepseek",
+            "configured_model_id": "deepseek-v4-pro",
+            "resolved_model_id": "deepseek-v4-pro",
+        }
+
+        def close(self) -> None:
+            return None
+
+    def compose_fake(*_args: object, **_kwargs: object) -> _ResumeComposition:
+        return _ResumeComposition()
+
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://user:password@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+        composition_factory=compose_fake,
+        http_client_factory=lambda _application: client,
+    )
+    started = operator.apply(
+        StartAttempt(
+            input_path=input_path,
+            artifact_root=artifact_root,
+            authorized_commit="cb77de2f96954a2d63ef00eead2f93bea1197649",
+            owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+            pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+        )
+    )
+    resumed = operator.apply(ConfirmAndCapture(brief_kinds=("marketing",)))
+
+    assert started.status == "AWAITING_CONFIRMATION"
+    assert resumed.status == "PENDING_HUMAN_REVIEW"
+    assert resumed.review_status == "PENDING"
+    assert resumed.outcome is None
+    assert resumed.result_id == "task-resume-01:r1"
+    assert resumed.exports[0]["export_snapshot_id"] == "export-marketing-resume-01"
+    assert (
+        artifact_root / "exports" / "marketing-brief.md"
+    ).read_bytes() == b"# Marketing Brief\n"
+    assert [method for method, _path in client.calls] == [
+        "POST",
+        "PUT",
+        "POST",
+        "GET",
+        "POST",
+        "POST",
+        "POST",
+        "GET",
+    ]
+
+
+def test_operator_binder_explicit_review_and_finalize_qualifies_unknown_actual_cost(
+    tmp_path: Path,
+) -> None:
+    """PASS derives export qualification from sidecars, not run evidence."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        FinalizeAttempt,
+        PilotP2Operator,
+        SubmitHumanReview,
+    )
+    from ai_ecommerce_agent.orchestration.pilot_attempt_artifact import (
+        CaptureExport,
+        ExportContentReference,
+        ExportVersionReference,
+        PilotAttemptArtifacts,
+        RecordRun,
+        ReserveAttempt,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[4]
+    artifacts = PilotAttemptArtifacts(repository_root, artifact_parent)
+    artifacts.apply(ReserveAttempt(artifact_root))
+    task_id = "task-review-01"
+    result_id = f"{task_id}:r1"
+    artifacts.apply(
+        RecordRun(
+            task_id=task_id,
+            task_revision=1,
+            result_id=result_id,
+            result_revision=1,
+            provider_id="deepseek",
+            api_family="chat_completions",
+            configured_model_id="deepseek-v4-pro",
+            resolved_model_id="deepseek-v4-pro",
+            pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+            call_count=5,
+            calls=tuple(
+                {
+                    "model_call_id": f"P2-P01-A1-stage-{index}",
+                    "status": "COMPLETED",
+                }
+                for index in range(1, 6)
+            ),
+            gates={
+                "schema": True,
+                "domain": True,
+                "persistence": True,
+                # Export is absent until ConfirmAndCapture sidecars exist.
+                "export": False,
+            },
+            cost={
+                "reserved_micro_usd": DEEPSEEK_P2_RESERVATION_MICRO_USD,
+                "actual_micro_usd": None,
+            },
+        )
+    )
+    artifacts.apply(
+        CaptureExport(
+            task_id=task_id,
+            task_revision=1,
+            result_id=result_id,
+            result_revision=1,
+            export_snapshot_id="export-review-01",
+            brief_version=ExportVersionReference("brief-review-01", 1),
+            content_reference=ExportContentReference(
+                "local_relative", "exports/marketing-brief.md"
+            ),
+            content_bytes=b"# Marketing Brief\n",
+        )
+    )
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://user:password@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+        owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+        pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+    )
+    reviewed = operator.apply(SubmitHumanReview(overall="APPROVED"))
+    finalized = operator.apply(
+        FinalizeAttempt(
+            outcome="PASS",
+            reason_code="qualifying_approved_export",
+            approved_review_id="review-P2-P01-A1",
+            selected_export_snapshot_ids=("export-review-01",),
+        )
+    )
+
+    assert reviewed.status == "REVIEW_SUBMITTED"
+    assert reviewed.review_status == "APPROVED"
+    assert finalized.status == "PASS"
+    assert finalized.outcome == "PASS"
+    assert finalized.run is not None
+    assert cast(Mapping[str, object], finalized.run["gates"])["export"] is False
+    assert (
+        cast(Mapping[str, object], finalized.run["cost"])["actual_micro_usd"]
+        == "NOT_EXPOSED"
+    )
+
+
+def test_operator_binder_rejected_review_finalizes_fail_without_auto_approval(
+    tmp_path: Path,
+) -> None:
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        FinalizeAttempt,
+        PilotP2Operator,
+        SubmitHumanReview,
+    )
+    from ai_ecommerce_agent.orchestration.pilot_attempt_artifact import (
+        CaptureExport,
+        ExportContentReference,
+        ExportVersionReference,
+        PilotAttemptArtifacts,
+        RecordRun,
+        ReserveAttempt,
+        ReviewDimension,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[4]
+    artifacts = PilotAttemptArtifacts(repository_root, artifact_parent)
+    artifacts.apply(ReserveAttempt(artifact_root))
+    task_id = "task-review-rejected"
+    result_id = f"{task_id}:r1"
+    artifacts.apply(
+        RecordRun(
+            task_id=task_id,
+            task_revision=1,
+            result_id=result_id,
+            result_revision=1,
+            pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+            call_count=5,
+            calls=tuple(
+                {
+                    "model_call_id": f"P2-P01-A1-stage-{index}",
+                    "status": "COMPLETED",
+                }
+                for index in range(1, 6)
+            ),
+            gates={
+                "schema": True,
+                "domain": True,
+                "persistence": True,
+                "export": False,
+            },
+            cost={
+                "reserved_micro_usd": DEEPSEEK_P2_RESERVATION_MICRO_USD,
+                "actual_micro_usd": None,
+            },
+        )
+    )
+    artifacts.apply(
+        CaptureExport(
+            task_id=task_id,
+            task_revision=1,
+            result_id=result_id,
+            result_revision=1,
+            export_snapshot_id="export-review-rejected",
+            brief_version=ExportVersionReference("brief-review-rejected", 1),
+            content_reference=ExportContentReference(
+                "local_relative", "exports/marketing-brief.md"
+            ),
+            content_bytes=b"# Marketing Brief\n",
+        )
+    )
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://user:password@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+        owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+        pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+    )
+    rejected_dimensions = (
+        ReviewDimension("product_fact_correctness", "FAIL", True),
+        ReviewDimension("mandatory_messages", "PASS", True),
+        ReviewDimension("prohibited_claims", "PASS", True),
+        ReviewDimension("fabrication_misleading_content", "PASS", True),
+        ReviewDimension("marketing_brief_usability", "PASS", True),
+        ReviewDimension("xiaohongshu_consistency", "NOT_APPLICABLE", False),
+        ReviewDimension("markdown_delivery", "PASS", True),
+    )
+    reviewed = operator.apply(
+        SubmitHumanReview(
+            overall="REJECTED",
+            dimensions=rejected_dimensions,
+            captured_export_snapshot_ids=("export-review-rejected",),
+        )
+    )
+    finalized = operator.apply(
+        FinalizeAttempt(
+            outcome="FAIL",
+            reason_code="review_rejected",
+        )
+    )
+
+    assert reviewed.review_status == "REJECTED"
+    assert finalized.status == "FAIL"
+    assert finalized.outcome == "FAIL"
+    assert finalized.outcome_record is not None
+    assert finalized.outcome_record["reason_code"] == "review_rejected"
 
 
 class _FakeDeepSeekRuntime:

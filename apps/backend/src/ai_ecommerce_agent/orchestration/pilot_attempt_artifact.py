@@ -1588,22 +1588,38 @@ class PilotAttemptArtifacts:
                 )
             _safe_id(command.sample_id, "sample_id")
             _safe_id(command.attempt_id, "attempt_id")
-            if command.task_id is None or command.result_id is None:
-                raise AttemptArtifactError(
-                    ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
-                )
-            _safe_id(command.task_id, "task_id")
-            _safe_id(command.result_id, "result_id")
-            _nonnegative_int(command.task_revision, "task_revision")
-            _nonnegative_int(command.result_revision, "result_revision")
             if command.outcome is None:
                 raise ValueError("outcome is required")
             disposition = _final_disposition(command.outcome)
+            if command.task_id is None:
+                if disposition == FinalDisposition.PASS:
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+            else:
+                _safe_id(command.task_id, "task_id")
+                _nonnegative_int(command.task_revision, "task_revision")
+            if command.result_id is None:
+                if disposition == FinalDisposition.PASS:
+                    raise AttemptArtifactError(
+                        ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                    )
+            else:
+                _safe_id(command.result_id, "result_id")
+                _nonnegative_int(command.result_revision, "result_revision")
             if command.reason_code is None:
                 raise ValueError("reason_code is required")
             _safe_id(command.reason_code, "reason_code")
             if command.reason_code not in _FINAL_REASON_CODES:
                 raise ValueError("reason_code is not fixed")
+            if (
+                disposition != FinalDisposition.PASS
+                and (command.task_id is None or command.result_id is None)
+                and command.reason_code != "execution_not_qualified"
+            ):
+                raise AttemptArtifactError(
+                    ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                )
             if disposition == FinalDisposition.PASS:
                 if command.reason_code != "qualifying_approved_export":
                     raise ValueError("PASS reason_code is invalid")
@@ -1888,7 +1904,10 @@ class PilotAttemptArtifacts:
         if not isinstance(run_gates, Mapping):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         run_gate_values = cast(Mapping[str, object], run_gates)
-        for gate_name in ("schema", "domain", "persistence", "export"):
+        # Run evidence is written before export capture, so the export gate
+        # may remain false here; qualification is derived from immutable
+        # captured sidecars selected above.
+        for gate_name in ("schema", "domain", "persistence"):
             if run_gate_values.get(gate_name) is not True:
                 raise AttemptArtifactError(
                     ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
@@ -1901,12 +1920,18 @@ class PilotAttemptArtifacts:
         run_cost_values = cast(Mapping[str, object], run_cost)
         if pricing_values.get("record_id") != cost.reservation_ref:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
-        if type(cost.actual_micro_usd) is not int:
+        if type(cost.actual_micro_usd) is int:
+            actual_value: int | str = cost.actual_micro_usd
+        elif isinstance(cost.actual_micro_usd, UnknownValue):
+            actual_value = cost.actual_micro_usd.value
+        else:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
-        if run_cost_values.get("actual_micro_usd") != cost.actual_micro_usd:
+        if run_cost_values.get("actual_micro_usd") != actual_value:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         owner_cap = cost.owner_cap_micro_usd
-        if type(owner_cap) is not int or cost.actual_micro_usd > owner_cap:
+        if type(owner_cap) is not int:
+            raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
+        if type(cost.actual_micro_usd) is int and cost.actual_micro_usd > owner_cap:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         for export in selected_exports:
             if export.get("immutable") is not True:

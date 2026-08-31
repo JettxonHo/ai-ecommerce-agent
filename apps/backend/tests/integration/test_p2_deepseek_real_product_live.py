@@ -6,7 +6,7 @@ import os
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Final, NoReturn
+from typing import Any, Final, NoReturn
 
 import pytest
 
@@ -21,7 +21,7 @@ P2_VARIANT: Final[str] = "42733233766550"
 P2_CATEGORY: Final[str] = "A"
 P2_MAX_CALLS: Final[int] = 5
 P2_P2_CONTEXT_VERSION: Final[str] = "pilot-p2-v1"
-P2_GIT_COMMIT: Final[str] = "8c43068038d4c3859383d68263f0ab0336480f6a"
+P2_GIT_COMMIT: Final[str] = "cb77de2f96954a2d63ef00eead2f93bea1197649"
 P2_PRICING_RECORD_ID: Final[str] = "deepseek-v4-pro-2026-08-30-peak-v1"
 P2_RESERVATION_MICRO_USD: Final[int] = 6_783_834
 P2_PRIVATE_INPUTS_ROOT: Final[Path] = Path(
@@ -34,6 +34,8 @@ P2_PRIVATE_ARTIFACT_ROOT: Final[Path] = (
     P2_PRIVATE_ARTIFACT_PARENT / P2_SAMPLE_ID / P2_ATTEMPT_ID
 )
 P2_OPT_IN_ENVIRONMENT: Final[str] = "AI_ECOMMERCE_RUN_P2_REAL"
+P2_FUTURE_GRANT_ENVIRONMENT: Final[str] = "AI_ECOMMERCE_P2_REAL_GRANT"
+_DATABASE_URL_ENV: Final[str] = "MVP0_TASK_HTTP_DATABASE_URL"
 
 
 class P2LiveControlError(ValueError):
@@ -445,3 +447,86 @@ def test_p2_deepseek_real_product_runner_requires_all_owner_controls() -> None:
     with pytest.raises(P2LiveControlError) as error:
         prepare_p2_attempt(controls)
     assert error.value.code == "postgres_operator_dependencies_required"
+
+
+def test_thin_live_entrypoint_requires_a_future_grant_before_binder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The opt-in entrypoint cannot invoke the production binder by default."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import PilotP2OperatorError
+
+    del PilotP2OperatorError
+    monkeypatch.delenv("AI_ECOMMERCE_P2_REAL_GRANT", raising=False)
+    controls = P2LiveControlConfig(
+        sample_id=P2_SAMPLE_ID,
+        attempt_id=P2_ATTEMPT_ID,
+        git_commit=P2_GIT_COMMIT,
+        product_name=P2_PRODUCT_NAME,
+        model_designation=P2_MODEL_DESIGNATION,
+        color=P2_COLOR,
+        variant=P2_VARIANT,
+        category=P2_CATEGORY,
+        owner_cap_micro_usd=P2_RESERVATION_MICRO_USD,
+        pricing_record_id=P2_PRICING_RECORD_ID,
+        max_calls=P2_MAX_CALLS,
+        retry_count=0,
+        recovery_count=0,
+        replay_count=0,
+        fallback_count=0,
+        manual_intervention_count=0,
+        input_path=P2_PRIVATE_INPUTS_ROOT / "p01-public.txt",
+        artifact_root=P2_PRIVATE_ARTIFACT_ROOT,
+        approved_artifact_root=P2_PRIVATE_ARTIFACT_PARENT,
+        repository_root=Path(__file__).resolve().parents[3],
+    )
+
+    with pytest.raises(P2LiveControlError) as error:
+        run_p2_operator(controls)
+    assert error.value.code == "future_owner_grant_required"
+
+
+def run_p2_operator(
+    controls: P2LiveControlConfig,
+    *,
+    operator_factory: Callable[..., Any] | None = None,
+) -> Any:
+    """Invoke the production binder only after a future explicit Grant."""
+
+    if os.environ.get(P2_FUTURE_GRANT_ENVIRONMENT) != "1":
+        _fail("future_owner_grant_required")
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        PilotP2Operator,
+    )
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        StartAttempt as _OperatorStartAttempt,
+    )
+    from ai_ecommerce_agent.entrypoints.http import FixedWorkspaceHttpConfig
+    from ai_ecommerce_agent.platform.postgres import PostgresEngineConfig
+
+    factory = PilotP2Operator if operator_factory is None else operator_factory
+    database_url = _required_environment_value(_DATABASE_URL_ENV)
+    operator = factory(
+        repository_root=controls.repository_root,
+        approved_inputs_root=P2_PRIVATE_INPUTS_ROOT,
+        approved_artifact_parent=controls.approved_artifact_root,
+        postgres_config=PostgresEngineConfig(database_url),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+    )
+    return operator.apply(
+        _OperatorStartAttempt(
+            input_path=controls.input_path,
+            artifact_root=controls.artifact_root,
+            authorized_commit=controls.git_commit,
+            git_commit=controls.git_commit,
+            git_head=controls.git_commit,
+            owner_cap_micro_usd=controls.owner_cap_micro_usd,
+            pricing_record_id=controls.pricing_record_id,
+            max_calls=controls.max_calls,
+            retry_count=controls.retry_count,
+            recovery_count=controls.recovery_count,
+            replay_count=controls.replay_count,
+            fallback_count=controls.fallback_count,
+            manual_intervention_count=controls.manual_intervention_count,
+        )
+    )

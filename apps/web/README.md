@@ -25,10 +25,13 @@ production diff zero and no Phase-B amendment. Issue #335 records terminal
 `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`; its one-time authorization is
 consumed and no further run is authorized. L6 is `NOT_EXECUTED`, and Agent UI
 remains frozen. Issue #345 / PR #346's response-key harness repair is
-merge-effective at base `8c43068038d4c3859383d68263f0ab0336480f6a`. Issue #347 is
-`P2_READINESS_IMPLEMENTATION_IN_PROGRESS`; only a reviewed PR reaching `main`
-may set `P2_READINESS_IMPLEMENTED = YES`. The real P01 Grant and Pilot execution
-remain `NOT_AUTHORIZED`; this Web README records no business outcome.
+merge-effective at base `8c43068038d4c3859383d68263f0ab0336480f6a`. Issue #347 /
+PR #349 is merge-effective provider-free P2 readiness at
+`main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 is the current
+provider-free operator-binder branch; `OPERATOR_BINDER_IMPLEMENTED = YES` is
+merge-conditional on independent review and a reviewed PR reaching `main`.
+The real P01 Grant and Pilot execution remain unauthorized; this Web README
+records no business outcome.
 L0 was docs-only; the
 existing Issue #318 adds no Provider acceptance or authorization. Issue #329's test-only
 follow-up restores stale revision/idempotency rejections before and after
@@ -69,16 +72,17 @@ runtime, Provider/model or Secret access was authorized within L4; Agent UI
 production remains frozen. Future Pilot P1 carries the post-confirm/no-export
 boundary as a provider-free characterization target, not an approved repair.
 
-## P2 readiness boundary
+## P2 readiness and operator-binder boundary
 
-Issue #347 is currently `P2_READINESS_IMPLEMENTATION_IN_PROGRESS` on this
-branch. The accepted base is
-`8c43068038d4c3859383d68263f0ab0336480f6a`; Issue #345 / PR #346 is already
-merge-effective. P2 readiness evidence is provider-free implementation and
-composition evidence only. It does not authorize a real P01 run, participant
+Issue #347 / PR #349 is merge-effective at
+`main@cb77de2f96954a2d63ef00eead2f93bea1197649` (accepted implementation base
+`8c43068038d4c3859383d68263f0ab0336480f6a`); Issue #345 / PR #346 is already
+merge-effective. Issue #350 is pending independent review on this branch.
+P2 readiness and binder evidence are provider-free implementation and
+composition evidence only. They do not authorize a real P01 run, participant
 execution, Secret or Provider access, numerator, ratio or business outcome.
-Only a reviewed Issue #347 PR reaching `main` may set
-`P2_READINESS_IMPLEMENTED = YES`. The fixed reservation, immutable
+`OPERATOR_BINDER_IMPLEMENTED = YES` becomes merge-effective only after a
+reviewed Issue #350 PR reaches `main`. The fixed reservation, immutable
 PilotAttemptArtifacts, explicit Human Review and qualifying-export rules stay
 separate from this frontend foundation. Four allowlisted PostgreSQL/FastAPI
 composition paths remain byte-identical; `deterministic_result_postgres.py` is
@@ -86,7 +90,9 @@ the accepted architecture-RED exception and changes only to expose the
 canonical factory helper. The outside-Git artifact layout persists sanitized
 export metadata sidecars beside fixed Markdown files for fresh-reader
 reconstruction; no migration, local-demo, public API or default-composition
-change is implied.
+change is implied. The binder's outside-Git evidence keeps run export gates
+pending until captured immutable sidecars and records typed unknown actual
+invoice cost when current runtime metadata cannot derive it.
 
 ## Toolchain
 

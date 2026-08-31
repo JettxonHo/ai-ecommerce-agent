@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, Final
 
 from ai_ecommerce_agent.application.model_runtime import (
     ModelCallRequest,
+    ModelCallResult,
+    ModelRuntimeError,
     ModelRuntimePort,
 )
 from ai_ecommerce_agent.bootstrap.deterministic_result_postgres import (
@@ -44,11 +47,179 @@ from ai_ecommerce_agent.platform.model_runtime.deepseek._runtime import (
 from ai_ecommerce_agent.platform.postgres import PostgresEngineConfig
 
 __all__ = [
+    "P2CallObservation",
+    "P2RuntimeObserver",
     "PilotP2Composition",
     "PilotP2PostgresComposition",
     "PilotP2Coordinator",
     "compose_pilot_p2_pipeline",
     "compose_pilot_p2_postgres",
+    "validate_p2_input",
+]
+
+
+@dataclass(frozen=True, slots=True)
+class P2CallObservation:
+    """Sanitized metadata for one observed P2 runtime call."""
+
+    model_call_id: str
+    status: str
+    provider_id: str | None = None
+    api_family: str | None = None
+    configured_model_id: str | None = None
+    resolved_model_id: str | None = None
+    sdk_version: str | None = None
+    latency_ms: int | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    total_tokens: int | None = None
+    error_category: str | None = None
+
+    def to_mapping(self) -> dict[str, object]:
+        return {
+            "model_call_id": self.model_call_id,
+            "status": self.status,
+            "provider_id": self.provider_id,
+            "api_family": self.api_family,
+            "configured_model_id": self.configured_model_id,
+            "resolved_model_id": self.resolved_model_id,
+            "sdk_version": self.sdk_version,
+            "latency_ms": self.latency_ms,
+            "usage": {
+                "input_tokens": self.input_tokens,
+                "output_tokens": self.output_tokens,
+                "total_tokens": self.total_tokens,
+            },
+            "error_category": self.error_category,
+        }
+
+
+class P2RuntimeObserver:
+    """Minimal internal observer for ordered, sanitized P2 call telemetry."""
+
+    def __init__(self) -> None:
+        self._calls: list[P2CallObservation] = []
+        self._attempted_count = 0
+
+    @property
+    def attempted_count(self) -> int:
+        return self._attempted_count
+
+    @property
+    def completed_count(self) -> int:
+        return sum(call.status == "COMPLETED" for call in self._calls)
+
+    @property
+    def calls(self) -> tuple[P2CallObservation, ...]:
+        return tuple(self._calls)
+
+    def record_attempt(self, request: ModelCallRequest) -> None:
+        self._attempted_count += 1
+        self._calls.append(
+            P2CallObservation(
+                model_call_id=request.identity.model_call_id.value,
+                status="ATTEMPTED",
+            )
+        )
+
+    def record_completed(self, result: ModelCallResult) -> None:
+        metadata = result.provider_metadata
+        usage = metadata.usage
+        observation = P2CallObservation(
+            model_call_id=metadata.model_call_id.value,
+            status="COMPLETED",
+            provider_id=metadata.version_tuple.provider_id,
+            api_family=metadata.version_tuple.api_family,
+            configured_model_id=metadata.version_tuple.configured_model_id,
+            resolved_model_id=metadata.version_tuple.resolved_model_id,
+            sdk_version=metadata.version_tuple.sdk_version,
+            latency_ms=metadata.latency_ms,
+            input_tokens=None if usage is None else usage.input_tokens,
+            output_tokens=None if usage is None else usage.output_tokens,
+            total_tokens=None if usage is None else usage.total_tokens,
+        )
+        self._replace_last(observation)
+
+    def record_failed(
+        self,
+        request: ModelCallRequest,
+        error: ModelRuntimeError | None,
+    ) -> None:
+        category = None if error is None else error.category.value
+        metadata = None if error is None else error.provider_metadata
+        usage = None if metadata is None else metadata.usage
+        observation = P2CallObservation(
+            model_call_id=request.identity.model_call_id.value,
+            status="FAILED",
+            provider_id=(
+                None if metadata is None else metadata.version_tuple.provider_id
+            ),
+            api_family=None if metadata is None else metadata.version_tuple.api_family,
+            configured_model_id=(
+                None if metadata is None else metadata.version_tuple.configured_model_id
+            ),
+            resolved_model_id=(
+                None if metadata is None else metadata.version_tuple.resolved_model_id
+            ),
+            sdk_version=(
+                None if metadata is None else metadata.version_tuple.sdk_version
+            ),
+            latency_ms=None if metadata is None else metadata.latency_ms,
+            input_tokens=None if usage is None else usage.input_tokens,
+            output_tokens=None if usage is None else usage.output_tokens,
+            total_tokens=None if usage is None else usage.total_tokens,
+            error_category=category or "unknown_runtime_failure",
+        )
+        self._replace_last(observation)
+
+    def snapshot(self) -> Mapping[str, object]:
+        calls = tuple(call.to_mapping() for call in self._calls)
+        first = self._calls[0] if self._calls else None
+        return {
+            "attempted_count": self.attempted_count,
+            "completed_count": self.completed_count,
+            "calls": calls,
+            "provider_id": None if first is None else first.provider_id,
+            "api_family": None if first is None else first.api_family,
+            "configured_model_id": (
+                None if first is None else first.configured_model_id
+            ),
+            "resolved_model_id": None if first is None else first.resolved_model_id,
+        }
+
+    def _replace_last(self, observation: P2CallObservation) -> None:
+        if self._calls:
+            self._calls[-1] = observation
+        else:
+            self._calls.append(observation)
+
+
+class _ObservedRuntime:
+    def __init__(self, delegate: ModelRuntimePort, observer: P2RuntimeObserver):
+        self._delegate = delegate
+        self._observer = observer
+
+    def execute(self, request: ModelCallRequest) -> ModelCallResult:
+        self._observer.record_attempt(request)
+        try:
+            result = self._delegate.execute(request)
+        except ModelRuntimeError as error:
+            self._observer.record_failed(request, error)
+            raise
+        except Exception:
+            self._observer.record_failed(request, None)
+            raise
+        self._observer.record_completed(result)
+        return result
+
+    def close(self) -> None:
+        close = getattr(self._delegate, "close", None)
+        if callable(close):
+            close()
+
+
+RuntimeBuilder = Callable[
+    [tuple[ModelCallRequest, ...], tuple[str, ...]], ModelRuntimePort
 ]
 
 _P2_SAMPLE_ID: Final[str] = "P01"
@@ -97,6 +268,16 @@ def _validate_p2_input(*, sample_id: str, attempt_id: str, input_text: str) -> N
         raise ValueError("P2 input identity markers are invalid")
 
 
+def validate_p2_input(*, sample_id: str, attempt_id: str, input_text: str) -> None:
+    """Validate the fixed P01/P2 identity without constructing a runtime."""
+
+    _validate_p2_input(
+        sample_id=sample_id,
+        attempt_id=attempt_id,
+        input_text=input_text,
+    )
+
+
 def _p2_input_preflight(
     *, sample_id: str, attempt_id: str, input_text: str
 ) -> tuple[str, ...]:
@@ -137,6 +318,8 @@ def _build_p2_coordinator(
     attempt_id: str,
     owner_cap_micro_usd: int,
     pricing_record_id: str,
+    runtime_builder: RuntimeBuilder | None = None,
+    runtime_observer: P2RuntimeObserver | None = None,
 ) -> tuple[DeterministicPipelineCoordinator, list[ModelRuntimePort], list[bool]]:
     runtime_holder: list[ModelRuntimePort] = []
     close_state = _empty_close_state()
@@ -144,9 +327,17 @@ def _build_p2_coordinator(
     def runtime_factory(
         requests: tuple[ModelCallRequest, ...], payloads: tuple[str, ...]
     ) -> ModelRuntimePort:
-        runtime = _create_deepseek_runtime(requests, payloads)
-        runtime_holder.append(runtime)
-        return runtime
+        builder = (
+            _create_deepseek_runtime if runtime_builder is None else runtime_builder
+        )
+        runtime = builder(requests, payloads)
+        observed = (
+            runtime
+            if runtime_observer is None
+            else _ObservedRuntime(runtime, runtime_observer)
+        )
+        runtime_holder.append(observed)
+        return observed
 
     admission = DeepSeekRuntimeAdmissionGate(
         runtime_factory=runtime_factory,
@@ -211,6 +402,9 @@ class PilotP2Composition:
     _closed: list[bool] = field(
         default_factory=_empty_close_state, repr=False, compare=False
     )
+    observer: P2RuntimeObserver = field(
+        default_factory=P2RuntimeObserver, repr=False, compare=False
+    )
 
     def generate(self) -> PipelineResult:
         """Execute the one authorized P2 composition and close its runtime."""
@@ -240,10 +434,12 @@ class PilotP2Coordinator(DeterministicPipelineCoordinator):
         delegate: DeterministicPipelineCoordinator,
         runtime_holder: list[ModelRuntimePort],
         close_state: list[bool],
+        observer: P2RuntimeObserver | None = None,
     ) -> None:
         self._delegate = delegate
         self._runtime_holder = runtime_holder
         self._close_state = close_state
+        self.observer = observer if observer is not None else P2RuntimeObserver()
 
     def generate(self, *, input_text: str) -> PipelineResult:
         try:
@@ -270,6 +466,9 @@ class PilotP2PostgresComposition:
     primary_input: PrimaryInputPostgresComposition
     result: DeterministicResultPostgresComposition
     coordinator: PilotP2Coordinator
+    observer: P2RuntimeObserver = field(
+        default_factory=P2RuntimeObserver, repr=False, compare=False
+    )
     _closed: bool = field(default=False, init=False, repr=False, compare=False)
 
     def close(self) -> None:
@@ -286,6 +485,8 @@ def compose_pilot_p2_pipeline(
     input_text: str,
     owner_cap_micro_usd: int | None,
     pricing_record_id: str | None,
+    runtime_builder: RuntimeBuilder | None = None,
+    runtime_observer: P2RuntimeObserver | None = None,
 ) -> PilotP2Composition:
     """Construct one lazy P01/P2 DeepSeek composition without runtime I/O."""
 
@@ -298,11 +499,14 @@ def compose_pilot_p2_pipeline(
         owner_cap_micro_usd=owner_cap_micro_usd,
         pricing_record_id=pricing_record_id,
     )
+    observer = runtime_observer if runtime_observer is not None else P2RuntimeObserver()
     coordinator, runtime_holder, close_state = _build_p2_coordinator(
         sample_id=sample_id,
         attempt_id=attempt_id,
         owner_cap_micro_usd=validated_owner_cap,
         pricing_record_id=validated_pricing_record,
+        runtime_builder=runtime_builder,
+        runtime_observer=observer,
     )
     return PilotP2Composition(
         sample_id=sample_id,
@@ -311,6 +515,7 @@ def compose_pilot_p2_pipeline(
         _coordinator=coordinator,
         _runtime_holder=runtime_holder,
         _closed=close_state,
+        observer=observer,
     )
 
 
@@ -323,6 +528,8 @@ def compose_pilot_p2_postgres(
     attempt_id: str = _P2_ATTEMPT_ID,
     owner_cap_micro_usd: int | None = None,
     pricing_record_id: str | None = None,
+    runtime_builder: RuntimeBuilder | None = None,
+    runtime_observer: P2RuntimeObserver | None = None,
 ) -> PilotP2PostgresComposition:
     """Compose P2 Task/Input/Result/Export behind the existing HTTP app."""
 
@@ -336,13 +543,18 @@ def compose_pilot_p2_postgres(
         owner_cap_micro_usd=owner_cap_micro_usd,
         pricing_record_id=pricing_record_id,
     )
+    observer = runtime_observer if runtime_observer is not None else P2RuntimeObserver()
     delegate, runtime_holder, close_state = _build_p2_coordinator(
         sample_id=sample_id,
         attempt_id=attempt_id,
         owner_cap_micro_usd=validated_owner_cap,
         pricing_record_id=validated_pricing_record,
+        runtime_builder=runtime_builder,
+        runtime_observer=observer,
     )
-    coordinator = PilotP2Coordinator(delegate, runtime_holder, close_state)
+    coordinator = PilotP2Coordinator(
+        delegate, runtime_holder, close_state, observer=observer
+    )
     task: TaskManagementPostgresComposition | None = None
     primary_input: PrimaryInputPostgresComposition | None = None
     result: DeterministicResultPostgresComposition | None = None
@@ -368,6 +580,7 @@ def compose_pilot_p2_postgres(
             primary_input=primary_input,
             result=result,
             coordinator=coordinator,
+            observer=observer,
         )
     except BaseException:
         try:
