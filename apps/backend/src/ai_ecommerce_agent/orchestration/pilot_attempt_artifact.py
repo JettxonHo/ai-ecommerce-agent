@@ -1820,11 +1820,17 @@ class PilotAttemptArtifacts:
             elif reason_code == "execution_not_qualified":
                 run_call_count = run.get("call_count")
                 run_calls = run.get("calls")
+                run_result = run.get("result")
+                result_missing = (
+                    not isinstance(run_result, Mapping)
+                    or cast(Mapping[str, object], run_result).get("result_id") is None
+                )
                 run_not_qualified = (
                     type(run_call_count) is not int
                     or run_call_count != 5
                     or type(run_calls) not in (list, tuple)
                     or len(cast(list[object] | tuple[object, ...], run_calls)) != 5
+                    or result_missing
                 )
                 command_qualified = (
                     execution.call_count == 5
@@ -1900,6 +1906,20 @@ class PilotAttemptArtifacts:
             or len(run_call_entries) != 5
         ):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
+        expected_call_ids = tuple(f"P2-P01-A1-stage-{index}" for index in range(1, 6))
+        for index, call_entry in enumerate(run_call_entries):
+            if not isinstance(call_entry, Mapping):
+                raise AttemptArtifactError(
+                    ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                )
+            call_values = cast(Mapping[str, object], call_entry)
+            if (
+                call_values.get("model_call_id") != expected_call_ids[index]
+                or call_values.get("status") != "COMPLETED"
+            ):
+                raise AttemptArtifactError(
+                    ArtifactErrorCode.IDENTITY_MISMATCH, "finalize"
+                )
         run_gates = run.get("gates")
         if not isinstance(run_gates, Mapping):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
@@ -1932,6 +1952,13 @@ class PilotAttemptArtifacts:
         if type(owner_cap) is not int:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         if type(cost.actual_micro_usd) is int and cost.actual_micro_usd > owner_cap:
+            raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
+        reserved_value = run_cost_values.get("reserved_micro_usd")
+        if (
+            type(reserved_value) is not int
+            or reserved_value < 0
+            or reserved_value > owner_cap
+        ):
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "finalize")
         for export in selected_exports:
             if export.get("immutable") is not True:

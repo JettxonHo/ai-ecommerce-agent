@@ -120,6 +120,8 @@ class OperatorErrorCode(StrEnum):
     REVIEW_DECISION_REQUIRED = "review_decision_required"
     REVIEW_NOT_AVAILABLE = "review_not_available"
     FINALIZATION_INVALID = "finalization_invalid"
+    DURABILITY_FAILED = "durability_failed"
+    CLEANUP_FAILED = "cleanup_failed"
 
 
 class PilotP2OperatorError(ValueError):
@@ -156,16 +158,15 @@ class StartAttempt:
     replay_count: int = 0
     fallback_count: int = 0
     manual_intervention_count: int = 0
-    input_text: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
 class ConfirmAndCapture:
     """Typed command that resumes an awaiting result and captures exports."""
 
-    brief_kinds: tuple[str, ...] = ("marketing",)
-    marketing_core_message: str = "Confirmed product message"
-    xiaohongshu_title_direction: str = "Confirmed title direction"
+    brief_kinds: tuple[str, ...] | None = None
+    marketing_core_message: str | None = None
+    xiaohongshu_title_direction: str | None = None
     sample_id: str = _SAMPLE_ID
     attempt_id: str = _ATTEMPT_ID
     owner_cap_micro_usd: int | None = None
@@ -185,7 +186,7 @@ class SubmitHumanReview:
     rationale: str | None = None
     review_id: str | None = None
     captured_export_snapshot_ids: tuple[str, ...] | None = None
-    reviewer_role: str = "author_operator"
+    reviewer_role: str | None = None
     reviewed_at: datetime | str | None = None
     dimensions: tuple[ReviewDimension, ...] | None = None
     notes: tuple[str, ...] = ()
@@ -330,16 +331,6 @@ class PilotP2OperatorSnapshot(Mapping[str, object]):
 
 class _ObserverLike(Protocol):
     def snapshot(self) -> Mapping[str, object]: ...
-
-
-class _MappingObserver:
-    """Adapter for a provider-free composition test double's snapshot."""
-
-    def __init__(self, value: Mapping[str, object]) -> None:
-        self._value = value
-
-    def snapshot(self) -> Mapping[str, object]:
-        return self._value
 
 
 @dataclass(frozen=True, slots=True)
@@ -535,8 +526,10 @@ class _InProcessHttpClient:
         return response.content
 
 
-CompositionFactory = Callable[..., Any]
-HttpClientFactory = Callable[[Any], Any]
+_CompositionFactory = Callable[..., Any]
+_HttpClientFactory = Callable[[Any], Any]
+_COMPOSITION_FACTORY: _CompositionFactory = pilot_p2.compose_pilot_p2_postgres
+_HTTP_CLIENT_FACTORY: _HttpClientFactory = _InProcessHttpClient
 
 
 class PilotP2Operator:
@@ -554,8 +547,6 @@ class PilotP2Operator:
         pricing_record_id: str | None = None,
         schema: str = "public",
         runtime_factory: RuntimeBuilder | None = None,
-        composition_factory: CompositionFactory = pilot_p2.compose_pilot_p2_postgres,
-        http_client_factory: HttpClientFactory = _InProcessHttpClient,
     ) -> None:
         self._repository_root = self._directory(repository_root, "repository_root")
         self._approved_inputs_root = self._directory(
@@ -574,18 +565,14 @@ class PilotP2Operator:
             raise TypeError("postgres_config must be PostgresEngineConfig")
         if type(http_config) is not FixedWorkspaceHttpConfig:
             raise TypeError("http_config must be FixedWorkspaceHttpConfig")
-        if not callable(composition_factory):
-            raise TypeError("composition_factory must be callable")
-        if not callable(http_client_factory):
-            raise TypeError("http_client_factory must be callable")
         if runtime_factory is not None and not callable(runtime_factory):
             raise TypeError("runtime_factory must be callable")
         self._postgres_config = postgres_config
         self._http_config = http_config
         self._schema = schema
         self._runtime_factory = runtime_factory
-        self._composition_factory = composition_factory
-        self._http_client_factory = http_client_factory
+        self._composition_factory = _COMPOSITION_FACTORY
+        self._http_client_factory = _HTTP_CLIENT_FACTORY
         self._owner_cap_micro_usd = owner_cap_micro_usd
         self._pricing_record_id = pricing_record_id
         self._artifacts: PilotAttemptArtifacts | None = None
@@ -686,14 +673,12 @@ class PilotP2Operator:
             raise PilotP2OperatorError(OperatorErrorCode.EXECUTION_POLICY_INVALID)
         input_path = self._validate_input_path(command.input_path)
         artifact_root = self._validate_artifact_root(command.artifact_root)
-        content = command.input_text
-        if content is None:
-            try:
-                content = input_path.read_text(encoding="utf-8")
-            except (OSError, UnicodeError):
-                raise PilotP2OperatorError(
-                    OperatorErrorCode.INPUT_CONTENT_INVALID
-                ) from None
+        try:
+            content = input_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            raise PilotP2OperatorError(
+                OperatorErrorCode.INPUT_CONTENT_INVALID
+            ) from None
         if type(content) is not str or not content.strip():
             raise PilotP2OperatorError(OperatorErrorCode.INPUT_CONTENT_INVALID)
         try:
@@ -811,6 +796,7 @@ class PilotP2Operator:
         input_revision: int | None = None
         result_id: str | None = None
         result_revision: int | None = None
+        primary_failure: PilotP2OperatorError | None = None
         try:
             composition, observer = self._compose(
                 owner_cap=owner_cap, pricing_record_id=pricing_record_id
@@ -827,12 +813,19 @@ class PilotP2Operator:
             saved = client.save_primary_input(
                 task_id=task_id, content=content, file_name=input_path.name
             )
+            if self._string(saved, "taskId") != task_id:
+                raise PilotP2OperatorError(OperatorErrorCode.IDENTITY_MISMATCH)
             input_revision = self._integer(saved, "inputRevision")
             generated = client.generate_result(
                 task_id=task_id,
                 input_revision=input_revision,
                 idempotency_key=f"operator-{_ATTEMPT_ID}-generate",
             )
+            if (
+                self._string(generated, "taskId") != task_id
+                or self._integer(generated, "inputRevision") != input_revision
+            ):
+                raise PilotP2OperatorError(OperatorErrorCode.IDENTITY_MISMATCH)
             result_revision = self._integer(generated, "resultRevision")
             result_id = f"{task_id}:r{result_revision}"
             if self._string(generated, "status") != "awaiting_review":
@@ -844,6 +837,7 @@ class PilotP2Operator:
                 task_revision=task_revision,
                 result_id=result_id,
                 result_revision=result_revision,
+                input_revision=input_revision,
                 completed=True,
                 owner_cap_micro_usd=owner_cap,
                 pricing_record_id=pricing_record_id,
@@ -870,35 +864,50 @@ class PilotP2Operator:
                 result_id=result_id,
                 result_revision=result_revision,
             )
-            self._durable_failure(
-                artifacts,
-                observer,
-                task_id=task_id,
-                task_revision=task_revision,
-                result_id=result_id,
-                result_revision=result_revision,
-                owner_cap_micro_usd=owner_cap,
-                pricing_record_id=pricing_record_id,
-                error=error,
-            )
+            try:
+                self._durable_failure(
+                    artifacts,
+                    observer,
+                    task_id=task_id,
+                    task_revision=task_revision,
+                    result_id=result_id,
+                    result_revision=result_revision,
+                    input_revision=input_revision,
+                    owner_cap_micro_usd=owner_cap,
+                    pricing_record_id=pricing_record_id,
+                    error=error,
+                )
+            except PilotP2OperatorError as durable_error:
+                primary_failure = durable_error
+                raise
             return self.read()
         finally:
-            self._close(composition)
+            try:
+                self._close(composition)
+            except PilotP2OperatorError:
+                # Preserve a primary durable/binder error.  If there was no
+                # primary failure, cleanup remains observable to the caller.
+                if primary_failure is None:
+                    raise
 
     def _confirm_and_capture(
         self, command: ConfirmAndCapture
     ) -> PilotP2OperatorSnapshot:
         if command.sample_id != _SAMPLE_ID or command.attempt_id != _ATTEMPT_ID:
             raise PilotP2OperatorError(OperatorErrorCode.IDENTITY_MISMATCH)
-        kinds = tuple(command.brief_kinds)
-        if type(kinds) is not tuple or not 1 <= len(kinds) <= 2:
+        if type(command.brief_kinds) is not tuple:
+            raise PilotP2OperatorError(OperatorErrorCode.INVALID_COMMAND)
+        kinds = command.brief_kinds
+        if not 1 <= len(kinds) <= 2:
             raise PilotP2OperatorError(OperatorErrorCode.INVALID_COMMAND)
         if len(set(kinds)) != len(kinds) or any(
             kind not in _EXPORT_KINDS for kind in kinds
         ):
             raise PilotP2OperatorError(OperatorErrorCode.INVALID_COMMAND)
         if (
-            not command.marketing_core_message.strip()
+            type(command.marketing_core_message) is not str
+            or not command.marketing_core_message.strip()
+            or type(command.xiaohongshu_title_direction) is not str
             or not command.xiaohongshu_title_direction.strip()
         ):
             raise PilotP2OperatorError(OperatorErrorCode.INVALID_COMMAND)
@@ -916,6 +925,7 @@ class PilotP2Operator:
             raise PilotP2OperatorError(OperatorErrorCode.RESUME_NOT_AVAILABLE)
         composition: Any | None = None
         observer: _ObserverLike = P2RuntimeObserver()
+        primary_failure: PilotP2OperatorError | None = None
         try:
             composition, observer = self._compose(
                 owner_cap=cap, pricing_record_id=pricing
@@ -930,6 +940,11 @@ class PilotP2Operator:
             if self._string(persisted, "taskId") != task_id:
                 raise PilotP2OperatorError(OperatorErrorCode.IDENTITY_MISMATCH)
             if self._integer(persisted, "resultRevision") != result_revision:
+                raise PilotP2OperatorError(OperatorErrorCode.IDENTITY_MISMATCH)
+            if (
+                current.input_revision is not None
+                and self._integer(persisted, "inputRevision") != current.input_revision
+            ):
                 raise PilotP2OperatorError(OperatorErrorCode.IDENTITY_MISMATCH)
             client.confirm_result(
                 task_id=task_id,
@@ -967,20 +982,29 @@ class PilotP2Operator:
             return self._with_state(self.read(), status="PENDING_HUMAN_REVIEW")
         except Exception as error:
             observer = self._composition_observer(composition, observer)
-            self._durable_failure(
-                self._artifact_service(),
-                observer,
-                task_id=task_id,
-                task_revision=task_revision,
-                result_id=current.result_id,
-                result_revision=result_revision,
-                owner_cap_micro_usd=cap,
-                pricing_record_id=pricing,
-                error=error,
-            )
+            try:
+                self._durable_failure(
+                    self._artifact_service(),
+                    observer,
+                    task_id=task_id,
+                    task_revision=task_revision,
+                    result_id=current.result_id,
+                    result_revision=result_revision,
+                    input_revision=current.input_revision,
+                    owner_cap_micro_usd=cap,
+                    pricing_record_id=pricing,
+                    error=error,
+                )
+            except PilotP2OperatorError as durable_error:
+                primary_failure = durable_error
+                raise
             return self.read()
         finally:
-            self._close(composition)
+            try:
+                self._close(composition)
+            except PilotP2OperatorError:
+                if primary_failure is None:
+                    raise
 
     def _submit_review(self, command: SubmitHumanReview) -> PilotP2OperatorSnapshot:
         if command.sample_id != _SAMPLE_ID or command.attempt_id != _ATTEMPT_ID:
@@ -989,6 +1013,15 @@ class PilotP2Operator:
         if current.status != "PENDING_HUMAN_REVIEW" or current.run is None:
             raise PilotP2OperatorError(OperatorErrorCode.REVIEW_NOT_AVAILABLE)
         if command.overall not in {"APPROVED", "REJECTED"}:
+            raise PilotP2OperatorError(OperatorErrorCode.REVIEW_DECISION_REQUIRED)
+        if (
+            type(command.rationale) is not str
+            or type(command.review_id) is not str
+            or type(command.reviewer_role) is not str
+            or command.reviewed_at is None
+            or type(command.dimensions) is not tuple
+            or type(command.captured_export_snapshot_ids) is not tuple
+        ):
             raise PilotP2OperatorError(OperatorErrorCode.REVIEW_DECISION_REQUIRED)
         task_id = current.task_id
         task_revision = current.task_revision
@@ -1001,23 +1034,13 @@ class PilotP2Operator:
             or result_revision is None
         ):
             raise PilotP2OperatorError(OperatorErrorCode.REVIEW_NOT_AVAILABLE)
-        export_ids = (
-            tuple(command.captured_export_snapshot_ids)
-            if command.captured_export_snapshot_ids is not None
-            else tuple(
-                self._string(export, "export_snapshot_id") for export in current.exports
-            )
-        )
+        export_ids = command.captured_export_snapshot_ids
         if not export_ids:
             raise PilotP2OperatorError(OperatorErrorCode.REVIEW_NOT_AVAILABLE)
-        dimensions = command.dimensions or self._default_dimensions(current.exports)
-        rationale = command.rationale or (
-            "approved_all_applicable_critical_dimensions_pass"
-            if command.overall == "APPROVED"
-            else "rejected_critical_dimension_or_export"
-        )
-        review_id = command.review_id or f"review-{_ATTEMPT_ID}"
-        reviewed_at = command.reviewed_at or datetime.now(UTC)
+        dimensions = command.dimensions
+        rationale = command.rationale
+        review_id = command.review_id
+        reviewed_at = command.reviewed_at
         try:
             self._artifact_service().apply(
                 RecordReview(
@@ -1141,19 +1164,27 @@ class PilotP2Operator:
         task_revision: int | None,
         result_id: str | None,
         result_revision: int | None,
+        input_revision: int | None,
         completed: bool,
         owner_cap_micro_usd: int,
         pricing_record_id: str,
     ) -> None:
-        observed = observer.snapshot()
+        try:
+            observed = observer.snapshot()
+        except Exception:
+            raise PilotP2OperatorError(OperatorErrorCode.RUN_EVIDENCE_INVALID) from None
         calls_value = observed.get("calls")
-        calls = (
-            tuple(
-                cast(Mapping[str, object], value)
-                for value in cast(Sequence[object], calls_value)
-            )
-            if isinstance(calls_value, Sequence)
-            else ()
+        if type(calls_value) in (tuple, list):
+            call_values = cast(tuple[object, ...] | list[object], calls_value)
+            if any(not isinstance(value, Mapping) for value in call_values):
+                raise PilotP2OperatorError(OperatorErrorCode.RUN_EVIDENCE_INVALID)
+            calls = tuple(cast(Mapping[str, object], value) for value in call_values)
+        else:
+            calls = ()
+        self._validate_observed_calls(
+            observed,
+            calls,
+            require_complete=completed,
         )
         sanitized_calls = tuple(
             {
@@ -1196,6 +1227,8 @@ class PilotP2Operator:
             "export": False,
         }
         refs: list[ArtifactReference] = []
+        if input_revision is not None:
+            refs.append(ArtifactReference("input_revision", str(input_revision)))
         if not completed:
             failure = self._failure_category(calls)
             terminal_stage = self._failure_stage(calls)
@@ -1243,20 +1276,20 @@ class PilotP2Operator:
         task_revision: int | None,
         result_id: str | None,
         result_revision: int | None,
+        input_revision: int | None,
         owner_cap_micro_usd: int,
         pricing_record_id: str,
         error: BaseException,
     ) -> None:
         category = self._error_category(error)
-        self._last_error_category = category
-        if category.startswith("stage-"):
-            self._terminal_stage = category
         current_run: Mapping[str, object] | None = None
+        current_outcome: str | None = None
         try:
             current = artifacts.read(_ATTEMPT_ID)
             current_run = current.run
+            current_outcome = current.outcome
         except AttemptArtifactError:
-            current_run = None
+            raise PilotP2OperatorError(OperatorErrorCode.DURABILITY_FAILED) from None
         if current_run is None:
             try:
                 self._record_run(
@@ -1266,14 +1299,20 @@ class PilotP2Operator:
                     task_revision=task_revision,
                     result_id=result_id,
                     result_revision=result_revision,
+                    input_revision=input_revision,
                     completed=False,
                     owner_cap_micro_usd=owner_cap_micro_usd,
                     pricing_record_id=pricing_record_id,
                 )
                 current_run = artifacts.read(_ATTEMPT_ID).run
             except (AttemptArtifactError, PilotP2OperatorError):
-                current_run = None
+                raise PilotP2OperatorError(
+                    OperatorErrorCode.DURABILITY_FAILED
+                ) from None
         if current_run is None:
+            raise PilotP2OperatorError(OperatorErrorCode.DURABILITY_FAILED)
+        if current_outcome is not None:
+            self._last_error_category = category
             return
         try:
             calls = current_run.get("calls")
@@ -1331,7 +1370,7 @@ class PilotP2Operator:
                     outcome=FinalDisposition.FAIL,
                     reason_code=(
                         "execution_not_qualified"
-                        if call_count != _MAX_CALLS
+                        if call_count != _MAX_CALLS or resolved_result_id is None
                         else "automated_gate_failed"
                     ),
                     automated_gates=gates,
@@ -1347,7 +1386,15 @@ class PilotP2Operator:
                 )
             )
         except (AttemptArtifactError, PilotP2OperatorError):
-            return
+            raise PilotP2OperatorError(OperatorErrorCode.DURABILITY_FAILED) from None
+        self._last_error_category = category
+        self._terminal_stage = self._failure_stage(
+            tuple(
+                cast(Mapping[str, object], value)
+                for value in cast(Sequence[object], current_run.get("calls", ()))
+                if isinstance(value, Mapping)
+            )
+        )
 
     def _capture_export(
         self,
@@ -1410,28 +1457,52 @@ class PilotP2Operator:
         )
 
     @staticmethod
-    def _default_dimensions(
-        exports: tuple[Mapping[str, object], ...],
-    ) -> tuple[ReviewDimension, ...]:
-        xhs = any(export.get("brief_kind") == "xiaohongshu" for export in exports)
-        return tuple(
-            ReviewDimension(
-                name,
-                "PASS"
-                if name != "xiaohongshu_consistency" or xhs
-                else "NOT_APPLICABLE",
-                name != "xiaohongshu_consistency" or xhs,
-            )
-            for name in (
-                "product_fact_correctness",
-                "mandatory_messages",
-                "prohibited_claims",
-                "fabrication_misleading_content",
-                "marketing_brief_usability",
-                "xiaohongshu_consistency",
-                "markdown_delivery",
-            )
+    def _validate_observed_calls(
+        observed: Mapping[str, object],
+        calls: tuple[Mapping[str, object], ...],
+        *,
+        require_complete: bool,
+    ) -> None:
+        """Validate the private observer's exact ordered P2 call record."""
+
+        attempted_value = observed.get("attempted_count")
+        completed_value = observed.get("completed_count")
+        if type(attempted_value) is not int or type(completed_value) is not int:
+            raise PilotP2OperatorError(OperatorErrorCode.RUN_EVIDENCE_INVALID)
+        if not 0 <= attempted_value <= _MAX_CALLS or attempted_value != len(calls):
+            raise PilotP2OperatorError(OperatorErrorCode.RUN_EVIDENCE_INVALID)
+        completed_count = 0
+        failed_count = 0
+        expected_ids = tuple(
+            f"P2-P01-A1-stage-{index}" for index in range(1, _MAX_CALLS + 1)
         )
+        for index, call in enumerate(calls):
+            model_call_id = call.get("model_call_id")
+            status = call.get("status")
+            if model_call_id != expected_ids[index] or status not in {
+                "COMPLETED",
+                "FAILED",
+            }:
+                raise PilotP2OperatorError(OperatorErrorCode.RUN_EVIDENCE_INVALID)
+            if status == "COMPLETED":
+                completed_count += 1
+            else:
+                failed_count += 1
+                if index != len(calls) - 1:
+                    raise PilotP2OperatorError(OperatorErrorCode.RUN_EVIDENCE_INVALID)
+        if (
+            completed_value != completed_count
+            or completed_count + failed_count != attempted_value
+        ):
+            raise PilotP2OperatorError(OperatorErrorCode.RUN_EVIDENCE_INVALID)
+        if failed_count > 1:
+            raise PilotP2OperatorError(OperatorErrorCode.RUN_EVIDENCE_INVALID)
+        if require_complete and (
+            attempted_value != _MAX_CALLS
+            or completed_count != _MAX_CALLS
+            or failed_count != 0
+        ):
+            raise PilotP2OperatorError(OperatorErrorCode.RUN_EVIDENCE_INVALID)
 
     @staticmethod
     def _aggregate_usage(
@@ -1442,21 +1513,24 @@ class PilotP2Operator:
         for call in calls:
             usage = call.get("usage")
             if not isinstance(usage, Mapping):
-                continue
+                return {
+                    "input_tokens": UnknownValue.NOT_EXPOSED,
+                    "output_tokens": UnknownValue.NOT_EXPOSED,
+                    "total_tokens": UnknownValue.NOT_EXPOSED,
+                }
             usage_mapping = cast(Mapping[str, object], usage)
             values: list[object] = [
                 usage_mapping.get("input_tokens"),
                 usage_mapping.get("output_tokens"),
                 usage_mapping.get("total_tokens"),
             ]
-            if all(value is None for value in values):
-                continue
-            if any(type(value) is not int for value in values):
-                return {
-                    "input_tokens": UnknownValue.NOT_EXPOSED,
-                    "output_tokens": UnknownValue.NOT_EXPOSED,
-                    "total_tokens": UnknownValue.NOT_EXPOSED,
-                }
+            for value in values:
+                if type(value) is not int or value < 0:
+                    return {
+                        "input_tokens": UnknownValue.NOT_EXPOSED,
+                        "output_tokens": UnknownValue.NOT_EXPOSED,
+                        "total_tokens": UnknownValue.NOT_EXPOSED,
+                    }
             totals = [
                 left + right
                 for left, right in zip(
@@ -1479,6 +1553,7 @@ class PilotP2Operator:
         run = artifact.run
         task_id: str | None = None
         task_revision: int | None = None
+        input_revision: int | None = None
         result_id: str | None = None
         result_revision: int | None = None
         attempted = completed = 0
@@ -1552,6 +1627,14 @@ class PilotP2Operator:
                         value = cast(Mapping[str, object], ref).get("value")
                         if type(value) is str:
                             terminal_stage = value
+                    if (
+                        isinstance(ref, Mapping)
+                        and cast(Mapping[str, object], ref).get("kind")
+                        == "input_revision"
+                    ):
+                        value = cast(Mapping[str, object], ref).get("value")
+                        if type(value) is str and value.isdigit():
+                            input_revision = int(value)
         status = "NOT_STARTED"
         if artifact.outcome is not None:
             status = artifact.outcome
@@ -1567,6 +1650,7 @@ class PilotP2Operator:
             attempt_id=str(identity.get("attempt_id", _ATTEMPT_ID)),
             task_id=task_id,
             task_revision=task_revision,
+            input_revision=input_revision,
             result_id=result_id,
             result_revision=result_revision,
             attempted_call_count=attempted,
@@ -1637,11 +1721,8 @@ class PilotP2Operator:
         )
         if isinstance(candidate, P2RuntimeObserver):
             return candidate
-        observed = (
-            None if composition is None else getattr(composition, "observation", None)
-        )
-        if isinstance(observed, Mapping):
-            return _MappingObserver(cast(Mapping[str, object], observed))
+        if candidate is not None and callable(getattr(candidate, "snapshot", None)):
+            return cast(_ObserverLike, candidate)
         return fallback
 
     @staticmethod
@@ -1653,7 +1734,7 @@ class PilotP2Operator:
             try:
                 close()
             except Exception:
-                return
+                raise PilotP2OperatorError(OperatorErrorCode.CLEANUP_FAILED) from None
 
     def _require_owner_cap(self, value: int | None) -> int:
         cap = self._owner_cap_micro_usd if value is None else value

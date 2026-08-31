@@ -49,31 +49,43 @@ PostgreSQL composition close/recompose, export DTO translation,
 
 - **Start:** actual repository HEAD, exact P01 identity/input boundary, fixed
   pricing record, explicit positive Owner cap and absent artifact root are
-  validated before artifact/PG/runtime/client/network access. The exact root
-  is reserved outside Git, Task and Primary Input are persisted through the
-  existing HTTP seam, and the lazy P2 coordinator runs at most five ordered
-  calls. Success records actual Task/Input/Result identities and observed
-  call metadata, then returns `AWAITING_CONFIRMATION` without auto-confirm or
-  Human Review.
+  validated before artifact/PG/runtime/client/network access. The exact
+  validated input path is read after preflight; callers cannot provide a
+  second input text. The exact root is reserved outside Git, Task and Primary
+  Input are persisted through the existing HTTP seam, and the lazy P2
+  coordinator runs at most five ordered calls. Saved/generated Task and Input
+  identities/revisions must match one another and are retained in bounded run
+  references. Success records actual Task/Input/Result identities and the
+  concrete observer's ordered call metadata, then returns
+  `AWAITING_CONFIRMATION` without auto-confirm or Human Review.
 - **Durable failure:** a provider/runtime or later generation failure leaves
-  sanitized run evidence with attempted/completed counts, ordered call IDs,
-  fixed safe category/stage, zero retry/recovery/replay/fallback counts,
-  typed usage/cost unknowns and terminal `FAIL`. Missing result identity is
-  permitted only for non-PASS generation failure.
+  sanitized run evidence with attempted/completed/failed counts, the exact
+  ordered P2 call IDs and statuses, fixed safe category/stage, zero
+  retry/recovery/replay/fallback counts, typed usage/cost unknowns and terminal
+  `FAIL`. Missing result identity is permitted only for non-PASS failure. A
+  persistence failure raises a fixed durability error rather than returning
+  an in-memory status; cleanup attempts all composition-owned participants and
+  cannot mask a primary durable error.
 - **Resume:** `ConfirmAndCapture` recomposes the same persisted Task/Input/
-  Result lifecycle and performs zero runtime calls. It explicitly confirms
-  the result, creates one or two existing immutable Markdown snapshots,
-  downloads exact bytes and captures their IDs/metadata/sidecars, returning
+  Result lifecycle and performs zero runtime calls. It requires explicit
+  confirmation values, confirms the persisted result identity/revision,
+  creates one or two existing immutable Markdown snapshots, downloads exact
+  bytes and captures their IDs/metadata/sidecars, returning
   `PENDING_HUMAN_REVIEW`. Run evidence keeps `export=false`; finalization
   derives qualification from captured immutable sidecars.
 - **Review/finalization:** `SubmitHumanReview` requires an explicit
-  APPROVED/REJECTED decision and binds the exact export IDs to the seven P0
-  dimensions. `FinalizeAttempt` is explicit: APPROVED plus a qualifying
-  sidecar can produce PASS; REJECTED produces non-qualifying FAIL. No review
-  or approval is inferred. Usage input/output/total is persisted when
-  exposed; actual invoice cost remains typed `NOT_EXPOSED` or `NOT_DERIVABLE`
-  when the current runtime metadata cannot reproduce it. Reservation, Owner
-  cap and actual charge remain distinct.
+  APPROVED/REJECTED decision, reviewer role and timestamp, rationale/notes,
+  the exact inspected export IDs and all seven P0 dimensions. Every review
+  field is supplied by the human command; no dimensions, approval, or export
+  selection is inferred. `FinalizeAttempt` is explicit: APPROVED plus a
+  qualifying sidecar can produce PASS; REJECTED produces non-qualifying FAIL.
+  Usage input/output/total is persisted only as a complete observed aggregate;
+  if any attempted call lacks usage, all aggregate fields are typed unknown.
+  Actual invoice cost remains typed `NOT_EXPOSED` or `NOT_DERIVABLE` when the
+  current runtime metadata cannot reproduce it. An unknown actual can PASS
+  only with a known persisted reservation within the explicit Owner cap and
+  matching pricing reference; reservation, Owner cap and actual charge remain
+  distinct.
 
 ## Exact Issue #350 allowlist
 
@@ -113,8 +125,8 @@ Provider, participant and UI behavior remain protected.
 
 Provider-free local evidence on this branch:
 
-- focused binder/P2/artifact/cost/live-control suite: `72 passed, 5 skipped`;
-- backend non-live regression: `2151 passed, 22 skipped, 3 deselected`;
+- focused binder/P2/artifact/cost/live-control suite: `89 passed, 4 skipped`;
+- backend non-live regression: `2164 passed, 22 skipped, 4 deselected`;
 - Pyright: `0 errors, 0 warnings, 0 informations` on affected production and
   tests;
 - Ruff format/check: PASS;
@@ -128,7 +140,11 @@ Provider-free local evidence on this branch:
 
 The guarded lifecycle used a unique ephemeral project/paired volume on
 `127.0.0.1:55432`; owned resources were removed and the port was free. No raw
-Compose command was used.
+Compose command was used. The shell wrapper's post-cleanup comparison used an
+unquoted `YES` value under `set -u`, so its final harness status was nonzero
+after the helper had already returned cleanup RC 0; an independent exact
+container/volume/port check confirmed the owned scope absent and the port free.
+This is a harness-only observation, not a binder or cleanup failure.
 
 ## External-action truth
 

@@ -28,6 +28,7 @@ from ai_ecommerce_agent.orchestration.pilot_attempt_artifact import (
     RecordRun,
     ReserveAttempt,
     ReviewDimension,
+    UnknownValue,
 )
 
 pytestmark = pytest.mark.contract
@@ -780,7 +781,11 @@ def test_attempt_finalization_qualifies_only_approved_export(tmp_path: Path) -> 
             result_revision=1,
             call_count=5,
             calls=tuple(
-                {"model_call_id": f"P2-P01-A1-stage-{index}", "latency_ms": 100}
+                {
+                    "model_call_id": f"P2-P01-A1-stage-{index}",
+                    "latency_ms": 100,
+                    "status": "COMPLETED",
+                }
                 for index in range(1, 6)
             ),
             gates={
@@ -936,3 +941,92 @@ def test_attempt_finalization_qualifies_only_approved_export(tmp_path: Path) -> 
     with pytest.raises(AttemptArtifactError):
         service.apply(retry_observed)
     assert outcome_path.read_bytes() == outcome_before_mutation
+
+
+@pytest.mark.parametrize(
+    ("reserved_micro_usd", "owner_cap_micro_usd", "reject"),
+    (
+        (UnknownValue.UNKNOWN, 6_783_834, True),
+        (6_783_835, 6_783_834, True),
+        (6_783_834, 6_783_834, False),
+    ),
+)
+def test_unknown_actual_pass_requires_known_reservation_within_owner_cap(
+    tmp_path: Path,
+    reserved_micro_usd: int | UnknownValue,
+    owner_cap_micro_usd: int,
+    reject: bool,
+) -> None:
+    """An unknown actual cannot turn an absent/over-cap reservation into PASS."""
+
+    service, approved_parent = _artifact_service(tmp_path)
+    _reserve(service, approved_parent)
+    task_id = "task-unknown-cost"
+    result_id = f"{task_id}:r1"
+    service.apply(
+        RecordRun(
+            task_id=task_id,
+            task_revision=1,
+            result_id=result_id,
+            result_revision=1,
+            call_count=5,
+            calls=tuple(
+                {
+                    "model_call_id": f"P2-P01-A1-stage-{index}",
+                    "status": "COMPLETED",
+                }
+                for index in range(1, 6)
+            ),
+            gates={"schema": True, "domain": True, "persistence": True},
+            pricing_record_id="deepseek-v4-pro-2026-08-30-peak-v1",
+            cost={
+                "reserved_micro_usd": reserved_micro_usd,
+                "actual_micro_usd": UnknownValue.NOT_DERIVABLE,
+            },
+        )
+    )
+    export = CaptureExport(
+        task_id=task_id,
+        task_revision=1,
+        result_id=result_id,
+        result_revision=1,
+        brief_version=ExportVersionReference("brief-unknown-cost-v1", 1),
+        content_reference=ExportContentReference(
+            "local_relative", "exports/marketing-brief.md"
+        ),
+    )
+    service.apply(export)
+    review = RecordReview(
+        task_id=task_id,
+        task_revision=1,
+        result_id=result_id,
+        result_revision=1,
+        captured_export_snapshot_ids=(export.export_snapshot_id,),
+        **_approved_review_kwargs(),
+    )
+    service.apply(review)
+    finalize = FinalizeAttempt(
+        task_id=task_id,
+        task_revision=1,
+        result_id=result_id,
+        result_revision=1,
+        outcome=FinalDisposition.PASS,
+        reason_code="qualifying_approved_export",
+        approved_review_id=review.review_id,
+        selected_export_snapshot_ids=(export.export_snapshot_id,),
+        automated_gates=FinalizationGates(),
+        cost=FinalizationCost(
+            actual_micro_usd=UnknownValue.NOT_DERIVABLE,
+            owner_cap_micro_usd=owner_cap_micro_usd,
+            reservation_ref="deepseek-v4-pro-2026-08-30-peak-v1",
+        ),
+        execution=FinalizationExecution(),
+    )
+
+    if reject:
+        with pytest.raises(AttemptArtifactError):
+            service.apply(finalize)
+    else:
+        snapshot = service.apply(finalize)
+        assert snapshot is not None
+        assert snapshot["outcome"] == "PASS"

@@ -573,7 +573,12 @@ def test_p2_postgres_current_head_lifecycle_uses_real_ids_and_export_bytes(
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
             call_count=5,
             calls=tuple(
-                {"model_call_id": call_id, "latency_ms": 0} for call_id in call_ids
+                {
+                    "model_call_id": call_id,
+                    "latency_ms": 0,
+                    "status": "COMPLETED",
+                }
+                for call_id in call_ids
             ),
             gates={
                 "schema": True,
@@ -786,6 +791,9 @@ def test_p2_operator_binder_drives_full_provider_free_postgres_lifecycle(
     from ai_ecommerce_agent.orchestration.deterministic_pipeline import (
         build_scripted_runtime,
     )
+    from ai_ecommerce_agent.orchestration.pilot_attempt_artifact import (
+        ReviewDimension,
+    )
 
     class _RecordingRuntime:
         def __init__(
@@ -840,8 +848,34 @@ def test_p2_operator_binder_drives_full_provider_free_postgres_lifecycle(
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )
     )
-    resumed = operator.apply(ConfirmAndCapture(brief_kinds=("marketing",)))
-    reviewed = operator.apply(SubmitHumanReview(overall="APPROVED"))
+    resumed = operator.apply(
+        ConfirmAndCapture(
+            brief_kinds=("marketing",),
+            marketing_core_message="Reviewed product message",
+            xiaohongshu_title_direction="Reviewed title direction",
+        )
+    )
+    reviewed = operator.apply(
+        SubmitHumanReview(
+            overall="APPROVED",
+            rationale="approved_all_applicable_critical_dimensions_pass",
+            review_id="review-P2-P01-A1",
+            captured_export_snapshot_ids=(
+                str(resumed.exports[0]["export_snapshot_id"]),
+            ),
+            reviewer_role="author_operator",
+            reviewed_at=datetime.now(UTC),
+            dimensions=(
+                ReviewDimension("product_fact_correctness", "PASS", True),
+                ReviewDimension("mandatory_messages", "PASS", True),
+                ReviewDimension("prohibited_claims", "PASS", True),
+                ReviewDimension("fabrication_misleading_content", "PASS", True),
+                ReviewDimension("marketing_brief_usability", "PASS", True),
+                ReviewDimension("xiaohongshu_consistency", "NOT_APPLICABLE", False),
+                ReviewDimension("markdown_delivery", "PASS", True),
+            ),
+        )
+    )
     export_id = str(resumed.exports[0]["export_snapshot_id"])
     assert reviewed.review_record is not None
     review_record = reviewed.review_record
