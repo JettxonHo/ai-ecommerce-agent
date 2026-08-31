@@ -1,5 +1,7 @@
 # Web Local Action Workbench
 
+> **Issue #355 current truth (pre-merge):** `main@925a0318135784429096ddf30de2a34982c55bc0` is the exact base for the bounded provider-free execution-control correction. The replacement branch is under implementation; no merge or execution authorization is implied. `REAL_P01_INPUT_FILE_READY = YES` reflects the Owner-frozen handoff and was not re-inspected by this implementation. `REAL_P01_PRE_CALL = BLOCKED_BY_EXECUTION_CONTROL_CORRECTION`; `REAL_P01_GRANT = NOT_ISSUED`; `P01_ATTEMPT_EXECUTED = NO`; `P01_RESULT = NOT_EXECUTED`; `Blocker 3 = UNKNOWN_NOT_INSPECTED`; Provider calls, Secret reads/injections, PostgreSQL access, Pilot/participant executions and charge remain zero. After an independently reviewed merge, a fresh exact-main provider-free pre-call is required; the real P01 Grant remains unissued.
+
 This directory contains the MVP-0 React / Vite browser workbench. It uses
 React Router Declarative Mode for `/tasks`, `/tasks/new` and stable
 `/tasks/:taskId` deep links, TanStack Query for remote Task state, and the
@@ -32,10 +34,10 @@ merge-effective operator-binder readiness at
 `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`, so
 `OPERATOR_BINDER_IMPLEMENTED = YES` is current. Issue #352 / PR #353 is
 merge-effective control alignment at
-`main@87f5315074bb3858ff09163c38c84b6e1e834577`; the current branch carries
-only the docs-only closure follow-up, pending review. The real P01 Grant and
-Pilot execution remain unauthorized; this Web README records no business
-outcome.
+`main@87f5315074bb3858ff09163c38c84b6e1e834577`; Issue #355 is the current
+bounded provider-free execution-control correction on its replacement branch.
+The real P01 Grant and Pilot execution remain unauthorized; this Web README
+records no business outcome.
 L0 was docs-only; the
 existing Issue #318 adds no Provider acceptance or authorization. Issue #329's test-only
 follow-up restores stale revision/idempotency rejections before and after
@@ -85,8 +87,8 @@ merge-effective. Issue #350 / PR #351 is merge-effective at
 `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a` and
 `OPERATOR_BINDER_IMPLEMENTED = YES` is current. Issue #352 / PR #353 is
 merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577` with
-`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`; the current branch carries only a
-docs-only closure follow-up pending review. P2 readiness, binder and
+`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`; Issue #355 is the current bounded
+provider-free correction on its replacement branch. P2 readiness, binder and
 control-alignment evidence are provider-free implementation and composition
 evidence only. They do not authorize a real P01 run, participant execution,
 Secret or Provider access, numerator, ratio or business outcome. The fixed reservation, immutable
@@ -109,10 +111,11 @@ artifact parent is `/Users/ketchup/Private/ai-ecommerce-pilot` with root
 pending-review branch wording is historical only; the current follow-up is
 docs-only. The implementation did not inspect or create private roots, search
 or synthesize input, or retry, recover or replay. The historical Grant is
-`NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN`; `REAL_P01_INPUT_FILE_READY=NO` is based
-only on Owner/pre-call authority, and
-`AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT`. The next action is
-`WAIT_FOR_REAL_P01_INPUT_HANDOFF_AND_NEW_EXACT_MAIN_OWNER_GRANT`.
+`REAL_P01_GRANT=NOT_ISSUED`; `REAL_P01_INPUT_FILE_READY=YES` is the Owner-
+frozen handoff state (the private root was not inspected by this
+implementation), and `REAL_P01_PRE_CALL=BLOCKED_BY_EXECUTION_CONTROL_CORRECTION`.
+`Blocker 3=UNKNOWN_NOT_INSPECTED`; `AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT`.
+The next action is `WAIT_FOR_ISSUE_355_REVIEW_AND_MERGE`.
 
 ## Toolchain
 

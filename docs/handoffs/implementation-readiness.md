@@ -1,11 +1,13 @@
 # Implementation Readiness
 
-> **Current status:** [MVP-0L](../goals/mvp0-local-ai-web-app-delivery-goal.md) is `TERMINAL_INCOMPLETE_L5_FAILED`; [Real Product-to-Brief Pilot](../goals/real-product-to-brief-pilot-goal.md) is `ACTIVE`. Issue #341 / PR #342 is merge-effective: P01–P08 are `ADMITTED`, the denominator is exactly eight frozen units, and P0 is `P0_CONTRACT_FROZEN`. Issue #343 / PR #344 and Issue #345 / PR #346 are merge-effective provider-free characterization/repair evidence at accepted base `8c43068038d4c3859383d68263f0ab0336480f6a`; L0–L4 evidence is preserved. Issue #347 / PR #349 is merge-effective provider-free P2 readiness at `main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 / PR #351 is merge-effective operator-binder readiness at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`; `OPERATOR_BINDER_IMPLEMENTED = YES` is current. Issue #352 / PR #353 is merge-effective control alignment at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES` durable on main. The current branch carries only the docs-only closure follow-up, pending review. L5 is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` with no exports; L6 is `NOT_EXECUTED`; Agent UI is frozen; Pilot execution and the real P01 Grant remain unauthorized.
+> **Issue #355 current truth (pre-merge):** `main@925a0318135784429096ddf30de2a34982c55bc0` is the exact base for the bounded provider-free execution-control correction. The replacement branch is under implementation; no merge or execution authorization is implied. `REAL_P01_INPUT_FILE_READY = YES` reflects the Owner-frozen handoff and was not re-inspected by this implementation. `REAL_P01_PRE_CALL = BLOCKED_BY_EXECUTION_CONTROL_CORRECTION`; `REAL_P01_GRANT = NOT_ISSUED`; `P01_ATTEMPT_EXECUTED = NO`; `P01_RESULT = NOT_EXECUTED`; `Blocker 3 = UNKNOWN_NOT_INSPECTED`; Provider calls, Secret reads/injections, PostgreSQL access, Pilot/participant executions and charge remain zero. After an independently reviewed merge, a fresh exact-main provider-free pre-call is required; the real P01 Grant remains unissued.
+
+> **Current status:** [MVP-0L](../goals/mvp0-local-ai-web-app-delivery-goal.md) is `TERMINAL_INCOMPLETE_L5_FAILED`; [Real Product-to-Brief Pilot](../goals/real-product-to-brief-pilot-goal.md) is `ACTIVE`. Issue #341 / PR #342 is merge-effective: P01–P08 are `ADMITTED`, the denominator is exactly eight frozen units, and P0 is `P0_CONTRACT_FROZEN`. Issue #343 / PR #344 and Issue #345 / PR #346 are merge-effective provider-free characterization/repair evidence at accepted base `8c43068038d4c3859383d68263f0ab0336480f6a`; L0–L4 evidence is preserved. Issue #347 / PR #349 is merge-effective provider-free P2 readiness at `main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 / PR #351 is merge-effective operator-binder readiness at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`; `OPERATOR_BINDER_IMPLEMENTED = YES` is current. Issue #352 / PR #353 is merge-effective control alignment at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES` durable on main. Issue #355 is the current bounded provider-free execution-control correction on its replacement branch; it is not merged. L5 is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` with no exports; L6 is `NOT_EXECUTED`; Agent UI is frozen; Pilot execution and the real P01 Grant remain unauthorized.
 >
 > **Authority:** [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) · [DEC-085](../decisions/dec-085-docker-only-local-web-lifecycle.md) · [DEC-086](../decisions/dec-086-real-product-to-brief-pilot.md) · [DEC-087](../decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) · [MVP-0L Local AI Web App Delivery Goal](../goals/mvp0-local-ai-web-app-delivery-goal.md) · [Real Product-to-Brief Pilot Goal](../goals/real-product-to-brief-pilot-goal.md) · [Real Product-to-Brief Pilot Contract](../product/real-product-to-brief-pilot-contract.md) · [P0 admission/contract-freeze plan](../product/real-product-to-brief-pilot-p0-plan.md) · [Session-009](../sessions/session-009-local-ai-web-app-goal-activation.md) · [Session-010](../sessions/session-010-real-product-to-brief-pilot.md) · [Session-011](../sessions/session-011-mvp0l-terminal-rebaseline.md) · [Session-012](../sessions/session-012-real-product-to-brief-pilot-p0.md) · predecessor [DEC-083](../decisions/dec-083-local-action-workbench-productization-goal.md)
 >
 > **Current release boundary:** the deterministic local loop and one-command demo are completed predecessor foundation, not live Provider acceptance. The old Fast Lane record remains terminal `GOAL_BLOCKED`: its first authorized smoke completed five calls and failed before `awaiting_review`; the second under [Issue #281](https://github.com/JettxonHo/ai-ecommerce-agent/issues/281) failed safely after one `product_intake_v1 / v1` call before `awaiting_review`. Both authorizations are consumed; no further Provider run is authorized. [DEC-081](../decisions/dec-081-mvp0-fl2-offline-diagnosis-and-bounded-repair.md) and the [L4 qualification review](../reviews/mvp0l-l4-deepseek-offline-qualification.md) preserve `INSUFFICIENT_SANITIZED_EVIDENCE` / observational ambiguity, record `L4_OFFLINE_QUALIFIED_NO_JUSTIFIED_REPAIR`, and make no production repair or Phase-B contract. L0–L3 are merged/current through PRs #317, #328, #330 and #332 at exact `origin/main@2124a9bb20d6b7b327c828331bdc8293ec76577e`; P5 remains independently reviewed `P5_REUSE_FROZEN`. The successor L0–L6 order is governed by [DEC-084](../decisions/dec-084-apple-silicon-local-ai-web-app-goal.md) and [DEC-085](../decisions/dec-085-docker-only-local-web-lifecycle.md).
-> **Pilot boundary:** the Pilot is `ACTIVE` after DEC-087's merge-effective rebaseline. Issue #341 / PR #342's [P0 admission/contract-freeze plan](../product/real-product-to-brief-pilot-p0-plan.md) is merge-effective: P0 is `P0_CONTRACT_FROZEN`, P01–P08 are `ADMITTED`, and the denominator is exactly eight. The exact P0→P6 order and acceptance denominator remain unchanged. Issue #343 / PR #344 is the completed provider-free P1 characterization (`CONFIRMED` blocker, historical first-failure attribution `INCONCLUSIVE`); Issue #345 / PR #346 is the completed merge-effective response-key repair. Issue #347 / PR #349 is merge-effective provider-free P2 readiness; Issue #350 / PR #351 is merge-effective operator-binder readiness at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. Issue #352 / PR #353 is merge-effective control alignment at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`; only the docs-only closure follow-up remains pending review. Required evidence uses the fixed DeepSeek reservation, immutable PilotAttemptArtifacts, explicit Human Review and qualifying-export semantics. Every bounded paid execution or cohort still needs a fresh exact-commit owner authorization; Pilot execution and the real P01 Grant remain unauthorized.
+> **Pilot boundary:** the Pilot is `ACTIVE` after DEC-087's merge-effective rebaseline. Issue #341 / PR #342's [P0 admission/contract-freeze plan](../product/real-product-to-brief-pilot-p0-plan.md) is merge-effective: P0 is `P0_CONTRACT_FROZEN`, P01–P08 are `ADMITTED`, and the denominator is exactly eight. The exact P0→P6 order and acceptance denominator remain unchanged. Issue #343 / PR #344 is the completed provider-free P1 characterization (`CONFIRMED` blocker, historical first-failure attribution `INCONCLUSIVE`); Issue #345 / PR #346 is the completed merge-effective response-key repair. Issue #347 / PR #349 is merge-effective provider-free P2 readiness; Issue #350 / PR #351 is merge-effective operator-binder readiness at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. Issue #352 / PR #353 is merge-effective control alignment at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`; Issue #355 is the current bounded provider-free correction on its replacement branch. Required evidence uses the fixed DeepSeek reservation, immutable PilotAttemptArtifacts, explicit Human Review and qualifying-export semantics. Every bounded paid execution or cohort still needs a fresh exact-commit owner authorization; Pilot execution and the real P01 Grant remain unauthorized.
 
 P2's bounded surface is Running, Review and Results with structured business groups, separate Marketing / Xiaohongshu views, safe Markdown preview/export, raw JSON behind technical disclosure, and responsive keyboard / focus / reduced-motion boundaries. It does not claim Provider acceptance.
 
@@ -20,7 +22,7 @@ Issue #341 / PR #342 is the completed P0 admission/contract-freeze record. Its [
 - denominator formula/threshold (`>= 80%`, count-once, BLOCKED in denominator, EXCLUDED pre-admission/observation only), seven human-review dimensions and evidence fields/destinations;
 - private roots `/Users/ketchup/Private/ai-ecommerce-pilot/{inputs,evidence,reviews,exports,summary}/` outside Git; this workflow creates no directories and retains no raw private material.
 
-The Issue #341 seven-path allowlist is merge-effective and unchanged. Issue #343 / PR #344 has its own exact seven-path allowlist and its characterization report remains byte-identical. Issue #345 / PR #346 had the exact eight-path provider-free repair allowlist and is now merge-effective at the accepted base. Issue #347 / PR #349 completed its owner-amended 24-path P2 readiness allowlist and is merge-effective at `main@cb77de2`; its historical review/session records remain unchanged. Issue #350 / PR #351 completed its exact 18-path operator-binder allowlist and is merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. Issue #352 / PR #353 completed its exact eight-path provider-free control-alignment branch and is merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`; only the current docs-only closure follow-up remains pending review. The outside-Git artifact layout persists sanitized export metadata sidecars beside fixed Markdown files for fresh-reader reconstruction. The fixed DeepSeek reservation, not an owner-cap guess, is the cost boundary. No migration, `local_demo.py`, public API/generated client, default composition, P0/Pilot observation, Provider/Secret action, numerator or business outcome is authorized. `REAL_P01_INPUT_FILE_READY=NO` is based only on Owner/pre-call authority; the private input root is not inspected.
+The Issue #341 seven-path allowlist is merge-effective and unchanged. Issue #343 / PR #344 has its own exact seven-path allowlist and its characterization report remains byte-identical. Issue #345 / PR #346 had the exact eight-path provider-free repair allowlist and is now merge-effective at the accepted base. Issue #347 / PR #349 completed its owner-amended 24-path P2 readiness allowlist and is merge-effective at `main@cb77de2`; its historical review/session records remain unchanged. Issue #350 / PR #351 completed its exact 18-path operator-binder allowlist and is merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. Issue #352 / PR #353 completed its exact eight-path provider-free control-alignment branch and is merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`; Issue #355 is the current bounded provider-free correction on its replacement branch. The outside-Git artifact layout persists sanitized export metadata sidecars beside fixed Markdown files for fresh-reader reconstruction. The fixed DeepSeek reservation, not an owner-cap guess, is the cost boundary. No migration, `local_demo.py`, public API/generated client, default composition, P0/Pilot observation, Provider/Secret action, numerator or business outcome is authorized. `REAL_P01_INPUT_FILE_READY=YES` is the Owner-frozen handoff state; the private input root is not inspected by this implementation.
 
 ## P2 readiness implementation handoff
 
@@ -30,8 +32,8 @@ merge-effective with `P2_READINESS_IMPLEMENTED = YES` at `main@cb77de2`. **Fact:
 Issue #350 / PR #351 is merge-effective with `OPERATOR_BINDER_IMPLEMENTED = YES`
 at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. **Fact:** Issue #352 / PR
 #353 is merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with
-`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`; the current follow-up is docs-only
-and pending review.
+`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`; Issue #355 is the current
+provider-free correction on its replacement branch and is not merged.
 
 The owner amendment in [Issue #347 comment 5473654628](https://github.com/JettxonHo/ai-ecommerce-agent/issues/347#issuecomment-5473654628)
 fixes a 24-path allowlist: the original 18 paths plus Task Management,
@@ -53,12 +55,14 @@ observations are recorded in the [P2 readiness review](../reviews/real-product-t
 and [Session-015](../sessions/session-015-real-product-to-brief-pilot-p2-readiness.md).
 No real P01/business run, participant execution, numerator/ratio or human
 business acceptance is claimed; Pilot execution and the real P01 Grant remain
-unauthorized. The historical Grant is `NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN`.
-`REAL_P01_INPUT_FILE_READY=NO` is based only on Owner/pre-call authority; the
-private input root is not inspected. `AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT`,
+unauthorized. `REAL_P01_GRANT=NOT_ISSUED` and
+`REAL_P01_INPUT_FILE_READY=YES` are Owner-frozen states; the private input root
+is not inspected by this implementation. `REAL_P01_PRE_CALL=
+BLOCKED_BY_EXECUTION_CONTROL_CORRECTION`; `Blocker 3=UNKNOWN_NOT_INSPECTED`;
+`AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT`,
 `P01_ATTEMPT_EXECUTED=NO`, `P01_RESULT=NOT_EXECUTED`,
 `P02_PLUS=NOT_AUTHORIZED` and `SECRET_STATUS=NOT_CHECKED` remain current. The
-next action is `WAIT_FOR_REAL_P01_INPUT_HANDOFF_AND_NEW_EXACT_MAIN_OWNER_GRANT`.
+next action is `WAIT_FOR_ISSUE_355_REVIEW_AND_MERGE`.
 
 ## Issue #350 / PR #351 operator-binder handoff
 
@@ -92,9 +96,9 @@ numerator or changes the P0 denominator.
 
 **Fact:** Issue #352 / PR #353 is merge-effective at
 `main@87f5315074bb3858ff09163c38c84b6e1e834577`, with durable main truth
-`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`. The current branch carries only a
-docs-only closure follow-up for the same Issue #352 record, pending review,
-and has no production or control changes. The former branch-level
+`REAL_P01_EXECUTION_CONTROL_ALIGNED = YES`. Issue #355 is the current bounded
+provider-free correction on its replacement branch and is not merged. The
+former branch-level
 `pending independent review` wording is historical only. Production code, the
 PostgreSQL/API composition, migrations/schema, OpenAPI/generated client,
 dependencies/locks, private roots, `.env`, Secret, Provider and Pilot runtime
@@ -118,14 +122,14 @@ fallback, retry, recovery or replay is permitted.
 **External-action truth:** This provider-free branch and post-merge docs audit
 have no Provider calls, paid calls, Secret reads/injections, private-root
 inspection, artifact/input creation, Pilot samples, participant executions or
-actual charge. The historical Grant is
-`NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN`.
-`REAL_P01_INPUT_FILE_READY=NO` is based only on Owner/pre-call authority; the
-private input root is not inspected. `AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT`,
+actual charge. `REAL_P01_GRANT=NOT_ISSUED` and
+`REAL_P01_INPUT_FILE_READY=YES` are Owner-frozen states; the private input root
+is not inspected by this implementation. `REAL_P01_PRE_CALL=
+BLOCKED_BY_EXECUTION_CONTROL_CORRECTION`; `Blocker 3=UNKNOWN_NOT_INSPECTED`;
+`AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT`,
 `P01_ATTEMPT_EXECUTED=NO`, `P01_RESULT=NOT_EXECUTED`,
 `P02_PLUS=NOT_AUTHORIZED` and `SECRET_STATUS=NOT_CHECKED` remain current.
-The next single action is
-`WAIT_FOR_REAL_P01_INPUT_HANDOFF_AND_NEW_EXACT_MAIN_OWNER_GRANT`.
+The next single action is `WAIT_FOR_ISSUE_355_REVIEW_AND_MERGE`.
 
 See the [Issue #350 operator-binder review](../reviews/real-product-to-brief-pilot-p2-operator-binder.md)
 and [Session-016](../sessions/session-016-real-product-to-brief-pilot-p2-operator-binder.md).
@@ -228,7 +232,7 @@ The following are outside the current productization Stage unless a later Stage 
 
 Accepted future designs remain available for a later Goal. They are not implementation prerequisites for this one.
 
-DEC-082 supplies the accepted product and frontend baseline. DEC-083's P0–P5 predecessor execution is complete; PR #315 made `MVP0P_GOAL_COMPLETE` current historical truth. DEC-084/085's L0–L5 evidence remains auditable, while DEC-087 ends the unfinished continuation. MVP-0L is `TERMINAL_INCOMPLETE_L5_FAILED` and the Pilot is `ACTIVE`; Issue #341 / PR #342 made P0 `P0_CONTRACT_FROZEN` with exact denominator 8 and P01–P08 `ADMITTED`. Issue #343 / PR #344 made the provider-free P1 characterization `CONFIRMED` (historical first-failure attribution `INCONCLUSIVE`); Issue #345 / PR #346 completed the merge-effective response-key harness repair. Issue #347 / PR #349 made provider-free P2 readiness merge-effective at `main@cb77de2`; Issue #350 / PR #351 made the operator binder merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. Issue #352 / PR #353 made exact control alignment merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`; the current follow-up is docs-only and pending review. Important frontend work uses applicable taste skills, but Agent UI remains frozen and PR #299 remains open/unmerged non-production evidence.
+DEC-082 supplies the accepted product and frontend baseline. DEC-083's P0–P5 predecessor execution is complete; PR #315 made `MVP0P_GOAL_COMPLETE` current historical truth. DEC-084/085's L0–L5 evidence remains auditable, while DEC-087 ends the unfinished continuation. MVP-0L is `TERMINAL_INCOMPLETE_L5_FAILED` and the Pilot is `ACTIVE`; Issue #341 / PR #342 made P0 `P0_CONTRACT_FROZEN` with exact denominator 8 and P01–P08 `ADMITTED`. Issue #343 / PR #344 made the provider-free P1 characterization `CONFIRMED` (historical first-failure attribution `INCONCLUSIVE`); Issue #345 / PR #346 completed the merge-effective response-key harness repair. Issue #347 / PR #349 made provider-free P2 readiness merge-effective at `main@cb77de2`; Issue #350 / PR #351 made the operator binder merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. Issue #352 / PR #353 made exact control alignment merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`; Issue #355 is the current bounded provider-free execution-control correction on its replacement branch. Important frontend work uses applicable taste skills, but Agent UI remains frozen and PR #299 remains open/unmerged non-production evidence.
 
 ## 6. Quality readiness
 
@@ -301,6 +305,6 @@ Issue #343 / PR #344: P1 characterization `CONFIRMED` (historical first-failure 
 Issue #345 / PR #346: merge-effective P1R response-key harness repair; no Provider/Secret/Pilot execution
 Issue #347 / PR #349: P2 provider-free readiness merge-effective at main@cb77de2; no Provider/Secret/Pilot execution
 Issue #350 / PR #351: provider-free operator binder merge-effective at main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a; OPERATOR_BINDER_IMPLEMENTED=YES
-Issue #352 / PR #353: provider-free exact-commit/artifact-root/input-handoff control alignment merge-effective at main@87f5315074bb3858ff09163c38c84b6e1e834577; REAL_P01_EXECUTION_CONTROL_ALIGNED=YES; current follow-up docs-only and pending review; REAL_P01_INPUT_FILE_READY=NO by Owner/pre-call authority only; AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT; no private-root inspection or execution; next action WAIT_FOR_REAL_P01_INPUT_HANDOFF_AND_NEW_EXACT_MAIN_OWNER_GRANT
+Issue #352 / PR #353: provider-free exact-commit/artifact-root/input-handoff control alignment merge-effective at main@87f5315074bb3858ff09163c38c84b6e1e834577; REAL_P01_EXECUTION_CONTROL_ALIGNED=YES. Issue #355 is the current bounded provider-free correction on its replacement branch; REAL_P01_INPUT_FILE_READY=YES by Owner-frozen handoff; REAL_P01_PRE_CALL=BLOCKED_BY_EXECUTION_CONTROL_CORRECTION; REAL_P01_GRANT=NOT_ISSUED; Blocker 3=UNKNOWN_NOT_INSPECTED; AUTHORIZATION_STATUS=REQUIRES_NEW_OWNER_GRANT; no private-root inspection or execution; next action WAIT_FOR_ISSUE_355_REVIEW_AND_MERGE
 Real Product-to-Brief Pilot Stage order: P0 → P1 → P2 → P3 → P4 → P5 → P6; one active Stage and one Issue per observable outcome; business acceptance requires 5–10 permitted products backed by permitted real product material or permitted sanitized real-product material / two categories / non-author / real Provider evidence / adopted output / three consecutive successes without production-code edits / 80% approved-export over all P0-admitted product/attempt units (including pre-export failures) with a numerator requiring at least one human-approved immutable Marketing or Xiaohongshu export / clean-Mac / metrics / sanitized evidence pack / 2–4 minute demo
 ```

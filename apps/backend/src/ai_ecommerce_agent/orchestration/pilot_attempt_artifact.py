@@ -36,6 +36,7 @@ __all__ = [
     "FinalizationGates",
     "GateSummary",
     "FinalizeAttempt",
+    "IdempotencyBundle",
     "PilotAttemptArtifacts",
     "PricingReference",
     "RecordReview",
@@ -314,6 +315,99 @@ def _as_mapping(value: object, field_name: str) -> Mapping[str, object]:
             raise ValueError(f"{field_name} contains a prohibited key")
         result[key] = item
     return result
+
+
+def _idempotency_key_values(sample_id: str, attempt_id: str) -> dict[str, str]:
+    return {
+        "sample_id": sample_id,
+        "attempt_id": attempt_id,
+        "task_create": f"operator-{attempt_id}-task",
+        "generate": f"operator-{attempt_id}-generate",
+        "confirm": f"operator-{attempt_id}-confirm",
+        "marketing_export": f"operator-{attempt_id}-export-marketing",
+        "xiaohongshu_export": f"operator-{attempt_id}-export-xiaohongshu",
+    }
+
+
+@dataclass(frozen=True, slots=True)
+class IdempotencyBundle:
+    """Complete immutable command-key bundle for one admitted attempt."""
+
+    sample_id: str
+    attempt_id: str
+    task_create: str
+    generate: str
+    confirm: str
+    marketing_export: str
+    xiaohongshu_export: str
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "sample_id",
+            "attempt_id",
+            "task_create",
+            "generate",
+            "confirm",
+            "marketing_export",
+            "xiaohongshu_export",
+        ):
+            object.__setattr__(
+                self,
+                field_name,
+                _safe_id(getattr(self, field_name), field_name),
+            )
+        if self.sample_id != _SAMPLE_ID or self.attempt_id != _ATTEMPT_ID:
+            raise ValueError("idempotency bundle identity is not admitted")
+        expected = _idempotency_key_values(self.sample_id, self.attempt_id)
+        observed = self.to_mapping()
+        if observed != expected:
+            raise ValueError("idempotency bundle keys do not match identity")
+
+    @classmethod
+    def for_identity(cls, sample_id: str, attempt_id: str) -> IdempotencyBundle:
+        values = _idempotency_key_values(
+            _safe_id(sample_id, "sample_id"), _safe_id(attempt_id, "attempt_id")
+        )
+        return cls(**values)
+
+    @classmethod
+    def from_value(cls, value: object) -> IdempotencyBundle:
+        if isinstance(value, cls):
+            return value
+        mapping = _as_mapping(value, "idempotency_bundle")
+        expected_keys = {
+            "sample_id",
+            "attempt_id",
+            "task_create",
+            "generate",
+            "confirm",
+            "marketing_export",
+            "xiaohongshu_export",
+        }
+        if set(mapping) != expected_keys:
+            raise ValueError("idempotency bundle fields are incomplete")
+        if any(type(item) is not str for item in mapping.values()):
+            raise TypeError("idempotency bundle values must be exact strings")
+        return cls(
+            sample_id=cast(str, mapping["sample_id"]),
+            attempt_id=cast(str, mapping["attempt_id"]),
+            task_create=cast(str, mapping["task_create"]),
+            generate=cast(str, mapping["generate"]),
+            confirm=cast(str, mapping["confirm"]),
+            marketing_export=cast(str, mapping["marketing_export"]),
+            xiaohongshu_export=cast(str, mapping["xiaohongshu_export"]),
+        )
+
+    def to_mapping(self) -> dict[str, str]:
+        return {
+            "sample_id": self.sample_id,
+            "attempt_id": self.attempt_id,
+            "task_create": self.task_create,
+            "generate": self.generate,
+            "confirm": self.confirm,
+            "marketing_export": self.marketing_export,
+            "xiaohongshu_export": self.xiaohongshu_export,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -629,6 +723,7 @@ class ReserveAttempt:
     artifact_root: Path
     sample_id: str = _SAMPLE_ID
     attempt_id: str = _ATTEMPT_ID
+    idempotency_bundle: IdempotencyBundle | Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -636,6 +731,12 @@ class ReserveAttempt:
         )
         object.__setattr__(self, "sample_id", _safe_id(self.sample_id, "sample_id"))
         object.__setattr__(self, "attempt_id", _safe_id(self.attempt_id, "attempt_id"))
+        if self.idempotency_bundle is not None:
+            object.__setattr__(
+                self,
+                "idempotency_bundle",
+                IdempotencyBundle.from_value(self.idempotency_bundle),
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -1337,6 +1438,19 @@ class PilotAttemptArtifacts:
         if root is None:
             raise AttemptArtifactError(ArtifactErrorCode.ATTEMPT_NOT_FOUND, "read")
         identity = _safe_read_json(root / "identity.json")
+        bundle_value = identity.get("idempotency_bundle")
+        if bundle_value is not None:
+            try:
+                bundle = IdempotencyBundle.from_value(bundle_value)
+            except (TypeError, ValueError):
+                raise AttemptArtifactError(
+                    ArtifactErrorCode.ARTIFACT_CORRUPT, "read"
+                ) from None
+            if (
+                identity.get("sample_id") != bundle.sample_id
+                or identity.get("attempt_id") != bundle.attempt_id
+            ):
+                raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "read")
         run_path = root / "run.json"
         run = None if not run_path.exists() else _safe_read_json(run_path)
         exports = self._load_exports(root, safe_attempt_id)
@@ -1376,6 +1490,11 @@ class PilotAttemptArtifacts:
     def _reserve(self, command: ReserveAttempt) -> AttemptArtifactSnapshot:
         if command.sample_id != _SAMPLE_ID or command.attempt_id != _ATTEMPT_ID:
             raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "reserve")
+        bundle = command.idempotency_bundle
+        if bundle is not None and bundle != IdempotencyBundle.for_identity(
+            command.sample_id, command.attempt_id
+        ):
+            raise AttemptArtifactError(ArtifactErrorCode.IDENTITY_MISMATCH, "reserve")
         root = self._validate_attempt_root(command.artifact_root)
         self._mkdir_parents(root.parent)
         try:
@@ -1397,6 +1516,8 @@ class PilotAttemptArtifacts:
                 "attempt_id": command.attempt_id,
                 "immutable": True,
             }
+            if bundle is not None:
+                identity["idempotency_bundle"] = bundle.to_mapping()
             _exclusive_write(root / "identity.json", identity)
             self._roots[command.attempt_id] = root
             return AttemptArtifactSnapshot(identity, None, "PENDING", root)
