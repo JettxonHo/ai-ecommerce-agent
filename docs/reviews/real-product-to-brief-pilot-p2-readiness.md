@@ -26,8 +26,9 @@ The implementation subset is limited to the P2 bootstrap/artifact/runtime
 seams and their tests. Four existing PostgreSQL/FastAPI composition paths
 remain byte-identical; `deterministic_result_postgres.py` is the accepted
 architecture-RED exception and changes only to expose the canonical factory
-helper. The seven synchronized docs are documentation edits tracked outside
-the 24-path implementation allowlist:
+helper. The seven synchronized docs are original allowlist paths 12–18,
+retained in the amended 24-path allowlist. They are documentation edits; the
+12 implementation/test paths are:
 
 - `apps/backend/src/ai_ecommerce_agent/orchestration/deterministic_pipeline.py`
 - `apps/backend/src/ai_ecommerce_agent/bootstrap/deterministic_result_postgres.py`
@@ -109,6 +110,16 @@ The evidence below is provider-free and not a real P01/business outcome:
   the characterization/collection boundary with cleanup PASS. No real P01
   business execution, Provider call, Secret read or participant review is
   claimed; the real database lifecycle remains an opt-in owner action.
+- Owner-authorized replacement validation then ran one fresh guarded
+  provider-free PostgreSQL/API lifecycle in project
+  `ai-ecommerce-agent-mvp0-ephemeral-260831071121-37802-24780` with paired
+  volume `ai-ecommerce-agent-mvp0-ephemeral-260831071121-37802-24780-pg` on
+  loopback `127.0.0.1:55432`; all six integration tests passed in `1.33s`.
+  Cleanup PASS proved the owned project and paired volume were absent, the
+  pre-existing `ai-ecommerce-agent-mvp0*` volume set and protected default
+  volume were unchanged, and the loopback port was free. This remains
+  provider-free harness evidence only: Provider calls, Secret reads, Pilot/P01
+  execution, participant work and business outcome remained zero.
 
 ## Decision
 
@@ -117,8 +128,9 @@ for provider-free P2 readiness evidence. The follow-up addressed the ten
 independent review findings (identity/content admission, dynamic persisted
 identities, exact artifact destination, durable metadata, explicit review/cost
 state, rejected-review evidence, reason-code evidence, close cleanup, typed
-unknowns and documentation truth). No guarded PostgreSQL runtime was rerun in
-the follow-up. **Decision boundary:** this review does
+unknowns and documentation truth). The earlier follow-up itself did not rerun
+the guarded PostgreSQL runtime; the Owner-authorized replacement lifecycle
+above is the current validation. **Decision boundary:** this review does
 not accept the Pilot, a real P01 run, a human business outcome, a numerator or a
 Goal completion. Only a reviewed PR reaching `main` may change the readiness
 status to `P2_READINESS_IMPLEMENTED = YES`.

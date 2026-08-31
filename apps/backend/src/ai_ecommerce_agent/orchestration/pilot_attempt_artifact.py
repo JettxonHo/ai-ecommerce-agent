@@ -1,10 +1,9 @@
 """Small, provider-neutral persistence seam for one P2 pilot attempt.
 
-Slice 3A intentionally stops at an immutable attempt identity and one run
-record.  Slice 3B adds one bounded immutable Markdown export capture; human
-review and terminal outcome records remain outside this seam.  The module has
-no provider, database, or application-runtime dependency and only writes to an
-explicitly approved local directory.
+This seam records immutable attempt identity/run evidence, bounded Markdown
+export capture, explicit Human Review, and terminal outcome records.  The module
+has no provider, database, or application-runtime dependency and only writes to
+an explicitly approved local directory.
 """
 
 from __future__ import annotations

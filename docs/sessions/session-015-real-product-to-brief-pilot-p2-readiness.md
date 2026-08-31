@@ -45,8 +45,9 @@ guess. Pilot execution and the real P01 Grant remain `NOT_AUTHORIZED`.
   exact P01 content admission, dynamic persisted identities, fixed artifact
   destination, durable sidecar reconstruction, explicit review/cost state,
   rejected-review evidence, evidence-bound terminal reasons, complete cleanup,
-  typed unknown usage/cost and synchronized documentation truth. The guarded
-  PostgreSQL runtime was not rerun for this follow-up.
+  typed unknown usage/cost and synchronized documentation truth. The earlier
+  follow-up itself did not rerun the guarded PostgreSQL runtime; the
+  Owner-authorized replacement lifecycle below is the current validation.
 
 ## Observation: provider-free PostgreSQL harness chronology
 
@@ -63,6 +64,15 @@ The following are harness observations, not business acceptance:
 6. The final guarded provider-free three-test scope recorded **3 PASS** with
    cleanup PASS. No real P01, Provider, Secret, participant or business result
    was executed or accepted.
+7. Owner-authorized replacement validation ran one fresh guarded provider-free
+   PostgreSQL/API lifecycle in project
+   `ai-ecommerce-agent-mvp0-ephemeral-260831071121-37802-24780` with paired
+   volume `ai-ecommerce-agent-mvp0-ephemeral-260831071121-37802-24780-pg` on
+   loopback `127.0.0.1:55432`; all six integration tests passed in `1.33s`.
+   Cleanup PASS proved the owned project and paired volume were absent, the
+   pre-existing `ai-ecommerce-agent-mvp0*` volume set and protected default
+   volume were unchanged, and the loopback port was free. No Provider/Secret/
+   Pilot/P01/participant/business execution or outcome occurred.
 
 ## Fact: acceptance boundary
 
