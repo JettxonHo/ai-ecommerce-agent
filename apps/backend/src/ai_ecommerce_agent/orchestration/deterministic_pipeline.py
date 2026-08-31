@@ -98,10 +98,28 @@ class PipelineResult:
     candidates: tuple[tuple[str, StructuredContent], ...]
 
 
+@dataclass(frozen=True, slots=True)
+class PipelineInvocation:
+    """Optional immutable identity carried by a bounded pipeline invocation."""
+
+    sample_id: str
+    attempt_id: str
+    context_assembly_version: str
+
+    def __post_init__(self) -> None:
+        for name in ("sample_id", "attempt_id", "context_assembly_version"):
+            value = getattr(self, name)
+            if type(value) is not str:
+                raise TypeError(f"{name} must be a string")
+            if not value.strip():
+                raise ValueError(f"{name} must be a non-empty string")
+
+
 RuntimeFactory = Callable[
     [tuple[ModelCallRequest, ...], tuple[str, ...]], ModelRuntimePort
 ]
 SpecFactory = Callable[[], StructuredOutputSpec]
+InputPreflight = Callable[[str], tuple[str, ...]]
 
 
 def _json(value: Mapping[str, object]) -> str:
@@ -541,22 +559,32 @@ def _request(
     spec: StructuredOutputSpec,
     index: int,
     upstream: StructuredContent | None,
+    pipeline_invocation: PipelineInvocation | None,
 ) -> ModelCallRequest:
-    call_id = ModelCallId(f"deterministic-stage-{index}")
+    call_id = ModelCallId(
+        f"{pipeline_invocation.attempt_id}-stage-{index}"
+        if pipeline_invocation is not None
+        else f"deterministic-stage-{index}"
+    )
     profile = ModelExecutionProfile(
         _STAGE_PROFILE_IDS[index - 1], _STAGE_PROFILE_VERSIONS[index - 1]
     )
+    context_values: dict[str, object] = {
+        "primary_input": input_text,
+        "upstream_candidate": (upstream.to_mapping() if upstream is not None else None),
+    }
+    context_assembly_version = "v1"
+    if pipeline_invocation is not None:
+        context_values["pipeline_invocation"] = {
+            "sample_id": pipeline_invocation.sample_id,
+            "attempt_id": pipeline_invocation.attempt_id,
+            "context_assembly_version": pipeline_invocation.context_assembly_version,
+        }
+        context_assembly_version = pipeline_invocation.context_assembly_version
     return ModelCallRequest(
         identity=ModelCallIdentity(call_id),
         instructions=_STAGE_INSTRUCTIONS[index - 1],
-        context=StructuredContent.from_mapping(
-            {
-                "primary_input": input_text,
-                "upstream_candidate": (
-                    upstream.to_mapping() if upstream is not None else None
-                ),
-            }
-        ),
+        context=StructuredContent.from_mapping(context_values),
         structured_output=spec,
         execution_profile=profile,
         contract_versions=ModelCallContractVersions(
@@ -564,7 +592,7 @@ def _request(
             prompt_template_version="v1",
             skill_contract_version="v1",
             domain_validator_version="v1",
-            context_assembly_version="v1",
+            context_assembly_version=context_assembly_version,
         ),
     )
 
@@ -730,18 +758,32 @@ class DeterministicPipelineCoordinator:
         self,
         spec_factories: Sequence[SpecFactory],
         runtime_factory: RuntimeFactory = build_scripted_runtime,
+        *,
+        input_preflight: InputPreflight = _preflight,
+        pipeline_invocation: PipelineInvocation | None = None,
+        runtime_admission_gate: Callable[[tuple[ModelCallRequest, ...]], None]
+        | None = None,
     ):
         if len(spec_factories) != 5:
             raise ValueError("exactly five ordered output spec factories are required")
+        if not callable(input_preflight):
+            raise TypeError("input_preflight must be callable")
+        if runtime_admission_gate is not None and not callable(runtime_admission_gate):
+            raise TypeError("runtime_admission_gate must be callable")
+        if pipeline_invocation is not None and runtime_admission_gate is None:
+            raise ValueError("runtime admission gate is required")
         self._spec_factories = tuple(spec_factories)
         self._runtime_factory = runtime_factory
+        self._input_preflight = input_preflight
+        self._pipeline_invocation = pipeline_invocation
+        self._runtime_admission_gate = runtime_admission_gate
 
     def generate(self, *, input_text: str) -> PipelineResult:
         if type(input_text) is not str:
             raise TypeError("input_text must be a string")
         if not input_text.strip():
             raise ValueError("input_text must be nonblank")
-        missing = _preflight(input_text)
+        missing = self._input_preflight(input_text)
         if missing:
             return PipelineResult(
                 status="insufficient_input",
@@ -757,9 +799,11 @@ class DeterministicPipelineCoordinator:
         # construction.  Actual requests are assembled below, one stage at a
         # time, after the previous stage has been parsed and validated.
         runtime_requests = tuple(
-            _request(input_text, spec, index, None)
+            _request(input_text, spec, index, None, self._pipeline_invocation)
             for index, spec in enumerate(specs, start=1)
         )
+        if self._runtime_admission_gate is not None:
+            self._runtime_admission_gate(runtime_requests)
         runtime = self._runtime_factory(runtime_requests, payloads)
         validated: list[tuple[str, StructuredContent]] = []
         upstream: StructuredContent | None = None
@@ -777,7 +821,13 @@ class DeterministicPipelineCoordinator:
             ),
             start=1,
         ):
-            request = _request(input_text, spec, index, upstream)
+            request = _request(
+                input_text,
+                spec,
+                index,
+                upstream,
+                self._pipeline_invocation,
+            )
             result = runtime.execute(request)
             candidate = parse_and_validate_structured_output(
                 result=result,
@@ -800,8 +850,10 @@ class DeterministicPipelineCoordinator:
 
 __all__ = [
     "DeterministicPipelineCoordinator",
-    "SpecFactory",
+    "InputPreflight",
+    "PipelineInvocation",
     "PipelineResult",
     "RuntimeFactory",
+    "SpecFactory",
     "build_scripted_runtime",
 ]

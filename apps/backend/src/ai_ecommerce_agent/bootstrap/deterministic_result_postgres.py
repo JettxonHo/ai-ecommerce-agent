@@ -47,6 +47,7 @@ from ai_ecommerce_agent.modules.xiaohongshu_adapter.application.skills import (
 from ai_ecommerce_agent.orchestration.deterministic_pipeline import (
     DeterministicPipelineCoordinator,
     PipelineResult,
+    SpecFactory,
 )
 from ai_ecommerce_agent.platform.postgres import (
     PostgresEngineConfig,
@@ -853,8 +854,30 @@ class DeterministicResultPostgresComposition:
     coordinator: DeterministicPipelineCoordinator
 
     def close(self) -> None:
-        self.application.close()
-        self.export_application.close()
+        first_error: BaseException | None = None
+        for participant in (self.application, self.export_application):
+            try:
+                participant.close()
+            except BaseException as error:
+                if first_error is None:
+                    first_error = error
+        if first_error is not None:
+            raise first_error
+
+
+_DEFAULT_SPEC_FACTORIES: tuple[SpecFactory, ...] = (
+    product_intake_fact_extraction.product_intake_candidate_output_spec,
+    customer_insight_analysis.customer_insight_candidate_output_spec,
+    product_positioning.product_positioning_candidate_output_spec,
+    marketing_brief_generation.marketing_brief_candidate_output_spec,
+    xiaohongshu_brief_mapping.xiaohongshu_brief_candidate_output_spec,
+)
+
+
+def default_spec_factories() -> tuple[SpecFactory, ...]:
+    """Return the canonical five ordered deterministic spec factories."""
+
+    return _DEFAULT_SPEC_FACTORIES
 
 
 def compose_deterministic_result_postgres(
@@ -876,13 +899,7 @@ def compose_deterministic_result_postgres(
 
     export_application = ReviewExportApplication(engine, schema=schema)
     bound_coordinator = coordinator or DeterministicPipelineCoordinator(
-        spec_factories=(
-            product_intake_fact_extraction.product_intake_candidate_output_spec,
-            customer_insight_analysis.customer_insight_candidate_output_spec,
-            product_positioning.product_positioning_candidate_output_spec,
-            marketing_brief_generation.marketing_brief_candidate_output_spec,
-            xiaohongshu_brief_mapping.xiaohongshu_brief_candidate_output_spec,
-        )
+        spec_factories=default_spec_factories()
     )
     return DeterministicResultPostgresComposition(
         engine, application, export_application, bound_coordinator
@@ -895,4 +912,5 @@ __all__ = [
     "DeterministicResultPostgresComposition",
     "DeterministicResultSnapshot",
     "compose_deterministic_result_postgres",
+    "default_spec_factories",
 ]
