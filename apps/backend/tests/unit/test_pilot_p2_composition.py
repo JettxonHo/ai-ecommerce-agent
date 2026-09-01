@@ -38,6 +38,7 @@ from ai_ecommerce_agent.orchestration.deterministic_pipeline import (
     SpecFactory,
     build_scripted_runtime,
 )
+from ai_ecommerce_agent.orchestration.pilot_attempt_artifact import IdempotencyBundle
 from ai_ecommerce_agent.platform.model_runtime.deepseek._cost_gate import (
     DEEPSEEK_P2_RESERVATION_MICRO_USD,
     DEEPSEEK_PRICING_RECORD,
@@ -57,6 +58,8 @@ variant: 42733233766550
 category: A
 sanitized permitted public product identity only
 """
+
+P01_IDEMPOTENCY_BUNDLE = IdempotencyBundle.for_identity("P01", "P2-P01-A1")
 
 SPEC_FACTORIES: tuple[SpecFactory, ...] = (
     product_intake_fact_extraction.product_intake_candidate_output_spec,
@@ -166,6 +169,159 @@ def test_operator_constructor_rejects_public_dependency_factory_overrides(
         )  # type: ignore[call-arg]
 
 
+def test_operator_requires_precommitted_idempotency_bundle_before_artifact(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A StartAttempt without its complete bundle fails before reservation."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        PilotP2Operator,
+        PilotP2OperatorError,
+        StartAttempt,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[4]
+
+    def never_compose(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("composition must not run without an idempotency bundle")
+
+    _set_operator_test_dependencies(monkeypatch, composition_factory=never_compose)
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://fixture:fixture@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+    )
+    with pytest.raises(PilotP2OperatorError) as error:
+        operator.apply(
+            StartAttempt(
+                input_path=input_path,
+                artifact_root=artifact_root,
+                authorized_commit=_actual_repository_head(),
+                sample_id="P01",
+                attempt_id="P2-P01-A1",
+                owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+                pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+            )
+        )
+    assert error.value.code == "idempotency_bundle_required"
+    assert not artifact_root.exists()
+
+
+@pytest.mark.parametrize("replay_operation", ("task", "generate"))
+def test_operator_replay_stops_before_downstream_command(
+    replay_operation: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Task/Generate replay cannot continue into input, runtime, or Provider."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
+        OperatorErrorCode,
+        PilotP2Operator,
+        PilotP2OperatorError,
+        StartAttempt,
+    )
+
+    inputs_root = tmp_path / "inputs"
+    inputs_root.mkdir()
+    input_path = inputs_root / "p01-public.txt"
+    input_path.write_text(P01_SANITIZED_INPUT, encoding="utf-8")
+    artifact_parent = tmp_path / "artifacts"
+    artifact_parent.mkdir()
+    artifact_root = artifact_parent / "p2" / "P01" / "P2-P01-A1"
+    repository_root = Path(__file__).resolve().parents[4]
+    seen_paths: list[str] = []
+
+    class _ReplayClient:
+        def create_task(self, *, idempotency_key: str) -> dict[str, object]:
+            del idempotency_key
+            seen_paths.append("/api/v1/tasks")
+            if replay_operation == "task":
+                raise PilotP2OperatorError(OperatorErrorCode.UNEXPECTED_REPLAY)
+            return {"taskId": "task-replay", "revision": 1}
+
+        def save_primary_input(
+            self, *, task_id: str, content: str, file_name: str
+        ) -> dict[str, object]:
+            del task_id, content, file_name
+            seen_paths.append("/api/v1/tasks/task-replay/primary-input")
+            return {"taskId": "task-replay", "inputRevision": 1}
+
+        def generate_result(
+            self, *, task_id: str, input_revision: int, idempotency_key: str
+        ) -> dict[str, object]:
+            del task_id, input_revision, idempotency_key
+            seen_paths.append("/api/v1/tasks/task-replay/commands/generate-result")
+            if replay_operation == "generate":
+                raise PilotP2OperatorError(OperatorErrorCode.UNEXPECTED_REPLAY)
+            return {
+                "taskId": "task-replay",
+                "inputRevision": 1,
+                "resultRevision": 1,
+                "status": "awaiting_review",
+            }
+
+    application_obj = object()
+
+    class _Composition:
+        application = application_obj
+        observer = _StaticObserver(
+            {"attempted_count": 0, "completed_count": 0, "calls": ()}
+        )
+
+        def close(self) -> None:
+            return None
+
+    _set_operator_test_dependencies(
+        monkeypatch,
+        composition_factory=lambda *_args, **_kwargs: _Composition(),
+        http_client_factory=lambda _application: _ReplayClient(),
+    )
+    operator = PilotP2Operator(
+        repository_root=repository_root,
+        approved_inputs_root=inputs_root,
+        approved_artifact_parent=artifact_parent,
+        postgres_config=PostgresEngineConfig(
+            "postgresql+psycopg://fixture:fixture@127.0.0.1/p2"
+        ),
+        http_config=FixedWorkspaceHttpConfig("p2", "http://127.0.0.1:4174"),
+    )
+
+    snapshot = operator.apply(
+        StartAttempt(
+            input_path=input_path,
+            artifact_root=artifact_root,
+            authorized_commit=_actual_repository_head(),
+            sample_id="P01",
+            attempt_id="P2-P01-A1",
+            idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
+            owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
+            pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
+        )
+    )
+    assert snapshot.status == "FAIL"
+    if replay_operation == "task":
+        assert seen_paths == ["/api/v1/tasks"]
+    else:
+        assert seen_paths == [
+            "/api/v1/tasks",
+            "/api/v1/tasks/task-replay/primary-input",
+            "/api/v1/tasks/task-replay/commands/generate-result",
+        ]
+
+
 def test_operator_start_uses_only_validated_input_path_text(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -255,6 +411,9 @@ def test_operator_start_uses_only_validated_input_path_text(
             input_path=input_path,
             artifact_root=artifact_root,
             authorized_commit=_actual_repository_head(),
+            sample_id="P01",
+            attempt_id="P2-P01-A1",
+            idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )
@@ -357,6 +516,9 @@ def test_operator_rejects_task_input_result_identity_drift(
             input_path=input_path,
             artifact_root=artifact_root,
             authorized_commit=_actual_repository_head(),
+            sample_id="P01",
+            attempt_id="P2-P01-A1",
+            idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )
@@ -462,6 +624,9 @@ def test_operator_rejects_fabricated_observer_call_order_and_status(
                 input_path=input_path,
                 artifact_root=artifact_root,
                 authorized_commit=_actual_repository_head(),
+                sample_id="P01",
+                attempt_id="P2-P01-A1",
+                idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
                 owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
                 pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
             )
@@ -580,6 +745,9 @@ def test_operator_surfaces_durable_run_persistence_failure(
                 input_path=input_path,
                 artifact_root=artifact_root,
                 authorized_commit=_actual_repository_head(),
+                sample_id="P01",
+                attempt_id="P2-P01-A1",
+                idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
                 owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
                 pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
             )
@@ -713,6 +881,9 @@ def test_operator_binder_start_persists_observed_generation_without_review(
             input_path=input_path,
             artifact_root=artifact_root,
             authorized_commit=_actual_repository_head(),
+            sample_id="P01",
+            attempt_id="P2-P01-A1",
+            idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )
@@ -881,6 +1052,9 @@ def test_operator_binder_stage_three_failure_is_durable_and_terminal(
             input_path=input_path,
             artifact_root=artifact_root,
             authorized_commit=_actual_repository_head(),
+            sample_id="P01",
+            attempt_id="P2-P01-A1",
+            idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )
@@ -956,6 +1130,9 @@ def test_operator_binder_rejects_controls_before_any_side_effect(
         "input_path": input_path,
         "artifact_root": artifact_root,
         "authorized_commit": _actual_repository_head(),
+        "sample_id": "P01",
+        "attempt_id": "P2-P01-A1",
+        "idempotency_bundle": P01_IDEMPOTENCY_BUNDLE,
         "owner_cap_micro_usd": DEEPSEEK_P2_RESERVATION_MICRO_USD,
         "pricing_record_id": DEEPSEEK_PRICING_RECORD.record_id,
     }
@@ -1023,6 +1200,9 @@ def test_operator_binder_rejects_wrong_artifact_root_before_composition(
                 input_path=input_path,
                 artifact_root=artifact_parent / "wrong-root",
                 authorized_commit=_actual_repository_head(),
+                sample_id="P01",
+                attempt_id="P2-P01-A1",
+                idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
                 owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
                 pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
             )
@@ -1073,6 +1253,9 @@ def test_operator_binder_rejects_mismatched_caller_head_even_with_authorized_com
                 artifact_root=artifact_root,
                 authorized_commit=_actual_repository_head(),
                 git_commit="caller-supplied-wrong-head",
+                sample_id="P01",
+                attempt_id="P2-P01-A1",
+                idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
                 owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
                 pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
             )
@@ -1255,6 +1438,9 @@ def test_operator_binder_confirm_and_capture_recomposes_without_runtime_calls(
             input_path=input_path,
             artifact_root=artifact_root,
             authorized_commit=_actual_repository_head(),
+            sample_id="P01",
+            attempt_id="P2-P01-A1",
+            idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )
@@ -1413,6 +1599,9 @@ def test_confirm_failure_durable_phase_and_fresh_read(
             input_path=input_path,
             artifact_root=artifact_root,
             authorized_commit=_actual_repository_head(),
+            sample_id="P01",
+            attempt_id="P2-P01-A1",
+            idempotency_bundle=P01_IDEMPOTENCY_BUNDLE,
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )

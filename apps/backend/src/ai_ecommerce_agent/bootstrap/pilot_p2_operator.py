@@ -37,6 +37,7 @@ from ai_ecommerce_agent.orchestration.pilot_attempt_artifact import (
     FinalizationCost,
     FinalizationExecution,
     FinalizationGates,
+    IdempotencyBundle,
     PilotAttemptArtifacts,
     RecordReview,
     RecordRun,
@@ -56,6 +57,7 @@ from ai_ecommerce_agent.platform.postgres import PostgresEngineConfig
 __all__ = [
     "ConfirmAndCapture",
     "FinalizeAttempt",
+    "IdempotencyBundle",
     "OperatorErrorCode",
     "PilotP2Operator",
     "PilotP2OperatorError",
@@ -137,6 +139,9 @@ class OperatorErrorCode(StrEnum):
     FINALIZATION_INVALID = "finalization_invalid"
     DURABILITY_FAILED = "durability_failed"
     CLEANUP_FAILED = "cleanup_failed"
+    IDEMPOTENCY_BUNDLE_REQUIRED = "idempotency_bundle_required"
+    IDEMPOTENCY_BUNDLE_INVALID = "idempotency_bundle_invalid"
+    UNEXPECTED_REPLAY = "unexpected_replay"
 
 
 class PilotP2OperatorError(ValueError):
@@ -163,8 +168,12 @@ class StartAttempt:
     authorized_commit: str | None = None
     owner_cap_micro_usd: int | None = None
     pricing_record_id: str | None = None
-    sample_id: str = _SAMPLE_ID
-    attempt_id: str = _ATTEMPT_ID
+    # Identity is supplied by the authoritative live caller.  ``None`` is
+    # deliberate: omission must fail closed rather than silently becoming
+    # the P01/A1 defaults.
+    sample_id: str | None = None
+    attempt_id: str | None = None
+    idempotency_bundle: IdempotencyBundle | Mapping[str, object] | None = None
     git_commit: str | None = None
     git_head: str | None = None
     max_calls: int = _MAX_CALLS
@@ -437,9 +446,13 @@ class _InProcessHttpClient:
         return _HttpResponse(response_status, b"".join(response_body))
 
     @staticmethod
-    def _object(response: _HttpResponse) -> Mapping[str, object]:
+    def _object(
+        response: _HttpResponse, *, expected_status: int | None = None
+    ) -> Mapping[str, object]:
         if response.status_code >= 400:
             raise PilotP2OperatorError(OperatorErrorCode.HTTP_COMMAND_FAILED)
+        if expected_status is not None and response.status_code != expected_status:
+            raise PilotP2OperatorError(OperatorErrorCode.UNEXPECTED_REPLAY)
         value = response.json()
         if not isinstance(value, Mapping):
             raise PilotP2OperatorError(OperatorErrorCode.HTTP_COMMAND_FAILED)
@@ -456,7 +469,8 @@ class _InProcessHttpClient:
                     "productCategory": "Category A",
                     "promotionGoal": "Product-to-Brief pilot",
                 },
-            )
+            ),
+            expected_status=201,
         )
 
     def save_primary_input(
@@ -483,7 +497,8 @@ class _InProcessHttpClient:
                 f"/api/v1/tasks/{task_id}/commands/generate-result",
                 headers={"Idempotency-Key": idempotency_key},
                 payload={"expectedInputRevision": input_revision},
-            )
+            ),
+            expected_status=201,
         )
 
     def current_result(self, *, task_id: str) -> Mapping[str, object]:
@@ -656,11 +671,41 @@ class PilotP2Operator:
             )
         return self._artifacts
 
+    def _current_idempotency_bundle(self) -> IdempotencyBundle:
+        try:
+            identity = self._artifact_service().read(_ATTEMPT_ID).identity
+            value = identity.get("idempotency_bundle")
+        except AttemptArtifactError:
+            raise PilotP2OperatorError(OperatorErrorCode.RESUME_NOT_AVAILABLE) from None
+        if value is None:
+            raise PilotP2OperatorError(OperatorErrorCode.IDEMPOTENCY_BUNDLE_REQUIRED)
+        try:
+            bundle = IdempotencyBundle.from_value(value)
+        except (TypeError, ValueError):
+            raise PilotP2OperatorError(
+                OperatorErrorCode.IDEMPOTENCY_BUNDLE_INVALID
+            ) from None
+        if bundle != IdempotencyBundle.for_identity(_SAMPLE_ID, _ATTEMPT_ID):
+            raise PilotP2OperatorError(OperatorErrorCode.IDEMPOTENCY_BUNDLE_INVALID)
+        return bundle
+
     def _validate_start(
         self, command: StartAttempt
-    ) -> tuple[Path, Path, str, int, str]:
+    ) -> tuple[Path, Path, str, int, str, IdempotencyBundle]:
         if command.sample_id != _SAMPLE_ID or command.attempt_id != _ATTEMPT_ID:
             raise PilotP2OperatorError(OperatorErrorCode.IDENTITY_MISMATCH)
+        if command.idempotency_bundle is None:
+            raise PilotP2OperatorError(OperatorErrorCode.IDEMPOTENCY_BUNDLE_REQUIRED)
+        try:
+            bundle = IdempotencyBundle.from_value(command.idempotency_bundle)
+        except (TypeError, ValueError):
+            raise PilotP2OperatorError(
+                OperatorErrorCode.IDEMPOTENCY_BUNDLE_INVALID
+            ) from None
+        if bundle != IdempotencyBundle.for_identity(
+            command.sample_id, command.attempt_id
+        ):
+            raise PilotP2OperatorError(OperatorErrorCode.IDEMPOTENCY_BUNDLE_INVALID)
         actual_head = self._git_head()
         requested_commit = command.authorized_commit or command.git_commit
         if type(requested_commit) is not str or requested_commit != actual_head:
@@ -710,6 +755,7 @@ class PilotP2Operator:
             content,
             command.owner_cap_micro_usd,
             cast(str, command.pricing_record_id),
+            bundle,
         )
 
     def _git_head(self) -> str:
@@ -796,12 +842,24 @@ class PilotP2Operator:
         return composition, observer
 
     def _start(self, command: StartAttempt) -> PilotP2OperatorSnapshot:
-        input_path, artifact_root, content, owner_cap, pricing_record_id = (
-            self._validate_start(command)
-        )
+        (
+            input_path,
+            artifact_root,
+            content,
+            owner_cap,
+            pricing_record_id,
+            idempotency_bundle,
+        ) = self._validate_start(command)
         artifacts = self._artifact_service()
         try:
-            artifacts.apply(ReserveAttempt(artifact_root))
+            artifacts.apply(
+                ReserveAttempt(
+                    artifact_root,
+                    sample_id=cast(str, command.sample_id),
+                    attempt_id=cast(str, command.attempt_id),
+                    idempotency_bundle=idempotency_bundle,
+                )
+            )
         except AttemptArtifactError:
             raise PilotP2OperatorError(OperatorErrorCode.ARTIFACT_ROOT_EXISTS) from None
         composition: Any | None = None
@@ -822,7 +880,7 @@ class PilotP2Operator:
                 )
             observer = self._composition_observer(composition, observer)
             client = self._http_client_factory(composition.application)
-            task = client.create_task(idempotency_key=f"operator-{_ATTEMPT_ID}-task")
+            task = client.create_task(idempotency_key=idempotency_bundle.task_create)
             task_id = self._string(task, "taskId")
             task_revision = self._integer(task, "revision")
             saved = client.save_primary_input(
@@ -834,7 +892,7 @@ class PilotP2Operator:
             generated = client.generate_result(
                 task_id=task_id,
                 input_revision=input_revision,
-                idempotency_key=f"operator-{_ATTEMPT_ID}-generate",
+                idempotency_key=idempotency_bundle.generate,
             )
             if (
                 self._string(generated, "taskId") != task_id
@@ -939,6 +997,7 @@ class PilotP2Operator:
         result_revision = current.result_revision
         if task_id is None or task_revision is None or result_revision is None:
             raise PilotP2OperatorError(OperatorErrorCode.RESUME_NOT_AVAILABLE)
+        idempotency_bundle = self._current_idempotency_bundle()
         composition: Any | None = None
         observer: _ObserverLike = P2RuntimeObserver()
         lifecycle_phase = "confirmation"
@@ -968,7 +1027,7 @@ class PilotP2Operator:
                 result_revision=result_revision,
                 marketing_core_message=command.marketing_core_message,
                 xiaohongshu_title_direction=command.xiaohongshu_title_direction,
-                idempotency_key=f"operator-{_ATTEMPT_ID}-confirm",
+                idempotency_key=idempotency_bundle.confirm,
             )
             lifecycle_phase = "export"
             for kind in kinds:
@@ -976,7 +1035,11 @@ class PilotP2Operator:
                 basis = self._mapping(preview, "basis")
                 exported = client.create_export_snapshot(
                     basis=basis,
-                    idempotency_key=f"operator-{_ATTEMPT_ID}-export-{kind}",
+                    idempotency_key=(
+                        idempotency_bundle.marketing_export
+                        if kind == "marketing"
+                        else idempotency_bundle.xiaohongshu_export
+                    ),
                 )
                 content_location = self._string(exported, "contentLocation")
                 if (

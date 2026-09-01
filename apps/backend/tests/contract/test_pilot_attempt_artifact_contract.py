@@ -23,6 +23,7 @@ from ai_ecommerce_agent.orchestration.pilot_attempt_artifact import (
     FinalizationExecution,
     FinalizationGates,
     FinalizeAttempt,
+    IdempotencyBundle,
     PilotAttemptArtifacts,
     RecordReview,
     RecordRun,
@@ -45,6 +46,51 @@ def _reserve(service: PilotAttemptArtifacts, approved_parent: Path) -> Path:
     attempt_root = approved_parent / "p2" / "P01" / "P2-P01-A1"
     service.apply(ReserveAttempt(attempt_root))
     return attempt_root
+
+
+def _idempotency_bundle() -> IdempotencyBundle:
+    return IdempotencyBundle.for_identity("P01", "P2-P01-A1")
+
+
+def test_precommitted_idempotency_bundle_is_complete_and_deterministic() -> None:
+    first = _idempotency_bundle()
+    second = IdempotencyBundle.for_identity("P01", "P2-P01-A1")
+
+    assert first == second
+    assert first.sample_id == "P01"
+    assert first.attempt_id == "P2-P01-A1"
+    assert first.to_mapping() == {
+        "sample_id": "P01",
+        "attempt_id": "P2-P01-A1",
+        "task_create": "operator-P2-P01-A1-task",
+        "generate": "operator-P2-P01-A1-generate",
+        "confirm": "operator-P2-P01-A1-confirm",
+        "marketing_export": "operator-P2-P01-A1-export-marketing",
+        "xiaohongshu_export": "operator-P2-P01-A1-export-xiaohongshu",
+    }
+
+
+def test_precommitted_bundle_cannot_be_reused_for_altered_identity() -> None:
+    bundle = _idempotency_bundle()
+    with pytest.raises((TypeError, ValueError)):
+        IdempotencyBundle.from_value({**bundle.to_mapping(), "sample_id": "P02"})
+    with pytest.raises((TypeError, ValueError)):
+        IdempotencyBundle.for_identity("P02", "P2-P02-A1")
+    assert bundle == IdempotencyBundle.for_identity("P01", "P2-P01-A1")
+
+
+def test_reservation_persists_bundle_for_fresh_read(tmp_path: Path) -> None:
+    service, approved_parent = _artifact_service(tmp_path)
+    attempt_root = approved_parent / "p2" / "P01" / "P2-P01-A1"
+    bundle = _idempotency_bundle()
+
+    service.apply(ReserveAttempt(attempt_root, idempotency_bundle=bundle))
+
+    identity = json.loads((attempt_root / "identity.json").read_text())
+    assert identity["idempotency_bundle"] == bundle.to_mapping()
+    fresh = PilotAttemptArtifacts(Path(__file__).resolve().parents[4], approved_parent)
+    fresh_identity = cast(Mapping[str, object], fresh.read("P2-P01-A1")["identity"])
+    assert fresh_identity["idempotency_bundle"] == bundle.to_mapping()
 
 
 def _approved_review_kwargs() -> dict[str, Any]:

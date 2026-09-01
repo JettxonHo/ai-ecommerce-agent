@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import sys
 from dataclasses import FrozenInstanceError, replace
 from pathlib import Path
@@ -68,6 +69,12 @@ def _valid_controls(tmp_path: Path, repository_root: Path) -> dict[str, object]:
     }
 
 
+def _repository_head(repository_root: Path) -> str:
+    return subprocess.check_output(
+        ["git", "-C", str(repository_root), "rev-parse", "HEAD"], text=True
+    ).strip()
+
+
 def _controls(tmp_path: Path, repository_root: Path) -> Any:
     return runner.P2LiveControlConfig(**_valid_controls(tmp_path, repository_root))
 
@@ -128,7 +135,7 @@ def test_future_grant_delegates_to_production_binder_without_secret(
             return "provider-free-synthetic"
 
     monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
-    monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
+    monkeypatch.setenv("GIT_COMMIT", _repository_head(repository_root))
     monkeypatch.setenv(
         "MVP0_TASK_HTTP_DATABASE_URL", "postgresql+psycopg://test:test@127.0.0.1/p2"
     )
@@ -141,9 +148,9 @@ def test_future_grant_delegates_to_production_binder_without_secret(
     assert [event for event, _value in captured] == ["init", "apply"]
     command = captured[1][1]
     assert command.input_path == controls.input_path
-    assert command.authorized_commit == "owner-selected-commit"
-    assert command.git_commit == "owner-selected-commit"
-    assert command.git_head == "owner-selected-commit"
+    assert command.authorized_commit == _repository_head(repository_root)
+    assert command.git_commit == _repository_head(repository_root)
+    assert command.git_head == _repository_head(repository_root)
     assert command.owner_cap_micro_usd == controls.owner_cap_micro_usd
 
 
@@ -153,7 +160,7 @@ def test_future_grant_requires_database_config_before_binder(
 ) -> None:
     repository_root = Path(__file__).resolve().parents[3]
     monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
-    monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
+    monkeypatch.setenv("GIT_COMMIT", _repository_head(repository_root))
     monkeypatch.delenv("MVP0_TASK_HTTP_DATABASE_URL", raising=False)
     controls = _controls(tmp_path, repository_root)
     monkeypatch.setattr(runner, "P2_PRIVATE_INPUTS_ROOT", controls.input_path.parent)
@@ -214,9 +221,7 @@ def test_stale_git_commit_rejected_by_core_before_artifact_side_effect(
         runner, "P2_PRIVATE_ARTIFACT_PARENT", controls.approved_artifact_parent
     )
 
-    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import PilotP2OperatorError
-
-    with pytest.raises(PilotP2OperatorError) as error:
+    with pytest.raises(runner.P2LiveControlError) as error:
         runner.run_p2_operator(controls)
     assert error.value.code == "git_head_mismatch"
     assert not controls.artifact_root.exists()
@@ -236,7 +241,7 @@ def test_old_double_p2_artifact_geometry_rejects_before_binder(
         artifact_root=old_parent / runner.P2_SAMPLE_ID / runner.P2_ATTEMPT_ID,
     )
     monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
-    monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
+    monkeypatch.setenv("GIT_COMMIT", _repository_head(repository_root))
     monkeypatch.setenv(
         "MVP0_TASK_HTTP_DATABASE_URL", "postgresql+psycopg://test:test@127.0.0.1/p2"
     )
@@ -276,7 +281,7 @@ def test_alternate_canonical_shaped_parent_rejects_before_binder(
     )
     monkeypatch.setattr(runner, "P2_PRIVATE_INPUTS_ROOT", controls.input_path.parent)
     monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
-    monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
+    monkeypatch.setenv("GIT_COMMIT", _repository_head(repository_root))
     monkeypatch.setenv(
         "MVP0_TASK_HTTP_DATABASE_URL", "postgresql+psycopg://test:test@127.0.0.1/p2"
     )
@@ -311,7 +316,7 @@ def test_missing_exact_input_handoff_rejects_before_binder(
         runner, "P2_PRIVATE_ARTIFACT_PARENT", controls.approved_artifact_parent
     )
     monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
-    monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
+    monkeypatch.setenv("GIT_COMMIT", _repository_head(repository_root))
     monkeypatch.setenv(
         "MVP0_TASK_HTTP_DATABASE_URL", "postgresql+psycopg://test:test@127.0.0.1/p2"
     )
@@ -347,7 +352,7 @@ def test_noncanonical_input_handoff_rejects_without_search_or_fallback(
         runner, "P2_PRIVATE_ARTIFACT_PARENT", controls.approved_artifact_parent
     )
     monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
-    monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
+    monkeypatch.setenv("GIT_COMMIT", _repository_head(repository_root))
     monkeypatch.setenv(
         "MVP0_TASK_HTTP_DATABASE_URL", "postgresql+psycopg://test:test@127.0.0.1/p2"
     )
@@ -367,3 +372,172 @@ def test_noncanonical_input_handoff_rejects_without_search_or_fallback(
     assert error.value.code == "input_handoff_required"
     assert captured == []
     assert not noncanonical.artifact_root.exists()
+
+
+def test_start_attempt_identity_has_no_silent_p01_defaults() -> None:
+    """A missing caller identity must not be silently replaced with P01/A1."""
+
+    from ai_ecommerce_agent.bootstrap.pilot_p2_operator import StartAttempt
+
+    command = StartAttempt()
+    assert command.sample_id is None
+    assert command.attempt_id is None
+
+
+def test_runner_rejects_mismatched_identity_before_database_lookup(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Caller identity is checked before reading the database configuration."""
+
+    repository_root = Path(__file__).resolve().parents[3]
+    controls = replace(_controls(tmp_path, repository_root), sample_id="P02")
+    monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
+    monkeypatch.setenv("GIT_COMMIT", _repository_head(repository_root))
+    monkeypatch.delenv("MVP0_TASK_HTTP_DATABASE_URL", raising=False)
+    monkeypatch.setattr(runner, "P2_PRIVATE_INPUTS_ROOT", controls.input_path.parent)
+    monkeypatch.setattr(
+        runner, "P2_PRIVATE_ARTIFACT_PARENT", controls.approved_artifact_parent
+    )
+    seen: list[str] = []
+    original = runner._required_environment_value
+
+    def record(name: str, *, error_code: str = "live_environment_incomplete") -> str:
+        seen.append(name)
+        return original(name, error_code=error_code)
+
+    monkeypatch.setattr(runner, "_required_environment_value", record)
+    with pytest.raises(runner.P2LiveControlError) as error:
+        runner.run_p2_operator(controls)
+    assert error.value.code == "identity_mismatch"
+    assert "MVP0_TASK_HTTP_DATABASE_URL" not in seen
+
+
+def test_runner_rejects_stale_head_before_database_lookup(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A stale owner HEAD handoff fails before database configuration access."""
+
+    repository_root = Path(__file__).resolve().parents[3]
+    controls = _controls(tmp_path, repository_root)
+    monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
+    monkeypatch.setenv("GIT_COMMIT", "0" * 40)
+    monkeypatch.delenv("MVP0_TASK_HTTP_DATABASE_URL", raising=False)
+    monkeypatch.setattr(runner, "P2_PRIVATE_INPUTS_ROOT", controls.input_path.parent)
+    monkeypatch.setattr(
+        runner, "P2_PRIVATE_ARTIFACT_PARENT", controls.approved_artifact_parent
+    )
+    seen: list[str] = []
+    original = runner._required_environment_value
+
+    def record(name: str, *, error_code: str = "live_environment_incomplete") -> str:
+        seen.append(name)
+        return original(name, error_code=error_code)
+
+    monkeypatch.setattr(runner, "_required_environment_value", record)
+    with pytest.raises(runner.P2LiveControlError) as error:
+        runner.run_p2_operator(controls)
+    assert error.value.code == "git_head_mismatch"
+    assert "MVP0_TASK_HTTP_DATABASE_URL" not in seen
+    assert not controls.artifact_root.exists()
+
+
+def test_runner_precommits_and_forwards_complete_idempotency_bundle(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository_root = Path(__file__).resolve().parents[3]
+    controls = _controls(tmp_path, repository_root)
+    monkeypatch.setattr(runner, "P2_PRIVATE_INPUTS_ROOT", controls.input_path.parent)
+    monkeypatch.setattr(
+        runner, "P2_PRIVATE_ARTIFACT_PARENT", controls.approved_artifact_parent
+    )
+    monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
+    monkeypatch.setenv("GIT_COMMIT", _repository_head(repository_root))
+    monkeypatch.setenv(
+        "MVP0_TASK_HTTP_DATABASE_URL", "postgresql+psycopg://test:test@127.0.0.1/p2"
+    )
+    captured: list[Any] = []
+
+    class _FakeProductionOperator:
+        def __init__(self, **_kwargs: object) -> None:
+            return None
+
+        def apply(self, command: Any) -> str:
+            captured.append(command)
+            return "provider-free-synthetic"
+
+    from ai_ecommerce_agent.bootstrap import pilot_p2_operator
+
+    monkeypatch.setattr(pilot_p2_operator, "PilotP2Operator", _FakeProductionOperator)
+    result = runner.run_p2_operator(controls)
+
+    assert result == "provider-free-synthetic"
+    assert len(captured) == 1
+    bundle = captured[0].idempotency_bundle
+    assert bundle.to_mapping() == {
+        "sample_id": "P01",
+        "attempt_id": "P2-P01-A1",
+        "task_create": "operator-P2-P01-A1-task",
+        "generate": "operator-P2-P01-A1-generate",
+        "confirm": "operator-P2-P01-A1-confirm",
+        "marketing_export": "operator-P2-P01-A1-export-marketing",
+        "xiaohongshu_export": "operator-P2-P01-A1-export-xiaohongshu",
+    }
+
+
+def test_runner_rejects_invalid_static_controls_before_database_lookup(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository_root = Path(__file__).resolve().parents[3]
+    controls = replace(_controls(tmp_path, repository_root), owner_cap_micro_usd=None)
+    monkeypatch.setattr(runner, "P2_PRIVATE_INPUTS_ROOT", controls.input_path.parent)
+    monkeypatch.setattr(
+        runner, "P2_PRIVATE_ARTIFACT_PARENT", controls.approved_artifact_parent
+    )
+    monkeypatch.setenv(runner.P2_FUTURE_GRANT_ENVIRONMENT, "1")
+    monkeypatch.setenv("GIT_COMMIT", _repository_head(repository_root))
+    monkeypatch.delenv("MVP0_TASK_HTTP_DATABASE_URL", raising=False)
+    seen: list[str] = []
+    original = runner._required_environment_value
+
+    def record(name: str, *, error_code: str = "live_environment_incomplete") -> str:
+        seen.append(name)
+        return original(name, error_code=error_code)
+
+    monkeypatch.setattr(runner, "_required_environment_value", record)
+    with pytest.raises(runner.P2LiveControlError) as error:
+        runner.run_p2_operator(controls)
+    assert error.value.code == "owner_cap_invalid"
+    assert "MVP0_TASK_HTTP_DATABASE_URL" not in seen
+
+
+def test_current_truth_surfaces_reconcile_post_correction_state() -> None:
+    repository_root = Path(__file__).resolve().parents[4]
+    relative_paths = (
+        Path("AGENTS.md"),
+        Path("README.md"),
+        Path("apps/web/README.md"),
+        Path("docs/goals/real-product-to-brief-pilot-goal.md"),
+        Path("docs/handoffs/implementation-readiness.md"),
+        Path("docs/handoffs/real-product-to-brief-pilot-p2-real-p01-precall.md"),
+    )
+    required_markers = (
+        "REAL_P01_INPUT_FILE_READY = YES",
+        "REAL_P01_PRE_CALL = BLOCKED_BY_EXECUTION_CONTROL_CORRECTION",
+        "REAL_P01_GRANT = NOT_ISSUED",
+        "Blocker 3 = UNKNOWN_NOT_INSPECTED",
+    )
+    stale_markers = (
+        "WAIT_FOR_REAL_P01_INPUT_HANDOFF_AND_NEW_EXACT_MAIN_OWNER_GRANT",
+        "NOT_CONSUMED_BUT_STALE_FOR_NEW_MAIN",
+        "REAL_P01_INPUT_FILE_READY=NO",
+    )
+    for relative_path in relative_paths:
+        content = (repository_root / relative_path).read_text(encoding="utf-8")
+        for marker in required_markers:
+            assert marker in content, f"{relative_path} missing {marker}"
+        for marker in stale_markers:
+            assert marker not in content, f"{relative_path} retains {marker}"
