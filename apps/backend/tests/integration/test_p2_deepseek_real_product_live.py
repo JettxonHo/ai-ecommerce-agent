@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from dataclasses import dataclass
 from inspect import signature
@@ -117,6 +118,62 @@ def _validate_input_handoff(controls: P2LiveControlConfig) -> None:
         _fail("input_handoff_required")
 
 
+def _validate_p01_identity(controls: P2LiveControlConfig) -> None:
+    """Reject any caller identity other than the admitted P01/A1 contract."""
+
+    expected = {
+        "sample_id": P2_SAMPLE_ID,
+        "attempt_id": P2_ATTEMPT_ID,
+        "product_name": P2_PRODUCT_NAME,
+        "model_designation": P2_MODEL_DESIGNATION,
+        "color": P2_COLOR,
+        "variant": P2_VARIANT,
+        "category": P2_CATEGORY,
+    }
+    observed = {key: getattr(controls, key, None) for key in expected}
+    if observed != expected:
+        _fail("identity_mismatch")
+
+
+def _validate_repository_head(repository_root: Path, expected_head: str) -> None:
+    """Verify the owner handoff against the caller checkout before DB access."""
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", os.fspath(repository_root), "rev-parse", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        _fail("git_head_mismatch")
+    actual_head = completed.stdout.strip()
+    if not actual_head or expected_head != actual_head:
+        _fail("git_head_mismatch")
+
+
+def _validate_static_controls(controls: P2LiveControlConfig) -> None:
+    """Validate non-secret execution policy before reading DB configuration."""
+
+    cap = controls.owner_cap_micro_usd
+    if type(cap) is not int or cap <= 0:
+        _fail("owner_cap_invalid")
+    if cap < P2_RESERVATION_MICRO_USD:
+        _fail("owner_cap_underfunded")
+    if controls.pricing_record_id != P2_PRICING_RECORD_ID:
+        _fail("pricing_record_mismatch")
+    if (
+        controls.max_calls != P2_MAX_CALLS
+        or controls.retry_count != 0
+        or controls.recovery_count != 0
+        or controls.replay_count != 0
+        or controls.fallback_count != 0
+        or controls.manual_intervention_count != 0
+    ):
+        _fail("execution_policy_invalid")
+
+
 def test_thin_live_entrypoint_requires_a_future_grant_before_binder(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -171,7 +228,17 @@ def test_future_grant_entrypoint_delegates_to_production_binder_without_secret(
     from ai_ecommerce_agent.bootstrap.pilot_p2_operator import StartAttempt
 
     monkeypatch.setenv(P2_FUTURE_GRANT_ENVIRONMENT, "1")
-    monkeypatch.setenv("GIT_COMMIT", "owner-selected-commit")
+    current_head = subprocess.check_output(
+        [
+            "git",
+            "-C",
+            os.fspath(Path(__file__).resolve().parents[3]),
+            "rev-parse",
+            "HEAD",
+        ],
+        text=True,
+    ).strip()
+    monkeypatch.setenv("GIT_COMMIT", current_head)
     monkeypatch.setenv(_DATABASE_URL_ENV, "postgresql+psycopg://test:test@127.0.0.1/p2")
     inputs_root = tmp_path / "synthetic-inputs"
     inputs_root.mkdir()
@@ -237,8 +304,21 @@ def run_p2_operator(
     git_commit = _required_environment_value(
         _GIT_COMMIT_ENV, error_code="git_commit_required"
     )
+    _validate_repository_head(controls.repository_root, git_commit)
+    _validate_p01_identity(controls)
+    from ai_ecommerce_agent.orchestration.pilot_attempt_artifact import (
+        IdempotencyBundle,
+    )
+
+    try:
+        idempotency_bundle = IdempotencyBundle.for_identity(
+            controls.sample_id, controls.attempt_id
+        )
+    except (TypeError, ValueError):
+        _fail("idempotency_bundle_invalid")
     _validate_artifact_geometry(controls)
     _validate_input_handoff(controls)
+    _validate_static_controls(controls)
     from ai_ecommerce_agent.bootstrap.pilot_p2_operator import (
         PilotP2Operator,
     )
@@ -263,6 +343,9 @@ def run_p2_operator(
             authorized_commit=git_commit,
             git_commit=git_commit,
             git_head=git_commit,
+            sample_id=controls.sample_id,
+            attempt_id=controls.attempt_id,
+            idempotency_bundle=idempotency_bundle,
             owner_cap_micro_usd=controls.owner_cap_micro_usd,
             pricing_record_id=controls.pricing_record_id,
             max_calls=controls.max_calls,

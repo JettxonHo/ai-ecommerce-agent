@@ -792,6 +792,7 @@ def test_p2_operator_binder_drives_full_provider_free_postgres_lifecycle(
         build_scripted_runtime,
     )
     from ai_ecommerce_agent.orchestration.pilot_attempt_artifact import (
+        IdempotencyBundle,
         ReviewDimension,
     )
 
@@ -844,6 +845,9 @@ def test_p2_operator_binder_drives_full_provider_free_postgres_lifecycle(
             input_path=input_path,
             artifact_root=artifact_root,
             authorized_commit=_actual_repository_head(),
+            sample_id="P01",
+            attempt_id="P2-P01-A1",
+            idempotency_bundle=IdempotencyBundle.for_identity("P01", "P2-P01-A1"),
             owner_cap_micro_usd=DEEPSEEK_P2_RESERVATION_MICRO_USD,
             pricing_record_id=DEEPSEEK_PRICING_RECORD.record_id,
         )
