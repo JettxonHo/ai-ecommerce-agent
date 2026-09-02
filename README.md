@@ -1,6 +1,29 @@
 # AI Ecommerce Agent
 
-> **Issue #355 current truth (pre-merge):** `main@925a0318135784429096ddf30de2a34982c55bc0` is the exact base for the bounded provider-free execution-control correction. The replacement branch is under implementation; no merge or execution authorization is implied. `REAL_P01_INPUT_FILE_READY = YES` reflects the Owner-frozen handoff and was not re-inspected by this implementation. `REAL_P01_PRE_CALL = BLOCKED_BY_EXECUTION_CONTROL_CORRECTION`; `REAL_P01_GRANT = NOT_ISSUED`; `P01_ATTEMPT_EXECUTED = NO`; `P01_RESULT = NOT_EXECUTED`; `Blocker 3 = UNKNOWN_NOT_INSPECTED`; Provider calls, Secret reads/injections, PostgreSQL access, Pilot/participant executions and charge remain zero. After an independently reviewed merge, a fresh exact-main provider-free pre-call is required; the real P01 Grant remains unissued.
+## 这是什么
+
+AI Ecommerce Agent 是一个**本地优先的电商上新策略 Agent 工作台**，面向中小电商运营：输入商品资料，产出经过人工审核的五层结果——商品事实、用户洞察、产品定位、平台中性的 Marketing Brief、小红书 Brief，并以 Markdown 导出。
+
+核心工作流是确定性的五阶段 Agent 流程，模型只在受控边界内做语义分析，**Human Review 是最终决策点**。小红书是第一个演示适配器，核心与平台无关。
+
+<img src="docs/assets/readme/aia-flow.png" alt="商品资料进来，审核过的营销文案出去" width="100%">
+
+## 验证状态（2026-09-02，对访客）
+
+| 验证 | 状态 | 证据 |
+|---|---|---|
+| 端到端功能验收 | 3 组仿真业务场景全部通过：浏览器 → FastAPI → PostgreSQL 跑通创建、重载、审核与双 Brief 导出；非法输入正确阻断 | Issue #329 / PR #330（L2 持久化验收） |
+| 真实商品试点 | 8 件真实商品（P01–P08）已完成入组评审与试点合同冻结，分母恰为 8；P0–P6 分阶段门禁串行推进 | Issue #341 / PR #342、试点合同 |
+| 首次授权真实运行 | 已在导出阶段失败，按合同**终止处置**：授权已消耗、零静默重试、零输入替换，以决策记录重建基线 | Issue #335 / PR #336（`L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS`）、DEC-087 |
+| 真实 P01 运行 | **尚未执行**（`P01_ATTEMPT_EXECUTED = NO`，待新授权） | 下方仓库状态区 |
+
+全程 Issue / PR + CI 门禁推进：一 Issue 一可观测结果，独立评审后才合并。
+
+> 下方"Current status"区是仓库治理的权威状态记录，面向协作者与执行 Agent；上方表格是同一事实的访客版摘要，两者口径一致。
+
+<img src="docs/assets/readme/tasks-01.png" alt="任务列表：新建商品上新任务" width="32%"> <img src="docs/assets/readme/review-02.png" alt="Task Workbench：商品定位与双 Brief 人工审核" width="32%"> <img src="docs/assets/readme/export-03.png" alt="结果确认后的 Markdown 预览与导出" width="32%">
+
+以上均为本地 Docker-only 生命周期实跑截图（2026-09）：输入商品资料 → 确定性五阶段流水线 → 人工审核双 Brief → 确认后导出 Markdown；全程无需外部 Provider。
 
 > **Current status:** [MVP-0L Local AI Web App Delivery Goal](docs/goals/mvp0-local-ai-web-app-delivery-goal.md) is `TERMINAL_INCOMPLETE_L5_FAILED`; [Real Product-to-Brief Pilot Goal](docs/goals/real-product-to-brief-pilot-goal.md) is `ACTIVE`. Issue #341 / PR #342 is merge-effective: P01–P08 are `ADMITTED`, the denominator is exactly eight frozen units, and P0 is `P0_CONTRACT_FROZEN`. Issue #343 / PR #344 is merge-effective P1 provider-free characterization `CONFIRMED` (historical first-failure attribution remains `INCONCLUSIVE`). Issue #345 / PR #346 is merge-effective and the response-key harness repair is complete at base `8c43068038d4c3859383d68263f0ab0336480f6a`. Issue #347 / PR #349 is merge-effective P2 provider-free readiness at `main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 / PR #351 is merge-effective operator-binder readiness at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`; `OPERATOR_BINDER_IMPLEMENTED = YES` is current. Issue #352 / PR #353 is merge-effective control alignment at `main@87f5315074bb3858ff09163c38c84b6e1e834577`; `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES` is durable main truth. Issue #355 is the current bounded provider-free execution-control correction on its replacement branch; no merge or execution authorization is implied.
 >
@@ -8,7 +31,11 @@
 >
 > [DEC-087](docs/decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) amends DEC-084's unfinished L5→L6 continuation and DEC-086's inactive prerequisite. L0–L4 evidence remains preserved. The single [#335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336) L5 attempt is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`, with no export files; authorization is consumed and no further run is authorized. L6 is `NOT_EXECUTED`, Agent UI is frozen, Issue #341 / PR #342 supplies the merge-effective P0 freeze, Issue #343 / PR #344 supplies merge-effective P1 characterization, Issue #345 / PR #346 supplies merge-effective response-key repair, and Issue #347 / PR #349 supplies merge-effective provider-free P2 readiness. Issue #350 / PR #351 is merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. Issue #352 / PR #353 is merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`; Issue #355 records the bounded provider-free control correction without authorizing Pilot execution. See [Session-011](docs/sessions/session-011-mvp0l-terminal-rebaseline.md), [Session-012](docs/sessions/session-012-real-product-to-brief-pilot-p0.md), [Session-013](docs/sessions/session-013-real-product-to-brief-pilot-p1.md), the [P1 harness-repair review](docs/reviews/real-product-to-brief-pilot-p1-harness-repair.md), [P2 readiness review](docs/reviews/real-product-to-brief-pilot-p2-readiness.md), [Session-015](docs/sessions/session-015-real-product-to-brief-pilot-p2-readiness.md), the [P2 operator-binder review](docs/reviews/real-product-to-brief-pilot-p2-operator-binder.md), [Session-016](docs/sessions/session-016-real-product-to-brief-pilot-p2-operator-binder.md), and the [Issue #355 correction review](docs/reviews/real-product-to-brief-pilot-p2-real-p01-execution-control-correction.md).
 
+> **Issue #355 current truth (pre-merge):** `main@925a0318135784429096ddf30de2a34982c55bc0` is the exact base for the bounded provider-free execution-control correction. The replacement branch is under implementation; no merge or execution authorization is implied. `REAL_P01_INPUT_FILE_READY = YES` reflects the Owner-frozen handoff and was not re-inspected by this implementation. `REAL_P01_PRE_CALL = BLOCKED_BY_EXECUTION_CONTROL_CORRECTION`; `REAL_P01_GRANT = NOT_ISSUED`; `P01_ATTEMPT_EXECUTED = NO`; `P01_RESULT = NOT_EXECUTED`; `Blocker 3 = UNKNOWN_NOT_INSPECTED`; Provider calls, Secret reads/injections, PostgreSQL access, Pilot/participant executions and charge remain zero. After an independently reviewed merge, a fresh exact-main provider-free pre-call is required; the real P01 Grant remains unissued.
+
 ## Product
+
+本节的权威产品定义与上方"这是什么"一致；本仓库的 README 同时承担 Agent 治理入口职能，访客可只读顶部两节，协作者请继续阅读状态区与"Execution entry points"。
 
 AI Ecommerce Agent is a local, fixed-workspace product-launch strategy workbench for small ecommerce operators. It turns user-provided product information into:
 
