@@ -6,6 +6,8 @@ AI Ecommerce Agent 是一个**本地优先的电商上新策略 Agent 工作台*
 
 核心工作流是确定性的五阶段 Agent 流程，模型只在受控边界内做语义分析，**Human Review 是最终决策点**。小红书是第一个演示适配器，核心与平台无关。
 
+<img src="docs/assets/readme/aia-flow.png" alt="商品资料进来，审核过的营销文案出去" width="100%">
+
 ## 验证状态（2026-09-02，对访客）
 
 | 验证 | 状态 | 证据 |
