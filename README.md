@@ -1,5 +1,7 @@
 # AI Ecommerce Agent
 
+> Language: English | [简体中文](README.zh-CN.md)
+
 ## 这是什么
 
 AI Ecommerce Agent 是一个**本地优先的电商上新策略 Agent 工作台**，面向中小电商运营：输入商品资料，产出经过人工审核的五层结果——商品事实、用户洞察、产品定位、平台中性的 Marketing Brief、小红书 Brief，并以 Markdown 导出。
