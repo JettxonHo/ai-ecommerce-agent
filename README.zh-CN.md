@@ -10,7 +10,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-PostgreSQL-009688?logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-TypeScript-61DAFB?logo=react&logoColor=black)
 
-语言：简体中文 | [English](README.md)（English 版同时承担仓库治理入口职能）
+语言：简体中文 | [English 治理文档](README.md#product)（README.md 下方英文区）
 
 [快速开始](#快速开始) · [Issues](https://github.com/JettxonHo/ai-ecommerce-agent/issues) · [决策记录](docs/decisions/decision-log.md)
 
@@ -97,4 +97,4 @@ docker compose --profile local-web up
 
 ## 深入阅读（协作者入口）
 
-本仓库以 Issue / PR + CI 门禁推进，一 Issue 一可观测结果，独立评审后合并。治理规则、决策记录与当前状态见 [English README](README.md) 及 `docs/` 目录（决策日志、试点合同、验收记录）。
+本仓库以 Issue / PR + CI 门禁推进，一 Issue 一可观测结果，独立评审后合并。治理规则、决策记录与当前状态见 [English 治理文档](README.md#product) 及 `docs/` 目录（决策日志、试点合同、验收记录）。

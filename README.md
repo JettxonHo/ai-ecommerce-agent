@@ -1,39 +1,105 @@
+<div align="center">
+
 # AI Ecommerce Agent
 
-> Language: English | [简体中文](README.zh-CN.md)
+**商品资料进来，审核过的营销文案出去。**
 
-## 这是什么
+[![Backend Tests](https://github.com/JettxonHo/ai-ecommerce-agent/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/JettxonHo/ai-ecommerce-agent/actions/workflows/backend-tests.yml)
+[![Backend Quality](https://github.com/JettxonHo/ai-ecommerce-agent/actions/workflows/backend-quality.yml/badge.svg)](https://github.com/JettxonHo/ai-ecommerce-agent/actions/workflows/backend-quality.yml)
+[![Web](https://github.com/JettxonHo/ai-ecommerce-agent/actions/workflows/web.yml/badge.svg)](https://github.com/JettxonHo/ai-ecommerce-agent/actions/workflows/web.yml)
+![FastAPI](https://img.shields.io/badge/FastAPI-PostgreSQL-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-TypeScript-61DAFB?logo=react&logoColor=black)
 
-AI Ecommerce Agent 是一个**本地优先的电商上新策略 Agent 工作台**，面向中小电商运营：输入商品资料，产出经过人工审核的五层结果——商品事实、用户洞察、产品定位、平台中性的 Marketing Brief、小红书 Brief，并以 Markdown 导出。
+语言：简体中文 | [English 治理文档](#product)（下方英文区保留原文，承担仓库治理入口职能）
 
-核心工作流是确定性的五阶段 Agent 流程，模型只在受控边界内做语义分析，**Human Review 是最终决策点**。小红书是第一个演示适配器，核心与平台无关。
+[快速开始](#快速开始) · [Issues](https://github.com/JettxonHo/ai-ecommerce-agent/issues) · [决策记录](docs/decisions/decision-log.md)
 
-<img src="docs/assets/readme/aia-flow.png" alt="商品资料进来，审核过的营销文案出去" width="100%">
+</div>
 
-## 验证状态（2026-09-02，对访客）
+> 这个项目回答的问题：**LLM 的输出能不能直接拿去做生意决策？**——答案是不能直接，但可以治理：五阶段流水线 + 人工审核门禁 + 失败终止处置，让每一步都可追责。
 
-| 验证 | 状态 | 证据 |
+## 目录
+
+- [它是什么](#它是什么)
+- [功能特性](#功能特性)
+- [真实运行界面](#真实运行界面)
+- [验证状态](#验证状态)
+- [它和其他"AI 营销文案工具"的区别](#它和其他ai-营销文案工具的区别)
+- [快速开始](#快速开始)
+- [常见问题](#常见问题)
+
+## 它是什么
+
+一个**本地优先**的电商上新策略工作台，面向中小电商运营。上新时，商品调研、评论分析、竞品差异化和平台文案是四项割裂的重复劳动；这个工作台把它们收敛为一条五阶段流水线：
+
+1. **事实**——商品资料结构化，是后续所有结论的锚点
+2. **洞察**——用户在什么场景下需要什么
+3. **定位**——差异化表达
+4. **Marketing Brief**——平台中性的营销简报
+5. **小红书 Brief**——平台适配文案
+
+模型只在受控边界内做语义分析，**每一层结果都必须经人工审核才算数**。核心与平台无关，小红书是第一个演示适配器。
+
+<img src="docs/assets/readme/aia-flow.png" alt="商品资料 → 五阶段分析 → 双平台文案 → 人工审核后导出" width="100%">
+
+## 功能特性
+
+- **五阶段 Agent 流水线**：事实 → 洞察 → 定位 → 双 Brief，阶段状态机全程可见
+- **Human Review 门禁**：每层结果必须人工确认或驳回，AI 不能替人做决定
+- **Markdown 导出**：审核通过的 Brief 一键导出，附不可变快照
+- **中断恢复**：任务持久化在本地 PostgreSQL，刷新、重启后可从原状态继续
+- **输入校验**：资料不足的输入在入口处被正确阻断，不产生垃圾输出
+- **试点治理**：真实商品验证按 P0–P6 分阶段合同推进，入组、分母、停止条件先冻结再执行
+
+## 真实运行界面
+
+| 任务列表 | 双 Brief 人工审核 | Markdown 导出 |
 |---|---|---|
-| 端到端功能验收 | 3 组仿真业务场景全部通过：浏览器 → FastAPI → PostgreSQL 跑通创建、重载、审核与双 Brief 导出；非法输入正确阻断 | Issue #329 / PR #330（L2 持久化验收） |
-| 真实商品试点 | 8 件真实商品（P01–P08）已完成入组评审与试点合同冻结，分母恰为 8；P0–P6 分阶段门禁串行推进 | Issue #341 / PR #342、试点合同 |
-| 首次授权真实运行 | 已在导出阶段失败，按合同**终止处置**：授权已消耗、零静默重试、零输入替换，以决策记录重建基线 | Issue #335 / PR #336（`L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS`）、DEC-087 |
-| 真实 P01 运行 | **尚未执行**（`P01_ATTEMPT_EXECUTED = NO`，待新授权） | 下方仓库状态区 |
+| <img src="docs/assets/readme/tasks-01.png" alt="任务列表" width="100%"> | <img src="docs/assets/readme/review-02.png" alt="双 Brief 人工审核界面" width="100%"> | <img src="docs/assets/readme/export-03.png" alt="Markdown 预览与导出" width="100%"> |
 
-全程 Issue / PR + CI 门禁推进：一 Issue 一可观测结果，独立评审后才合并。
+## 验证状态
 
-> 下方"Current status"区是仓库治理的权威状态记录，面向协作者与执行 Agent；上方表格是同一事实的访客版摘要，两者口径一致。
+> 截至 2026-09-02，与仓库治理区 current truth 口径一致。
 
-<img src="docs/assets/readme/tasks-01.png" alt="任务列表：新建商品上新任务" width="32%"> <img src="docs/assets/readme/review-02.png" alt="Task Workbench：商品定位与双 Brief 人工审核" width="32%"> <img src="docs/assets/readme/export-03.png" alt="结果确认后的 Markdown 预览与导出" width="32%">
+| 验证 | 状态 |
+|---|---|
+| 端到端功能验收 | 3 组仿真业务场景全部通过：浏览器 → FastAPI → PostgreSQL 跑通创建、重载、审核与双 Brief 导出；非法输入正确阻断 |
+| 真实商品试点 | 8 件真实商品已完成入组评审与试点合同冻结，按 P0–P6 分阶段门禁串行推进 |
+| 首次授权真实运行 | 在导出阶段失败，按合同**终止处置**：零静默重试、零输入替换，以决策记录重建基线 |
+| 真实 P01 运行 | 尚未执行，待新一轮授权 |
 
-以上均为本地 Docker-only 生命周期实跑截图（2026-09）：输入商品资料 → 确定性五阶段流水线 → 人工审核双 Brief → 确认后导出 Markdown；全程无需外部 Provider。
+P01 授权状态（机读口径，与 `docs/handoffs/` 治理记录逐字一致）：`REAL_P01_INPUT_FILE_READY = YES`、`REAL_P01_PRE_CALL = BLOCKED_BY_EXECUTION_CONTROL_CORRECTION`、`REAL_P01_GRANT = NOT_ISSUED`、`Blocker 3 = UNKNOWN_NOT_INSPECTED`。
 
-> **Current status:** [MVP-0L Local AI Web App Delivery Goal](docs/goals/mvp0-local-ai-web-app-delivery-goal.md) is `TERMINAL_INCOMPLETE_L5_FAILED`; [Real Product-to-Brief Pilot Goal](docs/goals/real-product-to-brief-pilot-goal.md) is `ACTIVE`. Issue #341 / PR #342 is merge-effective: P01–P08 are `ADMITTED`, the denominator is exactly eight frozen units, and P0 is `P0_CONTRACT_FROZEN`. Issue #343 / PR #344 is merge-effective P1 provider-free characterization `CONFIRMED` (historical first-failure attribution remains `INCONCLUSIVE`). Issue #345 / PR #346 is merge-effective and the response-key harness repair is complete at base `8c43068038d4c3859383d68263f0ab0336480f6a`. Issue #347 / PR #349 is merge-effective P2 provider-free readiness at `main@cb77de2f96954a2d63ef00eead2f93bea1197649`. Issue #350 / PR #351 is merge-effective operator-binder readiness at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`; `OPERATOR_BINDER_IMPLEMENTED = YES` is current. Issue #352 / PR #353 is merge-effective control alignment at `main@87f5315074bb3858ff09163c38c84b6e1e834577`; `REAL_P01_EXECUTION_CONTROL_ALIGNED = YES` is durable main truth. Issue #355 is the current bounded provider-free execution-control correction on its replacement branch; no merge or execution authorization is implied.
->
-> The current L0 activation authority is [DEC-084](docs/decisions/dec-084-apple-silicon-local-ai-web-app-goal.md), [Session-009](docs/sessions/session-009-local-ai-web-app-goal-activation.md) and the successor Goal. The completed [MVP-0P Local Action Workbench Productization Goal](docs/goals/mvp0-local-action-workbench-productization-goal.md) is its historical predecessor. The [MVP-0 Fast Lane Goal](docs/goals/mvp0-fast-lane-goal.md) remains a terminal `GOAL_BLOCKED` historical execution record, and the original [end-to-end MVP-0 Goal](docs/goals/end-to-end-demo-mvp0-goal.md) remains historical traceability.
->
-> [DEC-087](docs/decisions/dec-087-mvp0l-terminal-rebaseline-and-pilot-activation.md) amends DEC-084's unfinished L5→L6 continuation and DEC-086's inactive prerequisite. L0–L4 evidence remains preserved. The single [#335](https://github.com/JettxonHo/ai-ecommerce-agent/issues/335) / [PR #336](https://github.com/JettxonHo/ai-ecommerce-agent/pull/336) L5 attempt is terminal `L5_REAL_AI_ACCEPTANCE_FAIL_NO_EXPORTS` at `2210d68ad6e09e1a402dd63b0cd9b2a52cdfe74f`, with no export files; authorization is consumed and no further run is authorized. L6 is `NOT_EXECUTED`, Agent UI is frozen, Issue #341 / PR #342 supplies the merge-effective P0 freeze, Issue #343 / PR #344 supplies merge-effective P1 characterization, Issue #345 / PR #346 supplies merge-effective response-key repair, and Issue #347 / PR #349 supplies merge-effective provider-free P2 readiness. Issue #350 / PR #351 is merge-effective at `main@4e9a57d5c3db77e38d0cc3e9b87151aecbaf1b7a`. Issue #352 / PR #353 is merge-effective at `main@87f5315074bb3858ff09163c38c84b6e1e834577`; Issue #355 records the bounded provider-free control correction without authorizing Pilot execution. See [Session-011](docs/sessions/session-011-mvp0l-terminal-rebaseline.md), [Session-012](docs/sessions/session-012-real-product-to-brief-pilot-p0.md), [Session-013](docs/sessions/session-013-real-product-to-brief-pilot-p1.md), the [P1 harness-repair review](docs/reviews/real-product-to-brief-pilot-p1-harness-repair.md), [P2 readiness review](docs/reviews/real-product-to-brief-pilot-p2-readiness.md), [Session-015](docs/sessions/session-015-real-product-to-brief-pilot-p2-readiness.md), the [P2 operator-binder review](docs/reviews/real-product-to-brief-pilot-p2-operator-binder.md), [Session-016](docs/sessions/session-016-real-product-to-brief-pilot-p2-operator-binder.md), and the [Issue #355 correction review](docs/reviews/real-product-to-brief-pilot-p2-real-p01-execution-control-correction.md).
+## 它和其他"AI 营销文案工具"的区别
 
-> **Issue #355 current truth (pre-merge):** `main@925a0318135784429096ddf30de2a34982c55bc0` is the exact base for the bounded provider-free execution-control correction. The replacement branch is under implementation; no merge or execution authorization is implied. `REAL_P01_INPUT_FILE_READY = YES` reflects the Owner-frozen handoff and was not re-inspected by this implementation. `REAL_P01_PRE_CALL = BLOCKED_BY_EXECUTION_CONTROL_CORRECTION`; `REAL_P01_GRANT = NOT_ISSUED`; `P01_ATTEMPT_EXECUTED = NO`; `P01_RESULT = NOT_EXECUTED`; `Blocker 3 = UNKNOWN_NOT_INSPECTED`; Provider calls, Secret reads/injections, PostgreSQL access, Pilot/participant executions and charge remain zero. After an independently reviewed merge, a fresh exact-main provider-free pre-call is required; the real P01 Grant remains unissued.
+- **失败要诚实**：授权运行失败后按合同终止处置，不静默重试、不换输入重跑——失败记录本身就是资产
+- **试点有合同**：真实验证的入组标准、分母、停止条件全部先冻结再执行，不接受"先跑了再说"
+- **本地优先**：数据不出本机，PostgreSQL 本地持久化，无云端依赖
+
+## 快速开始
+
+前置条件：Docker 与 Docker Compose。
+
+```bash
+docker compose --profile local-web up
+```
+
+启动后在浏览器打开本地工作台地址即可创建任务。详见 `apps/backend/README.md` 与 `apps/web/README.md`。
+
+## 常见问题
+
+**我的商品数据会被上传吗？**
+不会。应用本地优先运行，数据存储在本机 PostgreSQL；模型调用只在受控边界内发生，且需要显式授权。
+
+**支持哪些电商平台？**
+核心流程与平台无关；当前内置小红书 Brief 作为首个平台适配器，Marketing Brief 为平台中性产物。
+
+**为什么没有"一键全自动生成并发布"？**
+这是刻意的产品决策：上新生意决策的错误成本高于效率收益，所以人工审核被设计成流水线的一部分，而不是可跳过的选项。
+
+---
+
+> 以下为产品治理与协作文档（English governance documentation，原文保留不变，从 "## Product" 开始）。协作者入口：一 Issue 一 PR + CI 门禁，独立评审后合并；治理规则、决策记录与当前状态见下方英文区及 `docs/` 目录。
 
 ## Product
 
