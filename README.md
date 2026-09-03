@@ -68,6 +68,8 @@
 | 首次授权真实运行 | 在导出阶段失败，按合同**终止处置**：零静默重试、零输入替换，以决策记录重建基线 |
 | 真实 P01 运行 | 尚未执行，待新一轮授权 |
 
+P01 授权状态（机读口径，与 `docs/handoffs/` 治理记录逐字一致）：`REAL_P01_INPUT_FILE_READY = YES`、`REAL_P01_PRE_CALL = BLOCKED_BY_EXECUTION_CONTROL_CORRECTION`、`REAL_P01_GRANT = NOT_ISSUED`、`Blocker 3 = UNKNOWN_NOT_INSPECTED`。
+
 ## 它和其他"AI 营销文案工具"的区别
 
 - **失败要诚实**：授权运行失败后按合同终止处置，不静默重试、不换输入重跑——失败记录本身就是资产
